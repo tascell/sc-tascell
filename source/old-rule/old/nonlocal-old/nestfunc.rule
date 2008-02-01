@@ -1,0 +1,580 @@
+; 入れ子関数を使ったSC-0(with typeinfo) -> 普通のSC-0(with typeinfo?)
+; "hoist.rule", "type.rule", "tmp.rule" が適用済みであること
+;
+; 入れ子関数の定義は
+; (def (<identifier-list>) (lightweight <type-expression-list>) ...)
+
+;;; 未解決の問題
+;;; *static, const 宣言の変数の扱い
+;;; *lightweight の関数ポインタに mref が適用されたときの扱い
+;;; *局所変数へのポインタを使用していると危険
+
+;;; バグ
+;;; *mainの入れ子関数からmainにはgotoできない。
+
+(Nf0 (,@declaration-list) )
+-> (progn
+     (load "rule/nestfunc-defs.lsp" :verbose nil)
+
+     (let ((*keyword-list* (cons 'lightweight *keyword-list*))
+	   (*used-id-list* (get-all-identifier x))
+	   (*decl-only-list* (sc2sc x "rule/get-decl-only.rule"))
+	   (*frame-alist* nil)
+	   (*current-func* nil))
+       (cons
+	'(include "rule/nestfunc.sh")
+	(let* ((nf1-result (mapcar #'Nf1 declaration-list))
+	       (combined-result
+		(mapcar #'(lambda (x)
+			    (append
+			     (first x) (second x)
+			     (third x) (list (fourth x))))
+			nf1-result)))
+	  (remove nil (apply #'append combined-result))))))
+
+; これ以降, Nf1, Nfb, Nfe の返り値は、
+; (<関数宣言の直前に出すS式のリスト>
+;  <直近のブロックの先頭に出すS式のリスト>
+;  <直前に出すS式のリスト>
+;  <自分自身の変換後のS式>)
+
+;;;;;; declaration ;;;;;;
+;variable (length of init is expected to be 0 or 1)
+(Nf1 (,scs[SCS] ,id[ID] ,texp ,@init) )
+-> (if (string= (par-identifier texp) "__label__")
+       ;; for local-label
+       (progn
+	 ;; フレーム復帰用コードは、あとでlabelのある場所で追加
+	 (push (cons id nil)
+	       (finfo-local-label *current-func*))
+	 (list nil nil nil nil))       
+       (let ((init (if (cdddr x) init nil)))
+	 (add-local id texp :var)
+	 (list nil
+	       `( (,scs ,id ,texp ,@(mapcar #'Nfe-xfp init)) )
+	       nil nil)))
+
+;function(top-level)
+; ・main以外の第一引数にespを追加
+; ・esp,estack(main), new-espの付加。call-idの追加
+; ・入れ子関数(closure-t)を呼ぶ関数ではargpを付加
+; ・復帰処理の挿入
+; ・efp, esp, new-expの初期化;
+; ・関数の引数の保存用変数を付加
+; ・関数の結果の保存用変数を付加 (<- tmp.ruleで)
+; ・フレーム情報構造体を付加して構造体の定義を外に出す
+;   * tmp_esp
+;   * argp
+;   * call_id
+;   * その他ローカル変数
+; ・入れ子関数の定義を外に出して、関数内ではclosure-t型に
+; ・関数呼び出しをwhile( tmp-res = ... ){ <保存>,return,<復帰> } に変える。
+;   mainとその他では{ ... } のとこの処理が違う
+(Nf1 (,scs[SCS] (,fid[ID] ,@id-list[ID]) (fn ,@texp-list) ,@body) )
+-> (let (new-id-list        ;変換後のid-list
+	 new-texp-list      ;変換後のtexp-list
+	 add-decl-list )    ;追加する宣言のリスト
+     ;; main以外では、第一引数の追加
+     (if (eq 'main fid)
+	 (setq new-id-list id-list
+	       new-texp-list (mapcar #'lw2ct texp-list))
+	 (setq new-id-list (cons 'esp id-list)
+	       new-texp-list `(,(car (lw2ct texp-list)) (ptr char)
+			       ,@(mapcar #'lw2ct (cdr texp-list)))))
+     
+     (when *current-func*
+       (add-local fid `(ptr (fn ,@new-texp-list)) :var))
+     
+     (let ((*current-func* (make-finfo :name fid
+				       :ret-type (car texp-list))))
+       ;frame構造体を登録する
+       (get-frame fid)
+       ; 引数をframeに追加
+       (do ((argid id-list (cdr argid))
+	    (argtype (cdr texp-list) (cdr argtype)))
+	   ((or (endp argid) (endp argtype)))
+	 (add-local (car argid) (car argtype) :var))
+       ; 先頭の宣言の追加
+       (if (eq 'main fid)
+	   (progn
+	     (push (add-local 'esp '(ptr char) nil :init 'estack)
+		   add-decl-list)
+	     (push (add-local 'estack `(array char ,*estack-size*) nil)
+		   add-decl-list))
+	   (push (add-local 'esp-flag 'size-t nil 
+			    :init '(bit-and (cast size-t esp) 3))
+		 add-decl-list))
+       (push (add-local 'new-esp '(ptr char) nil) add-decl-list)
+       (push (add-local 'efp `(ptr (struct ,(get-frame-name fid))) nil)
+	     add-decl-list)
+       
+       (let* ((nfb-body (Nfb0 body))
+	      (new-body
+	       (append
+		(apply #'append (mapcar #'second nfb-body))
+		(make-resume *current-func*)
+		(make-init *current-func*)
+		(apply #'append
+		       (mapcar #'(lambda (x)
+				   `(,@(third x) ,(fourth x)))
+			       nfb-body)))))
+	 ; 必要ならargpの宣言を追加
+	 (when (finfo-argp *current-func*)
+	   (push '(def argp (ptr char)) add-decl-list))
+	 (list 
+	  ; 構造体&入れ子関数の定義を外に出す
+	  `(,(make-frame-decl *current-func*)
+	    ,@(apply #'append (mapcar #'first nfb-body)))
+	  ; 新しい関数宣言
+	  `((,scs (,fid ,@new-id-list) (fn ,@new-texp-list)
+	     ,@(append add-decl-list
+		       (remove nil new-body))))
+	  nil nil))))
+
+;;; lightweightの関数宣言
+;;; 引数と返り値の型を変更。
+;;; 代わりに関数の先頭で引数を受け取る処理を書き、
+;;; returnをいじる必要がある。
+(Nf1 (,scs[SCS] (,fid[ID] ,@id-list[ID]) (lightweight ,@texp-list) ,@body) )
+-> (let* ((parent-name (finfo-name *current-func*))
+	  (parent-func *current-func*)
+	  (ext-name  ; 外に出す関数名
+	   (generate-id (string+ `(,(par-identifier fid) "_in_"
+				   ,(par-identifier parent-name)))
+			*used-id-list*))
+	  (int-name  ; フレームに登録する、closure-tの変数の名前
+	   (generate-id (string+ `(,(par-identifier fid) "0")) 
+			*used-id-list*))
+	  (add-decl-list-p nil))
+     ; 入れ子関数リストに追加
+     (push (cons int-name ext-name)
+	   (finfo-nf-list *current-func*))
+     ; 元の入れ子関数の名前 => フレーム中の関数情報へのポインタ
+     (push (add-local fid '(ptr closure-t) :var
+		      :init `(ptr 
+			      (fref
+			       (cast 
+				(ptr (struct ,(get-frame-name parent-name))) 
+				esp)
+			       -> ,int-name)))
+	   add-decl-list-p)
+
+     (let ((*current-func* (make-finfo :name ext-name
+				       :parent-func parent-func
+				       :ret-type (car texp-list)))
+	   (add-decl-list nil)) 
+       ; frame構造体を登録
+       (get-frame ext-name)
+       ; 先頭の宣言を追加
+       (push (add-local 'new-esp '(ptr char) nil) add-decl-list)
+       (push (add-local 'efp `(ptr (struct ,(get-frame-name ext-name))) nil)
+	     add-decl-list)
+       (push (add-local 'xfp
+			`(ptr (struct ,(get-frame-name parent-name)))
+			:var :init 'xfp0)
+	     add-decl-list)
+       (push (add-local 'esp-flag 'size-t nil
+			:init '(bit-and (cast size-t esp) 3))
+	     add-decl-list)
+       (push (add-local 'parmp '(ptr char) nil
+			:init '(cast (ptr char)
+				(bit-xor (cast size-t esp) esp-flag)))
+	     add-decl-list)
+       ; 引数
+       (do ((id0 id-list (cdr id0))
+	    (tp0 (cdr texp-list) (cdr tp0)))
+	   ((endp id0))
+	 (push `(,@(add-local (car id0) (car tp0) :var)
+		 (pop-arg ,(car tp0) parmp))
+	       add-decl-list))
+       ; 返り値
+       (let* ((nfb-body (Nfb0 body))
+	      (new-body
+	       (append
+		(apply #'append (mapcar #'second nfb-body))
+		(make-resume *current-func*)
+		(make-init *current-func*)
+		(apply #'append
+		       (mapcar #'(lambda (x)
+				   `(,@(third x) ,(fourth x)))
+			       nfb-body))
+		(list '(return 0)))))
+	 ; 必要ならargpの宣言を追加
+	 (when (finfo-argp *current-func*)
+	   (push '(def argp (ptr char)) add-decl-list))
+	 (setq add-decl-list (nreverse add-decl-list))
+	 (list
+	  ; 1
+	  `(,(make-frame-decl *current-func*)
+	    ,@(apply #'append (mapcar #'first nfb-body))
+	    ; 外に出す関数宣言
+	    (,scs (,ext-name esp xfp0) (fn (ptr char) (ptr char) (ptr void))
+	     ,@(append add-decl-list (remove nil new-body))))
+	  ; 2
+	  add-decl-list-p
+	  ; 3,4
+	  nil nil))))
+
+;struct, union
+;多分なにもしなくていい
+;このへん、関数内で定義されるとちょっと鬱陶しいことになりそう
+(Nf1 (,dd[DEF-OR-DECL] (,soru[S-OR-U] ,id[ID]) ,@sdeclist) )
+-> (list nil (list x) nil nil)
+     
+;enum
+;なにもしない
+(Nf1 (def (enum ,id[ID]) ,@enum-list) )
+-> (list nil (list x) nil nil)
+
+;deftype (struct)
+;なにもしない
+(Nf1 (deftype ,id[ID] struct ,@sdecllist) )
+-> (list nil (list x) nil nil)
+
+;deftype (enum)
+;なにもしない
+(Nf1 (deftype ,id[ID] enum ,@enum-list) )
+-> (list nil (list x) nil nil)
+
+;deftype
+;なにもしない
+(Nf1 (deftype ,id[ID] ,texp) )
+-> (list nil (list `(deftype ,id ,(lw2ct texp))) nil nil)
+
+(Nf1 ,otherwise)
+-> (error "syntax error at ~s." x)
+
+;;;;;;; bodyの最初の余計なやつを取り除く
+; function-attribute & register-decl
+(Nfb0 (:attr ,atr ,@body) )
+-> `( ,(list nil nil nil ':attr)
+      ,(list nil nil nil atr)
+      ,@(Nfb0 body))
+
+(Nfb0 ((register ,@regarg)   ,@body) )
+-> `( ,(list nil nil nil (car x))
+      ,@(Nfb0 body))
+
+(Nfb0 ,otherwise)
+-> (mapcar #'Nfb x)
+
+;;;;;; body ;;;;;;;
+;begin
+(Nfb (begin ,@body) )
+-> (combine-ret-list (Nfb0 body) '(begin))
+
+;label
+(Nfb (label ,id ,stat) )
+-> (progn
+     ;; 局所ラベルとして宣言済のラベルに対して、
+     ;; 入れ子関数からgotoで脱出してきたとき用の復帰情報を付与
+     (multiple-value-bind (lab-level llab-info)
+	 (find-local-label id *current-func*)
+       (when (and lab-level (= lab-level 0))
+	 (rplacd llab-info (make-frame-resume *current-func*))))       
+     (let ((nfb-stat (Nfb stat)))
+       (list (first nfb-stat) (second nfb-stat)
+	     (cons `(label ,id nil) (third nfb-stat))
+	     (fourth nfb-stat))))
+
+;case (expから外にでるものはないはず)
+(Nfb (case ,exp) )
+-> (list nil nil nil `(case ,(Nfe-xfp exp)))
+
+;default
+(Nfb (default) )
+-> (list nil nil nil '(default))
+
+;if
+(Nfb (if ,exp ,stat1 ,@stat2) )
+-> (let ((nfe-exp (Nfe exp))
+	 (nfb-stat1 (Nfb stat1)))
+     (if (null (setq stat2 (car stat2)))
+	 (list (append (first nfe-exp) (first nfb-stat1))
+	       (append (second nfe-exp) (second nfb-stat1))
+	       (third nfe-exp)
+	       `(if ,(fourth nfe-exp)
+		    (begin ,@(third nfb-stat1) ,(fourth nfb-stat1))))
+       (let ((nfb-stat2 (Nfb stat2)))
+	 (list (append (first nfe-exp) (first nfb-stat1) (first nfb-stat2))
+	       (append (second nfe-exp) (second nfb-stat1) (second nfb-stat2))
+	       (third nfe-exp)
+	       `(if ,(fourth nfe-exp)
+		    (begin ,@(third nfb-stat1) ,(fourth nfb-stat1))
+		  (begin ,@(third nfb-stat2) ,(fourth nfb-stat2)))))))
+
+;switch (exp から外にでるものはないはず)
+(Nfb (switch ,exp ,@body) )
+-> (combine-ret-list (Nfb0 body) `(switch ,(Nfe-xfp exp)))
+
+;do-while (exp から外にでるものはないはず)
+(Nfb (do-while ,exp ,@body) )
+-> (combine-ret-list (Nfb0 body) `(do-while ,(Nfe-xfp exp)))
+
+; goto
+(Nfb (goto ,id))
+-> (multiple-value-bind (lab-level llab-info labnum)
+       (find-local-label id *current-func*)
+     (if (or (null lab-level) (= lab-level 0))
+	 ;; 通常のgoto
+	 (list nil nil nil `(goto ,id))
+	 ;; 親関数にgotoで脱出
+	 (let ((callid-exp `(fref
+			     ,@(apply #'append
+				      (make-list lab-level 
+						 :initial-element '(xfp ->)))
+			     call-id)))
+	   (list nil nil
+		 `( (= ,callid-exp ,(- labnum)) )
+		 '(return (cast (ptr char) 2))))))
+
+;continue, break
+(Nfb (continue) )
+(Nfb (break) )
+-> (list nil nil nil x)
+
+;返り値なしreturn
+(Nfb (return) )
+-> (if (finfo-parent-func *current-func*)
+       (list nil nil nil '(return 0))
+       (list nil nil nil '(return)))
+
+;return (exp から外にでるものはないはず)
+(Nfb (return ,exp) )
+-> (if (finfo-parent-func *current-func*)
+       (list nil nil
+	     `( (= (mref-t ,(finfo-ret-type *current-func*) efp)
+		   ,(Nfe-xfp exp)) )
+	     '(return 0))
+     (list nil nil nil `(return ,(Nfe-xfp exp))))
+
+;null-statement
+(Nfb nil)
+-> (list nil nil nil nil)
+
+;expression-statement or declaration
+(Nfb ,otherwise )
+-> (let ((nfe-x (Nfe x)))
+     (if (eq '$not-expression nfe-x)
+	 (Nf1 x)
+       nfe-x))
+
+;;;;;;; expression (with type-info) ;;;;;;;
+
+; tmp.ruleの変換結果により、callは
+; (the void (call (the ,texp ,exp) ,@exp-list))
+; か、
+; (the ,texp (= (the ,texp ,id) (the ,texp (call (the ,texp ,exp) ,@exp-list)))
+; のどちらかの形で現れるようになっている。
+
+; 通常のfunction-call
+; ・引数の値を保存
+; ・呼び出す関数のポインタも保存
+(Nfe (the ,texp (call (the (fn ,@texp-list) ,exp-f) ,@exp-list)))
+-> (let ((decl-prev-tmpid-list nil)  ; list of (<decl> <prev> <tmpid>)
+	 (id-tmp nil) (type-tmp nil))
+     ;; 関数ポインタ保存
+     (if (simple-exp-p exp-f)
+	 (push `(nil nil ,exp-f) decl-prev-tmpid-list)
+	 (progn
+	   (setq id-tmp (generate-id "tmp_fp" *used-id-list*)
+		 type-tmp `(ptr (fn ,(car texp-list) (ptr char)
+				 ,@(cdr texp-list))))
+	   (push (list (add-local id-tmp type-tmp :tmp)
+		       `(= ,id-tmp ,(Nfe-xfp `(the ,type-tmp ,exp-f)))
+		       id-tmp)
+		 decl-prev-tmpid-list)))
+     ;; 引数保存
+     (dolist (exp exp-list)
+       (if (simple-exp-p (third exp))
+	   (push `(nil nil ,(Nfe-xfp exp)) decl-prev-tmpid-list)
+	   (progn
+	     (setq id-tmp (generate-id "tmp_arg" *used-id-list*)
+		   type-tmp (Nf-gettype exp))
+	     (push (list (add-local id-tmp type-tmp :tmp)
+			 `(= ,id-tmp ,(Nfe-xfp exp))
+			 id-tmp)
+		   decl-prev-tmpid-list))))
+     (setq decl-prev-tmpid-list (nreverse decl-prev-tmpid-list))
+     ;; ここが返り値。かなり面倒なのがわかったのでexpressionには型情報無し。
+     ;; どっちにしてもuntypeしてからbasic.ruleにかけるので。
+     (let* ((decl-list (remove nil (mapcar #'first decl-prev-tmpid-list)))
+	    (prev-list (remove nil (mapcar #'second decl-prev-tmpid-list)))
+	    (tmpid-list (mapcar #'third decl-prev-tmpid-list))
+	    (fcall-exp `(call ,(car tmpid-list) new-esp ,@(cdr tmpid-list)))
+	    (neq-exp `(!= (= (fref efp -> tmp-esp)
+			     (mref-t (ptr char) esp))
+			  0)))
+       (list nil decl-list prev-list
+	     `(while (exps ,fcall-exp ,neq-exp)
+	        ,@(if (eq 'main (finfo-name *current-func*))
+		      ; main 
+		      `((= (mref-t (ptr char) esp) 0)
+			;; フレーム情報保存＆入れ子関数の正規化
+			,@(make-frame-save *current-func*)
+			,@(make-normalize-nf *current-func*)
+			(= new-esp (+ esp 1 (lw-call (fref efp -> tmp-esp)))))
+		    ; main 以外
+		    `(
+		      ; goto先が見つからなくて戻ってきただけ、ではない場合
+		      (if (not (bit-and (cast size-t (fref efp -> tmp-esp))
+					2))
+                        (begin
+			 ; フレーム情報の保存
+			 ,@(make-frame-save *current-func*)
+               		 ; 入れ子関数の正規化
+			 ,@(make-normalize-nf *current-func*)
+		         ; call-idの更新
+			 (= (fref efp -> call-id)
+			    ,(length (finfo-label-list *current-func*)))))
+		      ; return
+		      ,(make-suspend-return *current-func*)
+		      ; 復帰位置
+		      (label 
+		       ,(caar (push 
+			       (cons (generate-id "L_call" *used-id-list*)
+				     (make-frame-resume *current-func*))
+			       (finfo-label-list *current-func*)))
+		       nil)
+		      (= new-esp (+ esp esp-flag))
+		      (= esp-flag 0)
+		      ))
+	        ;; main, main以外共通。
+	        ;;「消すと遅くなる??」の部分
+	        ,@(mapcar
+		   #'(lambda (x)
+		       `(= ,(second x) (fref efp -> ,(second x))))
+		   decl-list)))))
+
+; 関数の返り値を代入している場合
+; callの部分だけをNfeにかけた結果に細工をして返す
+(Nfe (the ,texp0
+	  (= (the ,texp1 ,id)
+	     (the ,texpf (call (the (fn ,@texp-list) ,exp-f) ,@exp-list)))))
+-> (let* ((nfe-call (Nfe (third (third x)))) ;callの部分をNfeにかける
+	  (4th-nfecall (fourth nfe-call)))
+     (unless (and (eq 'while (car 4th-nfecall))
+		  (eq 'exps (first (second 4th-nfecall))))
+       (error "unexpected value of (Nfe ~s)" (third (third x))))
+     (let ((fcall-exp (second (second 4th-nfecall))))
+       (setf (first (second 4th-nfecall)) 'and)
+       (setf (second (second 4th-nfecall))
+	     `(== (= ,(Nfe-xfp `(the ,texp1 ,id)) ,fcall-exp)
+		  (special ,texp0))))
+     nfe-call)
+	  
+; lightweightのfunction-call
+; argpをpush
+; 引数たちもpush
+; フレーム情報の保存、resume後復帰。
+(Nfe (the ,texp (call (the (lightweight ,@texp-list) ,exp-f) ,@exp-list)))
+-> (let ((fp-id nil) (fp-type nil) fp-decl fp-prev
+	 (xfp-exp-f (Nfe-xfp (second (third x)))))
+     ; argpが必要であることを教える。
+     (setf (finfo-argp *current-func*) t)
+     ; 関数ポインタ保存
+     (if (simple-exp-p xfp-exp-f)
+	 (setq fp-id xfp-exp-f
+	       fp-decl nil fp-prev nil)
+	 (progn
+	   (setq fp-id (generate-id "tmp_fp" *used-id-list*)
+		 fp-type (lw2ct `(ptr (lightweight ,@texp-list))))
+	   (setq fp-decl (list (add-local fp-id fp-type nil)))
+	   (setq fp-prev (list `(= ,fp-id ,xfp-exp-f)))))
+     ;; 返り値
+     (list nil fp-decl nil
+	   `(begin
+	     ,@fp-prev
+	     (= argp (aligned-add esp (sizeof (ptr char))))
+	     ; 引数のpush
+	     ,@(mapcar
+		#'(lambda (x)
+		    `(push-arg ,(second x) ,(third x) argp))
+		(reverse exp-list))
+	     ; 入れ子関数へのポインタをargpに置く
+	     (= (mref-t (ptr closure-t) argp) ,fp-id)
+	     ; 入れ子関数の正規化
+	     ,@(make-normalize-nf *current-func*)
+	     ; フレーム情報の保存
+	     ,@(make-frame-save *current-func*)
+	     (= (fref efp -> argp) argp)
+	     (= (fref efp -> tmp-esp) argp)
+	     ; call-idの更新
+	     (= (fref efp -> call-id)
+		,(length (finfo-label-list *current-func*)))
+	     ; return
+	     ,(make-suspend-return *current-func*)
+	     ; 復帰位置
+	     (label ,(caar
+		      (push (cons (generate-id "L_call" *used-id-list*)
+				  (make-frame-resume *current-func*))
+			    (finfo-label-list *current-func*)))
+		    (if (bit-and esp-flag 2)
+			,(if (finfo-parent-func *current-func*)
+			     '(return (cast (ptr char) 2))
+			     `(begin
+			       (= (fref efp -> tmp-esp) (cast (ptr char) 2))
+			       ,(make-suspend-return *current-func*)))))
+	     
+	     )))
+
+
+; 関数の返り値を代入している lightweight
+; callの部分だけをNfeにかけた結果に細工をして返す
+(Nfe (the ,texp0
+	  (= (the ,texp1 ,id)
+	     (the ,texpf (call (the (lightweight ,@texp-list) ,exp-f)
+			       ,@exp-list)))))
+->(let* ((nfe-call (Nfe (third (third x)))) ;callの部分をNfeにかける
+	 (4th-nfecall (fourth nfe-call)))
+    (unless (eq 'begin (car 4th-nfecall))
+      (error "unexpected value of (Nfe ~s)" (third (third x))))
+    ;; whileブロックの最後に関数の返り値を受け取る処理を追加
+    (rplacd (last 4th-nfecall)
+	    (list
+	     `(= ,(Nfe-xfp `(the ,texp1 ,id))
+	       (mref-t ,texp1 (fref efp -> argp)))))
+    nfe-call)
+
+;; type.ruleの変換により、expressionのS式は必ずtheで始まるようになってる
+;; 入れ子関数内では、identifierを親関数のフレーム構造体のメンバ参照に
+;; 変える必要がある。
+(Nfe (the ,@rem))
+-> (list nil nil nil (Nfe-xfp x))
+
+
+(Nfe ,otherwise)
+-> '$not-expression
+
+
+;;; Nfe-xfp: 入れ子関数内における親関数の変数への参照を xfp->id
+;;; の形に置き換える。
+(Nfe-xfp (the ,texp ,id[ID]) )
+-> (let ((ids (par-identifier id)))
+     (labels ((nfe-xfp-tail (cur-func acc)
+		(cond ((null cur-func)
+		       nil)
+		      ((member ids (finfo-var-list cur-func)
+			       :test #'string=
+			       :key #'(lambda (x) (par-identifier (car x))))
+		       acc)
+		      (t
+		       (nfe-xfp-tail (finfo-parent-func cur-func)
+				     `(xfp -> ,@acc))))))
+       (let ((ret (nfe-xfp-tail *current-func* nil)))
+	 (if (eq 'xfp (car ret))
+	     `(fref ,@ret ,id)
+	     id))))
+
+(Nfe-xfp (the ,texp (fref ,exp ,@exp-list)) )
+-> `(the ,texp (fref ,(Nfe-xfp exp) ,@exp-list))
+(Nfe-xfp (the ,texp (,op ,@list)) )
+-> `(the ,texp (,op ,@(mapcar #'Nfe-xfp list)))
+(Nfe-xfp ,otherwise)
+-> otherwise
+
+;;; expression-with-typeinfo からtype-expressionを得る。
+(Nf-gettype (the ,texp ,exp))
+-> texp
+(Nf-gettype ,otherwise)
+-> (error "Nf-gettype: ~s is not expression." x)

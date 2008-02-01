@@ -1,0 +1,10 @@
+(define-ruleset hsc-sc1 (sc1-to-sc0))
+
+(extendrule expression hsc-sc1
+  (#?(new ,expr)
+   ~(new ,(expression expr)))
+  (#?(new-array ,size ,texp ,@initvals)
+   ~(new-array ,(expression! size)
+               ,(type-expression! texp)
+               ,@(mapcar #'expression! initvals)))
+  )

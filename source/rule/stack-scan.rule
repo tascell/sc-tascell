@@ -1,0 +1,198 @@
+;;; stack-scan 
+;;; n 回ごとにスタック情報を出力する．
+;;; 要 type.rule
+
+(defpackage "STACK-SCAN"
+  (:nicknames "STSC")
+  (:export :*current-func* :create-finfo :finfo-arg-list :finfo-lvar-list
+	   :make-nestfunc :push-nestfunc-type :scan-type)
+  (:shadow cl:declaration)
+  (:use "RULE" "CL" "SC-MISC"))
+(in-package "STSC")
+
+(defvar *current-func* nil)
+
+(defstruct (finfo (:constructor create-finfo (name)))
+  (name nil :type symbol)
+  (arg-list (list)  :type list)  ;; list of (<local-id> . <type>)
+  (lvar-list (list) :type list)) ;; list of (<local-id> . <type>)
+
+(defun make-nestfunc (&optional (cfunc *current-func*))
+  (declare (type finfo cfunc))
+  ~(def (,(ruleset-param 'scan1)) ,(scan-ftype)
+    (csym::printf ,(format nil "<~S " (finfo-name cfunc)))
+    ,@(mapcar
+       #'(lambda (id-type &aux (id (car id-type)) (type (cdr id-type)))
+	   ~(csym::printf ,(format nil "~S=0x%x " id) (cast int ,id)))
+       (finfo-arg-list cfunc))
+    (csym::printf ,(format nil ">~%"))
+    ,@(mapcar 
+       #'(lambda (id-type &aux (id (car id-type)) (type (cdr id-type)))
+	   ~(csym::printf ,(format nil "~S=0x%x~%" id) (cast int ,id)))
+       (finfo-lvar-list cfunc))
+    ,(if (eq 'main (finfo-name cfunc))
+	 '(begin
+	   (csym::printf "~%") 
+	   (return))
+	 ~(,(ruleset-param 'scan0)))) )
+
+;;; 関数型に引数を追加
+(defun push-nestfunc-type (texp)
+  (if (and (consp texp)
+	   (or (eq 'fn (car texp))
+	       (eq 'lightweight (car texp))))
+      ~(,(car texp) ,(scan-type) ,@(cdr texp))
+      texp))
+
+;; scan の型
+(defun scan-type (&optional (nf-tag (ruleset-param 'nestfunc-tag)))
+  ~(ptr (,nf-tag void void)))
+(defun scan-ftype (&optional (nf-tag (ruleset-param 'nestfunc-tag)))
+  (second (scan-type nf-tag)))
+
+(in-package "RULE")
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define-ruleset stack-scan (sc2c)
+  (entry 'sc-program)
+  (scan0-name ~scan0)  ; 呼び出し元のスキャン
+  (scan1-name ~scan1)  ; 自分自身のスキャン
+  (nestfunc-tag ~fn)
+  (scan-start ~10)     ; 何回の関数呼び出しごとにscan?
+  (scan-increment ~3)
+  (default-handler #'no-match-error))
+
+
+(defrule sc-program stack-scan
+  ((#?(,@decl-list))
+   (append
+    ~((def count int 0)
+      (def scan-inc int ,(ruleset-param 'scan-increment))
+      (def scan-start int ,(ruleset-param 'scan-start)))
+    (mapcar #'declaration decl-list)) )
+  )
+
+;;;;;;;;;; declaration
+(defrule declaration stack-scan 
+  ;; variable definition / declaration
+  ((#?(,scs[storage-class-specifier] ,id[identifier] ,texp {,init}))
+   (when stsc:*current-func*
+     (push (cons id texp) 
+	   (stsc:finfo-lvar-list stsc:*current-func*)))
+   x)
+  ;; function definition
+  ((#?(,scs[storage-class-specifier] (,func-id ,@arg-id[identifier]) (fn ,func-texp ,@arg-texp) ,@body))
+   (let* ((stsc:*current-func* (stsc:create-finfo func-id)))
+     (mapc #'(lambda (id texp)
+	       (push (cons id texp)
+		     (stsc:finfo-arg-list stsc:*current-func*)))
+	   arg-id arg-texp)
+     (let ((new-body (function-body body)))
+       (if (eq 'main func-id)
+	   ~(,scs (,func-id ,@arg-id) (fn ,func-texp ,@arg-texp) ,@new-body)
+	   ~(,scs
+	     (,func-id ,(ruleset-param 'scan0) ,@arg-id)
+	     (fn ,func-texp ,(stsc:scan-type) ,@arg-texp)
+	     ,@new-body) ))) )
+
+  ((#?(,dd[def-or-decl] (,soru[struct-or-union] ,id[identifier]) ,@sdeclist)
+    #?(def (enum ,id[identifier]) ,@enum-list)
+    #?(deftype ,id[identifier] struclt ,@sdecllist)
+    #?(deftype ,id[identifier] enum ,@enum-list))
+   x)
+  ((#?(deftype ,id[identifier] ,texp))
+   ~(deftype ,id ,(stsc:push-nestfunc-type texp)) )
+  (otherwise
+   (values x 'non-decl) )
+  )
+
+;;;;;;;;;; body
+(defrule function-body stack-scan
+  ((#?(:attr ,atr ,@body))
+   ~(:attr ,atr ,@(function-body body)) )
+  ((#?((register ,@regarg) ,@body))
+   ~((register ,@regarg) ,@(function-body body)) )
+  ((#?())
+   () )
+  ((#?(,@body))
+   (multiple-value-bind (newdecl declp) (declaration (car body))
+     (if (eq 'non-decl declp)
+         ~(,(stsc:make-nestfunc stsc:*current-func*)
+           ,@(mapcar #'statement body))
+         ~(,newdecl ,@(function-body (cdr body))))) )
+  )
+
+;;;;;;;;;; statement
+(defrule statement stack-scan
+  ;; begin
+  ((#?(begin ,@body) )
+   ~(begin ,@(function-body body)) )
+  ;; label
+  ((#?(label ,id ,stat) )
+   ~(label ,id ,(statement stat)) )
+  ;; case
+  ((#?(case ,the-exp) )
+   ~(case ,(the-expression the-exp)) )
+  ;; default
+  ((#?(default))
+   ~(case (default)) )
+  ;; if
+  ((#?(if ,the-exp ,stat1 {,stat2}) )
+   (if (pattern-variable-p 'stat2)
+       ~(if ,(the-expression the-exp) ,(statement stat1) ,(statement stat2))
+       ~(if ,(the-expression the-exp) ,(statement stat1))) )
+  ;; switch (exp から外にでるものはないはず)
+  ((#?(switch ,the-exp ,@body) )
+   ~(switch ,(the-expression the-exp) ,@(function-body body)) )
+  ;; do-while (exp から外にでるものはないはず)
+  ((#?(do-while ,the-exp ,@body) )
+   ~(do-while ,(the-expression the-exp) ,@(function-body body)) )
+  ;; goto, continue, break
+  ((#?(goto ,id)
+    #?(continue) 
+    #?(break) )
+   x)
+  ;; 返り値なしreturn
+  ((#?(return) )
+   x)
+  ;; return 
+  ((#?(return ,the-exp) )
+   ~(return ,(the-expression the-exp)) )
+  ;; null-statement
+  ((#?() )
+   x)
+  ((#?,stat-the-exp)
+   (the-expression stat-the-exp) )
+  )
+
+;;;;;;;;; expression
+(defrule the-expression stack-scan
+  ((#?(the ,texp ,exp))
+   ~(the ,(stsc:push-nestfunc-type texp) ,(expression exp)) )
+  )
+
+(defrule expression stack-scan
+  ((#?(sizeof (the ,texp ,exp)))
+   ~(sizeof ,(the-expression (second x))) )
+  ((#?(sizeof ,texp))
+   x)
+  ((#?(fref ,the-exp ,@fids))
+   ~(fref ,(the-expression the-exp) ,@fids) )
+  ((#?(cast ,texp ,the-exp))
+   ~(cast ,texp ,(the-expression the-exp)))
+  ((#?(call (the ,ftexp ,fexp) ,@the-args))
+   (let ((the-fexp (second x)))
+     (if (and (symbolp fexp)
+	      (eq c2sc:*clang-package* (symbol-package fexp)))
+	 ~(call ,the-fexp ,@(mapcar #'the-expression the-args))
+	 ~(exps
+	   (if-exp (> (+= count scan-inc) scan-start)
+	           (exps (-= count scan-start) (scan1))
+	           0)
+	   ((the ,(stsc:push-nestfunc-type ftexp) ,fexp)
+	    ,(ruleset-param 'scan1)
+	    ,@(mapcar #'the-expression the-args))))) )
+  ((#?(,op ,@the-exps))
+   ~(,op ,@(mapcar #'the-expression the-exps)))
+  (otherwise
+   x)
+  )

@@ -1,0 +1,254 @@
+;;; HSC -> LW-SC （要hoisting, type, temp）
+;; Written by Akinori Tomobayashi (Feb, 2006)
+
+;; 未対応
+;; ・構造体がメンバとして構造体を持つ場合
+
+(scr:require "HSC-DEFS")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(in-package "RULE")
+
+(define-ruleset hsc (sc0t-to-sc0t)
+  (nestfunc-tag ~lightweight))
+
+;;;
+(defrule sc-program hsc
+  (#?,decl-list
+   (with-setup-generate-id
+       (let ((hsc:*nestfunc-tag* (ruleset-param 'nestfunc-tag))
+             (hsc:*sinfo-list* (list))
+             (hsc:*finfo* (hsc:make-finfo))
+             )
+         (splice
+          (list*
+           ~(%defconstant NESTFN ,hsc:*nestfunc-tag*)
+           ~(%include "rule/hsc.sh")    ; needs defined NESTFN
+           (splice (mapcar #'external-declaration! decl-list)))) )))
+  )
+
+(extendrule inlined-declaration hsc
+  ;; function definitions
+  ;; * add a nestfunc definition
+  ;; * add an argument which takes caller's nested function
+  (#?(,scs[storage-class-specifier]
+      (,fname ,@arg-list) (,fntag[function-tag] ,rtype ,@type-list {,va-arg[vaarg-tag]})
+      ,@body)
+     (if (or (cid-p fname) (cid-p fntag)) (list x)   ; csym::なら何もしない
+       (let* ((hsc:*finfo* (hsc:make-finfo :main-p (eq fname ~hsc-main)))
+	      (vaarg-ret (when (pattern-variable-p va-arg) (list (get-retval va-arg))))
+              (rtype-ret (type-expression! rtype))
+              (type-list-ret (mapcar #'type-expression! type-list)))
+         (mapc #'hsc:add-local-variable arg-list type-list-ret)
+         (let ((body-ret (function-body body)))
+	   ~(,scs (,fname scan0 ,@arg-list)
+		  (,fntag ,rtype-ret sht ,.type-list-ret ,.vaarg-ret)
+		  ,@body-ret) ))))
+  ;; struct
+  (#?(def (struct ,sid) ,@sbody)
+   (if (cid-p sid) (list x)
+     (let* ((hsc-sid (generate-id (string+ "hsc_" (symbol-name sid))))
+            (data-sid sid)
+            (smap-id (generate-id (string+ (symbol-name sid) "_map")))
+            (sdesc-id (generate-id (string+ (symbol-name sid) "_desc")))
+            (hsc:*sinfo* (hsc:make-sinfo :id sid
+                                         :hsc-sid hsc-sid
+                                         :data-sid data-sid
+                                         :smap-id smap-id
+                                         :sdesc-id sdesc-id)))
+       (hsc:add-sinfo)
+       (let ((sbody-ret (mapcar #'struct-declaration sbody)))
+         (list
+          'splice
+          ~(def (struct ,data-sid) ,@sbody-ret) ; 元の構造体情報
+          ~(def (struct ,hsc-sid)	; <sid> --> {<type_info>, <ptr to descriptor>, <sid>_data}
+	     (def d desc-t)
+	     (def data (struct ,data-sid)))
+          ~(def ,smap-id (array size-t) ,(hsc:make-struct-map)) ; オブジェクト中の参照の位置
+          ~(def ,sdesc-id descriptor ,(hsc:make-descriptor)) ; 構造体固有の情報(descriptor)
+          )))))
+  ;; union (not featured)
+  (#?(def (union ,sid) ,@sbody)
+   (warn "~S: union not featured in HSC" x)
+   x)
+  ;; variable (array)
+  (#?(,scs[storage-class-specifier] ,id (array ,texp ,@rem) {,init})
+   (when (pattern-variable-p 'init)
+     (warn "Array initializer ~S is ignored." init))
+   (let ((texp-ret (type-expression ~(array ,texp ,@rem))))
+     (hsc:add-local-variable id texp-ret)
+     ~(,scs ,id ,texp-ret 0)))
+  ;; variable (otherwise)
+  (#?(,scs[storage-class-specifier] ,id[identifier] ,texp {,init})
+   ;;ptrならmove対象としてリストに加える。csym::がついていたらmove対象から外す。
+   (if (cid-p id) x
+     (let* ((texp-ret (type-expression texp))
+	    (init-ret (cond ((pattern-variable-p 'init) (list (initializer init)))
+			    ((ref-type-p texp-ret) (list ~0))
+			    (t '()))))
+       (hsc:add-local-variable id texp-ret)
+       ~(,scs ,id ,texp-ret ,@init-ret))))
+  )
+
+;; メンバを*sinfo*に登録
+(defrule struct-declaration hsc
+  (#?(def ,id ,texp)
+   (let ((texp-ret (type-expression texp)))
+     (hsc:add-member id texp-ret)
+     ~(def ,id ,texp-ret))))
+
+;; type-expression
+;; * fn型に第一引数 (入れ子関数sht型)追加
+;; * array -> ptr
+;; * 構造体名を変換
+(defrule type-expression hsc
+  (#?,atom[#'atom]
+   x)
+  (#?(array ,texp ,@size)
+   (when size
+     (warn "Array size ~S is ignored." size))
+   ~(ptr (struct array-object)) )
+  (#?(fn ,rtexp ,@texp-list)
+   ~(fn ,(type-expression rtexp) sht
+        ,@(mapcar #'type-expression texp-list)))
+  (#?(struct ,id)
+   (aif (hsc:find-sinfo id)
+       ~(struct ,(hsc:sinfo-hsc-sid it))
+     (progn
+       (warn "Struct ~S is not defined" id)
+       x)))
+  (otherwise
+   (mapcar #'type-expression x)))
+
+;; texpが参照型かどうかの判定
+(defrule ref-type-p hsc
+  ((#?(ptr ,texp)
+    #?(array ,@rem))
+   t)
+  (otherwise
+   nil))
+
+;; 宣言の最後に一時変数の宣言および入れ子関数の追加
+(defrule function-body hsc
+  (#?({:attr ,f-attr} { ,r-decl[register-declarator] }
+                      ,@bi-list)
+     (let* ((pre (nconc (when (pattern-variable-p 'f-attr)
+                          (list ~(:attr ,(function-attribute f-attr))))
+                        (when (pattern-variable-p 'r-decl)
+                          (list (get-retval 'r-decl)))))
+            (fhead (hsc:function-head-p))
+            (rembody bi-list)
+            (decls (loop for bi in bi-list ; body先頭の宣言部
+                       as ret = (inlined-declaration (car rembody))
+                       until (eq 'rule::no-match ret)
+                       do (pop rembody)
+                       collect ret))
+            (stats (mapcar #'statement! rembody))) ; 残りのstatement部
+       (nconc pre decls
+              (when fhead
+                (nconc (hsc:make-add-decls) ; 一時変数の宣言
+                       (list (hsc:make-nestfunc)))) ; 入れ子関数定義
+              stats)))
+  )
+
+;;; Expressions
+(extendrule expression hsc
+  ;; new(struct)
+  (#?(the ,texp (new (the (struct ,sid) ,exp)))
+   (let* ((sinfo (hsc:find-sinfo sid))
+          (hsc-sid (hsc:sinfo-hsc-sid sinfo))
+          (tmpid (hsc:add-tmp-local-variable
+                  "hsc_tmp_str" ~(ptr (struct ,hsc-sid))))
+          (asize (hsc:sinfo-asize sinfo))
+          (exp-ret (expression! ~(the (struct ,sid) ,exp) )))
+     ~(exps (= ,tmpid (cast (ptr (struct ,hsc-sid)) (getmem scan1 ,asize)))
+            (= (mref ,tmpid) ,exp-ret)
+            ,tmpid)
+     ))
+  ;; new(array)
+  (#?(the ,texp0 (new-array ,size ,el-type0 ,@initvals))
+   (let* ((size-ret (expression! size))
+          (el-type (type-expression! el-type0))
+          (tmpid       (hsc:add-tmp-local-variable
+                        "hsc_tmp_arr" ~(ptr (struct array-object))))
+          (tmpid-len   (hsc:add-tmp-local-variable "hsc_tmp_length" ~int))
+          (tmpid-size (hsc:add-tmp-local-variable "hsc_tmp_size" ~size-t))
+          (tmpid-asize (hsc:add-tmp-local-variable "hsc_tmp_asize" ~size-t))
+          (tmpid-wp    (hsc:add-tmp-local-variable "wp" ~(ptr ,el-type)))
+          (inits-ret (mapcar #'expression! initvals))
+          (type-id (if (ref-type-p el-type)
+                       ~TYPE-REF-ARRAY
+                     ~TYPE-NONREF-ARRAY))
+          (el-size ~(sizeof ,el-type)))
+     ~(exps
+       (= ,tmpid-len ,size-ret)
+       (= ,tmpid-size (+ (sizeof (struct array-object))
+                         (* ,tmpid-len ,el-size)))
+       (= ,tmpid-asize ,(hsc:make-align tmpid-size ~(sizeof align-t)))
+       (= ,tmpid (cast (ptr (struct array-object))
+                       (getmem scan1 ,tmpid-asize)))
+       (= (fref (mref ,tmpid) d) (cast desc-t ,type-id))
+       (= (fref (mref ,tmpid) length) ,tmpid-len)
+       (= (fref (mref ,tmpid) el-size) ,el-size)
+       (= (fref (mref ,tmpid) size) ,tmpid-size)
+       (= (fref (mref ,tmpid) asize) ,tmpid-asize)
+       (= ,tmpid-wp (cast (ptr ,el-type) (fref (mref ,tmpid) body)))
+       ,@(loop for i from 0 to (length (cdr inits-ret))
+             as initval in inits-ret
+             collect ~(= (aref ,tmpid-wp ,i) ,initval))
+       ,tmpid) ))
+  ;; init (struct)
+  (#?(the ,texp (init (struct ,sid[#'hsc:find-sinfo]) ,cmp-init))
+   (let* ((init-ret (compound-initializer! cmp-init))
+          (sinfo (get-retval 'sid))
+          (hsc-sid (hsc:sinfo-hsc-sid sinfo)))
+     ~(the ,texp (init (struct ,hsc-sid)
+                       (struct (cast desc-t
+				     (bit-or TYPE-STRUCT ; type-id (see "hsc.sh")
+					     (cast size-t ; descriptor
+						   (ptr ,(hsc:sinfo-sdesc-id sinfo)))))
+                               ,init-ret) ; もともとのデータ
+                       ))))
+  ;; field reference
+  ;; (struct d data) に変わっているのでdata部を指すように変更
+  (#?(the ,texp (fref ,exp ,@id-list))
+   (let* ((exp-ret (expression! exp))   ; fref第一式
+          (exp-type (second exp-ret)))
+     (aif (and (tagged-p ~struct exp-type)
+               (hsc:find-sinfo (second exp-type)))
+         ~(the ,texp (fref ,exp-ret data ,@id-list))
+       (progn                           ; 未定義または構造体型でない
+         (warn "~S (type of ~S) is not defined as structure"
+               exp-type (third exp))
+         ~(the ,texp (fref ,exp-ret ,@id-list))))))
+  ;; array object: body部を参照するように変更
+  ;; indexがない場合は，Cへの関数渡し用に，単にbodyを参照する
+  (#?(the (array ,texp) (aref ,exp))
+   (let* ((texp-ret (type-expression! texp))
+	  (exp-ret (expression! exp)))
+     ~(cast (ptr ,texp-ret) (fref (mref ,exp-ret) body))))
+  (#?(the ,texp (aref ,exp ,index))
+   (let* ((texp-ret (type-expression! texp))
+	  (exp-ret (expression! exp)))
+     ~(aref (cast (ptr ,texp-ret) (fref (mref ,exp-ret) body))
+            ,index)))
+  (#?(the ,texp (aref ,exp ,@exp-list)) ; exp-list longer than 1
+   (expression! 
+    ~(the ,texp
+          (aref
+           (the (array ,texp) (aref ,exp ,@(butlast exp-list)))
+           (car (last exp-list))))))
+  ;; function call
+  (#?(the ,texp (call (the (ptr (,ftag ,@texp-list)) ,exp)
+                      ,@exp-list))
+     (let ((exp-ret (expression! (second (third x)))) ; call第一式
+           (expl-ret (mapcar #'expression! exp-list)))
+       (if (or (eq 'csym::fn ftag) (cid-p exp))
+           ~(the ,texp (call ,exp-ret ,@expl-ret))
+         ~(the ,texp (call ,exp-ret scan1 ,@expl-ret)))
+       ))
+  ;; cast
+  (#?(the ,texp (cast ,@rem))
+   (warn "~S: Cast expressions are not featured by HSC" x)
+   x)
+  )

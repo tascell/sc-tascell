@@ -1,0 +1,92 @@
+int f (int x) { return x; }
+--> (defun f int ((x int)) (begin (return x)))
+
+int x;
+--> (declare x int)
+
+int x,y;
+--> (declare x y int)
+
+extern int x;
+--> (declare x extern int)
+
+static int x;
+--> (declare x static int)
+
+int x=0;
+--> (declare (x 0) int)
+
+int f (int x){
+  int a;
+  int b=x+1;
+  static c=0;
+  a = b*2;
+  return a + c++;
+}
+-->
+(defun f int ((x int))
+  (begin
+     (declare a int)
+     (declare (b (+ x 1)) int )
+     (declare (c 0) static int )
+     (= a (* b 2))
+     (return (+ a (inc c)))))
+
+int f(int);
+--> (declare f (function int (int)))
+
+extern int f(int);
+--> (declare f extern (function int (int)))
+
+struct s;
+--> ???
+
+struct s{
+  int x,y;
+  double d;
+}
+--> ???
+(deftype s (struct (x y int) (d double)))
+
+typedef struct {
+  int x, y;
+  double d;
+} xyd_t, *xyd_ptr_t;
+-->
+(deftype xyd_t (struct (x y int) ( d double )))
+(deftype xyd_ptr_d (ref xyd_t))
+
+int a[10];
+--> (declare a (array int 10))
+
+int a[5][2];
+--> (declare a (array int 5 2))
+    or (declare a (array (array int 2) 5))
+
+int g(){return a[x][y];}
+--> 
+(defun g int () (begin (return (aref a x y)))
+or --- (--()--(--(return (aref (aref x) y))))
+
+int a1[]={1,2,3};
+--> (declare (a1 (1 2 3)) (array int))
+
+void *(*gg(void *(*ff) (int, int))) (int, int) {
+  return ff;
+}
+--> 
+(defun gg (ref (function (ref void) (int int)))
+	( (ff (ref (function (ref void) (int int)))) )
+  (begin (return ff)))  
+
+typedef void *(*gg_t(void *(*) (int, int))) (int, int) ;
+--> 
+(deftype gg_t (function (ref (function (ref void) (int int)))
+	( (ref (function (ref void) (int int))))))
+
+
+enum { C0, C1 } qq1, qq2;
+--> (declare qq1 qq2 (enum (C0 C1)))
+
+enum abc { A, B, C };
+--> ??? (deftype abc (enum (A B C)))

@@ -1,0 +1,67 @@
+# set xlabel "Depth of Execution Stack (# of calls)"; set ylabel "Elapsed Time [sec]"; set key left top
+# plot "gnuplot-qsort-ibusuki" index 0 using 1:2 ti "C" with points 4, "gnuplot-qsort-ibusuki" index 1 using 1:2 title "GCC", "gnuplot-qsort-ibusuki" index 2 using 1:2 ti "LW-SC" with points 5, "gnuplot-qsort-ibusuki" index 3 using 1:2 ti "XCC" with points 1, "gnuplot-qsort-ibusuki" index 4 using 1:2 ti "CL-SC" with points 3
+# set size 0.56,0.56; set term postscript eps enhanced 
+# set output "qsort-pen.eps"
+0   0.139237
+10  0.142361
+20  0.141920
+30  0.138297
+40  0.145417
+50  0.141145
+60  0.142521
+70  0.142488
+80  0.137693
+90  0.144506
+100 0.140276
+
+
+0   3.438797
+10  3.172059
+20  3.250621
+30  3.277760
+40  3.262741
+50  3.163229
+60  3.265360
+70  3.162923
+80  3.362998
+90  3.262254
+100 3.251791
+
+
+0   3.765347
+10  5.183489
+20  6.786342
+30  8.090642
+40  9.323750
+50  11.076008
+60  12.129853
+70  13.505340
+80  14.953841
+90  16.325048
+100 17.934557
+
+
+0   3.378653
+10  3.450946
+20  3.467944
+30  3.336462
+40  3.429571
+50  3.409007
+60  3.444758
+70  3.415697
+80  3.445694
+90  3.372437
+100 3.511884
+
+
+0   0.185573
+10  0.191582
+20  0.192810
+30  0.187276
+40  0.193099
+50  0.187882
+60  0.186328
+70  0.185514
+80  0.187249
+90  0.192319
+100 0.194307

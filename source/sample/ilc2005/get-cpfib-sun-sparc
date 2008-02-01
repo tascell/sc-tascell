@@ -1,0 +1,30 @@
+#! /bin/sh
+if [ $# -ge 1 ] && [ `which $1` ]
+then
+gcc -v
+$1 -O2 cpfib0.c -DRAWC -o sol-cpfib-c
+$1 -O2 cpfib0.c -o sol-cpfib-gcc
+$1 -O2 cpfib.c nestfunc.c -o sol-cpfib-lw
+LANG=C $HOME/../yasugi/tmp/sparc-sol2.6/n3/bin/gcc -DSUN -DCT=lightweight -O2 cpfib0.c copygc0.c -o sol-cpfib-xcc # XC-cube lightweight
+$1 -O2 cpfib-clos.c -o sol-cpfib-clos
+fi
+
+if [ $# -le 1 ]; then
+ m=1
+else
+ m=$2
+fi
+
+progs="./sol-cpfib-c ./sol-cpfib-gcc ./sol-cpfib-lw ./sol-cpfib-xcc ./sol-cpfib-clos"
+
+arg1=34
+
+for prog in $progs; do
+    i=0
+    echo $prog
+    while [ $i -lt $m ]; do
+	$prog $arg1
+	i=`expr $i + 1`
+    done
+    echo ""
+done

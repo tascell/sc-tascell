@@ -1,0 +1,141 @@
+(define-ruleset temp (sc0t-to-sc0t)
+  (ignore-cfn t)                        ; csymの関数呼出し，csymの関数定義は変形しない
+  )
+
+(scr:require "TEMP-DEFS")
+
+(defrule sc-program temp
+  (#?(,@decl-list)
+   (splice
+    (temp:with-temprule-environment
+        (call-next-rule))) )
+  )
+
+;;; declaration
+(extendrule inlined-declaration temp
+  (#?(,scs[storage-class-specifier]     ; function-definition
+          (,@id-list[identifier]) (,fntag[function-tag] ,@texp-list) ,@body)
+     (error-indent (format nil "In function ~S" (car id-list))
+                   (temp:with-new-block-item 1
+                     (if (and (ruleset-param 'ignore-cfn)
+                              (or (cid-p (car id-list))
+                                  (eq ~csym::fn fntag)))
+                         x
+                       (let* ((body-ret (function-body body)))
+                         (temp:flush-precedents-decl
+                          ~(,scs (,@id-list) (,fntag ,@texp-list) ,@body-ret)
+                          x))))) )
+  (otherwise
+   (temp:with-new-block-item 1
+     (let ((ret (call-next-rule)))
+       (temp:flush-precedents-decl ret x))) )
+  )
+
+;;;;
+
+;; function-attribute & register-decl
+(defrule function-body temp
+  (otherwise
+   (temp:with-new-block
+       (let ((ret (call-next-rule)))
+         (temp:handle-block-tag
+          (nconc (temp:flush-add-decls) ret)) ))))
+
+;;;; statement
+(defrule statement temp
+  ;; do-while
+  (#?(do-while ,exp ,@body)
+   (temp:with-new-block-item 1
+     (let ((exp-ret (expression! exp))
+           (body-ret (function-body! body)))
+       (aif (temp:flush-precedents)
+           (let ((end-label (generate-id "loop_end")))
+             ~(begin
+               (do-while 1
+                 ,.it
+                 (if (the int (not ,exp-ret)) (goto ,end-label))
+                 ,@body-ret)
+               (label ,end-label ())) )
+         ~(do-while ,exp-ret ,@body-ret) ))))
+  ;; statement-expression
+  (#?(the ,@rest)
+   (temp:with-new-block-item 0
+     (let ((ret (expression! x)))
+       (aif (temp:flush-precedents)
+           ~(begin ,.it ,ret)
+         ret))))
+  (otherwise
+   (temp:with-new-block-item 1
+     (let ((ret (call-next-rule)))
+       (aif (temp:flush-precedents)
+           ~(begin ,.it ,ret)
+         ret))))
+  )
+
+;;;;;; expression
+(defrule expression temp
+  ;; if-exp 
+  (#?(the ,texp (if-exp ,exp1 ,exp2 ,exp3))
+   (let* ((void-p (eq ~void texp))
+          (result-id
+           (if void-p nil (generate-id "ifexp_result")))
+          (result-id-exp
+           (if void-p nil ~(the ,texp ,result-id)))
+          (stat
+           (if void-p
+               ~(if ,exp1 ,exp2 ,exp3)
+             ~(if ,exp1
+                  (the ,texp (= ,result-id-exp ,exp2))
+                  (the ,texp (= ,result-id-exp ,exp3))) ))
+          (stat-ret (statement! stat)))
+     (awhen result-id (temp:add-add-decl it texp))
+     (temp:add-precedent stat-ret)
+     (if void-p ~(the int 0) result-id-exp)) )
+  ;; and 
+  (#?(the ,texp (and ,exp1 ,exp2 ,@rem))
+   (if rem (expression! ~(the ,texp (and ,exp1 (the int (and ,exp2 ,@rem)))))
+     (expression!
+      ~(the ,texp (if-exp ,exp1
+                          (the int (if-exp ,exp2 (the int 1) (the int 0)))
+                          (the int 0)))) ))
+  ;; or
+  (#?(the ,texp (or ,exp1 ,exp2 ,@rem))
+   (if rem (expression! ~(the ,texp (or ,exp1 (the int (or ,exp2 ,@rem)))))
+     (expression!
+      ~(the ,texp (if-exp ,exp1
+                          (the int 1)
+                          (the int (if-exp ,exp2 (the int 1) (the int 0)))))) ))
+  ;; call 
+  (#?(the ,texp (call (the ,ftexp ,fexp) ,@arg-list))
+   (temp:with-deeper-subexpression
+       (let ((the-fexp ~(the ,ftexp ,fexp)))
+         (cond
+          ((or (not (temp:subexpression-p))
+               (and (ruleset-param 'ignore-cfn) ; 「csym::fnは無視」オプション
+                    (or (cid-p fexp)
+                        (and (tagged-p ~ptr ftexp)
+                             (tagged-p ~csym::fn (second ftexp))))))
+           ~(the ,texp (call ,@(mapcar #'expression! (cons the-fexp arg-list)))))
+          (t
+           (let* ((void-p (eq ~void texp))
+                  (exps-ret (mapcar #'expression! (cons the-fexp arg-list)))
+                  (call-exp ~(the ,texp (call ,@exps-ret))))
+             (if void-p
+                 (progn
+                   (temp:add-precedent call-exp)
+                   ~(the int 0))
+               (let* ((tmp-id (generate-id "tmp"))
+                      (tmp-exp ~(the ,texp ,tmp-id)))
+                 (temp:add-add-decl tmp-id texp)
+                 (temp:add-precedent ~(the ,texp (= ,tmp-exp ,call-exp)))
+                 tmp-exp)) ))))) )
+  ;; operators
+  ;; もともと (= a (f x)) の形のものは変形しないようにするため
+  ;; with-deeper-subexpressionで被せない
+  (#?(the ,texp (= (the ,idtexp ,id[identifier]) ,exp2))
+   (let ((exp2-ret (expression! exp2))) ; sub-expression でなくてよい
+     ~(the ,texp (= (the ,idtexp ,id) ,exp2-ret))))
+  (otherwise
+   (temp:with-deeper-subexpression
+       (call-next-rule)))
+  )

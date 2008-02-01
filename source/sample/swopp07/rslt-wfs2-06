@@ -1,0 +1,856 @@
+*** Sun OS
+no icc in /export/home/lab4/yasugi/bin /usr/ccs/bin /opt/sfw/bin /usr/local/bin /usr/ucb /usr/games /usr/hosts /usr/etc /usr/lang /usr/sbin /usr/bsd /usr/local/X11R6/bin /usr/bin /usr/bin/X11 /bin /export/home/lab4/yasugi/hira/bin
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+*** warning not output
+rm -f ./bintree-c-sol ./bintree-gcc-sol ./bintree-lw-sol ./bintree-clos-sol ./bintree-xcc-sol ./bintree-xcccl-sol ./bintree-icc-c-sol ./bintree-icc-lw-sol ./bintree-icc-clos-sol
+*** Options=-O2  -mcpu=ultrasparc3 -w
+** GCC=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w bintree0.c copygc0.c -DRAWC -o bintree-c-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w bintree0.c copygc0.c -o bintree-gcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w bintree.c nestfunc.c -o bintree-lw-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w bintree-clos.c nestfunc.c -o bintree-clos-sol
+** XC Cube=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w bintree0.c copygc0.c -DSUN -DCT=lightweight -o bintree-xcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w bintree0.c copygc0.c -DSUN -DCT=closure -o bintree-xcccl-sol
+** Intel C Compiler=icc
+icc -O2 -mcpu=ultrasparc3 -w bintree0.c copygc0.c -DRAWC -o bintree-icc-c-sol
+icc -O2 -mcpu=ultrasparc3 -w bintree.c nestfunc.c -o bintree-icc-lw-sol
+icc -O2 -mcpu=ultrasparc3 -w bintree-clos.c nestfunc.c -o bintree-icc-clos-sol
+*** Iteration=10
+*** GC off
+
+prog: bintree
+machine: wfs2
+exefile: ./bintree-c-sol
+./bintree-c-sol 200000 300000 -1 6400000
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.204903
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.194907
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.203086
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.185322
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.200063
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.182230
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.190705
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.183546
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.192385
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.183489
+
+exefile: ./bintree-gcc-sol
+./bintree-gcc-sol 200000 300000 -1 6400000
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.224728
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.224054
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.230298
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.230067
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.231505
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.223168
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.230221
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.223084
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.230011
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.223272
+
+exefile: ./bintree-lw-sol
+./bintree-lw-sol 200000 300000 -1 6400000
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.192402
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.182680
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.192084
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.184407
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.192604
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.187305
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.191428
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.186491
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.190546
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.198491
+
+exefile: ./bintree-clos-sol
+./bintree-clos-sol 200000 300000 -1 6400000
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.238326
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.236079
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.233735
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.223506
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.226367
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.223520
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.237328
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.222887
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.242857
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.222717
+
+exefile: ./bintree-xcc-sol
+./bintree-xcc-sol 200000 300000 -1 6400000
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.185056
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.184393
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.183890
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.182892
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.183789
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.183272
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.183275
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.183160
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.183081
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.183279
+
+exefile: ./bintree-xcccl-sol
+./bintree-xcccl-sol 200000 300000 -1 6400000
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.218467
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.214793
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.214732
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.214811
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.214604
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.214470
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.214589
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.214778
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.214822
+lwp: 1, p: 0
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+time: 0.214702
+
+exefile: ./bintree-icc-c-sol
+*** There is no "./bintree-icc-c-sol" executable!
+
+exefile: ./bintree-icc-lw-sol
+*** There is no "./bintree-icc-lw-sol" executable!
+
+exefile: ./bintree-icc-clos-sol
+*** There is no "./bintree-icc-clos-sol" executable!
+
+*** Sun OS
+no icc in /export/home/lab4/yasugi/bin /usr/ccs/bin /opt/sfw/bin /usr/local/bin /usr/ucb /usr/games /usr/hosts /usr/etc /usr/lang /usr/sbin /usr/bsd /usr/local/X11R6/bin /usr/bin /usr/bin/X11 /bin /export/home/lab4/yasugi/hira/bin
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+*** warning not output
+rm -f ./bin2list-c-sol ./bin2list-gcc-sol ./bin2list-lw-sol ./bin2list-clos-sol ./bin2list-xcc-sol ./bin2list-xcccl-sol ./bin2list-icc-c-sol ./bin2list-icc-lw-sol ./bin2list-icc-clos-sol
+*** Options=-O2  -mcpu=ultrasparc3 -w
+** GCC=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w bin2list0.c copygc0.c -DRAWC -o bin2list-c-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w bin2list0.c copygc0.c -o bin2list-gcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w bin2list.c nestfunc.c -o bin2list-lw-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w bin2list-clos.c nestfunc.c -o bin2list-clos-sol
+** XC Cube=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w bin2list0.c copygc0.c -DSUN -DCT=lightweight -o bin2list-xcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w bin2list0.c copygc0.c -DSUN -DCT=closure -o bin2list-xcccl-sol
+** Intel C Compiler=icc
+icc -O2 -mcpu=ultrasparc3 -w bin2list0.c copygc0.c -DRAWC -o bin2list-icc-c-sol
+icc -O2 -mcpu=ultrasparc3 -w bin2list.c nestfunc.c -o bin2list-icc-lw-sol
+icc -O2 -mcpu=ultrasparc3 -w bin2list-clos.c nestfunc.c -o bin2list-icc-clos-sol
+*** Iteration=10
+*** GC off
+*** Tosize=51200000
+
+prog: bin2list
+machine: wfs2
+exefile: ./bin2list-c-sol
+./bin2list-c-sol 500000 1 -1 51200000
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.295270
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.287150
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.295909
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.305601
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.294692
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.286349
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.304152
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.287640
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.302688
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.297683
+
+exefile: ./bin2list-gcc-sol
+./bin2list-gcc-sol 500000 1 -1 51200000
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.335443
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.339133
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.329981
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.319377
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.321689
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.335991
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.328754
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.327306
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.323010
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.342824
+
+exefile: ./bin2list-lw-sol
+./bin2list-lw-sol 500000 1 -1 51200000
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.302375
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.311084
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.296644
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.314483
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.307357
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.304743
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.310105
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.310991
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.301770
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.316143
+
+exefile: ./bin2list-clos-sol
+./bin2list-clos-sol 500000 1 -1 51200000
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.318058
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.306001
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.318303
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.320623
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.319194
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.320219
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.321890
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.307466
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.307923
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.314664
+
+exefile: ./bin2list-xcc-sol
+./bin2list-xcc-sol 500000 1 -1 51200000
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.293697
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.292687
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.293520
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.293580
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.292436
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.293677
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.292468
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.291934
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.293444
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.293129
+
+exefile: ./bin2list-xcccl-sol
+./bin2list-xcccl-sol 500000 1 -1 51200000
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.294436
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.294397
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.294129
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.293314
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.295076
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.294701
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.294369
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.294207
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.293946
+lwp: 1, p: 0
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+time: 0.294556
+
+exefile: ./bin2list-icc-c-sol
+*** There is no "./bin2list-icc-c-sol" executable!
+
+exefile: ./bin2list-icc-lw-sol
+*** There is no "./bin2list-icc-lw-sol" executable!
+
+exefile: ./bin2list-icc-clos-sol
+*** There is no "./bin2list-icc-clos-sol" executable!
+
+*** Sun OS
+no icc in /export/home/lab4/yasugi/bin /usr/ccs/bin /opt/sfw/bin /usr/local/bin /usr/ucb /usr/games /usr/hosts /usr/etc /usr/lang /usr/sbin /usr/bsd /usr/local/X11R6/bin /usr/bin /usr/bin/X11 /bin /export/home/lab4/yasugi/hira/bin
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+*** warning not output
+rm -f ./cpfib-c-sol ./cpfib-gcc-sol ./cpfib-lw-sol ./cpfib-clos-sol ./cpfib-xcc-sol ./cpfib-xcccl-sol ./cpfib-icc-c-sol ./cpfib-icc-lw-sol ./cpfib-icc-clos-sol
+*** Options=-O2  -mcpu=ultrasparc3 -w
+** GCC=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w cpfib0.c -DRAWC -o cpfib-c-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w cpfib0.c -o cpfib-gcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w cpfib.c nestfunc.c -o cpfib-lw-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w cpfib-clos.c -o cpfib-clos-sol
+** XC Cube=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w cpfib0.c copygc0.c -DSUN -DCT=lightweight -o cpfib-xcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w cpfib0.c copygc0.c -DSUN -DCT=closure -o cpfib-xcccl-sol
+** Intel C Compiler=icc
+icc -O2 -mcpu=ultrasparc3 -w cpfib0.c -DRAWC -o cpfib-icc-c-sol
+icc -O2 -mcpu=ultrasparc3 -w cpfib.c nestfunc.c -o cpfib-icc-lw-sol
+icc -O2 -mcpu=ultrasparc3 -w cpfib-clos.c -o cpfib-icc-clos-sol
+*** Iteration=10
+*** N=37
+
+prog: cpfib
+machine: wfs2
+exefile: ./cpfib-c-sol
+./cpfib-c-sol 37
+time: 0.888017
+time: 0.886882
+time: 0.887034
+time: 0.887416
+time: 0.888549
+time: 0.888930
+time: 0.888159
+time: 0.889567
+time: 0.887592
+time: 0.886923
+
+exefile: ./cpfib-gcc-sol
+./cpfib-gcc-sol 37
+time: 3.886184
+time: 3.871861
+time: 3.859738
+time: 3.865792
+time: 3.870404
+time: 3.886804
+time: 3.884189
+time: 3.888214
+time: 3.867247
+time: 3.882721
+
+exefile: ./cpfib-lw-sol
+./cpfib-lw-sol 37
+time: 1.126086
+time: 1.125015
+time: 1.128281
+time: 1.127225
+time: 1.125721
+time: 1.125067
+time: 1.126698
+time: 1.129425
+time: 1.126706
+time: 1.124879
+
+exefile: ./cpfib-clos-sol
+./cpfib-clos-sol 37
+time: 1.326019
+time: 1.327486
+time: 1.333795
+time: 1.327291
+time: 1.328013
+time: 1.325595
+time: 1.327715
+time: 1.327895
+time: 1.327177
+time: 1.326857
+
+exefile: ./cpfib-xcc-sol
+./cpfib-xcc-sol 37
+lwp: 1, p: 0
+time: 0.990597
+lwp: 1, p: 0
+time: 0.993438
+lwp: 1, p: 0
+time: 0.991073
+lwp: 1, p: 0
+time: 0.990229
+lwp: 1, p: 0
+time: 0.990329
+lwp: 1, p: 0
+time: 0.990218
+lwp: 1, p: 0
+time: 0.990748
+lwp: 1, p: 0
+time: 0.990043
+lwp: 1, p: 0
+time: 0.990683
+lwp: 1, p: 0
+time: 0.990276
+
+exefile: ./cpfib-xcccl-sol
+./cpfib-xcccl-sol 37
+lwp: 1, p: 0
+time: 1.386255
+lwp: 1, p: 0
+time: 1.386474
+lwp: 1, p: 0
+time: 1.386696
+lwp: 1, p: 0
+time: 1.387029
+lwp: 1, p: 0
+time: 1.386472
+lwp: 1, p: 0
+time: 1.386302
+lwp: 1, p: 0
+time: 1.386083
+lwp: 1, p: 0
+time: 1.386565
+lwp: 1, p: 0
+time: 1.386710
+lwp: 1, p: 0
+time: 1.386491
+
+exefile: ./cpfib-icc-c-sol
+*** There is no "./cpfib-icc-c-sol" executable!
+
+exefile: ./cpfib-icc-lw-sol
+*** There is no "./cpfib-icc-lw-sol" executable!
+
+exefile: ./cpfib-icc-clos-sol
+*** There is no "./cpfib-icc-clos-sol" executable!
+
+*** Sun OS
+no icc in /export/home/lab4/yasugi/bin /usr/ccs/bin /opt/sfw/bin /usr/local/bin /usr/ucb /usr/games /usr/hosts /usr/etc /usr/lang /usr/sbin /usr/bsd /usr/local/X11R6/bin /usr/bin /usr/bin/X11 /bin /export/home/lab4/yasugi/hira/bin
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+*** warning not output
+rm -f ./nqueen-c-sol ./nqueen-gcc-sol ./nqueen-lw-sol ./nqueen-clos-sol ./nqueen-xcc-sol ./nqueen-xcccl-sol ./nqueen-icc-c-sol ./nqueen-icc-lw-sol ./nqueen-icc-clos-sol
+*** Options=-O2  -mcpu=ultrasparc3 -w
+** GCC=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w nqueen-c.c -lm -DNOXCC -o nqueen-c-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w nqueen-gcc.c -lm -DNOXCC -o nqueen-gcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w nqueen.c nestfunc.c -lm -DNOXCC -o nqueen-lw-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w nqueen-clos.c nestfunc.c -lm -DNOXCC -o nqueen-clos-sol
+** XC Cube=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w nqueen-xcc.c -lm systhr-sparc.o -lthread -DCT=lightweight -DNOXCC -o nqueen-xcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w nqueen-xcc.c -lm systhr-sparc.o -lthread -DCT=closure -DNOXCC -o nqueen-xcccl-sol
+** Intel C Compiler=icc
+icc -O2 -mcpu=ultrasparc3 -w nqueen-c.c -lm -DNOXCC -o nqueen-icc-c-sol
+icc -O2 -mcpu=ultrasparc3 -w nqueen.c nestfunc.c -lm -DNOXCC -o nqueen-icc-lw-sol
+icc -O2 -mcpu=ultrasparc3 -w nqueen-clos.c nestfunc.c -lm -DNOXCC -o nqueen-icc-clos-sol
+*** Iteration=10
+*** N of queens=13
+
+prog: nqueen
+machine: wfs2
+exefile: ./nqueen-c-sol
+./nqueen-c-sol 1 13
+time: 0.471421
+time: 0.472157
+time: 0.472216
+time: 0.472135
+time: 0.472300
+time: 0.471451
+time: 0.471825
+time: 0.471461
+time: 0.471427
+time: 0.471369
+
+exefile: ./nqueen-gcc-sol
+./nqueen-gcc-sol 1 13
+time: 0.934628
+time: 0.934770
+time: 0.935858
+time: 0.934895
+time: 0.935170
+time: 0.934745
+time: 0.934744
+time: 0.934852
+time: 0.936380
+time: 0.935643
+
+exefile: ./nqueen-lw-sol
+./nqueen-lw-sol 1 13
+time: 0.589978
+time: 0.589067
+time: 0.588893
+time: 0.589186
+time: 0.589993
+time: 0.589379
+time: 0.589496
+time: 0.592778
+time: 0.588802
+time: 0.589488
+
+exefile: ./nqueen-clos-sol
+./nqueen-clos-sol 1 13
+time: 0.958911
+time: 0.957646
+time: 0.957467
+time: 0.958437
+time: 0.956910
+time: 0.957526
+time: 0.957956
+time: 0.958356
+time: 0.957870
+time: 0.957811
+
+exefile: ./nqueen-xcc-sol
+./nqueen-xcc-sol 1 13
+time: 0.570025
+time: 0.570055
+time: 0.569984
+time: 0.569746
+time: 0.569872
+time: 0.570524
+time: 0.570195
+time: 0.569804
+time: 0.570190
+time: 0.569393
+
+exefile: ./nqueen-xcccl-sol
+./nqueen-xcccl-sol 1 13
+time: 0.747070
+time: 0.747390
+time: 0.746945
+time: 0.747128
+time: 0.747943
+time: 0.747956
+time: 0.746841
+time: 0.747447
+time: 0.749932
+time: 0.747209
+
+exefile: ./nqueen-icc-c-sol
+*** There is no "./nqueen-icc-c-sol" executable!
+
+exefile: ./nqueen-icc-lw-sol
+*** There is no "./nqueen-icc-lw-sol" executable!
+
+exefile: ./nqueen-icc-clos-sol
+*** There is no "./nqueen-icc-clos-sol" executable!
+
+*** Sun OS
+no icc in /export/home/lab4/yasugi/bin /usr/ccs/bin /opt/sfw/bin /usr/local/bin /usr/ucb /usr/games /usr/hosts /usr/etc /usr/lang /usr/sbin /usr/bsd /usr/local/X11R6/bin /usr/bin /usr/bin/X11 /bin /export/home/lab4/yasugi/hira/bin
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+*** warning not output
+rm -f ./qsort-c-sol ./qsort-gcc-sol ./qsort-lw-sol ./qsort-clos-sol ./qsort-xcc-sol ./qsort-xcccl-sol ./qsort-icc-c-sol ./qsort-icc-lw-sol ./qsort-icc-clos-sol
+*** Options=-O2  -mcpu=ultrasparc3 -w
+** GCC=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w qsort-c.c -o qsort-c-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w qsort-gcc.c -o qsort-gcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w qsort.c nestfunc.c -o qsort-lw-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w qsort-clos.c nestfunc.c -o qsort-clos-sol
+** XC Cube=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w qsort-gcc.c -DSOL -DCT=lightweight -o qsort-xcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n7/bin/gcc -O2 -mcpu=ultrasparc3 -w qsort-gcc.c -DSOL -DCT=closure -o qsort-xcccl-sol
+** Intel C Compiler=icc
+icc -O2 -mcpu=ultrasparc3 -w qsort-c.c -o qsort-icc-c-sol
+icc -O2 -mcpu=ultrasparc3 -w qsort.c nestfunc.c -o qsort-icc-lw-sol
+icc -O2 -mcpu=ultrasparc3 -w qsort-clos.c nestfunc.c -o qsort-icc-clos-sol
+*** Iteration=10
+*** N=200000
+
+prog: qsort
+machine: wfs2
+exefile: ./qsort-c-sol
+./qsort-c-sol 200000 200000
+time: 0.417465
+time: 0.418546
+time: 0.417663
+time: 0.419204
+time: 0.417482
+time: 0.417461
+time: 0.417989
+time: 0.419419
+time: 0.417343
+time: 0.417048
+
+exefile: ./qsort-gcc-sol
+./qsort-gcc-sol 200000 200000
+time: 0.459464
+time: 0.457805
+time: 0.461345
+time: 0.459417
+time: 0.460542
+time: 0.457592
+time: 0.457364
+time: 0.458024
+time: 0.459000
+time: 0.457734
+
+exefile: ./qsort-lw-sol
+./qsort-lw-sol 200000 200000
+time: 6.712415
+time: 6.709695
+time: 6.706848
+time: 6.709505
+time: 6.714089
+time: 6.710035
+time: 6.711561
+time: 6.713154
+time: 6.710797
+time: 6.706711
+
+exefile: ./qsort-clos-sol
+./qsort-clos-sol 200000 200000
+time: 0.527288
+time: 0.527012
+time: 0.528206
+time: 0.528470
+time: 0.527907
+time: 0.528616
+time: 0.528027
+time: 0.528978
+time: 0.529013
+time: 0.527974
+
+exefile: ./qsort-xcc-sol
+./qsort-xcc-sol 200000 200000
+time: 5.333770
+time: 5.330450
+time: 5.333702
+time: 5.335410
+time: 5.337541
+time: 5.332311
+time: 5.334156
+time: 5.332276
+time: 5.335050
+time: 5.337451
+
+exefile: ./qsort-xcccl-sol
+./qsort-xcccl-sol 200000 200000
+time: 0.434629
+time: 0.433229
+time: 0.432099
+time: 0.432256
+time: 0.431896
+time: 0.432422
+time: 0.432976
+time: 0.435177
+time: 0.434883
+time: 0.433785
+
+exefile: ./qsort-icc-c-sol
+*** There is no "./qsort-icc-c-sol" executable!
+
+exefile: ./qsort-icc-lw-sol
+*** There is no "./qsort-icc-lw-sol" executable!
+
+exefile: ./qsort-icc-clos-sol
+*** There is no "./qsort-icc-clos-sol" executable!
+

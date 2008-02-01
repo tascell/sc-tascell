@@ -1,0 +1,11 @@
+CtoSC を使えるようにするための手順
+
+1. mcpp/mcpp-2.4.1/ 上で configure, make する．
+2. sc2c/source/c2sc-parser.lsp の 下のほうにある
+   *cpp-command* の値を，実際に "mcpp/mcpp-2.4.1/src/c2sc_cpp" がある場所に
+   設定．
+3. mcpp/mcpp-2.4.1/src/c2sc_cpp 内の
+   C2SCPP の値を適切なディレクトリに設定
+4. SC で (%cinclude "stdio.h") などとする．
+   CtoSC だけ試したいときは，SC処理系を起動させたあと，
+   (c2sc <Cファイル名>) とすればいいです．

@@ -1,0 +1,84 @@
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.250397 gc=0.000000 other=0.250397
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.258175 gc=0.000000 other=0.258175
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.249618 gc=0.000000 other=0.249618
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.252928 gc=0.000000 other=0.252928
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.252862 gc=0.000000 other=0.252862
+
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.334847 gc=0.000000 other=0.334847
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.335453 gc=0.000000 other=0.335453
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.334696 gc=0.000000 other=0.334696
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.334564 gc=0.000000 other=0.334564
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.335329 gc=0.000000 other=0.335329
+
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.268864 gc=0.000000 other=0.268864
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.269227 gc=0.000000 other=0.269227
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.268960 gc=0.000000 other=0.268960
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.271323 gc=0.000000 other=0.271323
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.268739 gc=0.000000 other=0.268739
+
+lwp: 1, p: 2
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.270030 gc=0.000000 other=0.270030
+lwp: 1, p: 2
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.269579 gc=0.000000 other=0.269579
+lwp: 1, p: 2
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.270600 gc=0.000000 other=0.270600
+lwp: 1, p: 2
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.270603 gc=0.000000 other=0.270603
+lwp: 1, p: 2
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.272320 gc=0.000000 other=0.272320
+
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.344407 gc=0.000000 other=0.344407
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.349706 gc=0.000000 other=0.349706
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.345485 gc=0.000000 other=0.345485
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.344597 gc=0.000000 other=0.344597
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.344871 gc=0.000000 other=0.344871

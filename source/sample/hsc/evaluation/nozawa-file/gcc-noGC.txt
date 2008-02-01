@@ -1,0 +1,55 @@
+/////nozawa-GCC-notGC-bintree
+tomoba@nozawa$ ./bintree-gccnest.out 200000
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+total=0.145477 gc=0.000000 other=0.145477
+total=0.145726 gc=0.000000 other=0.145726
+total=0.146059 gc=0.000000 other=0.146059
+total=0.146673 gc=0.000000 other=0.146673
+total=0.147811 gc=0.000000 other=0.147811
+total=0.147938 gc=0.000000 other=0.147938
+total=0.148521 gc=0.000000 other=0.148521
+total=0.150145 gc=0.000000 other=0.150145
+total=0.150940 gc=0.000000 other=0.150940
+-> total=0.147811 gc=0.000000 other=0.147811
+
+------
+total=0.149201 gc=0.000000 other=0.149201
+-----
+
+/////nozawa-GCC-notGC-bin2list
+tomoba@nozawa$ ./bin2list-gccnest.out 160000 300000 0 10485760
+tosize=10485760, stack=1310720, limit=32
+Bintree=20, maxins=160000, maxsearch=300000
+total=0.045888 gc=0.000000 other=0.045888
+total=0.045904 gc=0.000000 other=0.045904
+total=0.045910 gc=0.000000 other=0.045910
+total=0.045928 gc=0.000000 other=0.045928
+total=0.045940 gc=0.000000 other=0.045940
+total=0.045950 gc=0.000000 other=0.045950
+total=0.046030 gc=0.000000 other=0.046030
+total=0.046048 gc=0.000000 other=0.046048
+total=0.046252 gc=0.000000 other=0.046252
+-> total=0.045940 gc=0.000000 other=0.045940
+
+
+
+tomoba@nozawa$ gcc -O2 bintree-gccnest-notGC.c           ~/sc/source/gc-sample/evaluation/nozawa-file:[56]$
+tomoba@nozawa$ ./a.out                                   ~/sc/source/gc-sample/evaluation/nozawa-file:[57]$
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=100000, maxsearch=300000
+total=0.169824 gc=0.000000 other=0.169824
+total=0.171713 gc=0.000000 other=0.171713
+total=0.172031 gc=0.000000 other=0.172031
+total=0.172126 gc=0.000000 other=0.172126
+total=0.172146 gc=0.000000 other=0.172146
+total=0.173032 gc=0.000000 other=0.173032
+total=0.173717 gc=0.000000 other=0.173717
+total=0.174315 gc=0.000000 other=0.174315
+total=0.174462 gc=0.000000 other=0.174462
+
+
+
+
+
+

@@ -1,0 +1,4340 @@
+(%defconstant i386 (c-exp "1"))
+(%defconstant unix (c-exp "1"))
+(%defconstant __i386 (c-exp "1"))
+(%defconstant __i386__ (c-exp "1"))
+(%defconstant __unix (c-exp "1"))
+(%defconstant __unix__ (c-exp "1"))
+(%defconstant __@F@ree@BSD__ (c-exp "1"))
+(%defconstant __@GNUC__ (c-exp "3"))
+(%defconstant __@GNUC_MINOR__ (c-exp "3"))
+(%defconstant __@SIZE_TYPE__ (c-exp "unsigned int"))
+(%defconstant __@PTRDIFF_TYPE__ (c-exp "int"))
+(%defconstant __@WCHAR_TYPE__ (c-exp "int"))
+(%defconstant __@GNUG__ (c-exp "3"))
+(%defconstant __@LINE__ (c-exp "-1234567890"))
+(%defconstant __@FILE__ (c-exp ""))
+(%defconstant __@DATE__ (c-exp "\"Oct 26 2004\""))
+(%defconstant __@TIME__ (c-exp "\"09:58:32\""))
+(%defconstant __@STDC__ (c-exp "1"))
+(%defconstant __@STDC_HOSTED__ (c-exp "1"))
+(%defconstant __@MCPP (c-exp "2"))
+(%undef i386)
+(%undef unix)
+(%undef __@GNUG__)
+(%line 1 "/home/lab4/hiraisi/c_parser/c_parser.c")
+(%line 1 "/usr/include/assert.h")
+(%line 1 "/usr/include/sys/cdefs.h")
+(%defconstant _@SYS_CDEFS_H_ (c-exp ""))
+(%defconstant __@BEGIN_DECLS (c-exp ""))
+(%defconstant __@END_DECLS (c-exp ""))
+(%defmacro __@GNUC_PREREQ__ (&rest $args) `(c-exp "(__GNUC__ > (~a ) || __GNUC__ == (~a ) && __GNUC_MINOR__ >= (~a ))" ,(lisp:nth 0 $args) ,(lisp:nth 0 $args) ,(lisp:nth 1 $args) ))
+(%defmacro __@P (&rest $args) `(c-exp "~a " ,(lisp:nth 0 $args) ))
+(%defmacro __@CONCAT1 (&rest $args) `(c-exp "~a~a " ,(lisp:nth 0 $args) ,(lisp:nth 1 $args) ))
+(%defmacro __@CONCAT (&rest $args) `(c-exp "__CONCAT1(~a ,~a )" ,(lisp:nth 0 $args) ,(lisp:nth 1 $args) ))
+(%defmacro __@STRING (&rest $args) `(c-exp "_C2SC_STRINGIZE(~a) " ,(lisp:nth 0 $args) ))
+(%defmacro __@XSTRING (&rest $args) `(c-exp "__STRING(~a )" ,(lisp:nth 0 $args) ))
+(%defconstant __const (c-exp "const"))
+(%defconstant __signed (c-exp "signed"))
+(%defconstant __volatile (c-exp "volatile"))
+(%defconstant __dead2 (c-exp "__attribute__((__noreturn__))"))
+(%defconstant __pure2 (c-exp "__attribute__((__const__))"))
+(%defconstant __unused (c-exp "__attribute__((__unused__))"))
+(%defconstant __packed (c-exp "__attribute__((__packed__))"))
+(%defmacro __aligned (&rest $args) `(c-exp "__attribute__((__aligned__(~a )))" ,(lisp:nth 0 $args) ))
+(%defmacro __section (&rest $args) `(c-exp "__attribute__((__section__(~a )))" ,(lisp:nth 0 $args) ))
+(%defconstant __always_inline (c-exp "__attribute__((__always_inline__))"))
+(%defmacro __nonnull (&rest $args) `(c-exp "__attribute__((__nonnull__(~a )))" ,(lisp:nth 0 $args) ))
+(%defconstant __@LONG_LONG_SUPPORTED (c-exp ""))
+(%defconstant __restrict (c-exp ""))
+(%defmacro __predict_true (&rest $args) `(c-exp "__builtin_expect((~a ), 1)" ,(lisp:nth 0 $args) ))
+(%defmacro __predict_false (&rest $args) `(c-exp "__builtin_expect((~a ), 0)" ,(lisp:nth 0 $args) ))
+(%defmacro __offsetof (&rest $args) `(c-exp "((size_t)(&((~a  *)0)->~a ))" ,(lisp:nth 0 $args) ,(lisp:nth 1 $args) ))
+(%defmacro __printflike (&rest $args) `(c-exp "__attribute__((__format__ (__printf__, ~a , ~a )))" ,(lisp:nth 0 $args) ,(lisp:nth 1 $args) ))
+(%defmacro __scanflike (&rest $args) `(c-exp "__attribute__((__format__ (__scanf__, ~a , ~a )))" ,(lisp:nth 0 $args) ,(lisp:nth 1 $args) ))
+(%defmacro __printf0like (&rest $args) `(c-exp "" ))
+(%defmacro __strong_reference (&rest $args) `(c-exp "extern __typeof (~a ) ~a  __attribute__ ((__alias__ (_C2SC_STRINGIZE(~a) )));" ,(lisp:nth 0 $args) ,(lisp:nth 1 $args) ,(lisp:nth 0 $args) ))
+(%defmacro __weak_reference (&rest $args) `(c-exp "__asm__(\".weak \" _C2SC_STRINGIZE(~a) ); __asm__(\".equ \" _C2SC_STRINGIZE(~a)  \", \" _C2SC_STRINGIZE(~a) )" ,(lisp:nth 1 $args) ,(lisp:nth 1 $args) ,(lisp:nth 0 $args) ))
+(%defmacro __warn_references (&rest $args) `(c-exp "__asm__(\".section .gnu.warning.\" _C2SC_STRINGIZE(~a) ); __asm__(\".asciz \\\"\" ~a  \"\\\"\"); __asm__(\".previous\")" ,(lisp:nth 0 $args) ,(lisp:nth 1 $args) ))
+(%defmacro __@IDSTRING (&rest $args) `(c-exp "__asm__(\".ident\\t\\\"\" ~a  \"\\\"\")" ,(lisp:nth 1 $args) ))
+(%defmacro __@FBSDID (&rest $args) `(c-exp "__IDSTRING(__CONCAT(__rcsid_,__LINE__),~a )" ,(lisp:nth 0 $args) ))
+(%defmacro __@RCSID (&rest $args) `(c-exp "__IDSTRING(__CONCAT(__rcsid_,__LINE__),~a )" ,(lisp:nth 0 $args) ))
+(%defmacro __@RCSID_SOURCE (&rest $args) `(c-exp "__IDSTRING(__CONCAT(__rcsid_source_,__LINE__),~a )" ,(lisp:nth 0 $args) ))
+(%defmacro __@SCCSID (&rest $args) `(c-exp "__IDSTRING(__CONCAT(__sccsid_,__LINE__),~a )" ,(lisp:nth 0 $args) ))
+(%defmacro __@COPYRIGHT (&rest $args) `(c-exp "__IDSTRING(__CONCAT(__copyright_,__LINE__),~a )" ,(lisp:nth 0 $args) ))
+(%defmacro __@DECONST (&rest $args) `(c-exp "((~a )(uintptr_t)(const void *)(~a ))" ,(lisp:nth 0 $args) ,(lisp:nth 1 $args) ))
+(%defmacro __@DEVOLATILE (&rest $args) `(c-exp "((~a )(uintptr_t)(volatile void *)(~a ))" ,(lisp:nth 0 $args) ,(lisp:nth 1 $args) ))
+(%defmacro __@DEQUALIFY (&rest $args) `(c-exp "((~a )(uintptr_t)(const volatile void *)(~a ))" ,(lisp:nth 0 $args) ,(lisp:nth 1 $args) ))
+(%defconstant __@POSIX_VISIBLE (c-exp "200112"))
+(%defconstant __@XSI_VISIBLE (c-exp "600"))
+(%defconstant __@BSD_VISIBLE (c-exp "1"))
+(%defconstant __@ISO_C_VISIBLE (c-exp "1999"))
+(%defmacro _assert (&rest $args) `(c-exp "assert(~a )" ,(lisp:nth 0 $args) ))
+(%defmacro assert (&rest $args) `(c-exp "((~a ) ? (void)0 : __assert(__func__, __FILE__, __LINE__, _C2SC_STRINGIZE(~a) ))" ,(lisp:nth 0 $args) ,(lisp:nth 0 $args) ))
+(%line 62 "/usr/include/assert.h")
+ 
+void __assert(const char *, const char *, int, const char *);
+
+(%line 1 "/usr/include/string.h")
+(%defconstant _@STRING_H_ (c-exp ""))
+(%line 1 "/usr/include/sys/cdefs.h")
+(%line 1 "/usr/include/sys/_null.h")
+(%defconstant @NULL (c-exp "0"))
+(%line 1 "/usr/include/sys/_types.h")
+(%defconstant _@SYS__TYPES_H_ (c-exp ""))
+(%line 1 "/usr/include/sys/cdefs.h")
+(%line 1 "/usr/include/machine/_types.h")
+(%defconstant _@MACHINE__TYPES_H_ (c-exp ""))
+(%line 45 "/usr/include/machine/_types.h")
+typedef signed  char __int8_t;
+typedef unsigned char __uint8_t;
+typedef short __int16_t;
+typedef unsigned short __uint16_t;
+typedef int __int32_t;
+typedef unsigned int __uint32_t;
+
+
+
+
+
+
+
+typedef int __attribute__((__mode__(__DI__))) __int64_t;
+typedef unsigned int __attribute__((__mode__(__DI__))) __uint64_t;
+(%line 70 "/usr/include/machine/_types.h")
+typedef unsigned long __clock_t;
+typedef __int32_t __critical_t;
+typedef double __double_t;
+typedef double __float_t;
+typedef __int32_t __intfptr_t;
+typedef __int64_t __intmax_t;
+typedef __int32_t __intptr_t;
+typedef __int32_t __int_fast8_t;
+typedef __int32_t __int_fast16_t;
+typedef __int32_t __int_fast32_t;
+typedef __int64_t __int_fast64_t;
+typedef __int8_t __int_least8_t;
+typedef __int16_t __int_least16_t;
+typedef __int32_t __int_least32_t;
+typedef __int64_t __int_least64_t;
+typedef __int32_t __ptrdiff_t;
+typedef __int32_t __register_t;
+typedef __int32_t __segsz_t;
+typedef __uint32_t __size_t;
+typedef __int32_t __ssize_t;
+typedef __int32_t __time_t;
+typedef __uint32_t __uintfptr_t;
+typedef __uint64_t __uintmax_t;
+typedef __uint32_t __uintptr_t;
+typedef __uint32_t __uint_fast8_t;
+typedef __uint32_t __uint_fast16_t;
+typedef __uint32_t __uint_fast32_t;
+typedef __uint64_t __uint_fast64_t;
+typedef __uint8_t __uint_least8_t;
+typedef __uint16_t __uint_least16_t;
+typedef __uint32_t __uint_least32_t;
+typedef __uint64_t __uint_least64_t;
+typedef __uint32_t __u_register_t;
+typedef __uint32_t __vm_offset_t;
+typedef __int64_t __vm_ooffset_t;
+
+
+
+typedef __uint32_t __vm_paddr_t;
+
+typedef __uint64_t __vm_pindex_t;
+typedef __uint32_t __vm_size_t;
+(%line 117 "/usr/include/machine/_types.h")
+typedef __builtin_va_list __va_list;
+(%defconstant __@GNUC_VA_LIST (c-exp ""))
+(%line 123 "/usr/include/machine/_types.h")
+typedef __va_list __gnuc_va_list;
+(%line 38 "/usr/include/sys/_types.h")
+typedef __int32_t __clockid_t;
+typedef __uint32_t __fflags_t;
+typedef __uint64_t __fsblkcnt_t;
+typedef __uint64_t __fsfilcnt_t;
+typedef __uint32_t __gid_t;
+typedef __int64_t __id_t;
+typedef __uint32_t __ino_t;
+typedef long __key_t;
+typedef __uint16_t __mode_t;
+typedef int __nl_item;
+typedef __uint16_t __nlink_t;
+typedef __int64_t __off_t;
+typedef __int32_t __pid_t;
+typedef __int64_t __rlim_t;
+typedef __uint8_t __sa_family_t;
+typedef __uint32_t __socklen_t;
+typedef long __suseconds_t;
+typedef __int32_t __timer_t;
+typedef __uint32_t __udev_t;
+typedef __uint32_t __uid_t;
+typedef unsigned int __useconds_t;
+(%line 78 "/usr/include/sys/_types.h")
+typedef int __ct_rune_t;
+typedef __ct_rune_t __rune_t;
+typedef __ct_rune_t __wchar_t;
+typedef __ct_rune_t __wint_t;
+(%line 90 "/usr/include/sys/_types.h")
+typedef __udev_t __dev_t;
+(%line 97 "/usr/include/sys/_types.h")
+typedef union {
+ char __mbstate8[128];
+ __int64_t _mbstateL;
+} __mbstate_t;
+(%line 1 "/usr/include/strings.h")
+(%defconstant _@STRINGS_H_ (c-exp ""))
+(%line 1 "/usr/include/sys/cdefs.h")
+(%line 1 "/usr/include/sys/_types.h")
+(%line 36 "/usr/include/strings.h")
+typedef __size_t size_t;
+(%defconstant _@SIZE_T_DECLARED (c-exp ""))
+
+
+
+
+int bcmp(const void *, const void *, size_t);
+void bcopy(const void *, void *, size_t);
+void bzero(void *, size_t);
+int ffs(int);
+char *index(const char *, int);
+char *rindex(const char *, int);
+int strcasecmp(const char *, const char *);
+int strncasecmp(const char *, const char *, size_t);
+
+(%line 57 "/usr/include/string.h")
+
+
+void *memccpy(void * , const void * , int, size_t);
+
+void *memchr(const void *, int, size_t);
+int memcmp(const void *, const void *, size_t);
+void *memcpy(void * , const void * , size_t);
+void *memmove(void *, const void *, size_t);
+void *memset(void *, int, size_t);
+
+char *stpcpy(char *, const char *);
+char *strcasestr(const char *, const char *);
+
+char *strcat(char * , const char * );
+char *strchr(const char *, int);
+int strcmp(const char *, const char *);
+int strcoll(const char *, const char *);
+char *strcpy(char * , const char * );
+size_t strcspn(const char *, const char *);
+
+char *strdup(const char *);
+
+char *strerror(int);
+
+int strerror_r(int, char *, size_t);
+
+
+size_t strlcat(char *, const char *, size_t);
+size_t strlcpy(char *, const char *, size_t);
+
+size_t strlen(const char *);
+
+void strmode(int, char *);
+
+char *strncat(char * , const char * , size_t);
+int strncmp(const char *, const char *, size_t);
+char *strncpy(char * , const char * , size_t);
+
+char *strnstr(const char *, const char *, size_t);
+
+char *strpbrk(const char *, const char *);
+char *strrchr(const char *, int);
+
+char *strsep(char **, const char *);
+char *strsignal(int);
+
+size_t strspn(const char *, const char *);
+char *strstr(const char *, const char *);
+char *strtok(char * , const char * );
+
+char *strtok_r(char *, const char *, char **);
+
+size_t strxfrm(char * , const char * , size_t);
+
+void swab(const void *, void *, size_t);
+
+
+(%line 1 "/usr/include/stdlib.h")
+(%defconstant _@STDLIB_H_ (c-exp ""))
+(%line 1 "/usr/include/sys/cdefs.h")
+(%line 1 "/usr/include/sys/_null.h")
+(%line 1 "/usr/include/sys/_types.h")
+(%line 46 "/usr/include/stdlib.h")
+typedef __rune_t rune_t;
+(%defconstant _@RUNE_T_DECLARED (c-exp ""))
+(%line 58 "/usr/include/stdlib.h")
+typedef __wchar_t wchar_t;
+(%defconstant _@WCHAR_T_DECLARED (c-exp ""))
+
+
+
+
+typedef struct {
+ int quot;
+ int rem;
+} div_t;
+
+typedef struct {
+ long quot;
+ long rem;
+} ldiv_t;
+(%defconstant @EXIT_FAILURE (c-exp "1"))
+(%defconstant @EXIT_SUCCESS (c-exp "0"))
+(%defconstant @RAND_MAX (c-exp "0x7fffffff"))
+
+
+
+
+
+
+extern int __mb_cur_max;
+(%defconstant @MB_CUR_MAX (c-exp "__mb_cur_max"))
+
+
+
+void abort(void) __attribute__((__noreturn__)) ;
+int abs(int) __attribute__((__const__)) ;
+int atexit(void (*)(void));
+double atof(const char *);
+int atoi(const char *);
+long atol(const char *);
+void *bsearch(const void *, const void *, size_t,
+ size_t, int (*)(const void *, const void *));
+void *calloc(size_t, size_t);
+div_t div(int, int) __attribute__((__const__)) ;
+void exit(int) __attribute__((__noreturn__)) ;
+void free(void *);
+char *getenv(const char *);
+long labs(long) __attribute__((__const__)) ;
+ldiv_t ldiv(long, long) __attribute__((__const__)) ;
+void *malloc(size_t);
+int mblen(const char *, size_t);
+size_t mbstowcs(wchar_t *  , const char * , size_t);
+int mbtowc(wchar_t * , const char * , size_t);
+void qsort(void *, size_t, size_t,
+ int (*)(const void *, const void *));
+int rand(void);
+void *realloc(void *, size_t);
+void srand(unsigned);
+double strtod(const char * , char ** );
+float strtof(const char * , char ** );
+long strtol(const char * , char ** , int);
+long double
+ strtold(const char * , char ** );
+unsigned long
+ strtoul(const char * , char ** , int);
+int system(const char *);
+int wctomb(char *, wchar_t);
+size_t wcstombs(char * , const wchar_t * , size_t);
+(%line 130 "/usr/include/stdlib.h")
+typedef struct {
+ long long quot;
+ long long rem;
+} lldiv_t;
+
+
+long long
+ atoll(const char *);
+
+long long
+ llabs(long long) __attribute__((__const__)) ;
+
+lldiv_t lldiv(long long, long long) __attribute__((__const__)) ;
+
+long long
+ strtoll(const char * , char ** , int);
+
+unsigned long long
+ strtoull(const char * , char ** , int);
+
+
+void _Exit(int) __attribute__((__noreturn__)) ;
+(%line 161 "/usr/include/stdlib.h")
+int rand_r(unsigned *);
+int setenv(const char *, const char *, int);
+void unsetenv(const char *);
+(%line 175 "/usr/include/stdlib.h")
+double drand48(void);
+
+double erand48(unsigned short[3]);
+
+
+
+int getsubopt(char **, char *const *, char **);
+(%defconstant _@GETSUBOPT_DECLARED (c-exp ""))
+
+
+int grantpt(int);
+char *initstate(unsigned long , char *, long);
+long jrand48(unsigned short[3]);
+
+void lcong48(unsigned short[7]);
+long lrand48(void);
+
+int mkstemp(char *);
+(%defconstant _@MKSTEMP_DECLARED (c-exp ""))
+
+
+
+char *mktemp(char *);
+(%defconstant _@MKTEMP_DECLARED (c-exp ""))
+
+
+long mrand48(void);
+long nrand48(unsigned short[3]);
+int posix_openpt(int);
+char *ptsname(int);
+int putenv(const char *);
+long random(void);
+char *realpath(const char *, char resolved_path[]);
+unsigned short
+ *seed48(unsigned short[3]);
+
+int setkey(const char *);
+(%defconstant _@SETKEY_DECLARED (c-exp ""))
+
+
+char *setstate( char *);
+void srand48(long);
+void srandom(unsigned long);
+int unlockpt(int);
+
+
+
+extern const char *_malloc_options;
+extern void (*_malloc_message)(const char *, const char *, const char *,
+ const char *);
+(%defmacro alloca (&rest $args) `(c-exp "__builtin_alloca(~a )" ,(lisp:nth 0 $args) ))
+(%line 238 "/usr/include/stdlib.h")
+__uint32_t
+ arc4random(void);
+void arc4random_addrandom(unsigned char *dat, int datlen);
+void arc4random_stir(void);
+char *getbsize(int *, long *);
+
+char *cgetcap(char *, const char *, int);
+int cgetclose(void);
+int cgetent(char **, char **, const char *);
+int cgetfirst(char **, char **);
+int cgetmatch(const char *, const char *);
+int cgetnext(char **, char **);
+int cgetnum(char *, const char *, long *);
+int cgetset(const char *);
+int cgetstr(char *, const char *, char **);
+int cgetustr(char *, const char *, char **);
+
+int daemon(int, int);
+char *devname(int, int);
+char *devname_r(int, int, char *, int);
+int getloadavg(double [], int);
+const  char *
+ getprogname(void);
+
+int heapsort(void *, size_t, size_t, int (*)(const void *, const void *));
+int mergesort(void *, size_t, size_t, int (*)(const void *, const void *));
+void qsort_r(void *, size_t, size_t, void *,
+ int (*)(void *, const void *, const void *));
+int radixsort(const unsigned char **, int, const unsigned char *,
+ unsigned);
+void *reallocf(void *, size_t);
+void setprogname(const char *);
+int sradixsort(const unsigned char **, int, const unsigned char *,
+ unsigned);
+void sranddev(void);
+void srandomdev(void);
+
+
+__int64_t
+ strtoq(const char *, char **, int);
+__uint64_t
+ strtouq(const char *, char **, int);
+
+
+(%line 1 "/usr/include/stdio.h")
+(%defconstant _@STDIO_H_ (c-exp ""))
+(%line 1 "/usr/include/sys/cdefs.h")
+(%line 1 "/usr/include/sys/_null.h")
+(%line 1 "/usr/include/sys/_types.h")
+(%line 47 "/usr/include/stdio.h")
+typedef __off_t fpos_t;
+(%line 56 "/usr/include/stdio.h")
+typedef __va_list va_list;
+(%defconstant _@VA_LIST_DECLARED (c-exp ""))
+(%defconstant _@FSTDIO (c-exp ""))
+(%line 70 "/usr/include/stdio.h")
+struct __sbuf {
+ unsigned char *_base;
+ int _size;
+};
+
+
+struct __sFILEX;
+(%line 104 "/usr/include/stdio.h")
+typedef struct __sFILE {
+ unsigned char *_p;
+ int _r;
+ int _w;
+ short _flags;
+ short _file;
+ struct __sbuf _bf;
+ int _lbfsize;
+
+
+ void *_cookie;
+ int (*_close)(void *);
+ int (*_read)(void *, char *, int);
+ fpos_t (*_seek)(void *, fpos_t, int);
+ int (*_write)(void *, const char *, int);
+
+
+ struct __sbuf _ub;
+ struct __sFILEX *_extra;
+ int _ur;
+
+
+ unsigned char _ubuf[3];
+ unsigned char _nbuf[1];
+
+
+ struct __sbuf _lb;
+
+
+ int _blksize;
+ fpos_t _offset;
+} FILE;
+
+
+extern FILE *__stdinp;
+extern FILE *__stdoutp;
+extern FILE *__stderrp;
+
+(%defconstant __@SLBF (c-exp "0x0001"))
+(%defconstant __@SNBF (c-exp "0x0002"))
+(%defconstant __@SRD (c-exp "0x0004"))
+(%defconstant __@SWR (c-exp "0x0008"))
+(%defconstant __@SRW (c-exp "0x0010"))
+(%defconstant __@SEOF (c-exp "0x0020"))
+(%defconstant __@SERR (c-exp "0x0040"))
+(%defconstant __@SMBF (c-exp "0x0080"))
+(%defconstant __@SAPP (c-exp "0x0100"))
+(%defconstant __@SSTR (c-exp "0x0200"))
+(%defconstant __@SOPT (c-exp "0x0400"))
+(%defconstant __@SNPT (c-exp "0x0800"))
+(%defconstant __@SOFF (c-exp "0x1000"))
+(%defconstant __@SMOD (c-exp "0x2000"))
+(%defconstant __@SALC (c-exp "0x4000"))
+(%defconstant __@SIGN (c-exp "0x8000"))
+(%defconstant _@IOFBF (c-exp "0"))
+(%defconstant _@IOLBF (c-exp "1"))
+(%defconstant _@IONBF (c-exp "2"))
+(%defconstant @BUFSIZ (c-exp "1024"))
+(%defconstant @EOF (c-exp "(-1)"))
+(%defconstant @FOPEN_MAX (c-exp "20"))
+(%defconstant @FILENAME_MAX (c-exp "1024"))
+(%defconstant @P_@tmpdir (c-exp "\"/var/tmp/\""))
+(%defconstant @L_@tmpnam (c-exp "1024"))
+(%defconstant @TMP_MAX (c-exp "308915776"))
+(%defconstant @SEEK_SET (c-exp "0"))
+(%defconstant @SEEK_CUR (c-exp "1"))
+(%defconstant @SEEK_END (c-exp "2"))
+(%defconstant stdin (c-exp "__stdinp"))
+(%defconstant stdout (c-exp "__stdoutp"))
+(%defconstant stderr (c-exp "__stderrp"))
+(%line 207 "/usr/include/stdio.h")
+
+(%line 211 "/usr/include/stdio.h")
+void clearerr(FILE *);
+int fclose(FILE *);
+int feof(FILE *);
+int ferror(FILE *);
+int fflush(FILE *);
+int fgetc(FILE *);
+int fgetpos(FILE * , fpos_t * );
+char *fgets(char * , int, FILE * );
+FILE *fopen(const char * , const char * );
+int fprintf(FILE * , const char * , ...);
+int fputc(int, FILE *);
+int fputs(const char * , FILE * );
+size_t fread(void * , size_t, size_t, FILE * );
+FILE *freopen(const char * , const char * , FILE * );
+int fscanf(FILE * , const char * , ...);
+int fseek(FILE *, long, int);
+int fsetpos(FILE *, const fpos_t *);
+long ftell(FILE *);
+size_t fwrite(const void * , size_t, size_t, FILE * );
+int getc(FILE *);
+int getchar(void);
+char *gets(char *);
+void perror(const char *);
+int printf(const char * , ...);
+int putc(int, FILE *);
+int putchar(int);
+int puts(const char *);
+int remove(const char *);
+int rename(const char *, const char *);
+void rewind(FILE *);
+int scanf(const char * , ...);
+void setbuf(FILE * , char * );
+int setvbuf(FILE * , char * , int, size_t);
+int sprintf(char * , const char * , ...);
+int sscanf(const char * , const char * , ...);
+FILE *tmpfile(void);
+char *tmpnam(char *);
+int ungetc(int, FILE *);
+int vfprintf(FILE * , const char * ,
+ __va_list);
+int vprintf(const char * , __va_list);
+int vsprintf(char * , const char * ,
+ __va_list);
+
+
+int snprintf(char * , size_t, const char * ,
+ ...) __attribute__((__format__ (__printf__, 3, 4))) ;
+int vfscanf(FILE * , const char * , __va_list)
+ __attribute__((__format__ (__scanf__, 2, 0))) ;
+int vscanf(const char * , __va_list) __attribute__((__format__ (__scanf__, 1, 0))) ;
+int vsnprintf(char * , size_t, const char * ,
+ __va_list) __attribute__((__format__ (__printf__, 3, 0))) ;
+int vsscanf(const char * , const char * , __va_list)
+ __attribute__((__format__ (__scanf__, 2, 0))) ;
+(%defconstant @L_@cuserid (c-exp "17"))
+(%defconstant @L_@ctermid (c-exp "1024"))
+(%line 278 "/usr/include/stdio.h")
+char *ctermid(char *);
+FILE *fdopen(int, const char *);
+int fileno(FILE *);
+
+
+
+int pclose(FILE *);
+FILE *popen(const char *, const char *);
+
+
+
+int ftrylockfile(FILE *);
+void flockfile(FILE *);
+void funlockfile(FILE *);
+(%line 297 "/usr/include/stdio.h")
+int getc_unlocked(FILE *);
+int getchar_unlocked(void);
+int putc_unlocked(int, FILE *);
+int putchar_unlocked(int);
+
+
+void clearerr_unlocked(FILE *);
+int feof_unlocked(FILE *);
+int ferror_unlocked(FILE *);
+int fileno_unlocked(FILE *);
+
+
+
+int fseeko(FILE *, __off_t, int);
+__off_t ftello(FILE *);
+
+
+
+int getw(FILE *);
+int putw(int, FILE *);
+
+
+
+char *tempnam(const char *, const char *);
+(%line 327 "/usr/include/stdio.h")
+int asprintf(char **, const char *, ...) __attribute__((__format__ (__printf__, 2, 3))) ;
+char *ctermid_r(char *);
+char *fgetln(FILE *, size_t *);
+(%defconstant __@ATTR_FORMAT_ARG (c-exp "__attribute__((__format_arg__(2)))"))
+(%line 335 "/usr/include/stdio.h")
+const  char *fmtcheck(const char *, const char *) __attribute__((__format_arg__(2))) ;
+int fpurge(FILE *);
+void setbuffer(FILE *, char *, int);
+int setlinebuf(FILE *);
+int vasprintf(char **, const char *, __va_list)
+ __attribute__((__format__ (__printf__, 2, 0))) ;
+(%line 347 "/usr/include/stdio.h")
+extern const  int sys_nerr;
+extern const  char *const  sys_errlist[];
+(%line 353 "/usr/include/stdio.h")
+FILE *funopen(const void *,
+ int (*)(void *, char *, int),
+ int (*)(void *, const char *, int),
+ fpos_t (*)(void *, fpos_t, int),
+ int (*)(void *));
+(%defmacro fropen (&rest $args) `(c-exp "funopen(~a , ~a , 0, 0, 0)" ,(lisp:nth 0 $args) ,(lisp:nth 1 $args) ))
+(%defmacro fwopen (&rest $args) `(c-exp "funopen(~a , 0, ~a , 0, 0)" ,(lisp:nth 0 $args) ,(lisp:nth 1 $args) ))
+(%defconstant _@FTRUNCATE_DECLARED (c-exp ""))
+(%line 366 "/usr/include/stdio.h")
+int ftruncate(int, __off_t);
+(%defconstant _@LSEEK_DECLARED (c-exp ""))
+
+
+
+__off_t lseek(int, __off_t, int);
+(%defconstant _@MMAP_DECLARED (c-exp ""))
+
+
+
+void *mmap(void *, size_t, int, int, int, __off_t);
+(%defconstant _@TRUNCATE_DECLARED (c-exp ""))
+
+
+
+int truncate(const char *, __off_t);
+(%line 385 "/usr/include/stdio.h")
+int __srget(FILE *);
+int __swbuf(int, FILE *);
+(%defmacro __sgetc (&rest $args) `(c-exp "(--(~a )->_r < 0 ? __srget(~a ) : (int)(*(~a )->_p++))" ,(lisp:nth 0 $args) ,(lisp:nth 0 $args) ,(lisp:nth 0 $args) ))
+(%line 394 "/usr/include/stdio.h")
+static __inline int __sputc(int _c, FILE *_p) {
+ if (--_p->_w >= 0 || (_p->_w >= _p->_lbfsize && (char)_c != '\n'))
+ return (*_p->_p++ = _c);
+ else
+ return (__swbuf(_c, _p));
+}
+(%defmacro __sfeof (&rest $args) `(c-exp "(((~a )->_flags & __SEOF) != 0)" ,(lisp:nth 0 $args) ))
+(%defmacro __sferror (&rest $args) `(c-exp "(((~a )->_flags & __SERR) != 0)" ,(lisp:nth 0 $args) ))
+(%defmacro __sclearerr (&rest $args) `(c-exp "((void)((~a )->_flags &= ~~(__SERR|__SEOF)))" ,(lisp:nth 0 $args) ))
+(%defmacro __sfileno (&rest $args) `(c-exp "((~a )->_file)" ,(lisp:nth 0 $args) ))
+(%defmacro feof_unlocked (&rest $args) `(c-exp "__sfeof(~a )" ,(lisp:nth 0 $args) ))
+(%defmacro ferror_unlocked (&rest $args) `(c-exp "__sferror(~a )" ,(lisp:nth 0 $args) ))
+(%defmacro clearerr_unlocked (&rest $args) `(c-exp "__sclearerr(~a )" ,(lisp:nth 0 $args) ))
+(%defmacro fileno_unlocked (&rest $args) `(c-exp "__sfileno(~a )" ,(lisp:nth 0 $args) ))
+(%defmacro getc_unlocked (&rest $args) `(c-exp "__sgetc(~a )" ,(lisp:nth 0 $args) ))
+(%defmacro putc_unlocked (&rest $args) `(c-exp "__sputc(~a , ~a )" ,(lisp:nth 0 $args) ,(lisp:nth 1 $args) ))
+(%defmacro getchar_unlocked (&rest $args) `(c-exp "getc_unlocked(stdin)" ))
+(%defmacro putchar_unlocked (&rest $args) `(c-exp "putc_unlocked(~a , stdout)" ,(lisp:nth 0 $args) ))
+(%line 437 "/usr/include/stdio.h")
+
+(%line 1 "/usr/include/ctype.h")
+(%defconstant _@CTYPE_H_ (c-exp ""))
+(%line 1 "/usr/include/sys/cdefs.h")
+(%line 1 "/usr/include/sys/_types.h")
+(%defconstant _@CTYPE_A (c-exp "0x00000100L"))
+(%defconstant _@CTYPE_C (c-exp "0x00000200L"))
+(%defconstant _@CTYPE_D (c-exp "0x00000400L"))
+(%defconstant _@CTYPE_G (c-exp "0x00000800L"))
+(%defconstant _@CTYPE_L (c-exp "0x00001000L"))
+(%defconstant _@CTYPE_P (c-exp "0x00002000L"))
+(%defconstant _@CTYPE_S (c-exp "0x00004000L"))
+(%defconstant _@CTYPE_U (c-exp "0x00008000L"))
+(%defconstant _@CTYPE_X (c-exp "0x00010000L"))
+(%defconstant _@CTYPE_B (c-exp "0x00020000L"))
+(%defconstant _@CTYPE_R (c-exp "0x00040000L"))
+(%defconstant _@CTYPE_I (c-exp "0x00080000L"))
+(%defconstant _@CTYPE_T (c-exp "0x00100000L"))
+(%defconstant _@CTYPE_Q (c-exp "0x00200000L"))
+(%defconstant _@CTYPE_SW0 (c-exp "0x20000000L"))
+(%defconstant _@CTYPE_SW1 (c-exp "0x40000000L"))
+(%defconstant _@CTYPE_SW2 (c-exp "0x80000000L"))
+(%defconstant _@CTYPE_SW3 (c-exp "0xc0000000L"))
+(%line 70 "/usr/include/ctype.h")
+
+int isalnum(int);
+int isalpha(int);
+int iscntrl(int);
+int isdigit(int);
+int isgraph(int);
+int islower(int);
+int isprint(int);
+int ispunct(int);
+int isspace(int);
+int isupper(int);
+int isxdigit(int);
+int tolower(int);
+int toupper(int);
+
+
+int _tolower(int);
+int _toupper(int);
+int isascii(int);
+int toascii(int);
+
+
+
+int digittoint(int);
+int isblank(int);
+int ishexnumber(int);
+int isideogram(int);
+int isnumber(int);
+int isphonogram(int);
+int isrune(int);
+int isspecial(int);
+
+
+(%defmacro isalnum (&rest $args) `(c-exp "__istype((~a ), _CTYPE_A|_CTYPE_D)" ,(lisp:nth 0 $args) ))
+(%defmacro isalpha (&rest $args) `(c-exp "__istype((~a ), _CTYPE_A)" ,(lisp:nth 0 $args) ))
+(%defmacro iscntrl (&rest $args) `(c-exp "__istype((~a ), _CTYPE_C)" ,(lisp:nth 0 $args) ))
+(%defmacro isdigit (&rest $args) `(c-exp "__isctype((~a ), _CTYPE_D)" ,(lisp:nth 0 $args) ))
+(%defmacro isgraph (&rest $args) `(c-exp "__istype((~a ), _CTYPE_G)" ,(lisp:nth 0 $args) ))
+(%defmacro islower (&rest $args) `(c-exp "__istype((~a ), _CTYPE_L)" ,(lisp:nth 0 $args) ))
+(%defmacro isprint (&rest $args) `(c-exp "__istype((~a ), _CTYPE_R)" ,(lisp:nth 0 $args) ))
+(%defmacro ispunct (&rest $args) `(c-exp "__istype((~a ), _CTYPE_P)" ,(lisp:nth 0 $args) ))
+(%defmacro isspace (&rest $args) `(c-exp "__istype((~a ), _CTYPE_S)" ,(lisp:nth 0 $args) ))
+(%defmacro isupper (&rest $args) `(c-exp "__istype((~a ), _CTYPE_U)" ,(lisp:nth 0 $args) ))
+(%defmacro isxdigit (&rest $args) `(c-exp "__isctype((~a ), _CTYPE_X)" ,(lisp:nth 0 $args) ))
+(%defmacro tolower (&rest $args) `(c-exp "__tolower(~a )" ,(lisp:nth 0 $args) ))
+(%defmacro toupper (&rest $args) `(c-exp "__toupper(~a )" ,(lisp:nth 0 $args) ))
+(%defmacro _tolower (&rest $args) `(c-exp "__tolower(~a )" ,(lisp:nth 0 $args) ))
+(%defmacro _toupper (&rest $args) `(c-exp "__toupper(~a )" ,(lisp:nth 0 $args) ))
+(%defmacro isascii (&rest $args) `(c-exp "(((~a ) & ~~0x7F) == 0)" ,(lisp:nth 0 $args) ))
+(%defmacro toascii (&rest $args) `(c-exp "((~a ) & 0x7F)" ,(lisp:nth 0 $args) ))
+(%defmacro digittoint (&rest $args) `(c-exp "__maskrune((~a ), 0xFF)" ,(lisp:nth 0 $args) ))
+(%defmacro isblank (&rest $args) `(c-exp "__istype((~a ), _CTYPE_B)" ,(lisp:nth 0 $args) ))
+(%defmacro ishexnumber (&rest $args) `(c-exp "__istype((~a ), _CTYPE_X)" ,(lisp:nth 0 $args) ))
+(%defmacro isideogram (&rest $args) `(c-exp "__istype((~a ), _CTYPE_I)" ,(lisp:nth 0 $args) ))
+(%defmacro isnumber (&rest $args) `(c-exp "__istype((~a ), _CTYPE_D)" ,(lisp:nth 0 $args) ))
+(%defmacro isphonogram (&rest $args) `(c-exp "__istype((~a ), _CTYPE_Q)" ,(lisp:nth 0 $args) ))
+(%defmacro isrune (&rest $args) `(c-exp "__istype((~a ), 0xFFFFFF00L)" ,(lisp:nth 0 $args) ))
+(%defmacro isspecial (&rest $args) `(c-exp "__istype((~a ), _CTYPE_T)" ,(lisp:nth 0 $args) ))
+(%line 148 "/usr/include/ctype.h")
+
+unsigned long ___runetype(__ct_rune_t);
+__ct_rune_t ___tolower(__ct_rune_t);
+__ct_rune_t ___toupper(__ct_rune_t);
+
+(%line 1 "/usr/include/runetype.h")
+(%defconstant _@RUNETYPE_H_ (c-exp ""))
+(%line 1 "/usr/include/sys/cdefs.h")
+(%line 1 "/usr/include/sys/_types.h")
+(%defconstant _@CACHED_RUNES (c-exp "(1 <<8 )"))
+(%defconstant _@CRMASK (c-exp "(~~(_CACHED_RUNES - 1))"))
+(%line 52 "/usr/include/runetype.h")
+typedef struct {
+ __rune_t min;
+ __rune_t max;
+ __rune_t map;
+ unsigned long *types;
+} _RuneEntry;
+
+typedef struct {
+ int nranges;
+ _RuneEntry *ranges;
+} _RuneRange;
+
+typedef struct {
+ char magic[8];
+ char encoding[32];
+
+ __rune_t (*sgetrune)(const char *, __size_t, char const **);
+ int (*sputrune)(__rune_t, char *, __size_t, char **);
+ __rune_t invalid_rune;
+
+ unsigned long runetype[(1 <<8 ) ];
+ __rune_t maplower[(1 <<8 ) ];
+ __rune_t mapupper[(1 <<8 ) ];
+(%line 81 "/usr/include/runetype.h")
+ _RuneRange runetype_ext;
+ _RuneRange maplower_ext;
+ _RuneRange mapupper_ext;
+
+ void *variable;
+ int variable_len;
+} _RuneLocale;
+(%defconstant _@RUNE_MAGIC_1 (c-exp "\"RuneMagi\""))
+
+
+
+extern _RuneLocale _DefaultRuneLocale;
+extern _RuneLocale *_CurrentRuneLocale;
+(%line 183 "/usr/include/ctype.h")
+static __inline int
+__maskrune(__ct_rune_t _c, unsigned long _f)
+{
+ return ((_c < 0 || _c >= (1 <<8 ) ) ? ___runetype(_c) :
+ _CurrentRuneLocale->runetype[_c]) & _f;
+}
+
+static __inline int
+__istype(__ct_rune_t _c, unsigned long _f)
+{
+ return (!!__maskrune(_c, _f));
+}
+
+static __inline int
+__isctype(__ct_rune_t _c, unsigned long _f)
+{
+ return (_c < 0 || _c >= (1 <<8 ) ) ? 0 :
+ !!(_DefaultRuneLocale.runetype[_c] & _f);
+}
+
+static __inline __ct_rune_t
+__toupper(__ct_rune_t _c)
+{
+ return (_c < 0 || _c >= (1 <<8 ) ) ? ___toupper(_c) :
+ _CurrentRuneLocale->mapupper[_c];
+}
+
+static __inline __ct_rune_t
+__tolower(__ct_rune_t _c)
+{
+ return (_c < 0 || _c >= (1 <<8 ) ) ? ___tolower(_c) :
+ _CurrentRuneLocale->maplower[_c];
+}
+(%line 1 "/home/lab4/hiraisi/c_parser/c_lex.h")
+(%defconstant c_lex_h (c-exp ""))
+(%line 21 "/home/lab4/hiraisi/c_parser/c_lex.h")
+typedef enum { FALSE, TRUE } bool;
+
+typedef enum token_t token_t;
+enum token_t {
+ EOI,
+ FOR,
+ BREAK,
+ CONTINUE,
+ RETURN ,
+ IF,
+ ELSE,
+ WHILE,
+ DO,
+ SWITCH,
+ CASE,
+ DEFAULT,
+ GOTO,
+ SIZEOF,
+ AUTO,
+ REGISTER,
+ STATIC,
+ EXTERN,
+ TYPEDEF,
+ INLINE,
+ BOOL,
+ COMPLEX,
+ IMAGINARY,
+ VOID,
+ CHAR,
+ SHORT,
+ INT,
+ LONG,
+ FLOAT,
+ DOUBLE,
+ SIGNED,
+ UNSIGNED,
+ CONST,
+ VOLATILE,
+ RESTRICT,
+ STRUCT,
+ UNION,
+ ENUM,
+ AND,
+ TILDE,
+ NOT,
+ LESSTHAN,
+ GREATERTHAN,
+ XOR,
+ OR,
+ PLUS,
+ MINUS,
+ SLASH,
+ PERCENT,
+ STAR,
+ DOT,
+ COLON,
+ QUERY,
+ SEMI,
+ COMMA,
+ LPAREN,
+ RPAREN,
+ LBRACE,
+ RBRACE,
+ LBRAC,
+ RBRAC,
+ EQUALS,
+ STAR_EQUALS,
+ SLASH_EQUALS,
+ PERCENT_EQUALS,
+ PLUS_EQUALS,
+ MINUS_EQUALS,
+ LSHIFT_EQUALS,
+ RSHIFT_EQUALS,
+ AND_EQUALS,
+ XOR_EQUALS,
+ OR_EQUALS,
+ ANDAND,
+ OROR,
+ EQEQ,
+ NOTEQ,
+ GTEQ,
+ LESSEQ,
+ LSHIFT,
+ RSHIFT,
+ PLUSPLUS,
+ MINUSMINUS,
+ ARROW,
+ ELLIPSIS,
+ INTEGER_CONSTANT,
+ CHARACTER_CONSTANT,
+ FLOATING_CONSTANT,
+ STRING_CONSTANT,
+ IDENTIFIER,
+ TYPEDEF_NAME,
+ BADTOK
+};
+
+enum {
+ MAX_IDENTIFIER_LEN = 1024
+};
+
+typedef struct {
+ char id_name[MAX_IDENTIFIER_LEN];
+} identifier_t;
+
+typedef struct {
+ char *co_val;
+ size_t co_size;
+} constant_t;
+
+typedef union {
+ identifier_t *identifier;
+ constant_t *constant;
+} lexeme_t;
+(%line 138 "/home/lab4/hiraisi/c_parser/c_lex.h")
+typedef struct lex_envst {
+ const char *le_lptr;
+ const char *le_filename;
+ int le_lnum;
+ bool le_had_error;
+ const char *le_line;
+ const char *(*le_getline)(char *arg);
+ char *le_getline_arg;
+ bool le_abort_parse;
+ lexeme_t le_lexeme;
+} lex_env_t;
+
+extern lexeme_t *Lexeme;
+extern lex_env_t *Lex_env;
+(%defconstant @BUF_SIZE (c-exp "1024"))
+
+extern char token_str[];
+
+void *safe_calloc(size_t,size_t);
+(%defmacro @NEW (&rest $args) `(c-exp "((~a  *)safe_calloc(1, sizeof(~a )))" ,(lisp:nth 0 $args) ,(lisp:nth 0 $args) ))
+(%defmacro @NEW_ARRAY (&rest $args) `(c-exp "((~a  *)safe_calloc((~a ), sizeof(~a )))" ,(lisp:nth 0 $args) ,(lisp:nth 1 $args) ,(lisp:nth 0 $args) ))
+
+
+
+token_t lex_get_token (void);
+token_t lex_prev_token (void);
+bool lex_colon_follows (void);
+void lex_error (const char *s);
+const char *lex_tokname(token_t);
+extern token_t name_type(const char *buf);
+extern void *safe_calloc(size_t,size_t);
+extern char *string_copy(const char *s, int len);
+
+const char *tokname(token_t);
+(%line 1 "/home/lab4/hiraisi/c_parser/list.h")
+(%defconstant list_h (c-exp ""))
+(%line 25 "/home/lab4/hiraisi/c_parser/list.h")
+typedef struct link_t
+{
+ struct link_t *llink, *rlink ;
+} link_t ;
+
+typedef struct
+{
+ link_t lhead ;
+} list_t ;
+
+void list_init ( list_t *list );
+void list_append ( list_t *list, void *link );
+void list_prepend ( list_t *list, void *link );
+void list_insert_after ( list_t *list, void *anchor, void *link );
+void list_insert_before( list_t *list, void *anchor, void *link );
+void * list_first ( list_t *list );
+void * list_last ( list_t *list );
+void * list_next ( list_t *list, void *link );
+void * list_prev ( list_t *list, void *link );
+void list_remove ( list_t *list, void *link );
+void list_push ( list_t *list, void *link );
+void * list_pop ( list_t *list );
+(%defmacro list_push (&rest $args) `(c-exp "list_append((~a ), (~a ))" ,(lisp:nth 0 $args) ,(lisp:nth 1 $args) ))
+(%line 1 "/home/lab4/hiraisi/c_parser/c_parser.h")
+(%defconstant @C_PARSER_H (c-exp ""))
+(%defconstant @EOS (c-exp "'\\0'"))
+
+
+
+
+static FILE *sc_out;
+
+void cid2scid (const char*, char*);
+void string_c2sc( const char *, char * );
+
+
+typedef struct s_constant_expression t_constant_expression;
+static void prt_constant_expression( t_constant_expression * );
+static void free_constant_expression( t_constant_expression * );
+
+typedef struct s_expression t_expression;
+static void prt_expression( t_expression * );
+static void free_expression( t_expression * );
+
+typedef struct s_primary_expression t_primary_expression;
+static void prt_primary_expression( t_primary_expression * );
+static void free_primary_expression( t_primary_expression * );
+
+typedef struct s_postfix_operator t_postfix_operator;
+static void prt_postfix_operator( t_postfix_operator * );
+static void free_postfix_operator( t_postfix_operator * );
+
+typedef struct s_postfix_operators t_postfix_operators;
+static void prt_postfix_operators( t_postfix_operators * );
+static void free_postfix_operators( t_postfix_operators * );
+
+typedef struct s_sizeof_expression t_sizeof_expression;
+static void prt_sizeof_expression( t_sizeof_expression * );
+static void free_sizeof_expression( t_sizeof_expression * );
+
+typedef struct s_unary_expression t_unary_expression;
+static void prt_unary_expression( t_unary_expression * );
+static void free_unary_expression( t_unary_expression * );
+
+typedef struct s_multiplicative_expression t_multiplicative_expression;
+static void prt_multiplicative_expression( t_multiplicative_expression * );
+static void free_multiplicative_expression( t_multiplicative_expression * );
+
+typedef struct s_additive_expression t_additive_expression;
+static void prt_additive_expression( t_additive_expression * );
+static void free_additive_expression( t_additive_expression * );
+
+typedef struct s_shift_expression t_shift_expression;
+static void prt_shift_expression( t_shift_expression * );
+static void free_shift_expression( t_shift_expression * );
+
+typedef struct s_relational_expression t_relational_expression;
+static void prt_relational_expression( t_relational_expression * );
+static void free_relational_expression( t_relational_expression * );
+
+typedef struct s_equality_expression t_equality_expression;
+static void prt_equality_expression( t_equality_expression * );
+static void free_equality_expression( t_equality_expression * );
+
+typedef struct s_and_expression t_and_expression;
+static void prt_and_expression( t_and_expression * );
+static void free_and_expression( t_and_expression * );
+
+typedef struct s_exclusive_or_expression t_exclusive_or_expression;
+static void prt_exclusive_or_expression( t_exclusive_or_expression * );
+static void free_exclusive_or_expression( t_exclusive_or_expression * );
+
+typedef struct s_inclusive_or_expression t_inclusive_or_expression;
+static void prt_inclusive_or_expression( t_inclusive_or_expression * );
+static void free_inclusive_or_expression( t_inclusive_or_expression * );
+
+typedef struct s_logical_and_expression t_logical_and_expression;
+static void prt_logical_and_expression( t_logical_and_expression * );
+static void free_logical_and_expression( t_logical_and_expression * );
+
+typedef struct s_logical_or_expression t_logical_or_expression;
+static void prt_logical_or_expression( t_logical_or_expression * );
+static void free_logical_or_expression( t_logical_or_expression * );
+
+typedef struct s_conditional_expression t_conditional_expression;
+static void prt_conditional_expression( t_conditional_expression * );
+static void free_conditional_expression( t_conditional_expression * );
+
+typedef struct s_assignment_expression t_assignment_expression;
+static void prt_assignment_expression( t_assignment_expression * );
+static void free_assignment_expression( t_assignment_expression * );
+
+typedef struct s_labeled_statement t_labeled_statement;
+static void prt_labeled_statement( t_labeled_statement * );
+static void free_labeled_statement( t_labeled_statement * );
+
+typedef struct s_case_statement t_case_statement;
+static void prt_case_statement( t_case_statement * );
+static void free_case_statement( t_case_statement * );
+
+typedef struct s_default_statement t_default_statement;
+static void prt_default_statement( t_default_statement * );
+static void free_default_statement( t_default_statement * );
+
+typedef struct s_if_statement t_if_statement;
+static void prt_if_statement( t_if_statement * );
+static void free_if_statement( t_if_statement * );
+
+typedef struct s_switch_statement t_switch_statement;
+static void prt_switch_statement( t_switch_statement * );
+static void free_switch_statement( t_switch_statement * );
+
+typedef struct s_while_statement t_while_statement;
+static void prt_while_statement( t_while_statement * );
+static void free_while_statement( t_while_statement * );
+
+typedef struct s_do_while_statement t_do_while_statement;
+static void prt_do_while_statement( t_do_while_statement * );
+static void free_do_while_statement( t_do_while_statement * );
+
+typedef struct s_for_statement t_for_statement;
+static void prt_for_statement( t_for_statement * );
+static void free_for_statement( t_for_statement * );
+
+typedef struct s_break_statement t_break_statement;
+static void prt_break_statement( t_break_statement * );
+static void free_break_statement( t_break_statement * );
+
+typedef struct s_continue_statement t_continue_statement;
+static void prt_continue_statement( t_continue_statement * );
+static void free_continue_statement( t_continue_statement * );
+
+typedef struct s_goto_statement t_goto_statement;
+static void prt_goto_statement( t_goto_statement * );
+static void free_goto_statement( t_goto_statement * );
+
+typedef struct s_return_statement t_return_statement;
+static void prt_return_statement( t_return_statement * );
+static void free_return_statement( t_return_statement * );
+
+typedef struct s_empty_statement t_empty_statement;
+static void prt_empty_statement( t_empty_statement * );
+static void free_empty_statement( t_empty_statement * );
+
+typedef struct s_expression_statement t_expression_statement;
+static void prt_expression_statement( t_expression_statement * );
+static void free_expression_statement( t_expression_statement * );
+
+typedef struct s_statement t_statement;
+static void prt_statement( t_statement * );
+static void free_statement( t_statement * );
+
+typedef struct s_compound_statement t_compound_statement;
+static void prt_compound_statement( t_compound_statement * );
+static void free_compound_statement( t_compound_statement * );
+
+typedef struct s_enumerator t_enumerator;
+static void prt_enumerator( t_enumerator * );
+static void free_enumerator( t_enumerator * );
+
+typedef struct s_enum_specifier t_enum_specifier;
+static void prt_enum_specifier( t_enum_specifier * );
+static void free_enum_specifier( t_enum_specifier * );
+
+typedef struct s_member t_member;
+static void prt_member( t_member * );
+static void free_member( t_member * );
+
+typedef struct s_members t_members;
+static void prt_members( t_members * );
+static void free_members( t_members * );
+
+typedef struct s_struct_or_union_specifier t_struct_or_union_specifier;
+static void prt_struct_or_union_specifier( t_struct_or_union_specifier * );
+static void free_struct_or_union_specifier( t_struct_or_union_specifier * );
+
+typedef struct s_type_name t_type_name;
+static void prt_type_name( t_type_name * );
+static void free_type_name( t_type_name * );
+
+typedef struct s_declaration_specifiers t_declaration_specifiers;
+static void prt_declaration_specifiers( t_declaration_specifiers * );
+static void free_declaration_specifiers( t_declaration_specifiers * );
+
+typedef struct s_pointer t_pointer;
+static void prt_pointer( t_pointer * );
+static void free_pointer( t_pointer * );
+
+typedef struct s_direct_declarator t_direct_declarator;
+static void prt_direct_declarator( t_direct_declarator * );
+static void free_direct_declarator( t_direct_declarator * );
+
+typedef struct s_parameter_list t_parameter_list;
+static void prt_parameter_list( t_parameter_list * );
+static void free_parameter_list( t_parameter_list * );
+
+typedef struct s_suffix_declarator t_suffix_declarator;
+static void prt_suffix_declarator( t_suffix_declarator * );
+static void free_suffix_declarator( t_suffix_declarator * );
+
+typedef struct s_declarator t_declarator;
+static void prt_declarator( t_declarator * );
+static void free_declarator( t_declarator * );
+
+typedef struct s_designator t_designator;
+static void prt_designator( t_designator * );
+static void free_designator( t_designator * );
+
+typedef struct s_initializer t_initializer;
+static void prt_initializer( t_initializer * );
+static void free_initializer( t_initializer * );
+
+typedef struct s_function_definition t_function_definition;
+static void prt_function_definition( t_function_definition * );
+static void free_function_definition( t_function_definition * );
+
+typedef struct s_init_declarator t_init_declarator;
+static void prt_init_declarator( t_init_declarator * );
+static void free_init_declarator( t_init_declarator * );
+
+typedef struct s_declaration t_declaration;
+static void prt_declaration( t_declaration * );
+static void free_declaration( t_declaration * );
+
+typedef struct s_translation_unit t_translation_unit;
+static void prt_translation_unit( t_translation_unit * );
+static void free_translation_unit( t_translation_unit * );
+
+
+struct s_constant_expression {
+ t_conditional_expression *cond_exp;
+};
+
+struct s_expression {
+ t_expression *exp;
+ t_assignment_expression *ass_exp;
+};
+
+struct s_primary_expression {
+
+ enum { PR_UNDEFINED, PR_IDENTIFIER, PR_CONSTANT, PR_STRING_LITERAL } spec;
+ char *str;
+};
+
+struct s_postfix_operator {
+ enum
+ { PF_UNDEFINED, PF_AREF, PF_CALL, PF_DOT, PF_ARROW, PF_INC, PF_DEC } spec;
+ t_expression *exp;
+ char *identifier;
+};
+
+struct s_postfix_operators {
+ t_postfix_operator *pf;
+ t_postfix_operators *next;
+};
+
+struct s_sizeof_expression {
+ enum { SZ_UNDEFINED, SZ_PR_EXP, SZ_UN_EXP, SZ_TYPE } spec;
+ t_expression *exp;
+ t_postfix_operators *pfs;
+ t_unary_expression *un_exp;
+ t_type_name *tn;
+};
+
+struct s_unary_expression {
+ enum { UE_UNDEFINED, UE_SIZEOF, UE_CAST, UE_PAREN, UE_UN_OP, UE_PRIM } spec;
+ t_sizeof_expression *sz_exp;
+ t_type_name *tn;
+ t_unary_expression *un_exp;
+ t_expression *exp;
+ t_postfix_operators *pfs;
+ enum {
+ UOP_UNDEFINED, UOP_PLUSPLUS, UOP_MINUSMINUS, UOP_AND, UOP_STAR,
+ UOP_PLUS, UOP_MINUS, UOP_TILDE, UOP_NOT } uop;
+ t_primary_expression *pr_exp;
+};
+
+struct s_multiplicative_expression {
+ enum { MOP_UNDEFINED, MOP_STAR, MOP_SLASH, MOP_PERCENT } mop;
+ t_multiplicative_expression *ml_exp;
+ t_unary_expression *un_exp;
+};
+
+struct s_additive_expression {
+ enum { AOP_UNDEFINED, AOP_PLUS, AOP_MINUS } aop;
+ t_additive_expression *ad_exp;
+ t_multiplicative_expression *ml_exp;
+};
+
+struct s_shift_expression {
+ enum { SOP_UNDEFINED, SOP_LSHIFT, SOP_RSHIFT } sop;
+ t_shift_expression *sh_exp;
+ t_additive_expression *ad_exp;
+};
+
+struct s_relational_expression {
+ enum
+ { ROP_UNDEFINED, ROP_GREATERTHAN, ROP_LESSTHAN, ROP_GTEQ, ROP_LESSEQ } rop;
+ t_relational_expression *rl_exp;
+ t_shift_expression *sh_exp;
+};
+
+struct s_equality_expression {
+ enum { EOP_UNDEFINED, EOP_EQEQ, EOP_NOTEQ } eop;
+ t_equality_expression *eq_exp;
+ t_relational_expression *rl_exp;
+};
+
+struct s_and_expression {
+ t_and_expression *an_exp;
+ t_equality_expression *eq_exp;
+};
+
+struct s_exclusive_or_expression {
+ t_exclusive_or_expression *xo_exp;
+ t_and_expression *an_exp;
+};
+
+struct s_inclusive_or_expression {
+ t_inclusive_or_expression *or_exp;
+ t_exclusive_or_expression *xo_exp;
+};
+
+struct s_logical_and_expression {
+ t_logical_and_expression *la_exp;
+ t_inclusive_or_expression *or_exp;
+};
+
+struct s_logical_or_expression {
+ t_logical_or_expression *lo_exp;
+ t_logical_and_expression *la_exp;
+};
+
+struct s_conditional_expression {
+ t_logical_or_expression *lo_exp;
+ t_expression *exp;
+ t_conditional_expression *cd_exp;
+};
+
+struct s_assignment_expression {
+ enum { AS_UNDEFINED, AS_EQUALS, AS_PLUS_EQUALS, AS_MINUS_EQUALS,
+ AS_STAR_EQUALS, AS_SLASH_EQUALS, AS_PERCENT_EQUALS,
+ AS_LSHIFT_EQUALS, AS_RSHIFT_EQUALS,
+ AS_AND_EQUALS, AS_XOR_EQUALS, AS_OR_EQUALS } as;
+ t_conditional_expression *cd_exp;
+ t_assignment_expression *as_exp;
+};
+
+struct s_labeled_statement {
+ char *identifier;
+ t_statement *stat;
+};
+
+struct s_case_statement {
+ t_constant_expression *cs_exp;
+ t_statement *stat;
+};
+
+struct s_default_statement {
+ t_statement *stat;
+};
+
+struct s_if_statement {
+ t_expression *exp;
+ t_statement *stat1;
+ t_statement *stat2;
+};
+
+struct s_switch_statement {
+ t_expression *exp;
+ t_statement *stat;
+};
+
+struct s_while_statement {
+ t_expression *exp;
+ t_statement *stat;
+};
+
+struct s_do_while_statement {
+ t_expression *exp;
+ t_statement *stat;
+};
+
+struct s_for_statement {
+ enum { FOR_UNDEFINED, FOR_DECL, FOR_EXP } spec;
+ t_declaration *decl;
+ t_expression *exp1;
+ t_expression *exp2;
+ t_expression *exp3;
+ t_statement *stat;
+};
+
+struct s_break_statement {
+ int dummy;
+};
+
+struct s_continue_statement {
+ int dummy;
+};
+
+struct s_goto_statement {
+ char *identifier;
+};
+
+struct s_return_statement {
+ t_expression *exp;
+};
+
+struct s_empty_statement {
+ int dummy;
+};
+
+struct s_expression_statement {
+ t_labeled_statement *lb_stat;
+ t_expression *exp;
+};
+
+struct s_statement {
+ enum { ST_UNDEFINED, ST_EXP, ST_CASE, ST_DEFAULT, ST_IF, ST_SWITCH,
+ ST_WHILE, ST_DO_WHILE, ST_FOR, ST_BREAK, ST_CONTINUE, ST_GOTO,
+ ST_RETURN, ST_COMPOUND, ST_EMPTY } spec;
+ t_expression_statement *ex_stat;
+ t_case_statement *cs_stat;
+ t_default_statement *df_stat;
+ t_if_statement *if_stat;
+ t_switch_statement *sw_stat;
+ t_while_statement *wh_stat;
+ t_do_while_statement *dw_stat;
+ t_for_statement *fo_stat;
+ t_break_statement *br_stat;
+ t_continue_statement *ct_stat;
+ t_goto_statement *gt_stat;
+ t_return_statement *rt_stat;
+ t_compound_statement *cp_stat;
+ t_empty_statement *em_stat;
+};
+
+typedef struct s_block_item_list {
+ enum { BI_UNDEFINED, BI_STAT, BI_DECL } spec;
+ t_statement *stat;
+ t_declaration *decl;
+ struct s_block_item_list *next;
+} block_item_list;
+
+struct s_compound_statement {
+ block_item_list *bi_list;
+};
+
+struct s_enumerator {
+ char *identifier;
+ t_constant_expression *cs_exp;
+};
+
+typedef struct tag_enumerator_list {
+ t_enumerator *en;
+ struct tag_enumerator_list *next;
+} enumerator_list;
+
+struct s_enum_specifier {
+ char *identifier;
+ enumerator_list *en_list;
+};
+
+struct s_member {
+ t_declarator *dclr;
+ t_constant_expression *cs_exp;
+};
+
+typedef struct tag_member_list {
+ t_member *mem;
+ struct tag_member_list *next;
+} member_list;
+
+typedef struct tag_struct_declaration_list {
+ t_declaration_specifiers *dspec;
+ member_list *mem_list;
+ struct tag_struct_declaration_list *next;
+} struct_declaration_list;
+
+struct s_members {
+ struct_declaration_list *sdec_list;
+};
+
+struct s_struct_or_union_specifier {
+ enum { SU_UNDEFINED, SU_STRUCT, SU_UNION } spec;
+ char *identifier;
+ t_members *mems;
+};
+
+struct s_type_name {
+ t_declaration_specifiers *dspec;
+ t_declarator *dclr;
+};
+
+struct s_declaration_specifiers {
+ enum { TP_UNDEFINED, TP_ELEMENTAL, TP_STRUCT, TP_ENUM, TP_NAME } spec;
+ enum { STC_UNDEFINED, STC_TYPEDEF, STC_EXTERN, STC_STATIC, STC_AUTO,
+ STC_REGISTER } st_class;
+ enum { QF_END, QF_CONST, QF_RESTRICT, QF_VOLATILE } qf[32];
+ enum { SG_UNDEFINED, SG_SIGNED, SG_UNSIGNED } et_sign;
+ enum { ET_UNDEFINED,
+ ET_VOID, ET_CHAR, ET_SHORT, ET_INT, ET_FLOAT, ET_DOUBLE } et_type;
+ enum { LG_UNDEFINED, LG_LONG, LG_LONGLONG } et_long;
+ t_struct_or_union_specifier *suspec;
+ t_enum_specifier *espec;
+ char *identifier;
+};
+
+struct s_pointer {
+ enum { PT_END, PT_STAR, PT_CONST, PT_RESTRICT, PT_VOLATILE } pt_qf[32];
+};
+
+struct s_direct_declarator {
+ enum { DD_UNDEFINED, DD_NULL, DD_PAREN, DD_IDENTIFIER } spec;
+ t_declarator *dclr;
+ char* identifier;
+};
+
+typedef struct tag_param_list {
+ char *identifier;
+ t_declaration_specifiers *dspec;
+ t_declarator *dclr;
+ struct tag_param_list *next;
+} param_list;
+
+struct s_parameter_list {
+ int new_style;
+ param_list *pm_list;
+ int va_arg;
+};
+
+struct s_suffix_declarator {
+ enum { SD_UNDEFINED, SD_ARRAY, SD_FUNC } spec;
+ t_constant_expression *cs_exp;
+ t_parameter_list *param_list;
+ int is_func;
+};
+
+typedef struct tag_suffix_declarator_list {
+ t_suffix_declarator *sf_dclr;
+ struct tag_suffix_declarator_list *next;
+} suffix_declarator_list;
+
+struct s_declarator {
+ t_pointer *pt;
+ t_direct_declarator *ddclr;
+ suffix_declarator_list *sd_list;
+};
+
+struct s_designator {
+ enum { DSG_UNDEFINED, DSG_AREF, DSG_STRUCT } spec;
+ t_constant_expression *cs_exp;
+ char *identifier;
+};
+
+typedef struct tag_initalizer_list {
+ t_initializer *init;
+ struct tag_initalizer_list *next;
+} initializer_list;
+
+struct s_initializer {
+ enum { INIT_UNDEFINED, INIT_LIST, INIT_LISTELM, INIT_ASEXP } spec;
+ initializer_list *init_list;
+ t_designator *dsg;
+ t_initializer *init;
+ t_assignment_expression *as_exp;
+};
+
+typedef struct tag_declaration_list {
+ t_declaration *decl;
+ struct tag_declaration_list *next;
+} declaration_list;
+
+struct s_function_definition {
+ t_compound_statement *cp_stat;
+ declaration_list *decl_list;
+};
+
+struct s_init_declarator {
+ int is_fn_def;
+ t_declarator *dclr;
+ t_function_definition *fn_def;
+ t_initializer *init;
+};
+
+typedef struct tag_init_declarator_list {
+ t_init_declarator *idclr;
+ struct tag_init_declarator_list *next;
+} init_declarator_list;
+
+struct s_declaration {
+ t_declaration_specifiers *dspec;
+ init_declarator_list *idclr_list;
+};
+
+typedef struct tag_declaration_unit {
+ t_declaration *decl;
+ struct tag_declaration_unit *next;
+} declaration_unit;
+
+struct s_translation_unit {
+ declaration_list *decl_list;
+};
+(%line 1 "/usr/include/err.h")
+(%defconstant _@ERR_H_ (c-exp ""))
+(%line 1 "/usr/include/sys/cdefs.h")
+(%line 1 "/usr/include/sys/_types.h")
+(%line 50 "/usr/include/err.h")
+
+void err(int, const char *, ...) __attribute__((__noreturn__))  ;
+void verr(int, const char *, __va_list) __attribute__((__noreturn__))  ;
+void errc(int, int, const char *, ...) __attribute__((__noreturn__))  ;
+void verrc(int, int, const char *, __va_list) __attribute__((__noreturn__)) 
+ ;
+void errx(int, const char *, ...) __attribute__((__noreturn__))  ;
+void verrx(int, const char *, __va_list) __attribute__((__noreturn__))  ;
+void warn(const char *, ...) ;
+void vwarn(const char *, __va_list) ;
+void warnc(int, const char *, ...) ;
+void vwarnc(int, const char *, __va_list) ;
+void warnx(const char *, ...) __attribute__((__format__ (__printf__, 1, 2))) ;
+void vwarnx(const char *, __va_list) __attribute__((__format__ (__printf__, 1, 0))) ;
+void err_set_file(void *);
+void err_set_exit(void (*)(int));
+
+(%defmacro is_assign_operator (&rest $args) `(c-exp "(TokMap[(~a )] & TOK_ASSGNOP)" ,(lisp:nth 0 $args) ))
+(%defmacro is_type_name (&rest $args) `(c-exp "(TokMap[(~a )] & TOK_DECL_SPEC || ((~a ) == IDENTIFIER && Cursym != 0 && Cursym->object_type == OBJ_TYPEDEF_NAME) )" ,(lisp:nth 0 $args) ,(lisp:nth 0 $args) ))
+(%defmacro is_declaration (&rest $args) `(c-exp "is_type_name(~a )" ,(lisp:nth 0 $args) ))
+(%defmacro is_external_declaration (&rest $args) `(c-exp "is_declaration(~a )" ,(lisp:nth 0 $args) ))
+(%defmacro is_expression (&rest $args) `(c-exp "(TokMap[~a ] & TOK_EXPR)" ,(lisp:nth 0 $args) ))
+(%defmacro is_statement (&rest $args) `(c-exp "(TokMap[~a ] & TOK_STMT)" ,(lisp:nth 0 $args) ))
+(%defmacro is_function_body (&rest $args) `(c-exp "(~a  == LBRACE || (is_declaration(~a ) && (~a ) != TYPEDEF))" ,(lisp:nth 0 $args) ,(lisp:nth 0 $args) ,(lisp:nth 0 $args) ))
+(%defmacro @TRACEIN (&rest $args) `(c-exp "do { if (DebugLevel == 2) printf(\"%*s%s {\\n\", TraceLevel, \"\", ~a ); fflush(stdout); TraceLevel++; } while(0);" ,(lisp:nth 0 $args) ))
+(%defmacro @TRACEOUT (&rest $args) `(c-exp "do { --TraceLevel; if (DebugLevel == 2) printf(\"%*s} (%s)\\n\", TraceLevel, \"\", ~a ); fflush(stdout); } while(0);" ,(lisp:nth 0 $args) ))
+(%line 126 "/home/lab4/hiraisi/c_parser/c_parser.c")
+enum
+{
+ TOK_UNKNOWN = 0,
+ TOK_EXPR = 1,
+ TOK_CONSTANT = 2,
+ TOK_TYPE_SPECIFIER_QUALIFIER = 4,
+ TOK_TYPE_SPECIFIER = 8,
+ TOK_TYPE_QUALIFIER = 16,
+ TOK_TAG = 32,
+ TOK_STRUCT = 64,
+ TOK_STORAGE_CLASS = 256,
+ TOK_STMT = 1024,
+ TOK_DECL_SPEC = 2048,
+ TOK_ASSGNOP = 4096,
+};
+
+enum
+{
+ LEVEL_GLOBAL = 0,
+ LEVEL_FUNCTION = 1,
+ LEVEL_STATEMENT = 2
+};
+
+enum
+{
+ OBJ_TYPEDEF_NAME = 1,
+ OBJ_FUNCTION_DECL = 2,
+ OBJ_FUNCTION_DEFN = 4,
+ OBJ_ENUMERATOR = 8,
+ OBJ_VARIABLE = 16,
+ OBJ_PARAMETER = 32,
+ OBJ_IDENTIFIER = 2 + 4 + 8 + 16 + 32
+};
+
+typedef struct symbol_t
+{
+ link_t link;
+ const char *name;
+ int storage_class;
+ int object_type;
+} symbol_t;
+
+typedef struct
+{
+ link_t link;
+ int level;
+ list_t symbols;
+} symtab_t;
+
+static unsigned long TokMap[BADTOK];
+
+static int DebugLevel = 0;
+static int TraceLevel = 0;
+
+static int Level = 0;
+static int Saw_ident = 0;
+static int Is_func = 0;
+static token_t tok;
+static int Parsing_struct = 0;
+static int Parsing_oldstyle_parmdecl = 0;
+static int Storage_class[100];
+static int stack_ptr = -1;
+
+static list_t identifiers;
+static list_t labels;
+static list_t types;
+static symtab_t *Cursymtab;
+static symtab_t *Curlabels;
+static symtab_t *Curtypes;
+static symbol_t *Cursym = 0;
+
+static void init_tokmap (void);
+static const char *object_name (int object_type);
+static symtab_t *new_symbol_table (list_t * owner);
+static void init_symbol_table (void);
+static symbol_t *find_symbol (symtab_t * tab, const char *name, int all_scope);
+static void enter_scope (void);
+static void exit_scope (void);
+static void
+install_symbol (const char *name, int storage_class, int object_type);
+static void match (token_t expected_tok);
+static bool check_not_typedef (void);
+
+static t_constant_expression *constant_expression (void);
+static t_expression *expression (void);
+static t_primary_expression *primary_expression (void);
+static t_postfix_operator *postfix_operator (void);
+static t_postfix_operators *postfix_operators (void);
+static t_sizeof_expression *sizeof_expression (void);
+static t_unary_expression *unary_expression (void);
+static t_multiplicative_expression *multiplicative_expression (void);
+static t_additive_expression *additive_expression (void);
+static t_shift_expression *shift_expression (void);
+static t_relational_expression *relational_expression (void);
+static t_equality_expression *equality_expression (void);
+static t_and_expression *and_expression (void);
+static t_exclusive_or_expression *exclusive_or_expression (void);
+static t_inclusive_or_expression *inclusive_or_expression (void);
+static t_logical_and_expression *logical_and_expression (void);
+static t_logical_or_expression *logical_or_expression (void);
+static t_conditional_expression *conditional_expression (void);
+static t_assignment_expression *assignment_expression (void);
+static t_labeled_statement *labeled_statement (void);
+static t_case_statement *case_statement (void);
+static t_default_statement *default_statement (void);
+static t_if_statement *if_statement (void);
+static t_switch_statement *switch_statement (void);
+static t_while_statement *while_statement (void);
+static t_do_while_statement *do_while_statement (void);
+static t_for_statement *for_statement (void);
+static t_break_statement *break_statement (void);
+static t_continue_statement *continue_statement (void);
+static t_goto_statement *goto_statement (void);
+static t_return_statement *return_statement (void);
+static t_empty_statement *empty_statement (void);
+static t_expression_statement *expression_statement (void);
+static t_statement *statement (void);
+static t_compound_statement *compound_statement (void);
+static t_enumerator *enumerator (void);
+static t_enum_specifier *enum_specifier (void);
+static t_member *member (void);
+static t_members *members (void);
+static t_struct_or_union_specifier *struct_or_union_specifier (void);
+static t_type_name *type_name (void);
+static t_declaration_specifiers *declaration_specifiers (int no_storage_class);
+static t_pointer *pointer (void);
+static t_direct_declarator *direct_declarator (int abstract);
+static t_parameter_list *parameter_list (int *new_style);
+static t_suffix_declarator *suffix_declarator (void);
+static t_declarator *declarator (int abstract);
+static t_designator *designator (void);
+static t_initializer *initializer (int recurse);
+static t_function_definition *function_definition (void);
+static t_init_declarator *init_declarator (int check_if_function);
+static t_declaration *declaration (void);
+static t_translation_unit *translation_unit (void);
+
+static const char *mygetline (char *arg);
+
+char token_str[ 1024 ];
+
+static void
+init_tokmap (void)
+{
+ TokMap[FLOATING_CONSTANT] = TOK_CONSTANT | TOK_EXPR | TOK_STMT;
+ TokMap[INTEGER_CONSTANT] = TOK_CONSTANT | TOK_EXPR | TOK_STMT;
+ TokMap[STRING_CONSTANT] = TOK_CONSTANT | TOK_EXPR | TOK_STMT;
+ TokMap[CHARACTER_CONSTANT] = TOK_CONSTANT | TOK_EXPR | TOK_STMT;
+ TokMap[IDENTIFIER] = TOK_EXPR | TOK_STMT;
+ TokMap[SIZEOF] = TOK_EXPR | TOK_STMT;
+ TokMap[AND] = TOK_EXPR | TOK_STMT;
+ TokMap[PLUSPLUS] = TOK_EXPR | TOK_STMT;
+ TokMap[MINUSMINUS] = TOK_EXPR | TOK_STMT;
+ TokMap[STAR] = TOK_EXPR | TOK_STMT;
+ TokMap[PLUS] = TOK_EXPR | TOK_STMT;
+ TokMap[MINUS] = TOK_EXPR | TOK_STMT;
+ TokMap[TILDE] = TOK_EXPR | TOK_STMT;
+ TokMap[LPAREN] = TOK_EXPR | TOK_STMT;
+ TokMap[NOT] = TOK_EXPR | TOK_STMT;
+ TokMap[TYPEDEF_NAME] =
+ TOK_TYPE_SPECIFIER_QUALIFIER | TOK_TYPE_SPECIFIER | TOK_DECL_SPEC;
+ TokMap[CHAR] =
+ TOK_TYPE_SPECIFIER_QUALIFIER | TOK_TYPE_SPECIFIER | TOK_DECL_SPEC;
+ TokMap[FLOAT] =
+ TOK_TYPE_SPECIFIER_QUALIFIER | TOK_TYPE_SPECIFIER | TOK_DECL_SPEC;
+ TokMap[DOUBLE] =
+ TOK_TYPE_SPECIFIER_QUALIFIER | TOK_TYPE_SPECIFIER | TOK_DECL_SPEC;
+ TokMap[SHORT] =
+ TOK_TYPE_SPECIFIER_QUALIFIER | TOK_TYPE_SPECIFIER | TOK_DECL_SPEC;
+ TokMap[INT] =
+ TOK_TYPE_SPECIFIER_QUALIFIER | TOK_TYPE_SPECIFIER | TOK_DECL_SPEC;
+ TokMap[UNSIGNED] =
+ TOK_TYPE_SPECIFIER_QUALIFIER | TOK_TYPE_SPECIFIER | TOK_DECL_SPEC;
+ TokMap[SIGNED] =
+ TOK_TYPE_SPECIFIER_QUALIFIER | TOK_TYPE_SPECIFIER | TOK_DECL_SPEC;
+ TokMap[VOID] =
+ TOK_TYPE_SPECIFIER_QUALIFIER | TOK_TYPE_SPECIFIER | TOK_DECL_SPEC;
+ TokMap[STRUCT] =
+ TOK_TYPE_SPECIFIER_QUALIFIER | TOK_STRUCT | TOK_TAG | TOK_DECL_SPEC;
+ TokMap[UNION] =
+ TOK_TYPE_SPECIFIER_QUALIFIER | TOK_STRUCT | TOK_TAG | TOK_DECL_SPEC;
+ TokMap[ENUM] = TOK_TYPE_SPECIFIER_QUALIFIER | TOK_TAG | TOK_DECL_SPEC;
+ TokMap[LONG] =
+ TOK_TYPE_SPECIFIER_QUALIFIER | TOK_TYPE_SPECIFIER | TOK_DECL_SPEC;
+ TokMap[CONST] =
+ TOK_TYPE_SPECIFIER_QUALIFIER | TOK_TYPE_QUALIFIER | TOK_DECL_SPEC;
+ TokMap[VOLATILE] =
+ TOK_TYPE_SPECIFIER_QUALIFIER | TOK_TYPE_QUALIFIER | TOK_DECL_SPEC;
+ TokMap[STATIC] = TOK_STORAGE_CLASS | TOK_DECL_SPEC;
+ TokMap[EXTERN] = TOK_STORAGE_CLASS | TOK_DECL_SPEC;
+ TokMap[AUTO] = TOK_STORAGE_CLASS | TOK_DECL_SPEC;
+ TokMap[REGISTER] = TOK_STORAGE_CLASS | TOK_DECL_SPEC;
+ TokMap[TYPEDEF] = TOK_STORAGE_CLASS | TOK_DECL_SPEC;
+ TokMap[IF] = TOK_STMT;
+ TokMap[BREAK] = TOK_STMT;
+ TokMap[CASE] = TOK_STMT;
+ TokMap[CONTINUE] = TOK_STMT;
+ TokMap[DEFAULT] = TOK_STMT;
+ TokMap[DO] = TOK_STMT;
+ TokMap[ELSE] = TOK_STMT;
+ TokMap[FOR] = TOK_STMT;
+ TokMap[GOTO] = TOK_STMT;
+ TokMap[RETURN] = TOK_STMT;
+ TokMap[SWITCH] = TOK_STMT;
+ TokMap[WHILE] = TOK_STMT;
+ TokMap[LBRACE] = TOK_STMT;
+ TokMap[SEMI] = TOK_STMT;
+ TokMap[EQUALS] = TOK_ASSGNOP;
+ TokMap[PLUS_EQUALS] = TOK_ASSGNOP;
+ TokMap[MINUS_EQUALS] = TOK_ASSGNOP;
+ TokMap[STAR_EQUALS] = TOK_ASSGNOP;
+ TokMap[SLASH_EQUALS] = TOK_ASSGNOP;
+ TokMap[PERCENT_EQUALS] = TOK_ASSGNOP;
+ TokMap[LSHIFT_EQUALS] = TOK_ASSGNOP;
+ TokMap[RSHIFT_EQUALS] = TOK_ASSGNOP;
+ TokMap[AND_EQUALS] = TOK_ASSGNOP;
+ TokMap[XOR_EQUALS] = TOK_ASSGNOP;
+ TokMap[OR_EQUALS] = TOK_ASSGNOP;
+
+}
+
+static const char *
+object_name (int object_type)
+{
+ const char *name;
+
+ switch (object_type)
+ {
+ case OBJ_TYPEDEF_NAME:
+ name = "typedef";
+ break;
+ case OBJ_FUNCTION_DECL:
+ name = "function_decl";
+ break;
+ case OBJ_FUNCTION_DEFN:
+ name = "function_defn";
+ break;
+ case OBJ_ENUMERATOR:
+ name = "enumerator";
+ break;
+ case OBJ_VARIABLE:
+ name = "variable";
+ break;
+ case OBJ_PARAMETER:
+ name = "parameter";
+ break;
+ case OBJ_IDENTIFIER:
+ name = "identifier";
+ break;
+ default:
+ name = "invalid";
+ break;
+ }
+ return name;
+}
+
+static symtab_t *
+new_symbol_table (list_t * owner)
+{
+ symtab_t *tab;
+
+ tab = calloc (1, sizeof (symtab_t));
+ list_init (&tab->symbols);
+ list_append (owner, tab);
+ return tab;
+}
+
+static void
+init_symbol_table (void)
+{
+ list_init (&identifiers);
+ Cursymtab = new_symbol_table (&identifiers);
+ list_init (&labels);
+ list_init (&types);
+ Curtypes = new_symbol_table (&types);
+}
+
+static symbol_t *
+find_symbol (symtab_t * tab, const char *name, int all_scope)
+{
+ symbol_t *sym;
+
+(%defconstant __@FILE__ (c-exp "\"/home/lab4/hiraisi/c_parser/c_parser.c\""))
+ ((tab != 0) ? (void)0 : __assert(__func__, "/home/lab4/hiraisi/c_parser/c_parser.c" , 408 , "tab != 0")) ;
+ for (sym = (symbol_t *) list_first (&tab->symbols);
+ sym != 0; sym = (symbol_t *) list_next (&tab->symbols, sym))
+ {
+ if (strcmp (sym->name, name) == 0)
+ {
+ return sym;
+ }
+ }
+ if (!all_scope)
+ return 0;
+ tab = (symtab_t *) list_prev (&identifiers, tab);
+ if (tab == 0)
+ return 0;
+ return find_symbol (tab, name, all_scope);
+}
+
+static void
+enter_scope (void)
+{
+
+
+ Level++;
+ if (DebugLevel == 3)
+ {
+ printf ("%*sEntering scope %d\n", TraceLevel, "", Level);
+ }
+ if (Level == LEVEL_STATEMENT)
+ {
+(%line 442 "/home/lab4/hiraisi/c_parser/c_parser.c")
+ return;
+ }
+(%line 450 "/home/lab4/hiraisi/c_parser/c_parser.c")
+ Cursymtab = new_symbol_table (&identifiers);
+}
+
+static void
+exit_scope (void)
+{
+ symtab_t *tab;
+
+ if (DebugLevel == 3)
+ {
+ printf ("%*sExiting scope %d\n", TraceLevel, "", Level);
+ }
+ Level--;
+(%line 468 "/home/lab4/hiraisi/c_parser/c_parser.c")
+ if (Level == LEVEL_FUNCTION)
+ return;
+ tab = Cursymtab;
+ Cursymtab = (symtab_t *) list_prev (&identifiers, Cursymtab);
+ ((Cursymtab != 0) ? (void)0 : __assert(__func__, "/home/lab4/hiraisi/c_parser/c_parser.c" , 472 , "Cursymtab != 0")) ;
+ list_remove (&identifiers, tab);
+}
+
+static void
+install_symbol (const char *name, int storage_class, int object_type)
+{
+ symbol_t *sym;
+
+ sym = find_symbol (Cursymtab, name, 0);
+ if (sym != 0)
+ {
+ fprintf (__stderrp , "Error: redeclaration of symbol %s as %s\n", name,
+ object_name (object_type));
+ fprintf (__stderrp , "Error: previously declared as %s\n",
+ object_name (sym->object_type));
+
+
+ }
+ if (DebugLevel == 3)
+ {
+ printf ("%*sInstalling %s name %s\n", TraceLevel, "",
+ object_name (object_type), name);
+ if (sym)
+ {
+ printf ("%*s\tOverriding %s name %s\n", TraceLevel, "",
+ object_name (sym->object_type), sym->name);
+ }
+ }
+ sym = safe_calloc (1, sizeof (symbol_t));
+ sym->name = string_copy (name, strlen (name));
+ sym->storage_class = storage_class;
+ sym->object_type = object_type;
+ list_append (&Cursymtab->symbols, sym);
+}
+
+static void
+match (token_t expected_tok)
+{
+ if (tok != expected_tok)
+ {
+ printf ("Parse failed: Expected %s, ", tokname (expected_tok));
+ printf ("got %s\n", tokname (tok));
+
+ exit (1);
+ }
+ else
+ {
+ if (DebugLevel)
+ {
+ const char *cp = 0;
+
+ if (TokMap[tok] & TOK_CONSTANT)
+ {
+ cp = Lexeme->constant->co_val;
+ }
+ else if (tok == IDENTIFIER)
+ {
+ cp = Lexeme->identifier->id_name;
+ }
+ if (cp == 0)
+ printf ("%*s[%s]\n", TraceLevel, "", tokname (tok));
+ else
+ printf ("%*s[%s(%s)]\n", TraceLevel, "", tokname (tok), cp);
+ }
+ tok = lex_get_token ();
+ }
+}
+
+static bool
+check_not_typedef (void)
+{
+ return (Cursym == 0 || Cursym->object_type != OBJ_TYPEDEF_NAME);
+}
+
+
+
+
+void cid2scid( const char *cid, char *scid )
+{
+ int lower_mode = 1;
+ for( ; *cid != '\0'  ; cid++ ){
+
+ if( __istype((*cid), 0x00001000L )  ){
+ if( !lower_mode ){
+ *(scid++) = '@';
+ lower_mode = 1;
+ }
+ *(scid++) = *cid;
+ }
+
+ else if( __istype((*cid), 0x00008000L )  ){
+ if( lower_mode ){
+ *(scid++) = '@';
+ lower_mode = 0;
+ }
+ *(scid++) = *cid;
+ }
+
+ else{
+ *(scid++) = *cid;
+ }
+ }
+ *scid = '\0' ;
+}
+
+void string_c2sc( const char *cstr, char *scstr )
+{
+ const char *c = cstr;
+
+ if( *(c++) != '"' ){
+ fprintf( __stderrp , "%s ", cstr );
+ perror( "is not a constant literal!!" );
+ }
+
+ *(scstr++) = '"';
+
+ for( ; *c != '"' ; c++ ){
+ switch( *c )
+ {
+ case '~':
+ *(scstr++)='~'; *(scstr++)='~';
+ break;
+ case '\\':
+ switch( *(++c) ){
+ case 'n':
+ *(scstr++)='~'; *(scstr++)='%'; break;
+ case 'r':
+ *(scstr++)='~'; *(scstr++)='&'; break;
+ case 'f':
+ *(scstr++)='~'; *(scstr++)='|'; break;
+ case '\\':
+ *(scstr++)='\\'; *(scstr++)='\\'; break;
+ case '\"':
+ *(scstr++)='\\'; *(scstr++)='\"'; break;
+ case '\'':
+ *(scstr++)=*c; break;
+ default:
+ warn( "SC does not handle escape character \\%c", *c );
+ *(scstr++)='\\'; *(scstr++)='\\';
+ *(scstr++)=*c; break;
+ }
+ break;
+ default:
+ *(scstr++)=*c;
+ break;
+ }
+ }
+ *(scstr++) = '"';
+ *scstr = '\0' ;
+ return;
+}
+
+
+
+static void prt_constant_expression( t_constant_expression *const_exp )
+{
+
+}
+
+static void free_constant_expression( t_constant_expression *const_exp )
+{
+ if( const_exp ){
+
+ free( const_exp );
+ }
+}
+
+static t_constant_expression*
+constant_expression (void)
+{
+ t_constant_expression *ret;
+ ret = malloc( sizeof( t_constant_expression));
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "constant_expression"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ ret->cond_exp = conditional_expression ();
+
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "constant_expression"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static void prt_expression( t_expression *exp )
+{
+ if( exp->exp ){
+ fputs( " (exps ", sc_out );
+ prt_expression( exp->exp );
+
+ fputs( ") ", sc_out );
+ } else {
+
+ }
+}
+
+static void free_expression( t_expression *exp )
+{
+ if( exp ){
+ free_expression( exp->exp );
+
+ free( exp );
+ }
+}
+
+static t_expression*
+expression (void)
+{
+ t_expression *ret, *new_ret;
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "expression"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+
+ if (!(TokMap[tok] & TOK_EXPR) )
+ {
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "expression"); fflush( __stdoutp ); } while(0); ;
+ return 0 ;
+ }
+
+ ret = malloc( sizeof( t_expression));
+ ret->exp = 0 ;
+ ret->ass_exp = assignment_expression ();
+
+ while (tok == COMMA)
+ {
+ match (COMMA);
+ new_ret = malloc( sizeof( t_expression));
+ new_ret->exp = ret;
+ new_ret->ass_exp = assignment_expression ();
+ ret = new_ret;
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "expression"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static void prt_primary_expression( t_primary_expression *pr_exp )
+{
+ static char str[1024 ];
+
+ switch( pr_exp->spec )
+ {
+ case PR_IDENTIFIER:
+ cid2scid( pr_exp->str, str );
+ fprintf( sc_out, " %s ", str );
+ break;
+
+ case PR_CONSTANT:
+ fprintf( sc_out, " %s ", pr_exp->str );
+ break;
+
+ case PR_STRING_LITERAL:
+ string_c2sc( pr_exp->str, str );
+ fprintf( sc_out, " %s ", str );
+ break;
+
+ default:
+ perror( "unexpected value of pr_exp->spe" );
+ }
+}
+
+static void free_primary_expression( t_primary_expression *pr_exp )
+{
+ free( pr_exp->str );
+ free( pr_exp );
+}
+
+static t_primary_expression*
+primary_expression (void)
+{
+ t_primary_expression *ret;
+ ret = malloc( sizeof( t_primary_expression));
+ ret->spec = PR_UNDEFINED;
+ ret->str = 0 ;
+
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "primary_expression"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ if (tok == IDENTIFIER)
+ {
+ check_not_typedef ();
+ ret->spec = PR_IDENTIFIER;
+ ret->str = malloc( strlen( token_str)+ 1);
+ strcpy( ret->str, token_str );
+ match (IDENTIFIER);
+ }
+ else if (TokMap[tok] & TOK_CONSTANT)
+ {
+ if( token_str[0] != '"' )
+ ret->spec = PR_CONSTANT;
+ else
+ ret->spec = PR_STRING_LITERAL;
+ ret->str = malloc( strlen( token_str)+ 1);
+ strcpy( ret->str, token_str );
+ match (tok);
+ }
+ if( ret->spec == PR_UNDEFINED ){
+ free( ret );
+ ret = 0 ;
+ }
+
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "primary_expression"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+
+static void prt_postfix_operator( t_postfix_operator *pf )
+{
+ switch( pf->spec )
+ {
+ case PF_UNDEFINED:
+ case PF_AREF:
+
+ case PF_CALL:
+
+ case PF_ARROW:
+ case PF_DOT:
+
+ case PF_INC:
+ case PF_DEC:;
+ }
+}
+
+static void free_postfix_operator( t_postfix_operator *pf )
+{
+ if( pf ){
+ free_expression( pf->exp );
+ free( pf->identifier );
+ free( pf );
+ }
+}
+
+static t_postfix_operator *
+postfix_operator (void)
+{
+ t_postfix_operator *ret;
+ ret = malloc( sizeof( t_postfix_operator));
+ ret->spec = PF_UNDEFINED;
+ ret->exp = 0 ; ret->identifier = 0 ;
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "postfix_operator"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ if (tok == LBRAC)
+ {
+ ret->spec = PF_AREF;
+ match (LBRAC);
+ ret->exp = expression ();
+ match (RBRAC);
+ }
+ else if (tok == LPAREN)
+ {
+ ret->spec = PF_CALL;
+ match (LPAREN);
+
+
+
+
+
+
+
+
+
+ ret->exp = expression ();
+ match (RPAREN);
+ }
+ else if (tok == DOT || tok == ARROW)
+ {
+ ret->spec = (tok==DOT)?(PF_DOT):(PF_ARROW);
+ match (tok);
+ ret->identifier = malloc( strlen( token_str)+1);
+ strcpy( ret->identifier, token_str);
+ match (IDENTIFIER);
+ }
+ else if (tok == PLUSPLUS || tok == MINUSMINUS)
+ {
+ ret->spec = (tok==PLUSPLUS)?(PF_INC):(PF_DEC);
+ match (tok);
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "postfix_operator"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static void prt_postfix_operators( t_postfix_operators *pfs )
+{
+ prt_postfix_operator( pfs->pf );
+ if( pfs->next )
+ prt_postfix_operators( pfs->next );
+}
+
+static void free_postfix_operators( t_postfix_operators *pfs )
+{
+ if( pfs ){
+ free_postfix_operator( pfs->pf );
+ free_postfix_operators( pfs->next );
+ free( pfs );
+ }
+}
+
+static t_postfix_operators *
+postfix_operators (void)
+{
+ t_postfix_operators *ret=0 ;
+ t_postfix_operators **cur=&ret;
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "postfix_operators"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ while (tok == LBRAC || tok == LPAREN || tok == DOT ||
+ tok == ARROW || tok == PLUSPLUS || tok == MINUSMINUS)
+ {
+ *cur = malloc( sizeof( t_postfix_operators));
+ (*cur)->pf = postfix_operator ();
+ (*cur)->next = 0 ;
+ cur = &((*cur)->next);
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "postfix_operators"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static void prt_sizeof_expression( t_sizeof_expression *sz_exp )
+{
+
+}
+
+static void free_sizeof_expression( t_sizeof_expression *sz_exp )
+{
+ if( sz_exp ){
+ free_expression( sz_exp->exp );
+ free_postfix_operators( sz_exp->pfs );
+ free_unary_expression( sz_exp->un_exp );
+
+ free( sz_exp );
+ }
+}
+
+static t_sizeof_expression *
+sizeof_expression (void)
+{
+ t_sizeof_expression *ret;
+ ret = malloc( sizeof( t_sizeof_expression));
+ ret->spec = SZ_UNDEFINED;
+ ret->exp = 0 ; ret->pfs = 0 ;
+ ret->un_exp = 0 ; ret->tn = 0 ;
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "sizeof_expression"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+
+ match (SIZEOF);
+ if (tok == LPAREN)
+ {
+ int found_typename = 0;
+
+ match (LPAREN);
+ if ((TokMap[(tok)] & TOK_DECL_SPEC || ((tok) == IDENTIFIER && Cursym != 0 && Cursym->object_type == OBJ_TYPEDEF_NAME) ) )
+ {
+ ret->spec = SZ_TYPE;
+ ret->tn = type_name ();
+ found_typename = 1;
+ }
+ else
+ {
+ ret->spec = SZ_PR_EXP;
+ ret->exp = expression ();
+ }
+ match (RPAREN);
+(%line 957 "/home/lab4/hiraisi/c_parser/c_parser.c")
+ if (!found_typename)
+ {
+ ret->pfs = postfix_operators ();
+ }
+ }
+ else
+ {
+ ret->spec = SZ_UN_EXP;
+ ret->un_exp = unary_expression ();
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "sizeof_expression"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static void prt_unary_expression( t_unary_expression *un_exp )
+{
+
+}
+
+static void free_unary_expression( t_unary_expression *un_exp )
+{
+ if( un_exp ){
+ free_sizeof_expression( un_exp->sz_exp );
+
+ free_unary_expression( un_exp->un_exp );
+ free_expression( un_exp->exp );
+ free_postfix_operators( un_exp->pfs );
+ free_primary_expression( un_exp->pr_exp );
+ free( un_exp );
+ }
+}
+
+static t_unary_expression *
+unary_expression (void)
+{
+ t_unary_expression *ret;
+ ret = malloc( sizeof( t_unary_expression));
+ ret->spec = UE_UNDEFINED;
+ ret->uop = UOP_UNDEFINED;
+ ret->sz_exp = 0 ; ret->tn = 0 ; ret->un_exp = 0 ; ret->exp = 0 ;
+ ret->pfs = 0 ; ret->pr_exp = 0 ;
+(%line 1012 "/home/lab4/hiraisi/c_parser/c_parser.c")
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "unary_expression"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ if (tok == SIZEOF)
+ {
+ ret->spec = UE_SIZEOF;
+ ret->sz_exp = sizeof_expression ();
+ }
+ else if (tok == LPAREN)
+ {
+ int found_typename = 0;
+
+ match (LPAREN);
+ if ((TokMap[(tok)] & TOK_DECL_SPEC || ((tok) == IDENTIFIER && Cursym != 0 && Cursym->object_type == OBJ_TYPEDEF_NAME) ) )
+ {
+ ret->spec = UE_CAST;
+ ret->tn = type_name ();
+ found_typename = 1;
+ }
+ else
+ {
+ ret->spec = UE_PAREN;
+ ret->exp = expression ();
+ }
+ match (RPAREN);
+(%line 1044 "/home/lab4/hiraisi/c_parser/c_parser.c")
+ if (!found_typename)
+ {
+ ret->pfs = postfix_operators ();
+ }
+ else
+ {
+ ret->un_exp = unary_expression ();
+ }
+ }
+ else if (tok == PLUSPLUS || tok == MINUSMINUS || tok == AND
+ || tok == STAR || tok == PLUS || tok == MINUS
+ || tok == TILDE || tok == NOT)
+ {
+ ret->spec = UE_UN_OP;
+ switch( tok ){
+ case PLUSPLUS: ret->uop = UOP_PLUSPLUS; break;
+ case MINUSMINUS: ret->uop = UOP_MINUSMINUS; break;
+ case AND: ret->uop = UOP_AND; break;
+ case STAR: ret->uop = UOP_STAR; break;
+ case PLUS: ret->uop = UOP_PLUS; break;
+ case MINUS: ret->uop = UOP_MINUS; break;
+ case TILDE: ret->uop = UOP_TILDE; break;
+ case NOT: ret->uop = UOP_NOT; break;
+ default:
+ perror( "unexpcted type of tok" );
+ break;
+ }
+ match (tok);
+ ret->un_exp = unary_expression ();
+ }
+ else
+ {
+ ret->spec = UE_PRIM;
+ ret->pr_exp = primary_expression ();
+ ret->pfs = postfix_operators ();
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "unary_expression"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static t_multiplicative_expression *
+multiplicative_expression (void)
+{
+ t_multiplicative_expression *ret;
+ t_multiplicative_expression *new_ret;
+ ret = malloc( sizeof( t_multiplicative_expression));
+ ret->ml_exp = 0 ;
+ ret->mop = MOP_UNDEFINED;
+
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "multiplicative_expression"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ ret->un_exp = unary_expression ();
+ while (tok == STAR || tok == SLASH || tok == PERCENT)
+ {
+ new_ret = malloc( sizeof( t_multiplicative_expression));
+ switch( tok ){
+ case STAR: new_ret->mop=MOP_STAR; break;
+ case SLASH: new_ret->mop=MOP_SLASH; break;
+ case PERCENT: new_ret->mop=MOP_PERCENT; break;
+ default:
+ perror( "unexpcted type of tok" );
+ break;
+ }
+ match (tok);
+ new_ret->ml_exp = ret;
+ new_ret->un_exp = unary_expression ();
+ ret = new_ret;
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "multiplicative_expression"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static t_additive_expression *
+additive_expression (void)
+{
+ t_additive_expression *ret;
+ t_additive_expression *new_ret;
+ ret = malloc( sizeof( t_additive_expression));
+ ret->ad_exp = 0 ;
+ ret->aop = AOP_UNDEFINED;
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "additive_expression"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ ret->ml_exp = multiplicative_expression ();
+ while (tok == PLUS || tok == MINUS)
+ {
+ new_ret = malloc( sizeof( t_additive_expression));
+ switch( tok ){
+ case PLUS: new_ret->aop=AOP_PLUS; break;
+ case MINUS: new_ret->aop=AOP_MINUS; break;
+ default:
+ perror( "unexpcted type of tok" );
+ break;
+ }
+ match (tok);
+ new_ret->ad_exp = ret;
+ new_ret->ml_exp = multiplicative_expression ();
+ ret = new_ret;
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "additive_expression"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static t_shift_expression *
+shift_expression (void)
+{
+ t_shift_expression *ret;
+ t_shift_expression *new_ret;
+ ret = malloc( sizeof( t_shift_expression));
+ ret->sh_exp = 0 ;
+ ret->sop = SOP_UNDEFINED;
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "shift_expression"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ ret->ad_exp = additive_expression ();
+ while (tok == LSHIFT || tok == RSHIFT)
+ {
+ new_ret = malloc( sizeof( t_shift_expression));
+ switch( tok ){
+ case LSHIFT: new_ret->sop=SOP_LSHIFT; break;
+ case RSHIFT: new_ret->sop=SOP_RSHIFT; break;
+ default:
+ perror( "unexpcted type of tok" );
+ break;
+ }
+ match (tok);
+ new_ret->sh_exp = ret;
+ new_ret->ad_exp = additive_expression ();
+ ret = new_ret;
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "shift_expression"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static t_relational_expression *
+relational_expression (void)
+{
+ t_relational_expression *ret;
+ t_relational_expression *new_ret;
+ ret = malloc( sizeof( t_relational_expression));
+ ret->rl_exp = 0 ;
+ ret->rop = ROP_UNDEFINED;
+
+
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "relational_expression"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ ret->sh_exp = shift_expression ();
+ while (tok == GREATERTHAN || tok == LESSTHAN || tok == GTEQ || tok == LESSEQ)
+ {
+ new_ret = malloc( sizeof( t_relational_expression));
+ switch( tok ){
+ case GREATERTHAN: new_ret->rop=ROP_GREATERTHAN; break;
+ case LESSTHAN: new_ret->rop=ROP_LESSTHAN; break;
+ case GTEQ: new_ret->rop=ROP_GTEQ; break;
+ case LESSEQ: new_ret->rop=ROP_LESSEQ; break;
+ default:
+ perror( "unexpcted type of tok" );
+ break;
+ }
+ match (tok);
+ new_ret->rl_exp = ret;
+ new_ret->sh_exp = shift_expression ();
+ ret = new_ret;
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "relational_expression"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static t_equality_expression *
+equality_expression (void)
+{
+ t_equality_expression *ret;
+ t_equality_expression *new_ret;
+ ret = malloc( sizeof( t_equality_expression));
+ ret->eq_exp = 0 ;
+ ret->eop = EOP_UNDEFINED;
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "equality_expression"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ ret->rl_exp = relational_expression ();
+ while (tok == EQEQ || tok == NOTEQ)
+ {
+ new_ret = malloc( sizeof( t_equality_expression));
+ switch( tok ){
+ case EQEQ: new_ret->eop=EOP_EQEQ; break;
+ case NOTEQ: new_ret->eop=EOP_NOTEQ; break;
+ default:
+ perror( "unexpcted type of tok" );
+ break;
+ }
+ match (tok);
+ new_ret->eq_exp = ret;
+ new_ret->rl_exp = relational_expression ();
+ ret = new_ret;
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "equality_expression"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static t_and_expression *
+and_expression (void)
+{
+ t_and_expression *ret;
+ t_and_expression *new_ret;
+ ret = malloc( sizeof( t_and_expression));
+ ret->an_exp = 0 ;
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "and_expression"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ ret->eq_exp = equality_expression ();
+ while (tok == AND)
+ {
+ new_ret = malloc( sizeof( t_and_expression));
+ match (AND);
+ new_ret->an_exp = ret;
+ new_ret->eq_exp = equality_expression ();
+ ret = new_ret;
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "and_expression"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static t_exclusive_or_expression *
+exclusive_or_expression (void)
+{
+ t_exclusive_or_expression *ret;
+ t_exclusive_or_expression *new_ret;
+ ret = malloc( sizeof( t_exclusive_or_expression));
+ ret->xo_exp = 0 ;
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "exclusive_or_expression"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ ret->an_exp = and_expression ();
+ while (tok == XOR)
+ {
+ new_ret = malloc( sizeof( t_exclusive_or_expression));
+ match (XOR);
+ new_ret->xo_exp = ret;
+ new_ret->an_exp = and_expression ();
+ ret = new_ret;
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "exclusive_or_expression"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static t_inclusive_or_expression *
+inclusive_or_expression (void)
+{
+ t_inclusive_or_expression *ret;
+ t_inclusive_or_expression *new_ret;
+ ret = malloc( sizeof( t_inclusive_or_expression));
+ ret->or_exp = 0 ;
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "inclusive_or_expression"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ ret->xo_exp = exclusive_or_expression ();
+ while (tok == OR)
+ {
+ new_ret = malloc( sizeof( t_inclusive_or_expression));
+ match (OR);
+ new_ret->or_exp = ret;
+ new_ret->xo_exp = exclusive_or_expression ();
+ ret = new_ret;
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "inclusive_or_expression"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static t_logical_and_expression *
+logical_and_expression (void)
+{
+ t_logical_and_expression *ret;
+ t_logical_and_expression *new_ret;
+ ret = malloc( sizeof( t_logical_and_expression));
+ ret->la_exp = 0 ;
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "logical_and_expression"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ ret->or_exp = inclusive_or_expression ();
+ while (tok == ANDAND)
+ {
+ new_ret = malloc( sizeof( t_logical_and_expression));
+ match (ANDAND);
+ new_ret->la_exp = ret;
+ new_ret->or_exp = inclusive_or_expression ();
+ ret = new_ret;
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "logical_and_expression"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static t_logical_or_expression *
+logical_or_expression (void)
+{
+ t_logical_or_expression *ret;
+ t_logical_or_expression *new_ret;
+ ret = malloc( sizeof( t_logical_or_expression));
+ ret->lo_exp = 0 ;
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "logical_or_expression"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ ret->la_exp = logical_and_expression ();
+ while (tok == OROR)
+ {
+ new_ret = malloc( sizeof( t_logical_or_expression));
+ match (OROR);
+ new_ret->lo_exp = ret;
+ new_ret->la_exp = logical_and_expression ();
+ ret = new_ret;
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "logical_or_expression"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static t_conditional_expression *
+conditional_expression (void)
+{
+ t_conditional_expression *ret;
+ ret = malloc( sizeof( t_conditional_expression));
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "conditional_expression"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ ret->lo_exp = logical_or_expression ();
+ ret->exp = 0 ; ret->cd_exp = 0 ;
+ if (tok == QUERY)
+ {
+ match (QUERY);
+ ret->exp = expression ();
+ match (COLON);
+ ret->cd_exp = conditional_expression ();
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "conditional_expression"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static t_assignment_expression *
+assignment_expression (void)
+{
+ t_assignment_expression *ret;
+ ret = malloc( sizeof( t_assignment_expression));
+ ret->as = AS_UNDEFINED;
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "assignment_expression"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ ret->cd_exp = conditional_expression ();
+ ret->as_exp = 0 ;
+ if ((TokMap[(tok)] & TOK_ASSGNOP) )
+ {
+ switch( tok ){
+ case EQUALS: ret->as=AS_EQUALS; break;
+ case PLUS_EQUALS: ret->as=AS_PLUS_EQUALS; break;
+ case MINUS_EQUALS: ret->as=AS_MINUS_EQUALS; break;
+ case STAR_EQUALS: ret->as=AS_STAR_EQUALS; break;
+ case SLASH_EQUALS: ret->as=AS_SLASH_EQUALS; break;
+ case PERCENT_EQUALS: ret->as=AS_PERCENT_EQUALS; break;
+ case LSHIFT_EQUALS: ret->as=AS_LSHIFT_EQUALS; break;
+ case RSHIFT_EQUALS: ret->as=AS_RSHIFT_EQUALS; break;
+ case AND_EQUALS: ret->as=AS_AND_EQUALS; break;
+ case XOR_EQUALS: ret->as=AS_XOR_EQUALS; break;
+ case OR_EQUALS: ret->as=AS_OR_EQUALS; break;
+ default:
+ perror( "unexpcted type of tok" );
+ break;
+ }
+
+ match (tok);
+ ret->as_exp = assignment_expression ();
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "assignment_expression"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static t_labeled_statement *
+labeled_statement (void)
+{
+ t_labeled_statement *ret = malloc( sizeof( t_labeled_statement));
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "labeled_statement"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ ret->identifier = malloc( strlen( token_str) + 1);
+ strcpy( ret->identifier, token_str );
+ match (IDENTIFIER);
+ match (COLON);
+ ret->stat = statement ();
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "labeled_statement"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_case_statement *
+case_statement (void)
+{
+ t_case_statement *ret = malloc( sizeof( t_case_statement));
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "case_statement"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ match (CASE);
+ ret->cs_exp = constant_expression ();
+ match (COLON);
+ ret->stat = statement ();
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "case_statement"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_default_statement *
+default_statement (void)
+{
+ t_default_statement *ret = malloc( sizeof( t_default_statement));
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "default_statement"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ match (DEFAULT);
+ match (COLON);
+ ret->stat = statement ();
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "default_statement"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_if_statement *
+if_statement (void)
+{
+ t_if_statement *ret = malloc( sizeof( t_if_statement));
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "if_statement"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ enter_scope ();
+ match (IF);
+ match (LPAREN);
+ ret->exp = expression ();
+ match (RPAREN);
+ enter_scope ();
+ ret->stat1 = statement ();
+ exit_scope ();
+ ret->stat2 = 0 ;
+ if (tok == ELSE)
+ {
+ enter_scope ();
+ match (ELSE);
+ ret->stat2 = statement ();
+ exit_scope ();
+ }
+ exit_scope ();
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "if_statement"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_switch_statement *
+switch_statement (void)
+{
+ t_switch_statement *ret = malloc( sizeof( t_switch_statement));
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "switch_statement"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ enter_scope ();
+ match (SWITCH);
+ match (LPAREN);
+ ret->exp = expression ();
+ match (RPAREN);
+ enter_scope ();
+ ret->stat = statement ();
+ exit_scope ();
+ exit_scope ();
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "switch_statement"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_while_statement *
+while_statement (void)
+{
+ t_while_statement *ret = malloc( sizeof ( t_while_statement));
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "while_statement"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ enter_scope ();
+ match (WHILE);
+ match (LPAREN);
+ ret->exp = expression ();
+ match (RPAREN);
+ enter_scope ();
+ ret->stat = statement ();
+ exit_scope ();
+ exit_scope ();
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "while_statement"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_do_while_statement *
+do_while_statement (void)
+{
+ t_do_while_statement *ret = malloc( sizeof ( t_do_while_statement));
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "do_while_statement"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ enter_scope ();
+ match (DO);
+ enter_scope ();
+ ret->stat = statement ();
+ exit_scope ();
+ match (WHILE);
+ match (LPAREN);
+ ret->exp = expression ();
+ match (RPAREN);
+ exit_scope ();
+ match (SEMI);
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "do_while_statement"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_for_statement *
+for_statement (void)
+{
+ t_for_statement *ret = malloc( sizeof( t_for_statement));
+ ret->spec = FOR_UNDEFINED;
+ ret->exp1 = ret->exp2 = ret->exp3 = 0 ;
+ ret->decl = 0 ;
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "for_statement"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ enter_scope ();
+ match (FOR);
+ match (LPAREN);
+ if (tok != SEMI)
+ {
+ if ((TokMap[(tok)] & TOK_DECL_SPEC || ((tok) == IDENTIFIER && Cursym != 0 && Cursym->object_type == OBJ_TYPEDEF_NAME) ) )
+ {
+ ret->spec = FOR_DECL;
+ ret->decl = declaration ();
+ }
+ else
+ {
+ ret->spec = FOR_EXP;
+ ret->exp1 = expression ();
+ match (SEMI);
+ }
+ }
+ else
+ {
+ ret->spec = FOR_EXP;
+ match (SEMI);
+ }
+ if (tok != SEMI)
+ ret->exp2 = expression ();
+ match (SEMI);
+ if (tok != RPAREN)
+ ret->exp3 = expression ();
+ match (RPAREN);
+ enter_scope ();
+ ret->stat = statement ();
+ exit_scope ();
+ exit_scope ();
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "for_statement"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_break_statement *
+break_statement (void)
+{
+ t_break_statement *ret = malloc( sizeof( t_break_statement));
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "break_statement"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ match (BREAK);
+ match (SEMI);
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "break_statement"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_continue_statement *
+continue_statement (void)
+{
+ t_continue_statement *ret = malloc( sizeof( t_continue_statement));
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "continue_statement"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ match (CONTINUE);
+ match (SEMI);
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "continue_statement"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_goto_statement *
+goto_statement (void)
+{
+ t_goto_statement *ret = malloc( sizeof( t_goto_statement));
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "goto_statement"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ match (GOTO);
+ ret->identifier = malloc( strlen( token_str) + 1);
+ strcpy( ret->identifier, token_str);
+ match (IDENTIFIER);
+ match (SEMI);
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "goto_statement"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_return_statement *
+return_statement (void)
+{
+ t_return_statement *ret = malloc( sizeof( t_return_statement));
+ ret->exp = 0 ;
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "return_statement"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ match (RETURN);
+ if (tok != SEMI)
+ ret->exp = expression ();
+ match (SEMI);
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "return_statement"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_empty_statement *
+empty_statement (void)
+{
+ t_empty_statement *ret = malloc( sizeof( t_empty_statement));
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "empty_statement"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ match (SEMI);
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "empty_statement"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_expression_statement *
+expression_statement (void)
+{
+ t_expression_statement *ret = malloc( sizeof( t_expression_statement));
+ ret->lb_stat = 0 ;
+ ret->exp = 0 ;
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "expression_statement"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+
+ if (tok == IDENTIFIER && lex_colon_follows ())
+ {
+ ret->lb_stat = labeled_statement ();
+ }
+ else
+ {
+ ret->exp = expression ();
+ match (SEMI);
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "expression_statement"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_statement *
+statement (void)
+{
+ t_statement *ret = malloc( sizeof( t_statement));
+ ret->spec = ST_UNDEFINED;
+ ret->ex_stat = 0 ; ret->cs_stat = 0 ; ret->df_stat = 0 ;
+ ret->if_stat = 0 ; ret->sw_stat = 0 ; ret->wh_stat = 0 ;
+ ret->dw_stat = 0 ; ret->fo_stat = 0 ; ret->br_stat = 0 ;
+ ret->ct_stat = 0 ; ret->gt_stat = 0 ; ret->rt_stat = 0 ;
+ ret->cp_stat = 0 ; ret->em_stat = 0 ;
+
+
+
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "statement"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ switch (tok)
+ {
+ case IDENTIFIER:
+ ret->spec = ST_EXP;
+ ret->ex_stat = expression_statement ();
+ break;
+ case CASE:
+ ret->spec = ST_CASE;
+ ret->cs_stat = case_statement ();
+ break;
+ case DEFAULT:
+ ret->spec = ST_DEFAULT;
+ ret->df_stat = default_statement ();
+ break;
+ case IF:
+ ret->spec = ST_IF;
+ ret->if_stat = if_statement ();
+ break;
+ case SWITCH:
+ ret->spec = ST_SWITCH;
+ ret->sw_stat = switch_statement ();
+ break;
+ case WHILE:
+ ret->spec = ST_WHILE;
+ ret->wh_stat = while_statement ();
+ break;
+ case DO:
+ ret->spec = ST_DO_WHILE;
+ ret->dw_stat = do_while_statement ();
+ break;
+ case FOR:
+ ret->spec = ST_FOR;
+ ret->fo_stat = for_statement ();
+ break;
+ case BREAK:
+ ret->spec = ST_BREAK;
+ ret->br_stat = break_statement ();
+ break;
+ case CONTINUE:
+ ret->spec = ST_CONTINUE;
+ ret->ct_stat = continue_statement ();
+ break;
+ case GOTO:
+ ret->spec = ST_GOTO;
+ ret->gt_stat = goto_statement ();
+ break;
+ case RETURN:
+ ret->spec = ST_RETURN;
+ ret->rt_stat = return_statement ();
+ break;
+ case LBRACE:
+ ret->spec = ST_COMPOUND;
+ ret->cp_stat = compound_statement ();
+ break;
+ case SEMI:
+ ret->spec = ST_EMPTY;
+ ret->em_stat = empty_statement ();
+ break;
+ default:
+ if ((TokMap[tok] & TOK_EXPR) ){
+ ret->spec = ST_EXP;
+ ret->ex_stat = expression_statement ();
+ }
+ break;
+ }
+ if( ret->spec == ST_UNDEFINED ){
+ free( ret );
+ ret = 0 ;
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "statement"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_compound_statement *
+compound_statement (void)
+{
+ t_compound_statement *ret = malloc( sizeof( t_compound_statement));
+ block_item_list **curbi = &(ret->bi_list);
+ ret->bi_list = 0 ;
+
+
+
+
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "compound_statement"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ enter_scope ();
+ match (LBRACE);
+
+ while (tok != RBRACE)
+ {
+ *curbi = malloc( sizeof ( block_item_list));
+ (*curbi)->spec = BI_UNDEFINED;
+ (*curbi)->stat = 0 ; (*curbi)->decl = 0 ;
+ (*curbi)->next = 0 ;
+ if ((TokMap[(tok)] & TOK_DECL_SPEC || ((tok) == IDENTIFIER && Cursym != 0 && Cursym->object_type == OBJ_TYPEDEF_NAME) ) )
+ {
+ if (tok == IDENTIFIER && lex_colon_follows ()){
+ (*curbi)->spec = BI_STAT;
+ (*curbi)->stat = statement ();
+ }
+ else {
+ (*curbi)->spec = BI_DECL;
+ (*curbi)->decl = declaration ();
+ }
+ }
+ else
+ {
+ (*curbi)->spec = BI_STAT;
+ (*curbi)->stat = statement ();
+ }
+ curbi = &((*curbi)->next);
+ }
+ exit_scope ();
+ match (RBRACE);
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "compound_statement"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+
+static t_enumerator *
+enumerator (void)
+{
+ t_enumerator *ret = malloc( sizeof( t_enumerator));
+ ret->identifier = 0 ;
+ ret->cs_exp = 0 ;
+
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "enumerator"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ if (tok == IDENTIFIER)
+ {
+ check_not_typedef ();
+ install_symbol (Lexeme->identifier->id_name,
+ Storage_class[stack_ptr], OBJ_ENUMERATOR);
+ ret->identifier = malloc( strlen( token_str) + 1);
+ strcpy( ret->identifier, token_str);
+ match (IDENTIFIER);
+ }
+ else
+ {
+ free( ret );
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "enumerator"); fflush( __stdoutp ); } while(0); ;
+ return 0 ;
+ }
+ if (tok == EQUALS)
+ {
+ match (EQUALS);
+ ret->cs_exp = constant_expression ();
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "enumerator"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_enum_specifier *
+enum_specifier (void)
+{
+ t_enum_specifier *ret = malloc( sizeof( t_enum_specifier));
+ enumerator_list **encur = &(ret->en_list);
+ ret->identifier = 0 ;
+ ret->en_list = 0 ;
+
+
+
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "enum_specifier"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ if (tok == ENUM)
+ {
+ match (ENUM);
+ }
+ else
+ {
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "enum_specifier"); fflush( __stdoutp ); } while(0); ;
+ free( ret );
+ return 0 ;
+ }
+
+ if (tok == IDENTIFIER)
+ {
+ ret->identifier = malloc( strlen( token_str) +1);
+ strcpy( ret->identifier, token_str);
+ match (IDENTIFIER);
+ }
+ if (tok == LBRACE)
+ {
+ *encur = malloc( sizeof( enumerator_list));
+ match (LBRACE);
+ (*encur)->next = 0 ;
+ (*encur)->en = enumerator ();
+ encur = &((*encur)->next);
+ while (tok == COMMA)
+ {
+ *encur = malloc( sizeof( enumerator_list));
+ match (COMMA);
+ (*encur)->next = 0 ;
+ (*encur)->en = enumerator ();
+ encur = &((*encur)->next);
+ }
+ match (RBRACE);
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "enum_specifier"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_member *
+member (void)
+{
+ t_member *ret = malloc( sizeof( t_member));
+ ret->dclr = 0 ; ret->cs_exp = 0 ;
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "member"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ if (tok != COLON)
+ ret->dclr = declarator (0);
+ if (tok == COLON)
+ {
+ match (COLON);
+ ret->cs_exp = constant_expression ();
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "member"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_members *
+members (void)
+{
+ t_members *ret = malloc( sizeof( t_members));
+ struct_declaration_list **cursd = &(ret->sdec_list);
+ ret->sdec_list = 0 ;
+
+
+
+
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "members"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ do
+ {
+ member_list **curmem;
+ *cursd = malloc( sizeof( struct_declaration_list));
+ (*cursd)->next = 0 ;
+ stack_ptr++;
+ (*cursd)->dspec = declaration_specifiers (1);
+ (*cursd)->mem_list = malloc( sizeof( member_list));
+ (*cursd)->mem_list->mem = member ();
+ (*cursd)->mem_list->next = 0 ;
+ curmem = &((*cursd)->mem_list->next);
+ while (tok == COMMA)
+ {
+ (*curmem) = malloc( sizeof( t_member));
+ (*curmem)->next = 0 ;
+ match (COMMA);
+ (*curmem)->mem = member ();
+ curmem = &((*curmem)->next);
+ }
+ match (SEMI);
+ stack_ptr--;
+ cursd = &((*cursd)->next);
+ }
+ while (tok != RBRACE);
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "members"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_struct_or_union_specifier *
+struct_or_union_specifier (void)
+{
+ t_struct_or_union_specifier *ret;
+ ret = malloc( sizeof( t_struct_or_union_specifier));
+ ret->spec = SU_UNDEFINED;
+ ret->identifier = 0 ;
+ ret->mems = 0 ;
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "struct_or_union_specifier"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ Parsing_struct++;
+
+ switch( tok ){
+ case STRUCT: ret->spec = SU_STRUCT; break;
+ case UNION: ret->spec = SU_UNION; break;
+ default: break;
+ }
+
+ match (tok);
+ if (tok == IDENTIFIER){
+ ret->identifier = malloc( strlen( token_str) + 1);
+ strcpy( ret->identifier, token_str);
+ match (IDENTIFIER);
+ }
+ if (tok == LBRACE)
+ {
+ match (LBRACE);
+ ret->mems = members ();
+ match (RBRACE);
+ }
+ Parsing_struct--;
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "struct_or_union_specifier"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_type_name *
+type_name (void)
+{
+ t_type_name *ret = malloc( sizeof( t_type_name));
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "type_name"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ stack_ptr++;
+ ret->dspec = declaration_specifiers (1);
+ ret->dclr = declarator (1);
+ stack_ptr--;
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "type_name"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_declaration_specifiers *
+declaration_specifiers (int no_storage_class)
+{
+ t_declaration_specifiers *ret = malloc( sizeof( t_declaration_specifiers));
+ bool type_found = FALSE;
+ int qf_index=0;
+ ret->spec = TP_UNDEFINED; ret->st_class = STC_UNDEFINED;
+ ret->qf[0] = QF_END;
+ ret->et_sign = SG_UNDEFINED; ret->et_type = TP_UNDEFINED;
+ ret->et_long = LG_UNDEFINED; ret->suspec = 0 ;
+ ret->espec = 0 ; ret->identifier = 0 ;
+
+
+
+
+
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "declaration_specifiers"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ ((stack_ptr >= 0 && stack_ptr < 100) ? (void)0 : __assert(__func__, "/home/lab4/hiraisi/c_parser/c_parser.c" , 2105 , "stack_ptr >= 0 && stack_ptr < 100")) ;
+ Storage_class[stack_ptr] = 0;
+ while ((TokMap[(tok)] & TOK_DECL_SPEC || ((tok) == IDENTIFIER && Cursym != 0 && Cursym->object_type == OBJ_TYPEDEF_NAME) ) )
+ {
+ if (no_storage_class && (TokMap[tok] & TOK_STORAGE_CLASS))
+ {
+ fprintf (__stderrp , "Parse failed: unexpected storage class %s\n",
+ tokname (tok));
+ exit (1);
+ }
+ if (tok == IDENTIFIER && type_found)
+ break;
+ if ((TokMap[tok] & TOK_TYPE_SPECIFIER) || tok == IDENTIFIER)
+ {
+ type_found = TRUE;
+ }
+ if (TokMap[tok] & TOK_STRUCT)
+ {
+ ret->spec = TP_STRUCT;
+ ret->suspec = struct_or_union_specifier ();
+ break;
+ }
+ else if (tok == ENUM)
+ {
+ ret->spec = TP_ENUM;
+ ret->espec = enum_specifier ();
+ break;
+ }
+ else
+ {
+ bool savedtok = 0;
+
+ if (TokMap[tok] & TOK_STORAGE_CLASS)
+ {
+ switch( tok ){
+ case TYPEDEF: ret->st_class = STC_TYPEDEF; break;
+ case EXTERN: ret->st_class = STC_EXTERN; break;
+ case STATIC: ret->st_class = STC_STATIC; break;
+ case AUTO: ret->st_class = STC_AUTO; break;
+ case REGISTER: ret->st_class = STC_REGISTER; break;
+ default:
+ perror( "unexpcted type of tok" );
+ break;
+ }
+ Storage_class[stack_ptr] = tok;
+ }
+ else if (tok == IDENTIFIER)
+ {
+ ret->spec = TP_NAME;
+ ret->identifier = malloc( strlen( token_str) + 1);
+ strcpy( ret->identifier, token_str);
+ savedtok = tok;
+ }
+ else {
+ ret->spec = TP_ELEMENTAL;
+ switch( tok ){
+ case VOID: ret->et_type = ET_VOID; break;
+ case CHAR: ret->et_type = ET_CHAR; break;
+ case SHORT: ret->et_type = ET_SHORT; break;
+ case INT: ret->et_type = ET_INT; break;
+ case FLOAT: ret->et_type = ET_FLOAT; break;
+ case DOUBLE: ret->et_type = ET_DOUBLE; break;
+ case SIGNED: ret->et_sign = SG_SIGNED; break;
+ case UNSIGNED: ret->et_sign = SG_UNSIGNED; break;
+ case LONG:
+ ret->et_long =
+ (ret->et_long==LG_UNDEFINED) ? LG_LONG : LG_LONGLONG;
+ break;
+ case CONST: ret->qf[qf_index++] = QF_CONST; break;
+ case RESTRICT: ret->qf[qf_index++] = QF_RESTRICT; break;
+ case VOLATILE: ret->qf[qf_index++] = QF_VOLATILE; break;
+ default:
+ perror( "unexpcted type of tok" );
+ break;
+ }
+ }
+ match (tok);
+ if (savedtok == IDENTIFIER)
+ break;
+ }
+ }
+ ret->qf[qf_index] = QF_END;
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "declaration_specifiers"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_pointer *
+pointer (void)
+{
+ t_pointer *ret = malloc( sizeof( t_pointer));
+ int i=0;
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "pointer"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ while (tok == STAR)
+ {
+ ret->pt_qf[i++] = PT_STAR;
+ match (STAR);
+ while (TokMap[tok] & TOK_TYPE_QUALIFIER)
+ {
+ switch( tok ){
+ case CONST: ret->pt_qf[i++]=PT_CONST; break;
+ case RESTRICT: ret->pt_qf[i++]=PT_RESTRICT; break;
+ case VOLATILE: ret->pt_qf[i++]=PT_VOLATILE; break;
+ default:
+ perror( "unexpcted type of tok" );
+ break;
+ }
+ match (tok);
+ }
+ }
+ ret->pt_qf[i] = PT_END;
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "pointer"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_direct_declarator *
+direct_declarator (int abstract)
+{
+ t_direct_declarator *ret = malloc( sizeof( t_direct_declarator));
+ ret->spec = DD_UNDEFINED;
+ ret->dclr = 0 ;
+ ret->identifier = 0 ;
+(%line 2244 "/home/lab4/hiraisi/c_parser/c_parser.c")
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "direct_declarator"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ if (tok == LPAREN)
+ {
+ ret->spec = DD_PAREN;
+ match (LPAREN);
+ ret->dclr = declarator (abstract);
+ match (RPAREN);
+ }
+ else
+ {
+ if (!abstract)
+ {
+ if (tok == IDENTIFIER)
+ {
+ ret->spec = DD_IDENTIFIER;
+ ret->identifier = malloc( strlen( token_str) + 1);
+ strcpy( ret->identifier, token_str);
+ Saw_ident = 1;
+ if (Storage_class[stack_ptr] == TYPEDEF)
+ {
+ install_symbol (Lexeme->identifier->id_name,
+ TYPEDEF, OBJ_TYPEDEF_NAME);
+ }
+ else if (!Parsing_struct && !Parsing_oldstyle_parmdecl)
+ {
+ install_symbol (Lexeme->identifier->id_name,
+ Storage_class[stack_ptr], OBJ_IDENTIFIER);
+ }
+ match (IDENTIFIER);
+ }
+ }
+ else
+ ret->spec = DD_NULL;
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "direct_declarator"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_parameter_list *
+parameter_list (int *new_style)
+{
+ t_parameter_list *ret = malloc( sizeof( t_parameter_list));
+ param_list *lastparam = 0 ;
+ ret->new_style = 0;
+ ret->pm_list = 0 ;
+ ret->va_arg = 0;
+
+
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "parameter_list"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ if (tok == IDENTIFIER
+ && (Cursym == 0 || Cursym->object_type != OBJ_TYPEDEF_NAME))
+ {
+ ret->new_style = *new_style = 0;
+ lastparam = ret->pm_list = malloc( sizeof( param_list));
+ lastparam->identifier = malloc( strlen( token_str) + 1);
+ strcpy( lastparam->identifier, token_str);
+ lastparam->dspec = 0 ; lastparam->dclr = 0 ;
+ lastparam->next = 0 ;
+ install_symbol (Lexeme->identifier->id_name, AUTO, OBJ_PARAMETER);
+ match (IDENTIFIER);
+ while (tok == COMMA)
+ {
+ lastparam = lastparam->next = malloc( sizeof( param_list));
+ match (COMMA);
+ if (tok == IDENTIFIER)
+ {
+ check_not_typedef ();
+ lastparam->identifier = malloc( strlen( token_str) + 1);
+ strcpy( lastparam->identifier, token_str);
+ lastparam->dspec = 0 ; lastparam->dclr = 0 ;
+ lastparam->next = 0 ;
+ install_symbol(Lexeme->identifier->id_name, AUTO, OBJ_PARAMETER);
+ match (tok);
+ }
+ else
+ match (IDENTIFIER);
+ }
+ }
+ else
+ {
+(%line 2334 "/home/lab4/hiraisi/c_parser/c_parser.c")
+ ret->new_style = *new_style = 1;
+ stack_ptr++;
+ lastparam = ret->pm_list = malloc( sizeof( param_list));
+ lastparam->identifier = 0 ;
+ lastparam->dspec = declaration_specifiers (0);
+ lastparam->dclr = declarator (0);
+ lastparam->next = 0 ;
+ stack_ptr--;
+ while (tok == COMMA)
+ {
+ match (COMMA);
+ if (tok == ELLIPSIS)
+ {
+ ret->va_arg = 1;
+ match (ELLIPSIS);
+ break;
+ }
+ stack_ptr++;
+ lastparam = lastparam->next = malloc( sizeof( param_list));
+ lastparam->identifier = 0 ;
+ lastparam->dspec = declaration_specifiers (0);
+ lastparam->dclr = declarator (0);
+ lastparam->next = 0 ;
+ stack_ptr--;
+ }
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "parameter_list"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_suffix_declarator *
+suffix_declarator (void)
+{
+ t_suffix_declarator *ret = malloc( sizeof( t_suffix_declarator));
+ ret->spec = SD_UNDEFINED;
+ ret->cs_exp = 0 ; ret->param_list = 0 ;
+ ret->is_func = 0;
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "suffix_declarator"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ if (tok == LBRAC)
+ {
+ ret->spec = SD_ARRAY;
+ match (LBRAC);
+ ret->cs_exp = constant_expression ();
+ match (RBRAC);
+ }
+ else if (tok == LPAREN)
+ {
+ int new_style = 0;
+
+ ret->spec = SD_FUNC;
+ enter_scope ();
+ match (LPAREN);
+ ret->param_list = parameter_list (&new_style);
+ match (RPAREN);
+ if (new_style && tok != LBRACE)
+ exit_scope ();
+ ret->is_func = Is_func = 1;
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "suffix_declarator"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+static t_declarator *
+declarator (int abstract)
+{
+ t_declarator *ret = malloc( sizeof( t_declarator));
+ suffix_declarator_list **cur_sdl = &(ret->sd_list);
+ ret->pt = 0 ; ret->ddclr = 0 ; ret->sd_list = 0 ;
+
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "declarator"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ if (tok == STAR)
+ {
+ ret->pt = pointer ();
+ }
+ ret->ddclr = direct_declarator (abstract);
+ while (tok == LBRAC || tok == LPAREN)
+ {
+ (*cur_sdl) = malloc( sizeof( suffix_declarator_list));
+ (*cur_sdl)->sf_dclr = suffix_declarator ();
+ (*cur_sdl)->next = 0 ;
+ cur_sdl = &((*cur_sdl)->next);
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "declarator"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_designator *
+designator (void)
+{
+ t_designator *ret = malloc( sizeof( t_designator));
+ ret->spec = DSG_UNDEFINED;
+ ret->cs_exp = 0 ; ret->identifier = 0 ;
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "designator"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ if (tok == LBRAC)
+ {
+ ret->spec = DSG_AREF;
+ match (LBRAC);
+ ret->cs_exp = constant_expression ();
+ match (RBRAC);
+ }
+ else if (tok == DOT)
+ {
+ ret->spec = DSG_STRUCT;
+ match (DOT);
+ if (tok == IDENTIFIER)
+ {
+ ret->identifier = malloc( strlen( token_str) + 1);
+ strcpy( ret->identifier, token_str);
+ check_not_typedef ();
+ match (tok);
+ }
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "designator"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+
+static t_initializer *
+initializer (int recurse)
+{
+ t_initializer *ret = malloc( sizeof( t_initializer));
+ initializer_list *last_init;
+ ret->spec = INIT_UNDEFINED;
+ ret->init_list = 0 ;
+ ret->dsg = 0 ; ret->init = 0 ;
+ ret->as_exp = 0 ;
+(%line 2481 "/home/lab4/hiraisi/c_parser/c_parser.c")
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "initializer"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ if (tok == LBRACE)
+ {
+ ret->spec = INIT_LIST;
+ match (LBRACE);
+ last_init = ret->init_list = malloc( sizeof( initializer_list));
+ last_init->init = initializer (recurse + 1);
+ last_init->next = 0 ;
+ while (tok == COMMA)
+ {
+ last_init = last_init->next = malloc( sizeof( initializer_list));
+ match (COMMA);
+ last_init->init = initializer (recurse + 1);
+ last_init->next = 0 ;
+ }
+ match (RBRACE);
+ }
+ else if (recurse && (tok == LBRAC || tok == DOT))
+ {
+ ret->spec = INIT_LISTELM;
+
+ while (tok == LBRAC || tok == DOT)
+ {
+ ret->dsg = designator ();
+ }
+ match (EQUALS);
+ ret->init = initializer (0);
+ }
+ else
+ {
+ ret->spec = INIT_ASEXP;
+ ret->as_exp = assignment_expression ();
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "initializer"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_function_definition *
+function_definition (void)
+{
+ t_function_definition *ret = malloc( sizeof( t_function_definition));
+ declaration_list **cur_decl = &(ret->decl_list);
+ ret->cp_stat = 0 ;
+ ret->decl_list = 0 ;
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "function_definition"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+
+ if (tok == LBRACE)
+ {
+ ret->cp_stat = compound_statement ();
+ }
+ else
+ {
+ Parsing_oldstyle_parmdecl++;
+ while ((TokMap[(tok)] & TOK_DECL_SPEC || ((tok) == IDENTIFIER && Cursym != 0 && Cursym->object_type == OBJ_TYPEDEF_NAME) ) )
+ {
+(%line 2546 "/home/lab4/hiraisi/c_parser/c_parser.c")
+ (*cur_decl) = malloc( sizeof( declaration_list));
+ (*cur_decl)->decl = declaration ();
+ (*cur_decl)->next = 0 ;
+ cur_decl = &((*cur_decl)->next);
+ }
+ Parsing_oldstyle_parmdecl--;
+ ret->cp_stat = compound_statement ();
+ }
+ exit_scope ();
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "function_definition"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+static t_init_declarator *
+init_declarator (int check_if_function)
+{
+ t_init_declarator *ret = malloc( sizeof( t_init_declarator));
+ int old_Is_func, old_Saw_ident;
+ int func_defn = 0;
+ ret->is_fn_def = 0;
+ ret->dclr = 0 ;
+ ret->fn_def = 0 ;
+ ret->init = 0 ;
+
+
+
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "init_declarator"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+
+ old_Saw_ident = Saw_ident;
+ old_Is_func = Is_func;
+
+ Saw_ident = 0;
+ Is_func = 0;
+ ret->dclr = declarator (0);
+
+ func_defn = check_if_function &&
+ Level == LEVEL_FUNCTION && Is_func && Saw_ident && (tok == LBRACE || ( (TokMap[(tok)] & TOK_DECL_SPEC || ((tok) == IDENTIFIER && Cursym != 0 && Cursym->object_type == OBJ_TYPEDEF_NAME) )  && (tok) != TYPEDEF)) ;
+
+ if (Is_func)
+ {
+(%line 2598 "/home/lab4/hiraisi/c_parser/c_parser.c")
+ }
+
+ Is_func = old_Is_func;
+ Saw_ident = old_Saw_ident;
+ if (func_defn)
+ {
+ ret->is_fn_def = 1;
+ ret->fn_def = function_definition ();
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "init_declarator"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+ }
+ else
+ {
+ ret->is_fn_def = 0;
+ if (tok == EQUALS)
+ {
+(%line 2618 "/home/lab4/hiraisi/c_parser/c_parser.c")
+ match (EQUALS);
+ ret->init = initializer (0);
+ }
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "init_declarator"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+(%line 2634 "/home/lab4/hiraisi/c_parser/c_parser.c")
+void prt_declaration( t_declaration *decl )
+{
+ t_declaration_specifiers *dspec = decl->dspec;
+ init_declarator_list *idclr_list = decl->idclr_list;
+ if( dspec->spec ){
+ case TP_UNDEFINED:
+ perror( "illegal declaration." );
+ return;
+ case TP_STRUCT:
+ if( dspec->suspec->mems ){
+ fprintf( "(def " );
+ prt_enum_specifier( dspec->espec );
+ fprintf( ")\n");
+ free_members( dspec->suspec->mems );
+ dspec->suspec->mems = 0 ;
+ }
+ break;
+ case TP_ENUM:
+ if( dspec->espec->en_list ){
+ fprintf( "(def " );
+ prt_struct_or_union_specifier( dspec->suspec );
+ fprintf( ")\n");
+ free_enumerator_list( dspec->espec->en_list );
+ }
+ break;
+ default:
+ ;
+ }
+ if( idclr_list && idclr_list->next ){
+
+ init_declarator_list *next = idclr_list->next;
+ do{
+ idclr_list->next = 0 ;
+ prt_declaration( decl );
+ free_init_declarator_list( idclr_list );
+ decl->idclr_list = next;
+ } while( next );
+ return;
+ }
+ }
+
+ switch( dspec->spec ){
+ case TP_ENUM:
+ case TP_STRUCT:
+ break;
+ else if(
+
+ if( idclr_list && idclr_list->idclr->is_fn_def ){
+
+ return;
+ }
+
+
+void free_init_declarator_list( init_declarator_list *idclr_list )
+{
+ init_declarator_list *cur=idclr_list, *nxt;
+ while( cur ){
+ nxt = cur->next;
+ free_init_declarator( cur->decl );
+ free( cur );
+ cur = next;
+ }
+}
+
+void free_declaration( t_declaration *decl )
+{
+ if( decl ){
+ free_init_declation_specifiers( decl->dspec );
+ free_init_declarator_list( decl->idclr_list );
+ free( decl );
+ }
+}
+
+static t_declaration *
+declaration (void)
+{
+ t_declaration *ret = malloc( sizeof( t_declaration));
+ t_init_declarator *tmp_idclr;
+ init_declarator_list *last_idclr;
+ ret->is_fn_def = 0;
+ ret->dspec = 0 ;
+ ret->fn_def = 0 ;
+ ret->idclr_list = 0 ;
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "declaration"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+
+ stack_ptr++;
+ ret->dspec = declaration_specifiers (0);
+ if (tok == SEMI)
+ {
+ match (SEMI);
+ goto success;
+ }
+(%line 2733 "/home/lab4/hiraisi/c_parser/c_parser.c")
+ if ( (tmp_idclr = init_declarator (Level == LEVEL_GLOBAL))
+ -> is_fn_def == 1)
+ {
+ ret->idclr_list = malloc( sizeof( init_declarator_list));
+ ret->idclr_list->idclr = tmp_idclr;
+ ret->idclr_list->next = 0 ;
+ goto success;
+ }
+ last_idclr = ret->idclr_list = malloc( sizeof( init_declarator_list));
+ last_idclr->idclr = tmp_idclr;
+ last_idclr->next = 0 ;
+ while (tok == COMMA)
+ {
+ last_idclr = last_idclr->next = malloc( sizeof( init_declarator_list));
+ match (COMMA);
+ last_idclr->idclr = init_declarator (0);
+ last_idclr->next = 0 ;
+ }
+ match (SEMI);
+success:
+ stack_ptr--;
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "declaration"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+(%line 2767 "/home/lab4/hiraisi/c_parser/c_parser.c")
+static void prt_translation_unit( t_translation_unit *t_unit ){
+ declaration_list *cur;
+ for( cur=t_unit->decl_list ; cur ; cur=cur->next ){
+ prt_declaration( cur->decl );
+ }
+}
+
+static void free_declaration_list( declaration_list *dlist ){
+ declaration_list *cur=dlist, *nxt;
+ while( cur ){
+ nxt = cur->next;
+ free_declaration( cur->decl );
+ free( cur );
+ cur = next;
+ }
+}
+
+static void free_translation_unit( t_translation_unit *t_unit )
+{
+ if( t_unit ){
+ free_declaration_list( ret->decl_list );
+ free( t_unit );
+ }
+}
+
+static t_translation_unit *
+translation_unit (void)
+{
+ t_translation_unit *ret = malloc( sizeof( t_translation_unit));
+ declaration_list **cur_decl = &(ret->decl_list);
+ ret->decl_list = 0 ;
+
+
+
+
+
+
+
+ do { if (DebugLevel == 2) printf("%*s%s {\n", TraceLevel, "", "translation_unit"); fflush( __stdoutp ); TraceLevel++; } while(0); ;
+ Level = LEVEL_GLOBAL;
+ tok = lex_get_token ();
+ while (tok != 0)
+ {
+
+ if ((TokMap[(tok)] & TOK_DECL_SPEC || ((tok) == IDENTIFIER && Cursym != 0 && Cursym->object_type == OBJ_TYPEDEF_NAME) ) )
+ {
+(%line 2818 "/home/lab4/hiraisi/c_parser/c_parser.c")
+ (*cur_decl) = malloc( sizeof( declaration_list));
+ (*cur_decl)->decl = declaration ();
+ (*cur_decl)->next = 0 ;
+ cur_decl = &((*cur_decl)->next);
+ }
+ else if (tok == SEMI)
+ {
+
+ match (tok);
+ }
+ else
+ {
+ fprintf (__stderrp , "Parse failed: unexpected input %s\n",
+ tokname (tok));
+ exit (1);
+ }
+ ((Level == LEVEL_GLOBAL) ? (void)0 : __assert(__func__, "/home/lab4/hiraisi/c_parser/c_parser.c" , 2834 , "Level == LEVEL_GLOBAL")) ;
+ }
+ do { --TraceLevel; if (DebugLevel == 2) printf("%*s} (%s)\n", TraceLevel, "", "translation_unit"); fflush( __stdoutp ); } while(0); ;
+ return ret;
+}
+
+token_t
+name_type (const char *name)
+{
+ Cursym = find_symbol (Cursymtab, name, 1);
+ return IDENTIFIER;
+}
+
+static const char *
+mygetline (char *arg)
+{
+ static char line[512];
+
+ line[0] = 0;
+
+ return fgets (line, sizeof line, (FILE *) arg);
+}
+
+void
+parser_main (int argc, char *argv[])
+{
+ lex_env_t mylex = { 0 };
+ FILE *fp;
+ const char *cp = getenv ("DEBUG");
+
+ if (cp != 0)
+ {
+ DebugLevel = atoi (cp);
+ }
+
+ if (argc < 2)
+ fp = __stdinp ;
+ else
+ fp = fopen (argv[1], "r");
+ if (fp == 0)
+ exit (1);
+
+ sc_out = __stdoutp ;
+
+ Lex_env = &mylex;
+ Lex_env->le_getline = mygetline;
+ Lex_env->le_getline_arg = (char *) fp;
+ Lexeme = &Lex_env->le_lexeme;
+ init_tokmap ();
+ init_symbol_table ();
+(%line 2888 "/home/lab4/hiraisi/c_parser/c_parser.c")
+ translation_unit ();
+
+ return;
+}

@@ -1,0 +1,38 @@
+;;;; sc-0, sc-1, with type-info などたいてい可
+;;;; => 与えられたソース中で宣言しかない関数名のリスト
+
+(decl-only-0 ,decl-list)
+-> (progv '(*decl-func-list* *def-func-list*) '(nil nil)
+	  (mapcar #'decl-only-1 decl-list)
+;;;	  (print (list 'decl *decl-func-list*
+;;;	  	       'def *def-func-list*))
+	  (remove-duplicates
+	   (remove-if #'(lambda (x)
+			  (member x *def-func-list* :test #'string=))
+		      *decl-func-list*)
+	   :test #'string=))
+
+;;;;;
+
+(decl-only-1 (,scs[SCS] (,fid[ID] ,@id-list[ID]) (fn ,@texp-list) ,@body) )
+(decl-only-1 (,scs[SCS] ,fid[ID] (fn ,@texp-list) ,@body) )
+-> (if (or ;(progn (print fid) nil)
+	   (second (par-storage-class-specifier scs))
+	   (decl-only-b0 body))
+       (push (par-identifier fid) *def-func-list*)
+     (push (par-identifier fid) *decl-func-list*))
+
+(decl-only-1 ,otherwise)
+-> nil
+
+;;;;;
+
+(decl-only-b0 (:attr ,attribute ,@body))
+-> (decl-only-b0 body)
+
+(decl-only-b0 ((register ,@reg-list) ,@body))
+-> (decl-only-b0 body)
+
+(decl-only-b0 ,body)
+-> body
+

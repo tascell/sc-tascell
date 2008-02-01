@@ -1,0 +1,110 @@
+102334155
+40
+Time: 0.432
+Time: 0.433
+Time: 0.439
+Time: 0.445
+Time: 0.547
+
+267914296
+42
+Time: 0.992
+Time: 1.003
+Time: 1.015
+Time: 1.035
+Time: 1.037
+
+44
+701408733
+Time: 2.471
+Time: 2.538
+Time: 2.546
+Time: 2.567
+Time: 2.757
+
+50
+Time: 37.638
+Time: 39.154
+Time: 39.289
+Time: 39.349
+Time: 40.144
+
+CL-USER(8): (gs)
+15
+2279184
+Time: 2.164
+Time: 2.173
+Time: 2.179
+Time: 2.181
+Time: 2.207
+
+14772512
+16
+Time: 13.617
+Time: 13.661
+Time: 13.662
+Time: 13.692
+Time: 13.81
+
+95815104
+17
+Time: 95.955
+Time: 95.967
+Time: 96.551
+Time: 97.07
+Time: 97.139
+
+CL-USER(9): (gs)
+12
+2339
+Time: 0.477
+Time: 0.501
+Time: 0.507
+Time: 0.56
+Time: 0.653
+
+13
+18382
+Time: 2.587
+Time: 2.65
+Time: 2.742
+Time: 2.765
+Time: 2.953
+
+14
+125298
+Time: 19.771
+Time: 19.786
+Time: 19.838
+Time: 19.883
+Time: 19.927
+
+CL-USER(10): (gs)
+2000
+Time: 12.89
+Time: 16.461
+Time: 16.722
+Time: 20.765
+Time: 24.423
+
+CL-USER(12): (gs)
+30000
+Time: 0.711
+Time: 0.742
+Time: 0.743
+Time: 0.748
+Time: 1.044
+
+60000
+Time: 2.612
+Time: 2.616
+Time: 3.442
+Time: 3.467
+Time: 3.5
+
+120000
+Time: 10.142
+Time: 10.249
+Time: 10.276
+Time: 10.504
+Time: 10.896

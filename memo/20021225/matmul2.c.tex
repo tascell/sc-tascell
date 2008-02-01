@@ -1,0 +1,65 @@
+\documentstyle{jarticle}
+\begin{document} \begin{verbatim}
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#include<ctype.h>
+
+
+struct thread_local_storage {
+  int             a;
+  long            b;
+};
+
+typedef int     (mat[2][2]);
+
+void            matmul(struct thread_local_storage(*__ptls), mat a, mat b, mat c) {
+  int             i;
+  int             j;
+  int             k;
+  unsigned char   k0;
+  int             i0 = 0;
+  const int       i0_init = 0;
+  int             j0 = 0;
+  const int       j0_init = 0;
+  int             i1 = 0;
+  const int       i1_init = 0;
+  int             j1 = 0;
+  const int       j1_init = 0;
+  int             k1 = 0;
+  const int       k1_init = 0;
+  for ((i0 = i0_init); i0 <= 1; i0++) {
+    for ((j0 = j0_init); j0 <= 1; j0++) {
+      c[i0][j0] = 0;
+    }
+  }
+  for ((i1 = i1_init); i1 <= 1; i1++) {
+    for ((j1 = j1_init); j1 <= 1; j1++) {
+      for ((k1 = k1_init); k1 <= 1; k1++) {
+        typedef int     l;
+        c[i1][j1] += a[i1][k1] * b[k1][j1];
+      }
+    }
+  }
+  return;
+}
+
+int 
+main(struct thread_local_storage(*__ptls))
+{
+  mat             a = {{1, 2}, {3, 4}};
+  const mat       a_init = {{1, 2}, {3, 4}};
+  mat             b = {{5, 6}, {7, 8}};
+  const mat       b_init = {{5, 6}, {7, 8}};
+  mat             c;
+  {
+    a[0][0] = a_init[0][0], a[0][1] = a_init[0][1], a[1][0] = a_init[1][0], a[1][1] = a_init[1][1];
+    b[0][0] = b_init[0][0], b[0][1] = b_init[0][1], b[1][0] = b_init[1][0], b[1][1] = b_init[1][1];
+    matmul(__ptls, a, b, c);
+    printf(__ptls, "a:%d %d %d %d \n", a[0][0], a[0][1], a[1][0], a[1][1]);
+    printf(__ptls, "b:%d %d %d %d \n", b[0][0], b[0][1], b[1][0], b[1][1]);
+    printf(__ptls, "c:%d %d %d %d \n", c[0][0], c[0][1], c[1][0], c[1][1]);
+    return;
+  }
+}
+\end{verbatim} \end{document}

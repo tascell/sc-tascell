@@ -1,0 +1,33 @@
+;;;; sc0 with-type-information => sc0
+
+;;; (the <type-expression> <expression>) を <expression> に戻す。
+;;; call を消す。
+(UTp0 ,decl-list)
+-> (progn
+     (defun begin-with-$ (sym)
+       (and (symbolp sym)
+	    (let ((symname (symbol-name sym)))
+	      (eq #\$ (aref symname 0)))))
+     (defun remove-$ (sym)
+       (make-symbol
+	(remove #\$ (symbol-name sym) :end 1)))
+
+     (UTp decl-list))
+
+
+(UTp (the ,texp ,exp))
+-> (Utp exp)
+
+(UTp (call ,@exp-list))
+-> (mapcar #'Utp exp-list)
+
+(UTp (struct ,$id[begin-with-$]))
+(UTp (union  ,$id[begin-with-$]))
+(UTp (enum   ,$id[begin-with-$]))
+-> (remove-$ $id)
+
+(UTp (,@lst))
+-> (mapcar #'UTp lst)
+
+(UTp ,otherwise)
+-> otherwise

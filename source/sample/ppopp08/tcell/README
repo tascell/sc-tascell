@@ -1,0 +1,45 @@
+主なファイルの説明
+* worker.{c,sc}, :  大林くんの修論のソースそのもの
+* worker2.{c,sc}, worker2.{h,sh}: 
+   worker.cを複数種類のタスクに対応できるように改良し，ヘッダと本体に分けたもの．
+* Messages: worker2 におけるメッセージフォーマットの簡易説明
+* {fib,lu,pen,nq,cmp}.tcell: T-CELLプログラム
+* 上記に対応する *-{c,gcc,lw,clos,xcc,xccl,icc-c,icc-lw,icc-clos}.c:
+   T-CELLプログラムをそれぞれの入れ子関数のバージョンのCに変換したもの
+
+* EVAL-INPUT: 各T-CELLプログラムの計算を起動するためにユーザから送りこむtaskコマンドの例
+* server.lsp: Lispで実装したT-Cell拠点サーバ
+* Makefile:
+
+（実行例）
+(1)サーバ側（要Allegro Common Lisp)
+===
+% alisp
+> :cl server.lsp
+> (make-and-start-server :local-host "gero00")
+===
+
+(2)計算ノード側
+===
+% ./tcpcon gero 8888 ./fib-gcc 2
+===
+※ 8888（ポート番号）は，make-and-start-serverのキーワード引数で変更可
+※ 2はノード内worker数
+
+(3)サーバに計算要求を流しこむ
+alispが標準入力待ち状態になっているので，
+===
+task 0 p 0:0 0
+30
+===
+とすればよい（fibの場合）．
+
+
+
+なお，1つの計算ノードをとりあえず動かしたい場合（サーバをユーザからの入力で代用）は，単に
+===
+% ./fib-gcc 2
+task 0 0 0 0
+20
+===
+などとすればよい．

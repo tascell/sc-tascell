@@ -1,0 +1,4 @@
+(define-ruleset nestfunc-rename (rename))
+
+(extendrule function-tag nestfunc-rename
+  ((#?lightweight) x))

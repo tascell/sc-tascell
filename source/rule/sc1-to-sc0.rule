@@ -1,0 +1,101 @@
+;;; Yet another SC1 to SC0 transformation rule-set
+;;; (implemented as an extension of sc0-to-sc0)
+;;; cf. "sc1.rule"
+(defpackage "SC1-TO-SC0"
+  (:use "CL" "SC-MISC")
+  )
+
+;; (in-package "SC1-TO-SC0")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(in-package "RULE")
+
+(define-ruleset sc1-to-sc0 (sc0-to-sc0))
+
+(defrule sc-program sc1-to-sc0
+  (otherwise
+   (splice (call-next-rule))))
+
+;;; declaration
+(extendrule declaration sc1-to-sc0
+  ((#?,idecl[inlined-declaration])
+   (get-retval idecl))
+  ((#?(,id[identifier] ,@rem)
+    #?((,id[identifier] @id-list) ,@rem)
+    #?((,soru[struct-or-union] ,id[identifier]) ,@rem)
+    #?((enum ,id[identifier]) ,@rem) )
+   (inlined-declaration ~(def ,@x)) )
+  )
+
+;;; inlined-declaration
+(extendrule inlined-declaration sc1-to-sc0
+  ((#?(,cscs[compound-storage-class-specifier] ,texp ,@list) )
+   (let ((scs (get-retval 'cscs)))
+     (cons 'splice
+       (loop 
+           for id-init0 in list
+           as id-init = (mklist id-init0)
+           as id = (car id-init)
+           as init = (second id-init)
+           collect (inlined-declaration
+            (if init
+                ~(,scs ,id ,texp ,init)
+              ~(,scs ,id ,texp)))))))
+  )
+
+(defrule compound-storage-class-specifier sc1-to-sc0
+  ((#?defs)          ~def)
+  ((#?extern-defs)   ~extern)
+  ((#?static-defs)   ~static)
+  ((#?auto-defs)     ~auto)
+  ((#?register-defs) ~register)
+  )
+
+(extendrule sc-keyword sc1-to-sc0
+  ((#?,cscs[compound-storage-class-specifier])
+   (get-retval 'cscs))
+  )
+
+;;; statement
+(extendrule statement sc1-to-sc0
+  ((#?(let (,@decl-list) ,@body) )
+   ~(begin ,@(mapcar #'declaration decl-list)
+           ,@(function-body body)) )
+  ((#?(while ,exp ,@rem) )
+   (let ((cdt (expression exp)))
+     ~(if ,cdt
+          (do-while ,cdt ,@(function-body rem))) ))
+  (#?(cond ,@clauses)
+   (if (not clauses) ~()
+     (let ((pred (expression (caar clauses)))
+           (action (statement ~(begin ,@(cdar clauses)))))
+       (if (eq ~else pred) action
+         ~(if ,pred ,action ,(statement ~(cond ,@(cdr clauses))))))))
+  ((#?(for (,@list ,exp2 ,exp3) ,@rem) )
+   (let ((e1-list (mapcar #'block-item list))
+         (e2 (expression exp2))
+         (e3 (expression exp3))
+         (new-body (function-body rem)))
+     ~(begin
+       ,@e1-list
+       (if ,e2
+           (do-while (exps ,e3 ,e2)
+             ,@new-body)))
+     ) )
+  ((#?(loop ,@rem) )
+   ~(do-while 1 ,@(function-body rem)))
+  )
+
+;;; expression
+(extendrule expression sc1-to-sc0
+  ((#?(fref ,exp ,@id-list1 -> ,@id-list2))
+   (expression
+    (if id-list1
+        ~(fref (mref (fref ,exp ,@id-list1)) ,@id-list2)
+      ~(fref (mref ,exp) ,@id-list2)
+      )))
+  ((#?(fref ,exp ,@id-list))
+   (if id-list
+       ~(fref ,(expression exp) ,@id-list)
+     (expression exp)))
+  )

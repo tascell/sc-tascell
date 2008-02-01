@@ -1,0 +1,486 @@
+
+> ------------------------------------------------------------
+> int f (int x) { return x; }
+> --> (defun f int ((x int)) (begin (return x)))
+      (def (f x) (fn int int) (return x))
+
+「木曜版」は型式(ここでは (fn int int))に統一されていて気持良くないですか?
+また、begin はいつも begin なんだからとってしまってよいと思います。
+
+例えば、
+int f (int x, const short s, char c) { return x + s + c; }
+だと、
+
+(defun f int ((x int) ((const short) s) (char c))
+   (begin (return (+ x s c))))
+(def (f x s c) (fn int int (const short) char)
+   (return (+ x s c)))
+
+後者のほうが括弧の数が少なくなって読みやすいですよね。
+
+それから、ライブラリ関数
+
+(extern qsort 
+  (fn void 
+      (void *) size_t size_t (ref (fn int (const (void *)) (const (void *))))))
+
+の用の比較関数
+
+static int intcompare(int *i, int *j)
+  {
+    if (*i > *j)
+       return (1);
+    if (*i < *j)
+       return (-1);
+    return (0);
+  }
+
+を書く際
+
+(def (intcompare i j) (fn int (const (void *)) (const (void *)))
+   (if ...) ...)
+
+の型式の部分はエディタでそのままコピーできるので誤りが減りますよね。
+型と引数が混在すると、
+
+(defun intcompare int ((const ... と「いっぱい書き直しだなあ、おっと
+括弧が足りなかったようだ…」みたいになりますよね。
+
+> int x;
+> --> (declare x int)
+
+これは、declare でなくて defでよいように思います。
+「整数値が保存できる場所を新たに確保して、その名前をxとする」であって
+単に x の性質を述べているのとは違いますので。
+declareについてはまた別途述べます。
+
+ちなみに、Ocamlような関数型言語では、なんでも let とします。
+例えば、
+
+  let x = 1
+  let y = x * 2
+  let f x = x + 1
+
+というような感じです、f x の場合は関数になります。
+Ocaml だと処理系が型推論するのでプログラム中には型は書きません。
+関数型言語だと関数も整数も単なる数学的オブジェクトに対応していて
+同じように扱います。
+
+  let f x = x + 1
+
+は
+
+  let f = function x -> x + 1
+
+ともかけます。function x -> x + 1 は  λx.x+1 に相当します。
+しかし関数型言語と違って、C言語ではλ式は書けなくなっています。
+書けると、closureになってしまうし。
+
+> int x,y;
+> --> (declare x y int)
+
+これはあまり読みやすいものではないと思います。また別に述べますが
+int がない場合や、intの後ろに初期値や定義を書きたい場合もありますし、
+
+> extern int x;
+> --> (declare x extern int)
+
+この場合は、「整数値が保存できる場所を新たに確保しない」ので、
+declare でもよいですが、extern 自身にその役割を持たせれば
+よいように思います。なので、
+
+(extern x int)
+
+が短くてよいのではないかと。
+なお、変数の場合は「整数値が保存できる場所を新たに確保しない」のは
+この場合だけなので、extern をこう使うなら、「declare」は必要なく
+なります。
+
+
+> static int x;
+> --> (declare x static int)
+
+externと同じ理由で、
+
+(static x int)
+
+が短くてよいのではないかと。
+
+> int x=0;
+> --> (declare (x 0) int)
+
+括弧の数を考えると、
+
+(def x int 0)
+
+が短くてよいのではないかと。
+
+> int f (int x){
+>   int a;
+>   int b=x+1;
+>   static c=0;
+>   a = b*2;
+>   return a + c++;
+> }
+> -->
+> (defun f int ((x int))
+>   (begin
+>      (declare a int)
+>      (declare (b (+ x 1)) int )
+>      (declare (c 0) static int )
+>      (= a (* b 2))
+>      (return (+ a (inc c)))))
+
+「木曜版」だと
+
+(def (f x) (fn int int)
+  (def a int)
+  (def b int (+ x 1))
+  (static c int 0)
+  (= a (* b 2))
+  (return (+ a (int c))))
+
+ですね。
+
+(def a int) は (auto a int)でも同じ意味になります。
+
+a = b*2; は、(set a (* b 2)) より、(= a (* b 2)) がよさそうですね。
+
+> int f(int);
+> --> (declare f (function int (int)))
+
+木曜版では
+
+(def f (fn int int))
+
+としましたが、確かに関数定義ではないので、
+
+(decl f (fn int int))
+
+がよいように思います。
+
+void f(int x);
+
+なら、
+
+(decl (f x) (fn void int))
+
+ということで。
+
+void f(int x){}
+
+は
+
+(def (f x) (fn void int))
+
+とすれば、区別がつきますし。
+
+
+> extern int f(int);
+> --> (declare f extern (function int (int)))
+
+(extern f (fn int int))
+が短くて良いのではないかと。
+ここで、
+
+extern void f(int x);
+extern void f(int x){}
+
+は、
+
+(extern-decl (f x) (fn void int))
+(extern (f x) (fn void int))
+
+とする必要がありました。(そうしないと、区別がつかない)
+
+> struct s;
+> --> ???
+
+木曜版では
+(defstruct s) 
+としてましたが、struct s {}; と区別がつかないので、
+
+(declstruct s)
+
+がよいですかね、括弧が増えますが、
+
+(decl (struct s))
+
+も、(struct s)の部分を emacs で、
+M-C-SPC M-w か、M-C-k C-y すれば
+C-y で貼り付けられて便利かもしれません。
+
+これが必要になる訳は、
+
+http://www.tru64unix.compaq.com/docs/base_doc/DOCUMENTATION/V40F_HTML/AQTLTBTE/
+DOCU_025.HTM#tags_sec
+http://www.tru64unix.compaq.com/docs/base_doc/DOCUMENTATION/V40F_HTML/AQTLTBTE/
+DOCU_047.HTM#declaring_structs_sec
+
+でも見てください。ちょっとだけ引用します。
+
+struct  A {...};  /*  Definition of external struct A               */
+
+{
+   struct A;   /*  Tentative structure tag declaration. */
+               /*  First declaration of A (in external scope) is
+                   hidden. This structure will be defined later     */
+   struct  inner
+   {
+      struct A *pointer;          /* Declare a structure pointer by */
+       .                          /* forward referencing.           */
+       .
+       .
+   };
+   struct A {...};  /* Tentative declaration of internal struct A is
+                       defined here.                                */
+               /* External struct A is unaffected by this definition*/
+}
+
+あと、
+
+struct A { int x; };
+void f(){
+  struct A;  /* ここ */
+  struct B { struct A *p; } bb = { 0 };
+  struct A { struct B *p; } aa = { &bb };
+  bb.p = &aa;
+  aa = *bb.p;
+  g(aa,bb);
+}
+
+で、  /* ここ */ の struct A; を削除してみるとコンパイル時に
+エラーになるのがわかります。
+
+> struct s{
+>   int x,y;
+>   double d;
+> }
+> --> ???
+> (deftype s (struct (x y int) (d double)))
+
+struct s {  int x, y;  double d; } 
+じゃなく
+struct s {  int x, y;  double d; };
+としないといけないです。(最後のセミコロン)
+
+木曜版だと
+
+(defstruct s
+  (def x int)
+  (def y int)
+  (def d double))
+
+ですね。これも、s式の copy&pasteを考えると、
+
+(def (struct s)
+  (def x int)
+  (def y int)
+  (def d double))
+
+のほうがよいように思えてきました。
+ちなみに、
+
+(def (struct s)
+  (x int)
+  (y int)
+  (d double))
+
+としていないのは、C++に拡張したときのことを考えてですが、
+とりあえずは考えなくてもよいかもしれません。
+
+> typedef struct {
+>   int x, y;
+>   double d;
+> } xyd_t, *xyd_ptr_t;
+> -->
+> (deftype xyd_t (struct (x y int) ( d double )))
+> (deftype xyd_ptr_d (ref xyd_t))
+
+これは、
+
+typedef struct {
+  int x, y;
+  double d;
+} xyd_array_t[10], *xyd_ptr_t;
+
+のときに、困りますよね。(ただ、最初に、xyd_t を定義しておこうという
+のはアリだと思いますので後で述べます)
+
+無名struct などは、かなりの厄介者なので、SCでは、あまり
+使えないようにしてよいように思えます。
+
+(hide X
+  (def (struct X) (def x int) (def y int))
+  (deftype xy-array (array (struct X) 10))
+  (deftype xy-fun (fn (struct X) void)))
+
+なら、
+
+typedef struct { int x; int y; } xy_array[10], xy_fun(void);
+
+とできますが、xy-fun の入出力を入れ替えた、
+
+(hide X
+  (def (struct X) (def x int) (def y int))
+  (deftype xy-array (array (struct X) 10))
+  (deftype fun-xy (fn void (struct X))))
+
+だと、Cで表現できないなど、汚いですし。
+
+そもそも、この hide も名前を考えないようにしたいはずなのに、
+複数箇所で同じ無名structであることを表すために X とかいう名前を
+結局決めないといけないので意味ないですよね。
+
+ただ、struct s などを typedef して使いたいということは
+それなりにあるので、
+
+typedef struct { int x; int y; } xy_t;
+
+みたいなのは認めてもよいかもしれません。
+
+(deftype xy-t (struct (def x int) (def y int)))
+
+というものだけ認めて、同じ型にしたければ、xy-t を使え
+というものです。
+
+> (typedef xyd-t (structtype (def x int) (def y int) (def d double)))
+> (typedef xyd-ptr-t
+>          (ref (structtype (def x int) (def y int) (def d double))))
+> では代入時にエラーになるということですが、上にも書いたように
+> (deftype xyd_t (struct (x y int) ( d double )))
+> (deftype xyd_ptr_d (ref xyd_t))
+> ではいけないでしょうか。
+
+は、たぶん、同じ主張ですよね。
+
+> int a[10];
+> --> (declare a (array int 10))
+
+(def a (array int 10))
+
+> int a[5][2];
+> --> (declare a (array int 5 2))
+>     or (declare a (array (array int 2) 5))
+
+(def a (array int 5 2))
+or (def a (array (array int 2) 5))
+
+> int g(){return a[x][y];}
+> --> 
+> (defun g int () (begin (return (aref a x y)))
+> or --- (--()--(--(return (aref (aref x) y))))
+
+(def (g) (fn int) (return (aref a x y)))
+
+> int a1[]={1,2,3};
+> --> (declare (a1 (1 2 3)) (array int))
+
+(def a (array int) (1 2 3))
+
+> void *(*gg(void *(*ff) (int, int))) (int, int) {
+>   return ff;
+> }
+> --> 
+> (defun gg (ref (function (ref void) (int int)))
+> 	( (ff (ref (function (ref void) (int int)))) )
+>   (begin (return ff)))  
+> 
+> typedef void *(*gg_t(void *(*) (int, int))) (int, int) ;
+> --> 
+> (deftype gg_t (function (ref (function (ref void) (int int)))
+> 	( (ref (function (ref void) (int int))))))
+
+(def (gg ff) (fn (ref (fn (ref void) int int))
+                 (ref (fn (ref void) int int)))
+  (return ff))
+(deftype gg-t (fn (ref (fn (ref void) int int))
+                  (ref (fn (ref void) int int))))
+
+のほうが、
+
+(fn (ref (fn (ref void) int int))
+    (ref (fn (ref void) int int)))
+
+を何回か書かないといけない場合、楽ですよね。
+
+ちなみに、
+
+(deftype gg-t (fn (ref (fn (ref void) int int))
+                  (ref (fn (ref void) int int))))
+(def (gg ff) gg-t (return ff))
+
+と書けると楽ですよね、
+(実は、これ、そのままCにはできないので、gg-t の定義をみて
+   void *(*gg(void *(*ff) (int, int))) (int, int) {
+    return ff;
+   }
+のようにしないといけないですが…)
+
+> enum { C0, C1 } qq1, qq2;
+> --> (declare qq1 qq2 (enum (C0 C1)))
+
+enumも無名はdeftypeでのみ許して、他の場合は許したくないですね。
+
+(deftype c01 (enum C0 C1))
+(def qq1 c01)
+(def qq2 c01)
+
+となるかと。ただ、これだと、
+
+(def (enum a) A)
+(deftype ea (enum a))
+(deftype eB (enum B))
+
+で、a, B がどちらがタグかわからなくなりますね。
+
+(deftype ea (enum a))
+(deftype ea (enum (B)))
+(deftype c01 (enum (C0 C1)))
+
+としても、
+enum z { A1, B1, C1 };
+typedef enum { C0 = C1, D0 } eee;
+
+のような場合に、(C0 C1) としたいなら困りますね。
+
+少しtrickyですが、
+
+(deftype c01 (enum C0 C1))
+
+じゃなくて、
+
+(deftype (enum c01) C0 C1)
+
+のように書けば、c01が型として使えるとすればよいように思えてきました。
+すると、(deftype xy-t (struct (def x int) (def y int)))は
+
+(deftype (struct xy-t) (def x int) (def y int))
+
+となりますね。あるいは、trickyじゃなくして、
+
+(deftype c01 enum C0 C1)
+(deftype xy-t struct (def x int) (def y int))
+
+がよいように思います。
+
+> enum abc { A, B, C };
+> --> ??? (deftype abc (enum (A B C)))
+
+(defenum abc A B C)
+としてましたが、
+
+(def (enum abc) A B C)
+
+でよいように思います。enumの場合は、struct/unionと違って
+
+enum abc;
+
+は許されないので、
+
+(decl (enum abc))
+
+はありえないですね。
+
+八杉
+

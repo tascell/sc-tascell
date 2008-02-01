@@ -1,0 +1,38 @@
+fib:
+task 0 0 0 0
+37
+# task 0 0 0 1 とすると時間計測
+
+lu:
+task 0 0 0 0
+0 1000 3 0
+
+pen:
+task 0 0 0 1
+
+# <task-body>は空行
+
+nq:
+task 0 0 0 0
+20 -1
+
+cmp:
+task 0 0 0 0
+20000 -1
+
+(setq base 1.00)
+(defun ratio (x)
+  (interactive "nCount:") ; ミニバッファで読む
+  (insert (format "%1.3f" (/ x base))))
+
+(defun set-base (x)
+  (interactive "nCount:") ; ミニバッファで読む
+  (setq base x))
+
+(defun zap-to-kakko ()
+  (interactive)
+  (zap-to-char 1 ?\))
+  (insert ")"))
+
+(global-set-key [f11] 'zap-to-kakko)
+(global-set-key [f12] 'ratio)

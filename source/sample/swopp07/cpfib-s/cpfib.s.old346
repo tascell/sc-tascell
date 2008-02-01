@@ -1,0 +1,125 @@
+	.file	"cpfib.c"
+	.section	".text"
+	.align 4
+	.align 32
+	.type	save1.0, #function
+	.proc	020
+save1.0:
+	!#PROLOGUE# 0
+	save	%sp, -120, %sp
+	!#PROLOGUE# 1
+	st	%g2, [%fp-20]
+	mov	%g2, %l0
+	call	__lw_call, 0
+	ld	[%g2+84], %g2
+	call	save_pc, 0
+	ld	[%l0-4], %o0
+	call	save_int, 0
+	ld	[%l0+88], %o0
+	call	save_int, 0
+	ld	[%l0-8], %o0
+	nop
+	return	%i7+8
+	nop
+	unimp 1; unimp 1
+.LL4:
+	call	__stack_walk
+	nop
+	.size	save1.0, .-save1.0
+	.align 4
+	.align 32
+	.global cpfib
+	.type	cpfib, #function
+	.proc	04
+cpfib:
+	!#PROLOGUE# 0
+	save	%sp, -160, %sp
+	!#PROLOGUE# 1
+	add	%fp, -32, %l0
+	st	%g0, [%fp-24]
+	add	%i1, -1, %o1
+	mov	%l0, %o0
+	cmp	%i1, 2
+	bg,pn	%icc, .LL5
+	mov	1, %g1
+	ba,pt	%xcc, .LL1
+	st	%g0, [%fp-20]
+.LL5:
+	call	cpfib, 0
+	st	%g1, [%fp-20]
+.LL17:
+	b	.LL13
+	 nop
+.LL18:
+	cmp	%o0, 0
+	be,pt	%icc, .LL16
+	sethi	%hi(save1.0), %g1
+	ld	[%fp+72], %i1
+	b	.LL14
+	ld	[%fp+68], %i0
+.LL13:
+	ld	[%fp-24], %o5
+	mov	2, %g1
+	add	%i1, -2, %o1
+	st	%g1, [%fp-20]
+	add	%o0, %o5, %g1
+	mov	%l0, %o0
+	call	cpfib, 0
+	st	%g1, [%fp-24]
+.LL19:
+	b	.LL11
+	 nop
+.LL20:
+	cmp	%o0, 0
+	be,pt	%icc, .LL10
+	sethi	%hi(save1.0), %g1
+	! pjmp	.LL11
+.LL14:
+	call	__cont_true_return, 0
+	add	%fp, -48, %g2
+.LL10:
+.LL8:
+.LL16:
+	add	%fp, -16, %o5
+	st	%i1, [%fp+72]
+	or	%g1, %lo(save1.0), %g1
+	add	%fp, -48, %g2
+	st	%i0, [%fp+68]
+	st	%g1, [%fp-32]
+	st	%o5, [%fp-28]
+	call	__lw_call_cont, 0
+	nop
+	nop
+	std	%o0, [%fp-64]
+	std	%f0, [%fp-56]
+	add	%fp, -48, %g2
+	add	%fp, -64, %g1
+	call	__cont_true_return0, 0
+	st	%g1, [%fp-44]
+.LL11:
+	ld	[%fp-24], %g1
+	add	%o0, %g1, %o0
+	st	%o0, [%fp-24]
+	mov	%o0, %g1
+.LL1:
+	return	%i7+8
+	mov	%g1, %o0
+	unimp 1; unimp 1
+.LL2:
+	cmp	%g2, %fp
+	bg	.LL21
+	nop
+	call	__lw_call_cont0
+	nop
+	cmp	%o1, .LL2-(.LL19-8)
+	be	.LL20
+	cmp	%o1, .LL2-(.LL17-8)
+	be	.LL18
+	nop
+	call	__lw_call_cont2
+	nop
+.LL21:
+	call	__stack_walk
+	nop
+	.size	cpfib, .-cpfib
+	.ident	"GCC: (GNU) 3.4.6"

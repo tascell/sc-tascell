@@ -1,0 +1,137 @@
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.146942 gc=0.000000 other=0.146942
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.155080 gc=0.000000 other=0.155080
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.140302 gc=0.000000 other=0.140302
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.154215 gc=0.000000 other=0.154215
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.144805 gc=0.000000 other=0.144805
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.153542 gc=0.000000 other=0.153542
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.140142 gc=0.000000 other=0.140142
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.154038 gc=0.000000 other=0.154038
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.144019 gc=0.000000 other=0.144019
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.153081 gc=0.000000 other=0.153081
+
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.163692 gc=0.000000 other=0.163692
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.174643 gc=0.000000 other=0.174643
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.162994 gc=0.000000 other=0.162994
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.174415 gc=0.000000 other=0.174415
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.164753 gc=0.000000 other=0.164753
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.178742 gc=0.000000 other=0.178742
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.167260 gc=0.000000 other=0.167260
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.175246 gc=0.000000 other=0.175246
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.162856 gc=0.000000 other=0.162856
+Bintree=20, maxins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+total=0.178518 gc=0.000000 other=0.178518
+
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+0.147968 0.000000 0.147968
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+0.158855 0.000000 0.158855
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+0.144785 0.000000 0.144785
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+0.157161 0.000000 0.157161
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+0.145761 0.000000 0.145761
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+0.159225 0.000000 0.159225
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+0.144482 0.000000 0.144482
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+0.156169 0.000000 0.156169
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+0.144359 0.000000 0.144359
+Bintree=20, masins=200000, maxsearch=300000
+tosize=6400000, stack=800000, limit=32
+0.157441 0.000000 0.157441
+
+;;;
+(/ (+
+0.146942 
+0.155080 
+0.140302 
+0.154215 
+0.144805 
+0.153542 
+0.140142 
+0.154038 
+0.144019 
+0.153081 
+    ) 10)
+0.149
+
+
+(/ (+
+0.163692 
+0.174643 
+0.162994 
+0.174415 
+0.164753 
+0.178742 
+0.167260 
+0.175246 
+0.162856 
+0.178518 
+    ) 10)
+0.170
+
+
+(/ (+
+0.147968 
+0.158855 
+0.144785 
+0.157161 
+0.145761 
+0.159225 
+0.144482 
+0.156169 
+0.144359 
+0.157441 
+    ) 10)
+0.152

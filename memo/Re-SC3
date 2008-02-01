@@ -1,0 +1,123 @@
+> 平石です。
+> 
+> 引数にregisterをつける時ですが、
+> > int f(register int x){ return x; }
+> > ((f x) (fn int int) (register x)
+> >   (return x))
+> だと、
+> 
+> int f(register int);
+
+これは書けなくてもよいと思います．
+
+int f(register int x){ return x; } としたときは
+変数 x を関数内部で使う際にできるだけレジスタに置いてねと
+いうものになりますが，このことは型とは関係ないですし，
+呼び出しの際にスタックで引数を渡していたのがレジスタに変わったり
+するわけでもありません．
+
+なので，int f(register int); のregisterは無意味です．
+
+> を書きたいときに困ってしまうので、やはり
+> 
+> int f(register int x){ return x; }
+> -->((f x) (fn int (register int)) (return x))
+> 
+> int f(register int);
+> -->(decl (f) (fn int (register int)))
+> 
+> でいきたいと思うのですがどうでしょうか。
+
+すくなくともregister は型ではないので，せいぜい
+
+((f (register x)) (fn int int) (return x))
+
+だと思います．しかし，registerとしたのは，関数内部の都合で
+あって，パラメータを受け取ることとは関係ない話なので
+
+((f x) (fn int int) (register x) (return x))
+
+がよいでしょう．これは「regsiter指定はパラメータを受け取り方に
+関係ある」というしばしば発生する誤解を解消することにもなると思います．
+
+> あと、今まであまり話題になっていない部分で、現在の文法でCをSCに直したものを
+> 書いておきます。
+> 
+> int ar[]={0,1,2,3,4}
+> --> (def ar (array int) (0 1 2 3 4))
+>     or (def ar (array int undef) (0 1 2 3 4))
+
+undef はやめませんか．
+あと，struct の初期化もそうですが，
+
+(def ar (array int) 0 1 2 3 4)
+
+とすることも検討する必要があると思います．
+
+> int ar2[][3]={{0,1,2},{3,4,5}}
+> --> (def ar2 (array int undef 3) ((0 1 2) (3 4 5)))
+>     or (def ar2 (array (array int 3)) ((0 1 2) (3 4 5)))
+
+         これ↑かな．
+
+>     or (def ar2 (array (array int 3) undef) ((0 1 2) (3 4 5)))
+> 
+> int f(char a, double b, ... );
+> --> (decl (f a b) (fn char double) :attr va-arg)
+
+                    (fn int char double)ですよね．
+
+さて，registerとは逆に，... は型の一部です．
+ちなみにGCCの内部では，... がない場合は，
+    (fn int char double void)
+... がある場合は，
+    (fn int char double)
+という型を使っています．
+
+とりあえずは，
+
+  (decl f (fn int char double va-arg))
+  or (decl (f a b) (fn int char double va-arg))
+
+でしょうか．
+
+> inline int f(char a, double b, ... );
+> --> (decl (f a b) (fn char double) :attr (inline va-arg))
+
+va-arg で inline って実際にあるかなあ．
+
+> union sb{
+>   int s;
+>   struct {
+>     unsigned b0:1;
+>     unsigned b1:1;
+>     unsigned b2:1;
+>   } b;
+> };
+> -->
+> (deftype tagb struct (defs unsigned-int b0 b1 b2 :bit 1))
+> (def (union sb) (s int) (b tagb))
+> or
+> (deftype tagb struct 
+>    (b0 unsigned-int :bit 1)
+>    (b1 unsigned-int :bit 1)
+>    (b2 unsigned-int :bit 1))
+> (def (union sb) (s int) (b tagb))
+
+:bit 1 は微妙ですが，型だとすると，少なくとも
+
+   (defs unsigned-int :bit 1 b0 b1 b2)
+
+ですね．ただ，型だとすると，struct の中でないところで書いたときにも
+意味を持たせないとおかしいので，やはり型ではないのだと思います．
+
+struct 自体の属性とすると，
+
+(deftype tagb struct
+   (b0 unsigned-int) :bit 1
+   (b1 unsigned-int) :bit 1
+   (b2 unsigned-int) :bit 1)
+
+でしょうか．
+
+

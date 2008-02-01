@@ -1,0 +1,20 @@
+syntax: glob
+\#*
+*~
+*.BAK
+*.bak
+*.old
+*.x86f
+*.fasl
+*.fas
+*.stackdump
+a.out
+a.exe
+cinclude_tmp.*
+*.se
+*.s
+
+syntax: regexp
+.*\.[0-9]*p*\..*\.sc$
+.*\.se[0-9]$
+

@@ -1,0 +1,134 @@
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.396717 0.000000 0.396717
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.396895 0.000000 0.396895
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.395503 0.000000 0.395503
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.428152 0.000000 0.428152
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.398049 0.000000 0.398049
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.425761 0.000000 0.425761
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.425754 0.000000 0.425754
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.425726 0.000000 0.425726
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.423879 0.000000 0.423879
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.424567 0.000000 0.424567
+
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.447784 0.000000 0.447784
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.450824 0.000000 0.450824
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.477566 0.000000 0.477566
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.450078 0.000000 0.450078
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.477945 0.000000 0.477945
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.476007 0.000000 0.476007
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.475860 0.000000 0.475860
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.476291 0.000000 0.476291
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.476046 0.000000 0.476046
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.477314 0.000000 0.477314
+
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.444741 0.000000 0.444741
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.440134 0.000000 0.440134
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.445006 0.000000 0.445006
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.443867 0.000000 0.443867
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.418726 0.000000 0.418726
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.434157 0.000000 0.434157
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.413968 0.000000 0.413968
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.445931 0.000000 0.445931
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.412395 0.000000 0.412395
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.458588 0.000000 0.458588
+
+lwp: 1, p: 2
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.438674 0.000000 0.438674
+lwp: 1, p: 2
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.438737 0.000000 0.438737
+lwp: 1, p: 2
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.436699 0.000000 0.436699
+lwp: 1, p: 2
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.438781 0.000000 0.438781
+lwp: 1, p: 2
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.439730 0.000000 0.439730
+lwp: 1, p: 2
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.436143 0.000000 0.436143
+lwp: 1, p: 2
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.438310 0.000000 0.438310
+lwp: 1, p: 2
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.439921 0.000000 0.439921
+lwp: 1, p: 2
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.437737 0.000000 0.437737
+lwp: 1, p: 2
+Bintree=20, maxins=500000, maxsearch=1
+tosize=51200000, stack=6400000, limit=32
+0.438279 0.000000 0.438279
+

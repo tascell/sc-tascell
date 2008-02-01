@@ -1,0 +1,344 @@
+#include <pthread.h>
+#include <stdio.h>
+
+int connect_to (char *hostname, unsigned short port);
+
+void close_socket (int socket);
+
+int send_char (char, int);
+
+int send_string (char *str, int socket);
+
+int send_fmt_string (int socket, char *fmt_string, ...);
+
+int send_binary (void *src, unsigned long elm_size, unsigned long n_elm,
+                 int socket);
+
+int receive_char (int socket);
+
+char *receive_line (char *buf, int maxlen, int socket);
+
+int receive_binary (void *dst, unsigned long elm_size, unsigned long n_elm,
+                    int socket);
+enum node
+{ OUTSIDE, INSIDE, ANY };
+
+struct cmd
+{
+  int c;
+  enum node node;
+  char *v[5];
+};
+
+struct cmd_list
+{
+  struct cmd cmd;
+  void *body;
+  int task_no;
+  struct cmd_list *next;
+};
+
+void read_to_eol (void);
+
+void recv_rslt (struct cmd *, void *);
+
+void recv_task (struct cmd *, void *);
+
+void recv_treq (struct cmd *);
+
+void recv_rack (struct cmd *);
+
+void recv_none (struct cmd *);
+struct task;
+struct thread_data;
+void (*task_doers[256]) (struct thread_data *, void *);
+void (*task_senders[256]) (void *);
+void *(*task_receivers[256]) ();
+void (*rslt_senders[256]) (void *);
+void (*rslt_receivers[256]) (void *);
+enum task_stat
+{ TASK_ALLOCATED, TASK_INITIALIZED, TASK_STARTED, TASK_DONE, TASK_NONE,
+    TASK_SUSPENDED };
+enum task_home_stat
+{ TASK_HOME_ALLOCATED, TASK_HOME_INITIALIZED, TASK_HOME_DONE };
+
+struct task
+{
+  enum task_stat stat;
+  struct task *next;
+  struct task *prev;
+  int task_no;
+  void *body;
+  int ndiv;
+  enum node rslt_to;
+  char rslt_head[256];
+};
+
+struct task_home
+{
+  enum task_home_stat stat;
+  int id;
+  int task_no;
+  enum node req_from;
+  struct task_home *next;
+  void *body;
+  char task_head[256];
+};
+
+struct thread_data
+{
+  struct task_home *req;
+  int id;
+  int w_rack;
+  int w_none;
+  int ndiv;
+  struct task *task_free;
+  struct task *task_top;
+  struct task_home *treq_free;
+  struct task_home *treq_top;
+  struct task_home *sub;
+  pthread_mutex_t mut;
+  pthread_mutex_t rack_mut;
+  pthread_cond_t cond;
+  pthread_cond_t cond_r;
+  char ndiv_buf[32];
+  char tno_buf[8];
+  char id_str[32];
+  char buf[256];
+};
+extern int divisibility_flag;
+
+void send_divisible (void);
+
+void make_and_send_task (struct thread_data *thr, int task_no, void *body);
+
+void *wait_rslt (struct thread_data *thr);
+
+void send_int (int n);
+
+int recv_int (void);
+
+void handle_req (int (*)(void), struct thread_data *);
+#include<sys/time.h>
+
+int printf (char const *, ...);
+
+int fprintf (FILE *, char const *, ...);
+
+void *malloc (size_t);
+
+void free (void *);
+
+void send_int (int n);
+
+int recv_int (void);
+
+int send_binary_header (int elmsize, int nelm);
+
+int recv_binary_header (int *pelmsize, int *pnelm);
+
+void send_binary_terminator (void);
+
+void recv_binary_terminator (void);
+
+int send_double_seq (double *a, int nelm);
+
+int recv_double_seq (double *a, int nelm);
+
+void swap_doubles (double *a, int n);
+
+double
+elapsed_time (struct timeval tp[2])
+{
+  return (tp[1]).tv_sec - (tp[0]).tv_sec + 1.0e-6 * ((tp[1]).tv_usec -
+                                                     (tp[0]).tv_usec);
+}
+
+struct cmp
+{
+  int r;
+  int n1;
+  int n2;
+  int *d1;
+  int *d2;
+};
+
+int cmp_1 (int n1, int n2, int *d1, int *d2);
+
+void
+do_cmp_task (struct thread_data *_thr, struct cmp *pthis)
+{
+  struct timeval tp[2];
+  int i;
+  int j;
+  fprintf (stderr, "start %d %d\n", (*pthis).n1, (*pthis).n2);
+  if (0 > (*pthis).n2)
+    {
+      (*pthis).d1 = (int *) malloc (sizeof (int) * (*pthis).n1);
+      (*pthis).n2 = (*pthis).n1;
+      (*pthis).d2 = (int *) malloc (sizeof (int) * (*pthis).n2);
+      {
+        i = 0;
+        for (; i < (*pthis).n1; i++)
+          {
+            ((*pthis).d1)[i] = i;
+          }
+      }
+      {
+        i = 0;
+        for (; i < (*pthis).n2; i++)
+          {
+            ((*pthis).d2)[i] = -i;
+          }
+      }
+      gettimeofday (tp, 0);
+      (*pthis).r = cmp_1 ((*pthis).n1, (*pthis).n2, (*pthis).d1, (*pthis).d2);
+      gettimeofday (tp + 1, 0);
+      fprintf (stderr, "time: %lf\n", elapsed_time (tp));
+    }
+  else
+    {
+      (*pthis).r = cmp_1 ((*pthis).n1, (*pthis).n2, (*pthis).d1, (*pthis).d2);
+    }
+}
+
+int
+cmp_2 (int n1, int n2, int *d1, int *d2)
+{
+  int i;
+  int j;
+  int s = 0;
+  {
+    i = 0;
+    for (; i < n1; i++)
+      {
+        j = 0;
+        for (; j < n2; j++)
+          {
+            if ((d1[i] ^ d2[j]) == -1)
+              s++;
+          }
+      }
+  }
+  return s;
+}
+
+int
+cmp_1 (int n1, int n2, int *d1, int *d2)
+{
+  int s1;
+  int s2;
+  if (n1 < 5)
+    return cmp_2 (n1, n2, d1, d2);
+  if (n1 > n2)
+    {
+      int n1_1 = n1 / 2;
+      int n1_2 = n1 - n1_1;
+      {
+        {
+          s1 = cmp_1 (n1_1, n2, d1, d2);
+        }
+        {
+          s2 = cmp_1 (n1_2, n2, d1 + n1_1, d2);
+        }
+      }
+    }
+  else
+    {
+      int n2_1 = n2 / 2;
+      int n2_2 = n2 - n2_1;
+      {
+        {
+          s1 = cmp_1 (n1, n2_1, d1, d2);
+        }
+        {
+          s2 = cmp_1 (n1, n2_2, d1, d2 + n2_1);
+        }
+      }
+    }
+  return s1 + s2;
+}
+
+void
+send_cmp_task (struct cmp *pthis)
+{
+  send_int ((*pthis).n1);
+  send_int ((*pthis).n2);
+  int i;
+  if (0 > (*pthis).n2)
+    return;
+  {
+    i = 0;
+    for (; i < (*pthis).n1; i++)
+      {
+        send_int (((*pthis).d1)[i]);
+      }
+  }
+  {
+    i = 0;
+    for (; i < (*pthis).n2; i++)
+      {
+        send_int (((*pthis).d2)[i]);
+      }
+  }
+}
+
+struct cmp *
+recv_cmp_task ()
+{
+  struct cmp *pthis = malloc (sizeof (struct cmp));
+  (*pthis).n1 = recv_int ();
+  (*pthis).n2 = recv_int ();
+  int i;
+  if (!(0 > (*pthis).n2))
+    {
+      (*pthis).d1 = (int *) malloc (sizeof (int) * (*pthis).n1);
+      (*pthis).d2 = (int *) malloc (sizeof (int) * (*pthis).n2);
+      {
+        i = 0;
+        for (; i < (*pthis).n1; i++)
+          {
+            ((*pthis).d1)[i] = recv_int ();
+          }
+      }
+      {
+        i = 0;
+        for (; i < (*pthis).n2; i++)
+          {
+            ((*pthis).d2)[i] = recv_int ();
+          }
+      }
+    }
+  return pthis;
+}
+
+void
+send_cmp_rslt (struct cmp *pthis)
+{
+  send_int ((*pthis).r);
+  free ((*pthis).d1);
+  free ((*pthis).d2);
+  free (pthis);
+}
+
+void
+recv_cmp_rslt (struct cmp *pthis)
+{
+  (*pthis).r = recv_int ();
+}
+
+void (*task_doers[256]) (struct thread_data *, void *) =
+{
+(void (*)(struct thread_data *, void *)) do_cmp_task};
+void (*task_senders[256]) (void *) =
+{
+(void (*)(void *)) send_cmp_task};
+void *(*task_receivers[256]) () =
+{
+(void *(*)()) recv_cmp_task};
+void (*rslt_senders[256]) (void *) =
+{
+(void (*)(void *)) send_cmp_rslt};
+void (*rslt_receivers[256]) (void *) =
+{
+(void (*)(void *)) recv_cmp_rslt};

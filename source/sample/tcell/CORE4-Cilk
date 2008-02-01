@@ -1,0 +1,91 @@
+Script started on Mon 31 Dec 2007 01:06:59 AM JST
+[0m[23m[24m[J[hiraisi@gero11]/work/hiraisi/tcell% [K../do-cilktest 4
++ NPROC=4
++ KAISUU=5
++ FIB=40
++ NQ=15
++ PEN=12
++ LU=2000
++ CMP=30000
++ ../ntimes 5 ppopp08/fib --nproc 4 40
+
+fib 40
+time: 1.774144
+time: 1.777944
+time: 1.782345
+time: 1.784270
+time: 1.794362
+
+nqueen-ac 15
+Running time  = 9.382805 s
+Running time  = 9.678027 s
+Running time  = 10.230401 s
+
+nqueen 15
+Running time  = 7.457362 s
+Running time  = 7.458341 s
+Running time  = 7.473608 s
+Running time  = 7.478147 s
+Running time  = 7.485101 s
+
+nqueen-bt 15
+Running time  = 7.792885 s
+Running time  = 7.852541 s
+Running time  = 7.865257 s
+Running time  = 7.877958 s
+Running time  = 7.931093 s
+
+pentomino-ac 12
+Running time  = 0.700174 s
+Running time  = 0.700530 s
+Running time  = 0.701883 s
+Running time  = 0.704904 s
+Running time  = 0.706835 s
+
+pentomino 12
+Running time  = 0.600438 s
+Running time  = 0.600634 s
+Running time  = 0.601753 s
+Running time  = 0.605766 s
+Running time  = 0.607518 s
+
+pentomino-bt 12
+Running time  = 0.597250 s
+Running time  = 0.597928 s
+Running time  = 0.600578 s
+Running time  = 0.601186 s
+Running time  = 0.612027 s
+
+
++ ../ntimes 5 ppopp08/lu002 --nproc 4 2000 2
+ppopp08/lu002 --nproc 4 2000 2
+2.483937
+2.491924
+2.496833
+2.501283
+2.514673
+
+cmp 30000
+1.965165 29999
+2.018474 29999
+2.037627 29999
+2.040710 29999
+2.062617 29999
+
++ ../ntimes 5 c-and-cilk/grav --nproc 4 -100 -100 -100 100 100 100 25 25 25
+start (-100, -100, -100,)--(100, 100, 100): (0.250000, 0.250000, 0.250000)
+f = (-3.405840, -3.405840, -3.405840)
+Running time  = 0.229658 s
+Running time  = 0.231722 s
+Running time  = 0.273147 s
+Running time  = 0.278851 s
+Running time  = 0.297234 s
+
+grav 200
+Running time  = 1.786253 s
+Running time  = 1.791004 s
+Running time  = 1.793229 s
+Running time  = 1.794193 s
+Running time  = 1.795904 s
+
+Script done on Wed 02 Jan 2008 10:55:25 AM JST

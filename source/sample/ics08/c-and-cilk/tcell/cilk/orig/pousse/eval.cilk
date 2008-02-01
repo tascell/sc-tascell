@@ -1,0 +1,230 @@
+/* Evaluation function
+ *
+ * Currently 2 terms
+ *   * num_per_frank  
+ *       currently t^2  where t = num in that rank/file
+ *   * nearness to center
+ *       currently 1 for corner +1 as approach middle
+ */
+
+#ifdef SERIAL
+#include <stdlib.h>
+#include "serial.h"
+#include "assert.h"
+#else
+#include <cilk.h>
+//#include <cilk-compat.h>
+#endif
+#include "globals.h"
+#include <stdio.h>
+#include <math.h>  /* for sqrt */
+#include "eval.h"
+#if 1
+
+/*#define DEBUG 0*/
+
+/*#define NBR_VAL_DIRECT 2
+ *#define NBR_VAL_DIAG 1
+ */
+
+#include "weights.h"	/* Linear weights for terms in eval function */
+
+
+#ifndef FRANK_VAL
+#define FRANK_VAL 1
+#endif
+
+#ifndef CENTER_VAL 
+#define CENTER_VAL 1
+#endif
+
+#ifndef OFFSET
+#define OFFSET 4
+#endif
+
+
+/* Improve this! */
+int CenterTable[32][32];
+
+
+int square_table[BD_SIZE];
+      
+
+void eval_init(){
+  int r,c;
+  
+  for (r=0;r<BD_SIZE;r++)
+    square_table[r]=r*r;
+    
+
+  for (r=0;r<(BD_SIZE+1)/2;r++){
+    for (c=0;c<(BD_SIZE+1)/2;c++){
+      CenterTable[r][c]=(r+c)+OFFSET;
+      CenterTable[BD_SIZE-r-1][c]=(r+c)+OFFSET;
+      CenterTable[r][BD_SIZE-c-1]=(r+c)+OFFSET;
+      CenterTable[BD_SIZE-r-1][BD_SIZE-c-1]=(r+c)+OFFSET;
+    }
+  }
+}
+
+typedef struct
+{
+  int sc_frank;
+  int sc_center;
+} eval_info;
+
+
+/* Only look at lower-right neighbors, others included earlier */
+/*static int neighbor_points(position *p, int color, int row, int col){
+  int val=0;
+  if(((col+1)<BD_SIZE)&&(READ_BD(p,row,col+1)==color))
+    val+=NBR_VAL_DIRECT;
+  if(row<BD_SIZE){
+    if((col>0)&&(READ_BD(p,row+1,col-1)==color))
+      val+=NBR_VAL_DIAG;
+    if((READ_BD(p,row+1,col)==color))
+      val+=NBR_VAL_DIRECT;
+    if(((col+1)<BD_SIZE)&&(READ_BD(p,row+1,col-1)==color))
+      val+=NBR_VAL_DIAG;
+  }
+  return val;    
+}
+*/
+
+static void eval_side(position *p, int side, eval_info *info)
+{
+#ifdef DEBUG
+  int r, c;
+  int points_for_frank = 0;
+  int points_for_center = 0;
+  int num_pieces = 0;
+  int num_per_frank = 0;
+
+  /* walk through rows */
+  for (r=0;r<BD_SIZE;r++){
+    num_per_frank = 0;
+    for (c=0;c<BD_SIZE;c++){
+      if (READ_BD(p,r,c)==side){
+	num_pieces++;
+	num_per_frank++;
+	points_for_center += CenterTable[r][c];
+/*	points_for_neighbors += neighbor_points(p,side,r,c);*/
+      }
+    }
+    assert(num_per_frank == p->nrank[ r ][ side ]);
+    points_for_frank += num_per_frank*num_per_frank;
+    if (num_per_frank==BD_SIZE) points_for_frank += (INF*10);
+  } 
+  assert(num_pieces == p->npc[ side ]);
+  assert(points_for_center == p->ctr_pts[ side ]);
+
+  /* walk through cols */
+  for (c=0;c<BD_SIZE;c++){
+    num_per_frank = 0;
+    for (r=0;r<BD_SIZE;r++){
+      if (READ_BD(p,r,c)==side){
+	num_per_frank++;
+      }
+    }
+    assert(num_per_frank == p->nfile[ c ][ side ]);
+    points_for_frank += num_per_frank*num_per_frank;
+    if (num_per_frank==BD_SIZE) points_for_frank += (INF*10);
+  } 
+
+  info->sc_frank  = points_for_frank;
+  info->sc_center = points_for_center;
+#else
+  int points_for_frank = 0;
+  int r;
+
+  /* Tally up franks for rows/cols */
+  for (r = 0; r < BD_SIZE; r++)
+  {
+     points_for_frank += square_table[p->nrank[ r ][ side ]]+
+                       + square_table[p->nfile[ r ][ side ]];
+     if (p->nrank[ r ][ side ] == BD_SIZE)
+        points_for_frank += (INF * 10);
+     if (p->nfile[ r ][ side ] == BD_SIZE)
+        points_for_frank += (INF * 10);
+  }
+
+
+  info->sc_frank  = points_for_frank;
+  info->sc_center = p->ctr_pts[ side ];
+#endif
+}
+
+
+int eval(position *p){
+  eval_info ctm_info;
+  eval_info nctm_info;
+#if DEBUG
+  static int cnt=0;
+#endif
+  int score;
+
+  eval_side(p,CTM(p),&ctm_info);
+  eval_side(p,CTM(p)^3,&nctm_info);
+
+/*  score =ctm_score-nctm_score;*/
+  score = (ctm_info.sc_frank  - nctm_info.sc_frank)  * FRANK_VAL
+        + (ctm_info.sc_center - nctm_info.sc_center) * CENTER_VAL;
+
+  if (score> INF) score= MATE;
+  if (score<-INF) score= -MATE;
+
+#if DEBUG
+  if ((cnt%1000000)==0){
+    printf("\n\n\ncnt=%d  score=%d\n",cnt,score);
+    display(p);
+    print_eval(p);
+  }
+  cnt++;
+#endif
+
+  return(score);
+  
+
+}
+
+void print_eval(position *p){
+  eval_info ctm_info;
+  eval_info nctm_info;
+  int ctm_score, nctm_score;
+
+  eval_side(p,CTM(p),&ctm_info);
+  eval_side(p,CTM(p)^3,&nctm_info);
+
+  ctm_score = ctm_info.sc_frank  * FRANK_VAL
+            + ctm_info.sc_center * CENTER_VAL;
+  nctm_score = nctm_info.sc_frank  * FRANK_VAL
+             + nctm_info.sc_center * CENTER_VAL;
+
+  printf ("          CTM    NCTM    diff\n");
+  printf ("          (%d)     (%d)    \n",CTM(p),CTM(p)^3);
+  printf ("pieces   #%3d    #%3d    %3d\n",
+	  p->npc[CTM(p)],p->npc[CTM(p)^3],
+          p->npc[CTM(p)]-p->npc[CTM(p)^3]); 	  
+  printf ("frank    %4d   %4d    %4d\n",
+	  ctm_info.sc_frank,nctm_info.sc_frank,
+	  ctm_info.sc_frank-nctm_info.sc_frank);
+  printf ("center    %4d   %4d    %4d\n",
+	  ctm_info.sc_center,nctm_info.sc_center,
+	  ctm_info.sc_center-nctm_info.sc_center);
+/*  printf ("nbrs      %4d   %4d    %4d\n",
+	  ctm_info.sc_neighbors,nctm_info.sc_neighbors,
+	  ctm_info.sc_neighbors-nctm_info.sc_neighbors);*/
+
+
+
+}
+#else
+
+void eval_init(){};
+int eval(position *p){return 0;}
+void print_eval(position *p){};
+
+#endif
+
+
+

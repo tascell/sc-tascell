@@ -1,0 +1,5 @@
+(c2sc "csample/stdio.h")
+(c2sc "csample/stdlib.h")
+(c2sc "csample/string.h")
+
+(sc2c "sample/cinclude2.sc" :rule '(:basic :type :untype) :intermediate t)

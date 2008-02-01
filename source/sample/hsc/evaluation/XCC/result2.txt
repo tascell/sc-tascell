@@ -1,0 +1,36 @@
+tomoba@nozawa$ ./a.out 200000                                                                                                           ~/sc/source/gc-sample/evaluation/XCC:[17]$
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+total=0.143743 gc=0.000000 other=0.143743
+tomoba@nozawa$ ./a.out 200000                                                                                                           ~/sc/source/gc-sample/evaluation/XCC:[18]$
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+total=0.142640 gc=0.000000 other=0.142640
+tomoba@nozawa$ ./a.out 200000                                                                                                           ~/sc/source/gc-sample/evaluation/XCC:[18]$
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+total=0.144486 gc=0.000000 other=0.144486
+tomoba@nozawa$ ./a.out 200000                                                                                                           ~/sc/source/gc-sample/evaluation/XCC:[18]$
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+total=0.144823 gc=0.000000 other=0.144823
+tomoba@nozawa$ ./a.out 200000                                                                                                           ~/sc/source/gc-sample/evaluation/XCC:[18]$
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+total=0.144192 gc=0.000000 other=0.144192
+tomoba@nozawa$ ./a.out 200000                                                                                                           ~/sc/source/gc-sample/evaluation/XCC:[18]$
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+total=0.143871 gc=0.000000 other=0.143871
+tomoba@nozawa$ ./a.out 200000                                                                                                           ~/sc/source/gc-sample/evaluation/XCC:[18]$
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+total=0.145717 gc=0.000000 other=0.145717
+tomoba@nozawa$ ./a.out 200000                                                                                                           ~/sc/source/gc-sample/evaluation/XCC:[18]$
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+total=0.146169 gc=0.000000 other=0.146169
+tomoba@nozawa$ ./a.out 200000                                                                                                           ~/sc/source/gc-sample/evaluation/XCC:[18]$
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+total=0.144297 gc=0.000000 other=0.144297

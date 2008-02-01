@@ -1,0 +1,21 @@
+The test program works as follows.
+
+Create two directories, say ``foo'' and ``bar'', containg ``runme''
+scripts as per spec.  Then run
+
+test-pousse -n <n> foo bar
+
+<n> is 10 by default.  The program plays a complete game and
+prints the winner. 
+
+
+HUMAN MODE:
+
+test-pousse -h -n <n> program
+
+will let you play with the computer.  Enter your move, or
+
+flip:  flip sides
+back:  revoke move
+
+

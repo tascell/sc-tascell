@@ -1,0 +1,20 @@
+(c2sc:c2sc-piece "(a)(b)")
+
+(c2sc "/usr/include/stdio.h")
+(c2sc "/usr/include/ctype.h" :out-directory "csample/ansi-header/")
+
+;; trying c2sc defmacro csym::isascii "(((arg0 ) & ~0x7F) == 0)"
+;;  1:(== (cast csym::arg0 (ptr (bit-not 127))) 0)
+;;  2:(== (bit-and csym::arg0 (bit-not 127)) 0)
+;; Select number? 2
+
+;; ==> (sc::== (sc::bit-and csym::arg0 (sc::bit-not 127)) 0)
+;; trying c2sc defmacro csym::toascii "((arg0 ) & 0x7F)"
+;;  1:(cast csym::arg0 (ptr 127))
+;;  2:(bit-and csym::arg0 127)
+;; Select number? 2
+
+
+;; in <float.h>
+trying c2sc defconstant csym::|@dbl_max| "1.7976931348623157E+308"
+        ("Too large to be represented as a single-float:\n  179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" "   [Condition of type simple-type-error]" nil)

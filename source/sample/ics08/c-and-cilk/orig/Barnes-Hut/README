@@ -1,0 +1,18 @@
+This directory contains a sample parallelization of the Barnes-Hut
+N-body code that we obtained off of the web
+(ftp://hubble.ifa.hawaii.edu/pub/barnes/treecode/code_c.tar.Z).  The
+file CHANGES contains a synopsis of the changes made to the serial
+code.
+
+To make the Barnes-Hut executable (named `code'), type
+
+   make
+
+To run the code serially on a sample problem size, type
+
+   code < sample-input
+
+To run the code on 8 processes, type
+
+   code -nproc 8 < sample-input
+

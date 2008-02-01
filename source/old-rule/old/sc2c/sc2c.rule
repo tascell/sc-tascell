@@ -1,0 +1,680 @@
+;;;; SC-compiler 
+;;;; compile SC-0 or SC-1 (S-expression) to C (string)
+(%require "SC2C-DEFS")
+(%use-package "SC-UTIL")
+(%initial-rule sc2c)
+(%otherwise nil)
+
+(SC2C (,@sc-program))
+-> (progn
+     (let ((*print-case* :downcase)
+	   (*keyword-list* (cons 'c-exp *keyword-list*))
+	   (*otherwise-default* nil))
+       (strcat (translation-unit sc-program))))
+
+;;;; 1.External Declarations
+(translation-unit (,@ext-decl-list[external-declaration]))
+-> (strcat (get-retval 'ext-decl-list))
+
+(external-declaration ,decl[declaration])
+-> (get-retval 'decl)
+
+(external-declaration ,cexp[c-expression])
+-> (format nil "~A~%" (get-retval 'cexp))
+
+;;;; 2.Declarations
+
+;; declaration
+(declaration ,i-decl[inlined-declaration])
+-> (get-retval 'i-decl)
+(declaration (,id[ID] ,texp[type-expression] { ,init[initializer] }))
+(declaration (,f-id[function-identifier]
+	      (fn ,@ft-list[type-expression])
+	      ,@bi-list[block-item]))
+(declaration (,f-id[function-identifier]
+	      (fn ,@ft-list[function-type-list] ,va-arg[type-vaarg])
+	      ,@bi-list[block-item]))
+(declaration (,su-spec[struct-or-union-specifier]
+	      ,@sdecl-list[struct-declaration]))
+(declaration (,en-spec[enum-specifier]
+	      ,@en-list[enumerator]))
+-> (inlined-declaration `(def ,@x))
+
+;; inlined-declaration
+;; function-attribute と register-declarator はとりあえずなし
+;; (sctを拡張してから)
+(inlined-declaration (,scs[storage-class-specifier]
+		      ,id[ID] ,texp[type-expression] { ,init[initializer] } ))
+-> (let ((scs-str (get-retval 'scs))
+	 (idtexp-str (format nil (get-retval 'texp) (get-retval 'id)))
+	 (init-str (if (pattern-variable-p 'init)
+		       (format nil " = ~A"
+			       (parenthesize
+				(multiple-value-list (get-retval 'init))
+				15))
+		       "")))
+     (format nil "~A ~A~A;~%"
+	     scs-str idtexp-str init-str))
+
+(inlined-declaration (,scs[storage-class-specifier]
+		      ,func-id[function-identifier]
+		      (fn ,texp[type-expression] ,@texp-list[type-expression]
+			  { ,va-arg[type-vaarg] } )
+		      { :attr ,f-attr[function-attribute] }
+		      { ,r-decl[register-declarator] }
+		      ,@bi-list[block-item]))
+-> (let ((scs-retval (multiple-value-list (get-retval 'scs)))
+	 (fid-str (car (get-retval 'func-id)))
+	 (texp-str (get-retval 'texp))
+	 ;; list of (<texp> "<id>") 
+	 (arg-list (combine-each-nth
+		    (list 
+		     (get-retval 'texp-list)
+		     (cdr (get-retval 'func-id)))
+		    :n (max (length texp-list) 
+			    (length (cdr (get-retval 'func-id))))))
+	 (inline-str  (if (pattern-variable-p 'f-attr)
+			  (format nil "~A " (get-retval 'f-attr))
+			  ""))
+	 (register-list (if (pattern-variable-p 'r-decl)
+			    (get-retval 'r-decl)
+			    nil))
+	 (vaarg-str (if (pattern-variable-p 'va-arg)
+			", ..."
+			"")))
+     (let ((scs-str (first scs-retval))
+	   (arg-str 
+	    (format nil "~A~A"
+		    (strcat (mapcar 
+			      #'(lambda (xx)
+				  (format 
+				   nil
+				   "~A~A"
+				   (if (member (second xx) register-list
+					       :test #'string=)
+				       "register "
+				       "")
+				   (if (first xx)
+				       (format nil (first xx)
+					       (if (second xx) (second xx) ""))
+				       (second xx))))
+			      arg-list)
+			     ", ")
+		    vaarg-str))	  
+	   (body-str (if (and (eq 'decl (second scs-retval))
+			      (null bi-list))
+			 ";"
+			 (format nil "~%{~%~A}"
+				 (strcat (get-retval 'bi-list))))))
+       (format nil "~%~A~A ~A~A~%"
+	       inline-str
+	       scs-str
+	       (format nil texp-str
+		       (format nil "~A( ~A )" fid-str arg-str))
+	       body-str)))
+				     
+
+(function-attribute inline)
+-> "inline"
+
+(register-declarator (register ,@id-list[ID]))
+-> (get-retval id-list)
+
+
+(inlined-declaration (,dd[def-or-decl] ,su-spec[struct-or-union-specifier]
+				       ,@sdcl-list[struct-declaration]))
+-> (if (and (eq 'decl dd)
+	    (null sdcl-list))
+       (format nil "~A;~%" (get-retval 'su-spec))
+       (format nil "~%~A {~%~A};~%"
+	       (get-retval 'su-spec)
+	       (strcat (get-retval 'sdcl-list))))
+
+(inlined-declaration (def ,espec[enum-specifier] ,@en-list[enumerator]))
+-> (format nil "~A { ~A };~%"
+	   (get-retval 'espec)
+	   (strcat (get-retval 'en-list) ", "))
+
+(inlined-declaration (,spec[compound-storage-class-specifier]
+		      ,texp ,@idec-list[init-declarator]))
+-> (let ((spec-retval (get-retval 'spec))
+	 (idec-retval-list (get-retval 'idec-list)))
+     (strcat
+      (mapcar #'(lambda (xx)
+		  (inlined-declaration
+		   `(,spec-retval ,(first xx) ,texp ,@(cdr xx)))) 
+	      idec-retval-list)))      
+
+(inlined-declaration (deftype ,id[ID] ,texp[type-expression]))
+-> (format nil "typedef ~A;~%"
+	   (format nil (get-retval 'texp)
+		   (get-retval 'id)))
+
+(inlined-declaration (deftype ,id[ID] ,su[struct-or-union]
+		       ,@sdcl-list[struct-declaration]))
+-> (format nil "typedef ~A {~%~A } ~A;~%"
+	   (get-retval 'su)
+	   (strcat (get-retval 'sdcl-list))
+	   (get-retval 'id))
+(inlined-declaration (deftype ,id[ID] enum ,@en-list[enumerator]))
+-> (format nil "typedef enum { ~A } ~A;~%"
+	   (strcat (get-retval 'en-list) ", ")
+	   (get-retval 'id))
+
+;; funcion-identifier
+(function-identifier ,id[ID])
+-> (list (get-retval 'id))
+(function-identifier (,@id-list[ID]))
+-> (get-retval 'id-list)
+
+;; def-or-decl
+(def-or-decl def)  -> (values "" 'def)
+(def-or-decl decl) -> (values "" 'decl)
+
+;; init-declarator
+(init-declarator ,id[ID])
+-> (list id)
+(init-declarator (,id[ID] ,init))
+-> (list id init)
+
+;; storage-class-specifier
+(storage-class-specifier def)           -> (values "" 'def)
+(storage-class-specifier decl)          -> (values "" 'decl)
+(storage-class-specifier extern) 
+(storage-class-specifier extern-def)    -> (values "extern" 'def)
+(storage-class-specifier extern-decl)   -> (values "extern" 'decl)
+(storage-class-specifier static)       
+(storage-class-specifier static-def)    -> (values "static" 'def)
+(storage-class-specifier auto)          
+(storage-class-specifier auto-def)      -> (values "auto" 'def)
+(storage-class-specifier register)      
+(storage-class-specifier register-def)  -> (values "register" 'def)
+
+;; compound-storage-class-specifier
+;; defs to def
+(compound-storage-class-specifier defs)          -> 'def 
+(compound-storage-class-specifier extern-defs)   -> 'extern
+(compound-storage-class-specifier static-defs)   -> 'static
+(compound-storage-class-specifier auto-defs)     -> 'auto
+(compound-storage-class-specifier register-defs) -> 'register
+
+;;(function-attribute ...)
+
+;;(register-declarator ...)
+
+;; struct-declaration
+(struct-declaration ,decl[declaration])
+-> (get-retval 'decl)
+(struct-declaration :bit)
+-> " : "
+(struct-declaration ,exp[expression])
+-> (let ((exp-retval (multiple-value-list (get-retval 'exp)))
+	 (assoc 14))
+     (format nil "~A~%"
+	     (parenthesize exp-retval assoc)))
+
+;; enumerator
+(enumerator ,en-const[enumeration-constant])
+-> (get-retval 'en-const)
+(enumerator (,en-const[enumeration-constant] ,exp[expression]))
+-> (let ((exp-retval (multiple-value-list (get-retval 'exp))))
+     (format nil "~A=~A"
+	     (get-retval 'en-const)
+	     (parenthesize exp-retval 15)))
+
+;; enumeration-constant
+(enumeration-constant ,id[ID])
+-> (get-retval 'id)
+
+;; compound-initializer
+(compound-initializer (array ,@init-list[initializer]))
+(compound-initializer (struct ,@init-list[initializer]))
+-> (let ((init-retval-list
+	  (combine-each-nth
+	   (multiple-value-list (get-retval 'init-list)))))
+     (values
+      (format nil "{ ~A }"
+	      (strcat (mapcar #'(lambda (xx)
+				   (parenthesize xx 16))
+			       init-retval-list)
+		       ", "))
+      0))
+
+;; initializer
+(initializer ,exp[expression])
+-> (get-retval 'exp)
+(initializer ,cmpd-init[compound-initializer])
+-> (get-retval 'cmpd-init)
+
+;;;; 3.Type-expressions
+(type-expression ,tspec[type-specifier])
+-> (values 
+    (format nil "~A ~~A" (get-retval 'tspec))
+    17)
+(type-expression (array ,texp[type-expression]))
+-> (let ((retval-texp (multiple-value-list (get-retval 'texp)))
+	 (assoc 1))
+     (values
+      (format nil (first retval-texp)
+	      (parenthesize-t
+	       (format nil "~~A[]")
+	       (second retval-texp)
+	       assoc))
+      assoc))
+(type-expression (array ,texp[type-expression] ,@exp-list[expression]))
+-> (let ((retval-texp (multiple-value-list (get-retval 'texp)))
+	 (assoc 1))
+     (values 
+      (format nil (first retval-texp)
+	      (parenthesize-t
+	       (format nil "~~A[~A]"
+		       (strcat (get-retval 'exp-list) "]["))
+	       (second retval-texp)
+	       assoc))
+      assoc))
+(type-expression (ptr ,texp[type-expression]))
+-> (let ((retval-texp (multiple-value-list (get-retval 'texp)))
+	 (assoc 2))
+     (values 
+      (format nil (first retval-texp)
+	      (parenthesize-t
+	       (format nil "*~~A")
+	       (second retval-texp)
+	       assoc))
+      assoc))
+(type-expression (fn ,texp1[type-expression] ,@texp-list[type-expression]))
+(type-expression (fn ,texp1[type-expression] ,@texp-list[type-expression]
+		     ,va-arg[type-vaarg]))
+-> (let ((retval-texp1 (multiple-value-list (get-retval 'texp1)))
+	 (assoc 1))
+     (values
+      (format nil (first retval-texp1)
+	      (parenthesize-t
+	       (format nil "~~A( ~A~A )"
+		       (strcat (mapcar #'(lambda (xx)
+					    (format nil xx ""))
+					(get-retval 'texp-list))
+				", ")
+		       (if (pattern-variable-p 'va-arg)
+			   (format nil ", ~A" (get-retval 'va-arg))
+			   ""))
+	       (second retval-texp1)
+	       assoc))
+      assoc))
+(type-expression (,@tq-list[type-qualifier] ,texp[type-expression]))
+-> (values  
+    (format nil (get-retval 'texp)
+	    (format nil " ~A ~~A"
+		    (strcat (get-retval 'tq-list) " ")))
+    17)
+
+(type-vaarg va-arg)-> "..."
+
+(type-specifier void)               -> "void"
+(type-specifier char)               -> "char"
+(type-specifier signed-char)        -> "signed char"
+(type-specifier unsigned-char)      -> "unsigned char"
+(type-specifier short)              -> "short"
+(type-specifier signed-short)       -> "signed short"
+(type-specifier unsigned-short)     -> "unsigned short"
+(type-specifier int)                -> "int"
+(type-specifier signed-int)         -> "signed int"
+(type-specifier unsigned-int)       -> "unsigned int"
+(type-specifier long)               -> "long"
+(type-specifier signed-long)        -> "signed long"
+(type-specifier unsigned-long)      -> "unsigned long"
+(type-specifier long-long)          -> "long long"
+(type-specifier signed-long-long)   -> "signed long long"
+(type-specifier unsigned-long-long) -> "unsigned long long"
+(type-specifier float)              -> "float"
+(type-specifier double)             -> "double"
+(type-specifier long-double)        -> "long double"
+(type-specifier ,other[struct-or-union-specifier])
+(type-specifier ,other[enum-specifier])
+(type-specifier ,other[typedef-name])
+-> (get-retval 'other)
+
+(struct-or-union-specifier (,s-u[struct-or-union] ,id[ID]))
+-> (format nil "~A ~A" (get-retval 's-u) (get-retval 'id))
+
+(struct-or-union struct) -> "struct"
+(struct-or-union union)  -> "union"
+
+(enum-specifier (enum ,id[ID]))
+-> (format nil "enum ~A" (get-retval 'id))
+
+(type-qualifier const)    -> "const"
+(type-qualifier restrict) -> "restrict"
+(type-qualifier volatile) -> "volatile"
+
+(typedef-name ,id[ID])
+-> (get-retval 'id)
+
+;; 4.Statements
+(statement ,stat[compound-statement])
+(statement ,stat[expression-statement])
+(statement ,stat[selection-statement])
+(statement ,stat[iteration-statement])
+(statement ,stat[jump-statement])
+(statement ,stat[labeled-statement])
+-> (get-retval 'stat)
+(statement nil)
+-> (format nil ";~%")
+
+(compound-statement (begin ,@bi-list[block-item]))
+-> (format nil "{~%~A}~%"
+	   (strcat (get-retval 'bi-list)))
+(compound-statement (let (,@decl-list[declaration]) ,@bi-list[block-item]))
+-> (format nil
+	   "{~%~A~%~A}~%"
+	   (strcat (get-retval 'decl-list))
+	   (strcat (get-retval 'bi-list)))
+
+(block-item ,bi[inlined-declaration])
+(block-item ,bi[statement])
+-> (get-retval 'bi)
+
+(labeled-statement (label ,id[ID] ,stat[statement]))
+-> (format nil "~A:~%~A" (get-retval 'id) (get-retval 'stat))
+(labeled-statement (case ,exp[expression]))
+-> (format nil "case ~A:~%" (get-retval 'exp))
+(labeled-statement (default))
+-> (format nil "default:~%")
+
+(expression-statement ,exp-stat[expression])
+-> (format nil "~A;~%" (get-retval 'exp-stat))
+
+(selection-statement (if ,exp[expression] ,stat1[statement]))
+(selection-statement (if ,exp[expression] ,stat1[statement] ,stat2[statement]))
+-> (format nil
+	   "if( ~A )~% ~A ~A"
+	   (get-retval 'exp)
+	   (get-retval 'stat1)
+	   (if (pattern-variable-p 'stat2)
+	       (format nil " else ~A" (get-retval 'stat2))
+	       ""))
+(selection-statement (switch ,exp[expression] ,@bi-list[block-item]))
+-> (format nil
+	   "switch( ~A )~%{~%~A}~%"
+	   (get-retval 'exp)
+	   (strcat (get-retval 'bi-list)))
+
+(iteration-statement (while ,exp[expression] ,@bi-list[block-item]))
+(iteration-statement (do-while ,exp[expression] ,@bi-list[block-item]))
+-> (let ((prev nil) (post nil))
+     (case (car x)
+       ((while) (setq prev (format nil "while( ~A )" (get-retval 'exp))
+		      post ""))
+       ((do-while) (setq prev "do "
+			 post (format nil "while( ~A );" (get-retval 'exp))))
+       (otherwise (error "unexpected keyword ~S in iteration-statement."
+			 (car x))))
+     (format nil "~A~%{~%~A}~A~%"
+	     prev
+	     (strcat (get-retval 'bi-list))
+	     post))
+	     
+(iteration-statement (loop ,@bi-list[block-item]))
+-> (iteration-statement `(while 1 ,@bi-list))
+(iteration-statement (for (,@exp-list[expression] 
+			   ,exp1[expression] ,exp2[expression])
+			  ,@bi-list[block-item]))
+-> (let ((exp-retval-list 
+	  (combine-each-nth 
+	   (multiple-value-list (get-retval 'exp-list)))))
+     (format nil
+	     "for( ~A ; ~A ; ~A )~%{~%~A}~%"
+	     (strcat (mapcar #'(lambda (xx)
+				  (parenthesize xx 16))
+			      exp-retval-list)
+		      ", ")
+	     (get-retval 'exp1)
+	     (get-retval 'exp2)
+	     (strcat (get-retval 'bi-list))))
+(iteration-statement (for (,@idecl-list[inlined-declaration] 
+			   ,exp1[expression] ,exp2[expression])
+			  ,@bi-list[block-item]))
+-> (format nil
+	   "{~%~A~A}~%"
+	   (strcat (get-retval 'idecl-list))
+	   (iteration-statement `(for (,exp1 ,exp2) ,@bi-list)))
+
+(jump-statement (goto ,id[ID]))
+-> (format nil "goto ~A;~%" (get-retval 'id))
+(jump-statement (continue))
+-> (format nil "continue;~%")
+(jump-statement (break))
+-> (format nil "break;~%")
+(jump-statement (return { ,exp[expression] }))
+-> (format nil "return ~A;~%"
+	   (if (pattern-variable-p 'exp)
+	       (get-retval 'exp)
+	       ""))
+
+;;;; 5.Expressions
+
+(expression ,id[ID])
+-> (values (get-retval 'id) 0)
+
+(expression ,int[integerp])
+(expression ,flt[floatp])
+-> (values (write-to-string x) 0)
+(expression ,char[characterp])
+-> (values (format nil "'~A'" (char-sc2c char)) 0)
+(expression ,str[stringp])
+-> (values (format nil "\"~A\"" (string-sc2c str)) 0)
+
+;; funcion-call
+(expression (,fexp[expression] ,@exp-list[expression]))
+-> (let ((fexp-retval (multiple-value-list (get-retval 'fexp)))
+	 (exp-retval-list
+	  (combine-each-nth
+	   (multiple-value-list (get-retval 'exp-list))))
+	 (assoc 1))
+     (values
+      (format nil "~A( ~A )"
+	      (parenthesize fexp-retval assoc)
+	      (strcat 
+	       (mapcar #'(lambda (xx) (parenthesize xx 16))
+		       exp-retval-list)
+	       ", "))
+      assoc))
+
+;; aref
+(expression (aref ,exp1[expression] ,@exp-list[expression]))
+-> (if (null exp-list)
+       (get-retval 'exp1)
+       (let ((exp1-retval (multiple-value-list (get-retval 'exp1)))
+	     (exp-retval-list
+	      (combine-each-nth
+	       (multiple-value-list (get-retval 'exp-list))))
+	     (assoc 1))
+	 (values
+	  (format nil "~A[~A]"
+		  (parenthesize exp1-retval assoc)
+		  (strcat 
+		   (mapcar #'(lambda (xx) (parenthesize xx 17))
+			   exp-retval-list)
+		   "]["))
+	  assoc)))
+
+;; fref
+(expression (fref ,exp[expression] ,@fi-list[field-identifier]))
+-> (let ((exp-retval (multiple-value-list (get-retval 'exp)))
+	 (fi-str-list0 (get-retval 'fi-list))
+	 (fi-str-list nil)
+	 (assoc 1))
+     (do ((str fi-str-list0 (cdr str)))
+	 ((endp str) (setq fi-str-list (reverse fi-str-list)))
+       (if (eq '-> (car str))
+	   (progn
+	     (push "->" fi-str-list)
+	     (setq str (cdr str)))
+	   (push "." fi-str-list))
+       (push (car str) fi-str-list))	     
+     (values
+      (format nil "~A~A"
+	      (parenthesize exp-retval assoc)
+	      (strcat fi-str-list))
+      assoc))
+
+;; inc,dec
+(expression (inc ,exp[expression]))
+(expression (dec ,exp[expression]))
+-> (let ((exp-retval (multiple-value-list (get-retval 'exp)))
+	 (op-str (operator-sc2c (car x)))
+	 (assoc 1))
+     (values
+      (format nil "~A~A" (parenthesize exp-retval assoc) op-str)
+      assoc))
+
+;; ++ --
+(expression (++ ,exp[expression]))
+(expression (-- ,exp[expression]))
+-> (let ((exp-retval (multiple-value-list (get-retval 'exp)))
+	 (op-str (operator-sc2c (car x)))
+	 (assoc 2))
+     (values
+      (format nil "~A~A" op-str (parenthesize exp-retval assoc))
+      assoc))
+
+;; unary-operator
+(expression (,uop[unary-operator] ,exp[expression]))
+-> (let ((exp-retval (multiple-value-list (get-retval 'exp)))
+	 (uop-retval (multiple-value-list (get-retval 'uop))))
+     (let ((uop-str (first uop-retval))
+	   (uop-assoc (second uop-retval)))
+       (values
+	(format nil "~A~A" uop-str (parenthesize exp-retval uop-assoc))
+	uop-assoc)))
+(expression (+ ,exp[expression]))
+(expression (- ,exp[expression]))
+-> (let ((exp-retval (multiple-value-list (get-retval 'exp)))
+	 (assoc 2))
+     (values
+      (format nil "~A~A" 
+	      (operator-sc2c (car x)) (parenthesize exp-retval assoc))
+      assoc))
+(expression (/ ,exp[expression]))
+-> (expression `(/ 1 ,exp))
+
+;; sizeof
+(expression (sizeof ,exp[expression]))
+-> (let ((exp-retval (get-retval 'exp))
+	 (assoc 2))
+     (values
+      (format nil "sizeof(~A)" exp-retval)
+      assoc))
+(expression (sizeof ,texp[type-expression]))
+-> (let ((texp-str
+	  (format nil (get-retval 'texp) ""))
+	 (assoc 2))
+     (values
+      (format nil "sizeof(~A)" texp-str)
+      assoc))
+
+;; cast
+(expression (cast ,texp[type-expression] ,exp[expression]))
+-> (let ((texp-str
+	  (format nil (get-retval 'texp) ""))
+	 (exp-retval (multiple-value-list (get-retval 'exp)))
+	 (assoc 3))
+     (values
+      (format nil "(~A)~A" texp-str (parenthesize exp-retval assoc))
+      assoc))
+
+;; operator
+(expression (,op[operator]))
+-> (let ((op-noarg (third (multiple-value-list (get-retval 'op)))))
+     (if op-noarg
+	 (expression op-noarg)
+	 (error "~A requires at least one argument" op)))
+(expression (,op[operator] ,@exp-list[expression]))
+-> (let ((op-retval (multiple-value-list (get-retval 'op)))
+	 (exp-retval-list
+	  (combine-each-nth
+	   (multiple-value-list (get-retval 'exp-list)))))
+     (let ((op-str (first op-retval))
+	   (op-assoc (second op-retval)))
+       (values
+	(strcat
+	 (cons (parenthesize (first exp-retval-list)
+			     (if op-assoc (1+ op-assoc) nil))
+	       (mapcar #'(lambda (xx)
+			   (parenthesize xx op-assoc))
+		       (cdr exp-retval-list)))
+	 op-str)
+	op-assoc)))
+
+;; comparator
+(expression (,comp[comparator] ,exp1[expression] ,exp2[expression]))
+-> (let ((comp-retval (multiple-value-list (get-retval 'comp)))
+	 (exp1-retval (multiple-value-list (get-retval 'exp1)))
+	 (exp2-retval (multiple-value-list (get-retval 'exp2))))
+     (let ((comp-str (first comp-retval))
+	   (comp-assoc (second comp-retval)))
+       (values
+	(format nil "~A ~A ~A"
+		(parenthesize exp1-retval comp-assoc)
+		comp-str
+		(parenthesize exp2-retval comp-assoc))
+	comp-assoc)))
+
+;; if-exp
+(expression (if-exp ,exp1[expression] ,exp2[expression] ,exp3[expression]))
+-> (let ((exp1-retval (multiple-value-list (get-retval 'exp1)))
+	 (exp2-retval (multiple-value-list (get-retval 'exp2)))
+	 (exp3-retval (multiple-value-list (get-retval 'exp3)))
+	 (assoc 14))
+     (values
+      (format nil "~A?~A:~A"
+	      (parenthesize exp1-retval assoc)
+	      (parenthesize exp2-retval assoc)
+	      (parenthesize exp3-retval assoc))
+      assoc))
+
+;; assignment-operator
+(expression (,as-op[assignment-operator] ,exp1[expression] ,exp2[expression]))
+-> (let ((as-retval (multiple-value-list (get-retval 'as-op)))
+	 (exp1-retval (multiple-value-list (get-retval 'exp1)))
+	 (exp2-retval (multiple-value-list (get-retval 'exp2))))
+     (let ((as-str (first as-retval))
+	   (as-assoc (second as-retval)))
+       (values
+	(format nil "~A ~A ~A"
+		(parenthesize exp1-retval as-assoc)
+		as-str
+		(parenthesize exp2-retval (1+ as-assoc)))
+	as-assoc)))
+
+;; exps
+(expression (exps ,@exp-list[expression]))
+-> (let ((exp-retval-list
+	  (combine-each-nth
+	   (multiple-value-list (get-retval 'exp-list))))
+	 (assoc 16))
+     (values
+      (strcat (mapcar #'(lambda (xx)
+			   (parenthesize xx assoc))
+		       exp-retval-list)
+	       ",")
+      assoc))
+
+;; C-expression
+(expression ,cexp[c-expression])
+-> (get-retval 'cexp)
+
+;; field-identifier
+(field-identifier ->)
+-> '->
+(field-identifier ,id[ID])
+-> (get-retval 'id)
+
+
+
+;;;; 6.C-expressions
+(c-expression (c-exp ,str[stringp] ,@exp-list[expression]))
+-> (let ((exp-retval-list
+	  (combine-each-nth (multiple-value-list (get-retval 'exp-list)))))
+     (apply #'format nil str (mapcar #'(lambda (xx) (parenthesize xx 1))
+				     exp-retval-list)))

@@ -1,0 +1,308 @@
+#! /bin/sh
+
+# jikkou-rei
+# for x in bintree bin2list cpfib nqueen qsort; do INTELOPT="-march=pentium4" ./evaluation $x clean compile 10; done
+
+### architecture
+if [ `uname` = "SunOS" ]; then
+    echo "*** Sun OS"
+    SOL="-sol"
+fi
+
+### compiler pathname
+if [ $ICC ]; then # Intel C Compiler
+    ICC=$ICC
+else
+    ICC="icc"
+fi
+ICC_P="no"
+if [ "$ICC" ]; then
+    which $ICC
+    if [ $? -eq 0 ]; then
+	ICC_P="yes"
+    fi
+fi
+
+if [ $XCC ]; then # XC-Cube (closure, lightweigt, ...)
+    XCC=$XCC
+else
+    if [ `uname` = "SunOS" ]; then
+	XCC="$HOME/tmp/sparc-sol2.6/n7/bin/gcc"
+    else
+	XCC="/tmp/local/bin/gcc"
+    fi
+fi
+#XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+XCC_P="no"
+if [ "$XCC" ]; then
+    which $XCC
+    if [ $? -eq 0 ]; then
+	XCC_P="yes"
+    fi
+fi
+
+if [ $GCC ]; then # GNU C Compiler
+    GCC=$GCC
+else
+    GCC=$XCC
+fi
+GCC_P="no"
+if [ "$GCC" ]; then
+    which $GCC
+    if [ $? -eq 0 ]; then
+	GCC_P="yes"
+    fi
+fi
+
+
+### compiler options
+COPT="-O2 $COPT"
+ICCOPT=$ICCOPT
+GCCOPT=$GCCOPT
+XCCOPT=$XCCOPT
+
+INTELOPT=$INTELOPT
+SOLOPT=$SOLOPT
+if [ `uname` = "SunOS" ]; then
+    ARCHOPT=$SOLOPT
+else
+    ARCHOPT=$INTELOPT
+fi
+COPT="$COPT $ARCHOPT"
+
+if [ $OLD_XCC ]; then
+    D_CT="DCTOLD"
+else
+    D_CT="DCT"
+fi
+
+NOWARN="yes"
+if [ $NOWARN ]; then
+    echo "*** warning not output"
+    COPT="$COPT -w"
+fi
+
+### program name
+if [ $# -le 0 ]; then
+    exec echo "usage: $0 <prog-name> [clean] [compile] [<iteration> [<arg1> <arg2> ...]]"
+fi
+NAME=$1
+shift
+
+### source files & program specific options 
+if [ $NAME = "bintree" ]; then
+    if [ `uname` = "SunOS" ]; then
+	XCC_ARCHOPT="-DSUN $XCC_ARCHOPT"
+    else
+	XCC_ARCHOPT="$XCC_ARCHOPT"
+    fi
+    SRC_C="bintree0.c copygc0.c -DRAWC"
+    SRC_GCC="bintree0.c copygc0.c"
+    SRC_LWSC="bintree.c nestfunc.c"
+    SRC_CLSC="bintree-clos.c nestfunc.c"
+    SRC_XCC="bintree0.c copygc0.c $XCC_ARCHOPT -${D_CT}=lightweight"
+    SRC_XCCCL="bintree0.c copygc0.c $XCC_ARCHOPT -${D_CT}=closure"
+elif [ $NAME = "bin2list" ]; then
+    if [ `uname` = "SunOS" ]; then
+	XCC_ARCHOPT="-DSUN $XCC_ARCHOPT"
+    else
+	XCC_ARCHOPT="$XCC_ARCHOPT"
+    fi
+    SRC_C="bin2list0.c copygc0.c -DRAWC"
+    SRC_GCC="bin2list0.c copygc0.c"
+    SRC_LWSC="bin2list.c nestfunc.c"
+    SRC_CLSC="bin2list-clos.c nestfunc.c"
+    SRC_XCC="bin2list0.c copygc0.c $XCC_ARCHOPT -${D_CT}=lightweight"
+    SRC_XCCCL="bin2list0.c copygc0.c $XCC_ARCHOPT -${D_CT}=closure"
+elif [ $NAME = "nqueen" ]; then
+    if [ `uname` = "SunOS" ]; then
+	XCC_ARCHOPT="systhr-sparc.o -lthread $XCC_ARCHOPT"
+    else
+	XCC_ARCHOPT="systhr-i386.o -lpthread $XCC_ARCHOPT"
+    fi
+    NOXCCOPTS="-DNOXCC"
+    SRC_C="nqueen-c.c -lm $NOXCCOPTS"
+    SRC_GCC="nqueen-gcc.c -lm $NOXCCOPTS"
+    SRC_LWSC="nqueen.c nestfunc.c -lm $NOXCCOPTS"
+    SRC_CLSC="nqueen-clos.c nestfunc.c -lm $NOXCCOPTS"
+    SRC_XCC="nqueen-xcc.c -lm $XCC_ARCHOPT -${D_CT}=lightweight $NOXCCOPTS"
+    SRC_XCCCL="nqueen-xcc.c -lm $XCC_ARCHOPT -${D_CT}=closure $NOXCCOPTS"
+elif [ $NAME = "cpfib" ]; then
+    if [ `uname` = "SunOS" ]; then
+	XCC_ARCHOPT="-DSUN $XCC_ARCHOPT"
+    else
+	XCC_ARCHOPT="$XCC_ARCHOPT"
+    fi
+    SRC_C="cpfib0.c -DRAWC"
+    SRC_GCC="cpfib0.c"
+    SRC_LWSC="cpfib.c nestfunc.c"
+    SRC_CLSC="cpfib-clos.c"
+    SRC_XCC="cpfib0.c copygc0.c $XCC_ARCHOPT -${D_CT}=lightweight"
+    SRC_XCCCL="cpfib0.c copygc0.c $XCC_ARCHOPT -${D_CT}=closure"
+elif [ $NAME = "qsort" ]; then
+    if [ `uname` = "SunOS" ]; then
+	XCC_ARCHOPT="-DSOL $XCC_ARCHOPT"
+    else
+	XCC_ARCHOPT="$XCC_ARCHOPT"
+    fi
+    SRC_C="qsort-c.c"
+    SRC_GCC="qsort-gcc.c"
+    SRC_LWSC="qsort.c nestfunc.c"
+    SRC_CLSC="qsort-clos.c nestfunc.c"
+    SRC_XCC="qsort-gcc.c $XCC_ARCHOPT -${D_CT}=lightweight"
+    SRC_XCCCL="qsort-gcc.c $XCC_ARCHOPT -${D_CT}=closure"
+else
+    exec echo "Unknown test program name!"
+fi
+
+### targets
+progs="./$NAME-c$SOL ./$NAME-gcc$SOL ./$NAME-lw$SOL ./$NAME-clos$SOL ./$NAME-xcc$SOL ./$NAME-xcccl$SOL ./$NAME-icc-c$SOL ./$NAME-icc-lw$SOL ./$NAME-icc-clos$SOL"
+
+### clean
+if [ $# -ge 1 ] && [ $1 = "clean" ]; then
+    shift
+    echo-run rm -f $progs
+fi
+
+### compile
+if [ $# -ge 1 ] && [ $1 = "compile" ]
+then
+    shift
+    echo "*** Options=$COPT"
+    if [ $GCC_P = "yes" ]; then
+	echo "** GCC=$GCC"
+	$GCC -v
+	echo-run $GCC $COPT $GCCOPT $SRC_C   -o $NAME-c$SOL
+	echo-run $GCC $COPT $GCCOPT $SRC_GCC -o $NAME-gcc$SOL
+	echo-run $GCC $COPT $GCCOPT $SRC_LWSC -o $NAME-lw$SOL
+	echo-run $GCC $COPT $GCCOPT $SRC_CLSC -o $NAME-clos$SOL
+    fi
+    if [ $XCC_P = "yes" ]; then
+	echo "** XC Cube=$XCC"
+	LANG=C $XCC -v
+	LANG=C echo-run $XCC $COPT $XCCOPT $SRC_XCC -o $NAME-xcc$SOL # XC-cube lightweight
+	LANG=C echo-run $XCC $COPT $XCCOPT $SRC_XCCCL -o $NAME-xcccl$SOL # XC-cube lightweight
+    fi
+    if [ $ICC_P = "yes" ]; then
+	echo "** Intel C Compiler=$ICC"
+	$ICC -v
+	echo-run $ICC $COPT $ICCOPT $SRC_C    -o $NAME-icc-c$SOL
+	echo-run $ICC $COPT $ICCOPT $SRC_LWSC -o $NAME-icc-lw$SOL
+	echo-run $ICC $COPT $ICCOPT $SRC_CLSC -o $NAME-icc-clos$SOL
+    fi
+fi
+
+### Iteration
+if [ $# -ge 1 ]; then
+    m=$1
+    shift
+else
+    m=1
+fi
+echo "*** Iteration=$m"
+
+### Arguments
+FILTER="hogehogehoge"
+if [ $NAME = "bintree" ]; then
+    FILTER="Bintree=\|tosize="
+    if [ $# -ge 1 ]; then
+	echo "*** GC on"
+	gc=0    # on
+    else
+	echo "*** GC off"
+	gc=-1   # off
+    fi
+    arg1=200000
+    arg2=300000
+    arg3=$gc
+    arg4=6400000
+elif [ $NAME = "bin2list" ]; then
+    FILTER="Bintree=\|tosize="
+    if [ $# -ge 1 ]; then
+	echo "*** GC on"
+	gc=0    # on
+	tosize=20000000
+    else
+	echo "*** GC off"
+	gc=-1   # off
+	tosize=51200000
+    fi
+    echo "*** Tosize=$tosize"
+    arg1=500000    # maxins
+    arg2=1         # maxsearch
+    arg3=$gc      
+    arg4=$tosize   # tosize
+elif [ $NAME = "nqueen" ]; then
+    FILTER="answers:"
+    if [ $# -ge 1 ]; then
+	n=$1
+    else
+	n=13
+    fi
+    echo "*** N of queens=$n"
+    arg1=1   # N of threads
+    arg2=$n
+elif [ $NAME = "cpfib" ]; then
+    FILTER="(..)"
+    if [ $# -ge 1 ]; then
+	n=$1
+    else
+	n=37
+    fi
+    echo "*** N=$n"
+    arg1=$n
+elif [ $NAME = "qsort" ]; then
+    if [ $# -ge 1 ]; then
+	n=$1
+    else
+	n=200000
+    fi
+    echo "*** N=$n"
+    arg1=$n
+    arg2=$n
+else
+    exec echo "Unknown test program name!"
+fi
+
+if [ $NOFILTER ]; then
+    echo "*** No filtering output"
+    FILTER="hogehogehoge"
+fi
+
+### Run!
+echo
+echo "prog: $NAME"
+echo "machine: `hostname`"
+
+for prog in $progs; do
+    echo "exefile: $prog"
+    i=0
+    if [ -x $prog ]; then
+	echo-run $prog $arg1 $arg2 $arg3 $arg4 | grep -v "$FILTER"
+	i=`expr $i + 1`
+	while [ $i -lt $m ]; do
+	    $prog $arg1 $arg2 $arg3 $arg4 | grep -v "$FILTER"
+	    i=`expr $i + 1`
+	done
+    else
+	echo "*** There is no \"$prog\" executable!"
+    fi
+    echo ""
+done
+
+### for quick-sort
+# if [ $NAME = "qsort" ]; then
+#     echo '==='
+#     for prog in $progs; do
+# 	if [ -x $prog ]; then
+# 	    i=0
+# 	    while [ $i -le 100 ]; do
+# 		ntimes 3 ./$prog $arg1 $arg2 $i
+# 		i=`expr $i + 10`
+# 	    done 
+# 	else
+# 	    echo "*** There is no \"$prog\" executable!"
+# 	fi
+# 	echo ""
+#     done
+# fi

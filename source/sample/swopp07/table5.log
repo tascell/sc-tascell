@@ -1,0 +1,68 @@
+This is pTeX, Version 3.141592-p3.1.9 (euc) (Web2C 7.5.4) (format=platex-euc 2007.6.1)  6 JUL 2007 22:27
+**table5.tex
+(./table5.tex
+pLaTeX2e <2006/01/04>+0 (based on LaTeX2e <2003/12/01> patch level 0)
+(/usr/local/share/texmf/ptex/platex/base/jarticle.cls
+Document Class: jarticle 2002/04/09 v1.4 Standard pLaTeX class
+\c@@paper=\count81
+(/usr/local/share/texmf/ptex/platex/base/jsize10.clo
+File: jsize10.clo 2002/04/09 v1.4 Standard pLaTeX file (size option)
+)
+\c@part=\count82
+\c@section=\count83
+\c@subsection=\count84
+\c@subsubsection=\count85
+\c@paragraph=\count86
+\c@subparagraph=\count87
+\c@figure=\count88
+\c@table=\count89
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\symmincho=\mathgroup4
+LaTeX Font Info:    Overwriting symbol font `mincho' in version `bold'
+(Font)                  JY1/mc/m/n --> JY1/gt/m/n on input line 597.
+LaTeX Info: Redefining \mathrm on input line 599.
+LaTeX Info: Redefining \mathbf on input line 600.
+\toclineskip=\dimen118
+\@lnumwidth=\dimen119
+\bibindent=\dimen120
+\heisei=\count90
+) (./table5.aux)
+\openout1 = `table5.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for JY1/mc/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for JT1/mc/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 16.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 16.
+
+Overfull \hbox (21.65588pt too wide) in paragraph at lines 16--62
+ [] 
+ []
+
+[1] (./table5.aux) ) 
+Here is how much of TeX's memory you used:
+ 256 strings out of 95552
+ 2562 string characters out of 1190698
+ 68874 words of memory out of 1000000
+ 3478 multiletter control sequences out of 10000+100000
+ 8273 words of font info for 34 fonts, out of 500000 for 2000
+ 14 hyphenation exceptions out of 1000
+ 22i,8n,19p,175b,453s stack positions out of 1500i,500n,5000p,200000b,5000s
+
+Output written on table5.dvi (1 page, 10776 bytes).

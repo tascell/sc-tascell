@@ -1,0 +1,4 @@
+(define-ruleset nestfunc-hoist (hoist))
+
+(extendrule function-tag nestfunc-hoist
+  ((#?lightweight) x))

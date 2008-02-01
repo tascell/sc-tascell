@@ -1,0 +1,75 @@
+(require-ruleset :tcell)
+(define-ruleset tcell-type (type-info))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defpackage :tcell-type
+  (:export :with-task))
+(in-package :tcell-type)
+(defmacro with-task (task-id &body body)
+  `(type:with-new-environment
+     (type:add-variable ~this (list ~struct ,task-id))
+     (type:add-variable ~pthis (list ~ptr (list ~struct ,task-id)))
+     ,@body))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(in-package :rule)
+
+(extendrule function-tag tcell-type
+  ((#?wfn) x))
+
+(extendrule declaration tcell-type
+  ;;; def task
+  ;; * task-data -> struct
+  ((#?(def (task ,id) ,@mem-decls))
+   (multiple-value-bind (member-alist sdecl-with-type)
+       (type:get-struct-member-info (mapcar (suffixed-func #'firstn 3)
+                                            mem-decls))
+     (type:add-struct id member-alist)
+     ~(def (task ,id)
+           ,@(mapcar #'append
+                     sdecl-with-type (mapcar #'cdddr mem-decls)))))
+  ;; * do_task_body
+  ;; * send_task_body
+  ;; * send_rslt_body
+  ;; * recv_task_body
+  ;; * recv_rslt_body
+  ((#?(def (,task-tag[~(task-body task-sender task-receiver rslt-sender rslt-receiver)]
+                     ,id[identifier]) ,@body))
+   (error-indent (format nil "In ~S of ~S" task-tag id)
+     (tcell-type:with-task id
+       ~(def (,task-tag ,id) ,@(function-body body)))) )
+  )
+
+(extendrule block-item tcell-type
+  ((#?(do-two ,stat1 ,stat2
+              (,id[identifier] (:put ,@put-body) (:get ,@get-body))))
+   ~(do-two ,(block-item stat1) ,(block-item stat2)
+            ,(tcell-type:with-task id
+               ~(,id
+                 (:put ,@(type:with-new-environment (function-body put-body)))
+                 (:get ,@(type:with-new-environment (function-body get-body))))))  )
+  ((#?(do-many for ,var from ,from to ,to
+               ,@body
+               (,id
+                (:put from ,put-from to ,put-to ,@put-body)
+                (:get ,@get-body))))
+   (type:with-new-environment
+    (type:add-variable var ~int)
+    ~(do-many for ,var from ,(expression from) to ,(expression to)
+       ,@(function-body body)
+       ,(tcell-type:with-task id
+         ~(,id
+           (:put from ,put-from to ,put-to
+                 ,@(type:with-new-environment
+                       (type:add-variable put-from ~int)
+                     (type:add-variable put-to ~int)
+                     (function-body put-body)))
+           (:get ,@(type:with-new-environment (function-body get-body))))))) )
+  ((#?(dynamic-wind
+       (:before ,@bef-body)
+       (:body ,@body)
+       (:after ,@aft-body)))
+    ~(dynamic-wind
+      (:before ,@(type:with-new-environment (function-body bef-body)))
+      (:body ,@(type:with-new-environment (function-body body)))
+      (:after ,@(type:with-new-environment (function-body aft-body)))) )
+  )

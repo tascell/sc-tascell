@@ -1,0 +1,45 @@
+=== SCプリプロセッサ命令 ===
+
+SCソースコード中にある
+(%<ディレクティブ> ...)
+
+の形のS式はSCプリプロセッサディレクティブとして
+SCプリプロセッサによって処理される。
+
+* (%include <ファイル名>)
+その場所を<ファイル名>で指定されたファイルの内容に置き換える。
+
+* (%cinclude <ファイル名>)
+<ファイル名>で指定されたCプログラムをSCに変換し、
+その場所を変換結果に置き換える。
+
+* (%rule (<規則セット> ... <規則セット>))
+規則セットは :rulename または， (:rulename <option> ...) 
+自分が適用される規則セットを順番に指定する．
+初回の scpp 処理時のみ有効．
+また，sc2c 呼出し時に :rule パラメータが指定された場合はそちらが優先される．
+
+* (%defmacro <symbol> <引数> <S-exp> ...)
+マクロを定義する。
+定義以後、(<symbol> ... ) の形のS式は定義にしたがってマクロ展開される。
+
+* (%defconstant <symbol> <value>)
+マクロ定義。
+定義以後、<symbol>は<value>に置き換えられる。
+
+* (%undef <symbol>)
+%defmacro, %defconstant の定義を取り消す
+
+* (%ifdef  <symbol> (<body1>) (<body2>))
+* (%ifndef <symbol> (<body1>) (<body2>))
+マクロ<symbol>が定義済であれば(なければ)<body1>
+定義されてなければ(されていれば)<body2>
+に当該箇所を置き換える。
+
+* (%if <constant> (<body1>) (<body2>))
+<constant>をLispが評価した結果が nil でなければ <body1>
+nil なら <body2> に置き換わる。
+
+* (%error <string> <s-exp> ...)
+(format *error-output* <string> <s-exp>) を評価し、
+メッセージを出力する。

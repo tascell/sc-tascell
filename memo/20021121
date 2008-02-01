@@ -1,0 +1,17 @@
+コンパイラ作成時に見つかった文法の問題
+
+*(+ a) -> "+a"
+ (- a) -> "-a"
+ (/ a) -> "(1/a)" ? ok
+*(< a b c) -> "a<b && b<c" ?
+              bの副作用が危険  ... (< a b)の形のみ認める
+*二つ以上の宣言があるfor
+  ... 基本的に一つのみ
+      二つ以上の場合は"{ decl for( ;exp;exp){} }"の形にして警告
+*forの第2,3expressionの省略を許すか
+  ... 許さない。
+      for(;;)の代わりに (loop block-item-list_{opt})を新たに作る
+*(def a (array int 2 2) (c d) (e f))で
+    (c d)->"c(d)"?
+ ... (def a (array int 2 2) (array c d) (array e f))
+     (struct 3 4) も

@@ -1,0 +1,69 @@
+\documentclass[a4j]{jarticle}
+\usepackage{alltt}
+\def\|{\verb|}
+
+\title{L-closures on SC}
+
+\begin{document}
+
+\section{Keywords}
+\begin{itemize}
+\item tail callと続継とCPSと空間complexity(PTR)
+\item 遅延分割の方法
+\item 共通中間言語（GC付）
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Tail Call}
+\begin{itemize}
+\item tail callのときに，明示的スタックを伸ばさない．
+\item tail call用の呼出し構文 (jump g a)
+\end{itemize}
+
+\begin{alltt}
+(define a (array int 100))
+(jump g a)
+\end{alltt}
+とした場合に，\|a|の先はcalleeで使われるのでつぶしてはいけない．
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{ポインタ}
+呼出し先に渡す以外の渡し方をしてはいけないようなポインタ型
+$\rightarrow$ Cではポインタをreturnしたいことがよくあるので問題．
+
+呼出し先に渡すor指定回数以内でのreturnをしてはいけないような
+"ポインタ"を導入するとよい（要するにescapeしてはいけない）．
+\begin{alltt}
+(def p (ptr int 2))
+\end{alltt}
+の場合，\|p|は2回までreturnしてよい
+\begin{itemize}
+\item キャストは数字が小さくなる方向にのみ可能
+\item (returnする変数のvar数-1) $\ge$ (関数の返り値の型のvar数)
+\item (関数呼出しの実引数のvar数+1) $\ge$ （関数の引数の型のvar数)
+\item 通常のポインタはvar数無限大
+\end{itemize}
+Pascalの"var"，C++の"参照"との関係？
+
+% 明示的スタックの確保の先or後
+
+\section{明示的スタックへの保存}
+"保存"時の"変換"は，Cスタック全体（のうち未変換部分）が対象．
+
+Cスタックを巻き戻しながら，明示的スタック領域のbaseと逆側から
+フレームを保存していき，最後にreverseして明示的スタックに積むと，
+普段の実行中の明示的スタックポインタの増減をサボれる．
+
+\section{Cスタックの再構築}
+"再開"時は，Cスタック全体を再構築せず，"トップ"のみ再開．
+このとき，引数や返り値の授受の"一般化"を仮定．
+そのための"ラッパー"が必要（明示的スタック上で授受）．
+
+\section{Proper tail recursion}
+Cのスタックが溢れそうになったら，"保存"，"再開"を実行すると，
+Tail callをしたフレームは潰れる．
+
+
+\end{document}
+
+% CLI

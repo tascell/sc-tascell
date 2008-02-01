@@ -1,0 +1,157 @@
+;;; hoisting sc0 の 全ての宣言を関数本体の先頭に移動
+;;; rename.rule を適用済みであること。
+;;; !!! initializer が副作用を起こす場合は、正しく動作しない
+
+(defpackage "HOIST"
+  (:use "CL")
+  (:export :remove-const :split-decl-and-body))
+
+(in-package "HOIST")
+
+(defun remove-const (x)
+  (when (not (listp x)) (return-from remove-const x))
+  (setq x (remove ~const x))
+  (when (= 1 (length x))
+    (return-from remove-const (remove-const (car x))))
+  (mapcar #'remove-const x))     
+
+;; declaration, block-item の返り値を宣言部とbody部に分ける
+(defun split-decl-and-body (x)
+  (list (apply #'append (mapcar #'first x))
+        (remove nil (mapcar #'second x))))
+
+(in-package "RULE")
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar *top-level* t)
+
+;; ((#?(,scs[storage-class-specifier] (,@id-list[identifier]) (lightweight ,@texp-list) ,@body)) ;lw
+
+(define-ruleset hoist (sc2c)
+  (initiator 'sc-program))
+
+(defrule sc-program hoist
+  ((#?(,@declaration-list) )
+   (let ((*top-level* t))
+     (apply #'append
+	    (hoist:split-decl-and-body (mapcar #'declaration declaration-list)))))
+  )
+
+;;; 以下, declaration, block-item の返り値は、
+;;; (<関数本体の先頭に出すS式のリスト>
+;;;  <元の場所に残すS式>)
+
+;;;;;; declaration ;;;;;;
+(defrule declaration hoist
+  ;;variable (without initializer)
+  ((#?(,scs[storage-class-specifier] ,id[identifier] ,texp))
+   (list ~(,x) nil) )
+  ;;variable (with initializer)
+  ((#?(,scs[storage-class-specifier] ,id[identifier] ,texp ,init))
+   (let* ((new-texp (hoist:remove-const texp)))
+     (cond
+       (*top-level*
+	(list (list x) nil))
+       ;; string-literal, array
+       ((or (stringp init)
+	    (and (listp init)
+		 (eq ~array (car init))))
+	(let* ((init-id (generate-id (string+ (identifier id) "_init")))
+	       (sizeof-arg (if (stringp init) init init-id)))
+	  (list ~((,scs ,id ,new-texp ,init)
+		  (,scs ,init-id (const ,new-texp) ,init))
+		~(csym::memcpy ,id ,init-id (sizeof ,sizeof-arg)))))
+
+       ;; struct
+       ((and (listp init)
+	     (eq ~struct (car init)))
+	(let ((init-id (generate-id (string+ (identifier id) "_init"))))
+	  (list ~((,scs ,id ,new-texp ,init)
+		  (,scs ,init-id ,new-texp ,init))
+		~(= ,id ,init-id))))
+
+       ;; otherwise
+       (t
+	(list ~((,scs ,id ,new-texp ,init))
+	      ~(= ,id ,init))))) )
+
+  ;;function
+  ((#?(,scs[storage-class-specifier] (,@id-list[identifier])
+				     (,fn-tag[function-tag] ,@texp-list) ,@body))
+   (let ((*top-level* nil))
+     (multiple-value-bind (sepbody1 sepbody2)  ; 先頭の宣言が終わる前後で分割
+	 (list-until-if #'(lambda (bi)
+			    (and (consp bi)
+				 (or (storage-class-specifier (first bi))
+				     (deftype-tag (first bi)))))
+			:key #'car)
+       (let ((fb-sepbody2 (function-body sepbody2)))
+	 (list ~((,scs (,@id-list) (,fn-tag ,@texp-list) 
+		       ,@sepbody1 ,@(apply #'append fb-sepbody2)))
+	       nil)))) )
+  ;; other definitions
+  ((#?(,dd[def-or-decl] (,soru[struct-or-union] ,id[identifier]) ,@sdeclist) ;str,uni
+    #?(def (enum ,id[identifier]) ,@enum-list) ; enum
+    #?(deftype ,id[identifier] struct ,@sdecllist) ; deftype (str)
+    #?(deftype ,id[identifier] enum ,@enum-list) ; deftype (enum)
+    #?(deftype ,id[identifier] ,texp)) ; deftype
+   (list ~(,x) nil))
+  (otherwise
+   (list ~(,x) nil))
+  )
+
+;;;;;;; body +α ;;;;;;
+; function-attribute & register-decl
+(defrule function-body hoist
+  ((#?(:attr ,atr   ,@body) )
+   ~(:attr ,atr ,@(function-body body)) )
+  ((#?((register ,@regarg)   ,@body) )
+   ~((register ,@regarg) ,@(function-body body)) )
+  ((#?(,@body))
+   (hoist:split-decl-and-body (mapcar #'block-item body)) )
+  )
+
+;;;;;; statement ;;;;;;
+(defrule block-item hoist
+  ;;begin
+  ((#?(begin ,@body))
+   (let ((fb-body (function-body body)))
+     (list (first fb-body)
+	   ~(begin ,@(second fb-body)))) )
+  ;;label
+  ((#?(label ,id ,stat))
+   (let ((hsb-stat (block-item stat)))
+     (list (first hsb-stat)
+	   ~(label ,id ,(second hsb-stat)))) )
+  ;;case, default
+  ((#?(case ,exp) #?(default))
+   (list nil x))
+  ;;if
+  ((#?(if ,exp ,stat1 ,@stat2))
+   (let ((hsb-stat1 (block-item stat1))
+	 (hsb-stat2 (if stat2 (block-item (car stat2)) nil)))
+     (if stat2
+	 (list (append (first hsb-stat1) (first hsb-stat2))
+	       ~(if ,exp ,(second hsb-stat1) ,(second hsb-stat2)))
+	 (list (first hsb-stat1)
+	       ~(if ,exp ,(second hsb-stat1))))))
+  ;;switch
+  ((#?(switch ,exp ,@body))
+   (let ((fb-body (function-body body)))
+     (list (first fb-body)
+	   ~(switch ,exp ,@(second fb-body)))) )
+  ;;do-while
+  ((#?(do-while ,exp ,@body))
+   (let ((fb-body (function-body body)))
+     (list (first fb-body)
+	   ~(do-while ,exp ,@(second fb-body)))))
+  ;;goto, continue, break, return
+  ((#?(goto ,id) #?(continue) #?(break) #?(return ,@exp) )
+   (list nil x) )
+  ((#?,exp[expression])
+   (list nil x) )
+  ;;declaration
+  (otherwise
+   (declaration x) )
+  )
+

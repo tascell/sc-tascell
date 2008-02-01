@@ -1,0 +1,320 @@
+/****************************************************************************/
+/* CODE.C: hierarchical N-body code.                                        */
+/*                                                                          */
+/* Copyright (c) 1993 by Joshua E. Barnes, Honolulu, HI.                    */
+/* It's free because it's yours.                                            */
+/****************************************************************************/
+
+static const char *ident __attribute__((__unused__))
+     = "$HeadURL: https://bradley.csail.mit.edu/svn/repos/cilk/5.4.3/examples/Barnes-Hut/code.cilk $ $LastChangedBy: bradley $ $Rev: 73 $ $Date: 2002-12-25 19:09:12 -0500 (Wed, 25 Dec 2002) $";
+
+#include "code.cilkh"
+
+shared string infile;		/* file name for snapshot input     */
+shared string outfile;		/* file name for snapshot output    */
+shared real freq;			/* inverse of integration timestep  */
+shared real freqout;		/* output frequency                 */
+shared real tstop;		/* time to stop calculation         */
+shared real tnow;			/* current value of time            */
+shared real tout;			/* time of next output              */
+shared int nstep;			/* number of time-steps             */
+shared int nbody;			/* number of bodies in system       */
+shared bodyptr bodytab;		/* points to array of bodies        */
+shared cellptr root;              /* pointer to root cell             */
+shared real rsize;                /* side-length of root cell         */
+shared string options;            /* various option keywords          */
+shared real theta;                /* accuracy parameter: 0.0 => exact */
+shared bool usequad;              /* use quadrupole corrections       */
+shared real eps;                  /* potential softening parameter    */
+
+shared int cellused;		/* count of cells in tree           */
+shared int maxlevel;		/* count of levels in tree          */
+
+shared struct
+{
+  CACHE_LINE_ALIGNED(int nfcalc);
+  int n2bcalc;
+  int nbccalc;
+} *stats;
+
+shared int nfcalc;		/* count force calculations         */
+shared int n2bcalc;		/* count body-body interactions     */
+shared int nbccalc;		/* count body-cell interactions     */
+
+private int n2bterm;              /* number 2-body of terms evaluated */
+private int nbcterm;              /* num of body-cell terms evaluated */
+
+local void initstats(void)
+{
+  stats = malloc(Cilk_active_size * sizeof(*stats) + CACHE_LINE - 1);
+  stats = (void*)(((size_t)stats + CACHE_LINE - 1) & ~(CACHE_LINE - 1));
+}
+local void resetstats(void)
+{
+  int i;
+  for(i=0; i<Cilk_active_size; i++)
+    stats[i].nfcalc = stats[i].n2bcalc = stats[i].nbccalc = 0;
+}
+
+local void accumstats(void)
+{
+  int i;
+  nfcalc = n2bcalc = nbccalc = 0;
+  for(i=0; i<Cilk_active_size; i++)
+    {
+      nfcalc += stats[i].nfcalc;
+      n2bcalc += stats[i].n2bcalc;
+      nbccalc += stats[i].nbccalc;
+    }
+}
+
+/*
+ * Default values for input parameters.
+ */
+
+string defv[] = {
+
+    /* file names for input/output					    */
+    "in=",			/* Input file with initial conditions       */
+    "out=",			/* Output file of N-body frames             */
+
+    /* params to control N-body integration				    */
+    "dtime=0.03125",		/* Integration time-step		    */
+    "eps=0.025",		/* Potential softening parameter            */
+    "theta=1.0",		/* Cell subdivision tolerence               */
+    "usequad=false",		/* If true, use quad moments                */
+    "rsize=4.0",		/* Size of initial root cell                */
+    "options=",			/* Various control options                  */
+    "tstop=2.0",		/* Time to stop integration                 */
+    "dtout=0.25",		/* Data output interval			    */
+
+    /* params used if no input specified to make a Plummer model	    */
+    "nbody=1024",		/* Number of particles for test run         */
+    "seed=123",			/* Random number seed for test run          */
+
+    NULL,
+};
+
+string headline = "Hierarchical N-body Code";	/* default id for run       */
+
+local void startrun(void);			/* initialize system state  */
+local cilk void stepsystem(void);		/* advance by one time-step */
+local void testdata(void);			/* generate test data       */
+local void pickshell(vector, real);		/* pick point on shell      */
+
+/*
+ * MAIN: toplevel routine for hierarchical N-body code.
+ */
+
+cilk int main(int argc, string argv[])
+{
+    Cilk_time tm_begin, tm_elapsed;
+    Cilk_time wk_begin, wk_elapsed;
+    Cilk_time cp_begin, cp_elapsed;
+
+    initparam(argv, defv);			/* setup parameter access   */
+    startrun();					/* set params, input data   */
+    initoutput();				/* begin system output      */
+    initstats();
+
+    /* Timing. "Start" timers */
+    sync;			
+    cp_begin = Cilk_user_critical_path;
+    wk_begin = Cilk_user_work;
+    tm_begin = Cilk_get_wall_time();
+      
+    while (tnow < tstop - 1.0/(1024*freq)) {	/* while not past tstop     */
+        spawn stepsystem();			/*   advance N-body system  */
+	sync;
+    }
+    
+   /* Timing. "Stop" timers */
+    tm_elapsed = Cilk_get_wall_time() - tm_begin;
+    wk_elapsed = Cilk_user_work - wk_begin;
+    cp_elapsed = Cilk_user_critical_path - cp_begin;
+  
+    printf("\nCilk Example: code (barnes-hut)\n");
+    printf("	      running on %d processor%s\n\n", Cilk_active_size, Cilk_active_size > 1 ? "s" : "");
+    printf("Running time  = %4f s\n", Cilk_wall_time_to_sec(tm_elapsed));
+    printf("Work          = %4f s\n", Cilk_time_to_sec(wk_elapsed));
+    printf("Critical path = %4f s\n\n", Cilk_time_to_sec(cp_elapsed));
+    
+    stopoutput();				/* finish up output         */
+    return 0;
+}
+
+/*
+ * STARTRUN: startup hierarchical N-body code.
+ */
+
+local void startrun(void)
+{
+    infile = getparam("in");			/* set I/O file names       */
+    outfile = getparam("out");
+    freq = 1.0 / getrparam("dtime");		/* inverse timestep         */
+    eps = getrparam("eps");			/* softening length         */
+    theta = getrparam("theta");			/* force accuracy parameter */
+    usequad = getbparam("usequad");		/* flag for quad moments    */
+    rsize = getrparam("rsize");			/* initial size of root     */
+    options = getparam("options");		/* and control options      */
+    tstop = getrparam("tstop");			/* time to stop integration */
+    freqout = 1.0 / getrparam("dtout");		/* inverse output interval  */
+    if (! streq(infile, ""))			/* was data file given?     */
+	inputdata();				/*   read inital data       */
+    else {					/* make initial conds?      */
+	nbody = getiparam("nbody");		/*   get nbody parameter    */
+	if (nbody < 1)				/*     check input value    */
+	    error("startrun: nbody = %d is absurd\n", nbody);
+	srand48((long) getiparam("seed"));	/*   set random generator   */
+	testdata();				/*   make test model        */
+    }
+    nstep = 0;					/* start counting steps     */
+    tout = tnow;				/* schedule first output    */
+}
+
+/*
+ * TESTDATA: generate Plummer model initial conditions for test runs,
+ * scaled to units such that M = -4E = G = 1 (Henon, Hegge, etc).
+ * See Aarseth, SJ, Henon, M, & Wielen, R (1974) Astr & Ap, 37, 183.
+ */
+
+#define MFRAC  0.999				/* cut off 1-MFRAC of mass  */
+
+local void testdata(void)
+{
+    real rsc, vsc, r, v, x, y;
+    vector cmr, cmv;
+    bodyptr p;
+
+    headline = "Hierarchical code: Plummer model";
+						/* supply default headline  */
+    tnow = 0.0;					/* reset elapsed model time */
+    bodytab = (bodyptr) allocate(nbody * sizeof(body));
+						/* alloc space for bodies   */
+    rsc = 3 * PI / 16;				/* set length scale factor  */
+    vsc = rsqrt(1.0 / rsc);			/* and recip. speed scale   */
+    CLRV(cmr);					/* init cm pos, vel         */
+    CLRV(cmv);
+    for (p = bodytab; p < bodytab+nbody; p++) {	/* loop over particles      */
+	Type(p) = BODY;				/*   tag as a body          */
+	Mass(p) = 1.0 / nbody;			/*   set masses equal       */
+	r = 1 / rsqrt(rpow(xrandom(0.0, MFRAC),	/*   pick r in struct units */
+			 -2.0/3.0) - 1);
+	pickshell(Pos(p), rsc * r);		/*   pick scaled position   */
+	ADDV(cmr, cmr, Pos(p));			/*   add to running sum     */
+	do {					/*   select from fn g(x)    */
+	    x = xrandom(0.0, 1.0);		/*     for x in range 0:1   */
+	    y = xrandom(0.0, 0.1);		/*     max of g(x) is 0.092 */
+	} while (y > x*x * rpow(1 - x*x, 3.5));	/*   using von Neumann tech */
+	v = rsqrt(2.0) * x/rpow(1 + r*r, 0.25);	/*   find v in struct units */
+	pickshell(Vel(p), vsc * v);		/*   pick scaled velocity   */
+	ADDV(cmv, cmv, Vel(p));			/*   add to running sum     */
+    }
+    DIVVS(cmr, cmr, (real) nbody);		/* normalize cm coords      */
+    DIVVS(cmv, cmv, (real) nbody);
+    for (p = bodytab; p < bodytab+nbody; p++) {	/* loop over particles      */
+	SUBV(Pos(p), Pos(p), cmr);		/*   offset by cm coords    */
+	SUBV(Vel(p), Vel(p), cmv);
+    }
+}
+
+/*
+ * PICKSHELL: pick a random point on a sphere of specified radius.
+ */
+
+local void pickshell(vector vec, real rad)
+{
+    int k;
+    real rsq, rsc;
+
+    do {					/* pick point in NDIM-space */
+        for (k = 0; k < NDIM; k++)		/*   loop over dimensions   */
+            vec[k] = xrandom(-1.0, 1.0);    	/*     pick from unit cube  */
+	DOTVP(rsq, vec, vec);			/*   compute radius squared */
+    } while (rsq > 1.0);                	/* reject if outside sphere */
+    rsc = rad / rsqrt(rsq);			/* compute scaling factor   */
+    MULVS(vec, vec, rsc);			/* rescale to radius given  */
+}
+
+/*
+ * STEPSYSTEM: advance N-body system one time-step.
+ */
+
+cilk void DandC_hackgrav(nodeptr q)
+{
+    if (Type(q) == BODY) {
+        bodyptr p = (bodyptr)q;
+	hackgrav(p, Mass(p) > 0.0);		/*     get force on each    */
+	stats[Self].nfcalc++;
+	stats[Self].n2bcalc += n2bterm;
+	stats[Self].nbccalc += nbcterm;
+    }
+    else {
+        cellptr c = (cellptr)q;
+	int i;
+	
+	for(i=0; i<8; i++)
+	  if (Subp(c)[i] != NULL)
+	    spawn DandC_hackgrav(Subp(c)[i]);
+	sync;
+    }
+}
+
+shared real dt;
+
+local cilk void DandC_movebody(bodyptr p, int num)
+{
+    vector dvel, dpos;
+    if (num == 1) {
+	MULVS(dvel, Acc(p), 0.5 * dt);		/*   get velocity increment */
+	ADDV(Vel(p), Vel(p), dvel);		/*   advance v by 1/2 step  */
+	MULVS(dpos, Vel(p), dt);		/*   get positon increment  */
+	ADDV(Pos(p), Pos(p), dpos);		/*   advance r by 1 step    */
+    }
+    else {
+        spawn DandC_movebody(p, num/2);
+	spawn DandC_movebody(p + num/2, num - num/2);
+	sync;
+    }
+}
+
+local cilk void DandC_movebody2(bodyptr p, int num)
+{
+    vector dvel;
+    if (num == 1) {
+	MULVS(dvel, Acc(p), 0.5 * dt);          /*   get velocity increment */
+	ADDV(Vel(p), Vel(p), dvel);             /*   advance v by 1/2 step  */
+    }
+    else {
+        spawn DandC_movebody2(p, num/2);
+	spawn DandC_movebody2(p + num/2, num - num/2);
+	sync;
+    }
+}
+
+local cilk void stepsystem(void)
+{
+    if (nstep == 0) {				/* about to take 1st step?  */
+	spawn maketree(bodytab, nbody);		/*   build tree structure   */
+	sync;
+	resetstats();				/*   zero counters          */
+	spawn DandC_hackgrav((nodeptr)root);
+	sync;
+	accumstats();
+	output();				/*   do initial output      */
+    }
+    dt = 1.0 / freq;				/* set basic time-step      */
+    spawn DandC_movebody(bodytab, nbody);       /* loop over all bodies     */
+    sync;
+    spawn maketree(bodytab, nbody);		/* build tree structure     */
+    sync;
+    resetstats();				/* zero counters            */
+    spawn DandC_hackgrav((nodeptr)root);
+    sync;
+    accumstats();
+    spawn DandC_movebody2(bodytab, nbody);      /* loop over all bodies     */
+    sync;
+    nstep++;					/* count another time step  */
+    tnow = tnow + dt;				/* finally, advance time    */
+    output();					/* do major or minor output */
+}

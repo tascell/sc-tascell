@@ -1,0 +1,19 @@
+;; yumoto
+bash-2.05$ gcc -O2 nftest.c
+bash-2.05$ time ./a.out 
+real    0m0.253s
+user    0m0.240s
+sys     0m0.010s
+bash-2.05$ gcc -O2 -DNF nftest.c
+bash-2.05$ time ./a.out         
+real    0m0.398s
+user    0m0.390s
+sys     0m0.020s
+
+;; ibusuki
+`--> gcc -O2 nftest.c                                                      [7]$
+`--> time ./a.out                                                          [8]$
+./a.out  0.03s user 0.00s system 96% cpu 0.035 total
+`--> gcc -O2 -DNF nftest.c                                                 [9]$
+`--> time ./a.out                                                         [10]$
+./a.out  1.20s user 0.00s system 55% cpu 2.164 total

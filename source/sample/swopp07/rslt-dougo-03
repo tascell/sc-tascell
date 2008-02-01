@@ -1,0 +1,1088 @@
+Script started on Thu Jul  5 15:49:39 2007
+$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation bintree 10
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+*** warning not output
+*** Iteration=10
+*** GC off
+
+./bintree-c 200000 300000 -1 6400000
+total=0.151084 gc=0.000000 other=0.151084
+total=0.152496 gc=0.000000 other=0.152496
+total=0.153078 gc=0.000000 other=0.153078
+total=0.153365 gc=0.000000 other=0.153365
+total=0.153766 gc=0.000000 other=0.153766
+total=0.154288 gc=0.000000 other=0.154288
+total=0.154620 gc=0.000000 other=0.154620
+total=0.157196 gc=0.000000 other=0.157196
+total=0.207000 gc=0.000000 other=0.207000
+total=0.210968 gc=0.000000 other=0.210968
+
+./bintree-gcc 200000 300000 -1 6400000
+total=0.169141 gc=0.000000 other=0.169141
+total=0.169245 gc=0.000000 other=0.169245
+total=0.169383 gc=0.000000 other=0.169383
+total=0.169666 gc=0.000000 other=0.169666
+total=0.170040 gc=0.000000 other=0.170040
+total=0.170648 gc=0.000000 other=0.170648
+total=0.171899 gc=0.000000 other=0.171899
+total=0.173012 gc=0.000000 other=0.173012
+total=0.173181 gc=0.000000 other=0.173181
+total=0.178026 gc=0.000000 other=0.178026
+
+./bintree-lw 200000 300000 -1 6400000
+total=0.151699 gc=0.000000 other=0.151699
+total=0.151829 gc=0.000000 other=0.151829
+total=0.152362 gc=0.000000 other=0.152362
+total=0.153165 gc=0.000000 other=0.153165
+total=0.153844 gc=0.000000 other=0.153844
+total=0.154156 gc=0.000000 other=0.154156
+total=0.154540 gc=0.000000 other=0.154540
+total=0.155848 gc=0.000000 other=0.155848
+total=0.159282 gc=0.000000 other=0.159282
+total=0.159551 gc=0.000000 other=0.159551
+
+./bintree-clos 200000 300000 -1 6400000
+total=0.173757 gc=0.000000 other=0.173757
+total=0.174314 gc=0.000000 other=0.174314
+total=0.174752 gc=0.000000 other=0.174752
+total=0.175459 gc=0.000000 other=0.175459
+total=0.175462 gc=0.000000 other=0.175462
+total=0.176055 gc=0.000000 other=0.176055
+total=0.176205 gc=0.000000 other=0.176205
+total=0.176250 gc=0.000000 other=0.176250
+total=0.226754 gc=0.000000 other=0.226754
+total=0.230437 gc=0.000000 other=0.230437
+
+./bintree-xcc 200000 300000 -1 6400000
+total=0.146787 gc=0.000000 other=0.146787
+total=0.149062 gc=0.000000 other=0.149062
+total=0.149754 gc=0.000000 other=0.149754
+total=0.149952 gc=0.000000 other=0.149952
+total=0.150043 gc=0.000000 other=0.150043
+total=0.150153 gc=0.000000 other=0.150153
+total=0.150471 gc=0.000000 other=0.150471
+total=0.151348 gc=0.000000 other=0.151348
+total=0.152334 gc=0.000000 other=0.152334
+total=0.201518 gc=0.000000 other=0.201518
+
+./bintree-xcccl 200000 300000 -1 6400000
+total=0.167178 gc=0.000000 other=0.167178
+total=0.168606 gc=0.000000 other=0.168606
+total=0.169718 gc=0.000000 other=0.169718
+total=0.171399 gc=0.000000 other=0.171399
+total=0.171599 gc=0.000000 other=0.171599
+total=0.171653 gc=0.000000 other=0.171653
+total=0.172553 gc=0.000000 other=0.172553
+total=0.173798 gc=0.000000 other=0.173798
+total=0.227322 gc=0.000000 other=0.227322
+total=0.256819 gc=0.000000 other=0.256819
+
+./bintree-icc-c 200000 300000 -1 6400000
+total=0.137885 gc=0.000000 other=0.137885
+total=0.140140 gc=0.000000 other=0.140140
+total=0.140246 gc=0.000000 other=0.140246
+total=0.138833 gc=0.000000 other=0.138833
+total=0.141062 gc=0.000000 other=0.141062
+total=0.210393 gc=0.000000 other=0.210393
+total=0.136340 gc=0.000000 other=0.136340
+total=0.142582 gc=0.000000 other=0.142582
+total=0.136250 gc=0.000000 other=0.136250
+total=0.139584 gc=0.000000 other=0.139584
+
+./bintree-icc-lw 200000 300000 -1 6400000
+total=0.141510 gc=0.000000 other=0.141510
+total=0.144182 gc=0.000000 other=0.144182
+total=0.148843 gc=0.000000 other=0.148843
+total=0.145351 gc=0.000000 other=0.145351
+total=0.144715 gc=0.000000 other=0.144715
+total=0.145533 gc=0.000000 other=0.145533
+total=0.142220 gc=0.000000 other=0.142220
+total=0.147330 gc=0.000000 other=0.147330
+total=0.144098 gc=0.000000 other=0.144098
+total=0.202027 gc=0.000000 other=0.202027
+
+./bintree-icc-clos 200000 300000 -1 6400000
+total=0.144052 gc=0.000000 other=0.144052
+total=0.145021 gc=0.000000 other=0.145021
+total=0.145458 gc=0.000000 other=0.145458
+total=0.148210 gc=0.000000 other=0.148210
+total=0.144949 gc=0.000000 other=0.144949
+total=0.202113 gc=0.000000 other=0.202113
+total=0.145302 gc=0.000000 other=0.145302
+total=0.224530 gc=0.000000 other=0.224530
+total=0.144716 gc=0.000000 other=0.144716
+total=0.143815 gc=0.000000 other=0.143815
+
+$ ^[[A^H      NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation bintree 10       2list 10
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+*** warning not output
+*** Iteration=10
+*** GC off
+*** Tosize=51200000
+
+./bin2list-c 500000 1 -1 51200000
+total=0.150587 gc=0.000000 other=0.150587
+total=0.151266 gc=0.000000 other=0.151266
+total=0.151456 gc=0.000000 other=0.151456
+total=0.153279 gc=0.000000 other=0.153279
+total=0.153494 gc=0.000000 other=0.153494
+total=0.153669 gc=0.000000 other=0.153669
+total=0.155579 gc=0.000000 other=0.155579
+total=0.158395 gc=0.000000 other=0.158395
+total=0.160065 gc=0.000000 other=0.160065
+total=0.206064 gc=0.000000 other=0.206064
+
+./bin2list-gcc 500000 1 -1 51200000
+total=0.155104 gc=0.000000 other=0.155104
+total=0.155624 gc=0.000000 other=0.155624
+total=0.155768 gc=0.000000 other=0.155768
+total=0.156067 gc=0.000000 other=0.156067
+total=0.156384 gc=0.000000 other=0.156384
+total=0.156574 gc=0.000000 other=0.156574
+total=0.156706 gc=0.000000 other=0.156706
+total=0.157641 gc=0.000000 other=0.157641
+total=0.157929 gc=0.000000 other=0.157929
+total=0.158833 gc=0.000000 other=0.158833
+
+./bin2list-lw 500000 1 -1 51200000
+total=0.156964 gc=0.000000 other=0.156964
+total=0.158008 gc=0.000000 other=0.158008
+total=0.158986 gc=0.000000 other=0.158986
+total=0.158997 gc=0.000000 other=0.158997
+total=0.159056 gc=0.000000 other=0.159056
+total=0.159865 gc=0.000000 other=0.159865
+total=0.159995 gc=0.000000 other=0.159995
+total=0.161847 gc=0.000000 other=0.161847
+total=0.162150 gc=0.000000 other=0.162150
+total=0.167219 gc=0.000000 other=0.167219
+
+./bin2list-clos 500000 1 -1 51200000
+total=0.159902 gc=0.000000 other=0.159902
+total=0.161011 gc=0.000000 other=0.161011
+total=0.161312 gc=0.000000 other=0.161312
+total=0.161314 gc=0.000000 other=0.161314
+total=0.161419 gc=0.000000 other=0.161419
+total=0.161900 gc=0.000000 other=0.161900
+total=0.162587 gc=0.000000 other=0.162587
+total=0.162615 gc=0.000000 other=0.162615
+total=0.162971 gc=0.000000 other=0.162971
+total=0.163831 gc=0.000000 other=0.163831
+
+./bin2list-xcc 500000 1 -1 51200000
+total=0.152196 gc=0.000000 other=0.152196
+total=0.152330 gc=0.000000 other=0.152330
+total=0.152796 gc=0.000000 other=0.152796
+total=0.152880 gc=0.000000 other=0.152880
+total=0.153059 gc=0.000000 other=0.153059
+total=0.153445 gc=0.000000 other=0.153445
+total=0.153784 gc=0.000000 other=0.153784
+total=0.154743 gc=0.000000 other=0.154743
+total=0.156074 gc=0.000000 other=0.156074
+total=0.159113 gc=0.000000 other=0.159113
+
+./bin2list-xcccl 500000 1 -1 51200000
+total=0.152385 gc=0.000000 other=0.152385
+total=0.152388 gc=0.000000 other=0.152388
+total=0.152809 gc=0.000000 other=0.152809
+total=0.152871 gc=0.000000 other=0.152871
+total=0.154360 gc=0.000000 other=0.154360
+total=0.154487 gc=0.000000 other=0.154487
+total=0.161423 gc=0.000000 other=0.161423
+total=0.207883 gc=0.000000 other=0.207883
+total=0.209428 gc=0.000000 other=0.209428
+total=0.210953 gc=0.000000 other=0.210953
+
+./bin2list-icc-c 500000 1 -1 51200000
+total=0.109509 gc=0.000000 other=0.109509
+total=0.111930 gc=0.000000 other=0.111930
+total=0.110362 gc=0.000000 other=0.110362
+total=0.108631 gc=0.000000 other=0.108631
+total=0.108761 gc=0.000000 other=0.108761
+total=0.119615 gc=0.000000 other=0.119615
+total=0.163929 gc=0.000000 other=0.163929
+total=0.111940 gc=0.000000 other=0.111940
+total=0.110428 gc=0.000000 other=0.110428
+total=0.108764 gc=0.000000 other=0.108764
+
+./bin2list-icc-lw 500000 1 -1 51200000
+total=0.114800 gc=0.000000 other=0.114800
+total=0.114709 gc=0.000000 other=0.114709
+total=0.120624 gc=0.000000 other=0.120624
+total=0.114797 gc=0.000000 other=0.114797
+total=0.117464 gc=0.000000 other=0.117464
+total=0.119926 gc=0.000000 other=0.119926
+total=0.115023 gc=0.000000 other=0.115023
+total=0.114591 gc=0.000000 other=0.114591
+total=0.115695 gc=0.000000 other=0.115695
+total=0.115414 gc=0.000000 other=0.115414
+
+./bin2list-icc-clos 500000 1 -1 51200000
+total=0.121007 gc=0.000000 other=0.121007
+total=0.121870 gc=0.000000 other=0.121870
+total=0.122268 gc=0.000000 other=0.122268
+total=0.177821 gc=0.000000 other=0.177821
+total=0.124028 gc=0.000000 other=0.124028
+total=0.119857 gc=0.000000 other=0.119857
+total=0.120176 gc=0.000000 other=0.120176
+total=0.121257 gc=0.000000 other=0.121257
+total=0.120029 gc=0.000000 other=0.120029
+total=0.120709 gc=0.000000 other=0.120709
+
+$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation bintree 10          cpfib 10
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+*** warning not output
+*** Iteration=10
+*** N=37
+
+./cpfib-c 37
+0.313021
+0.313628
+0.313689
+0.314336
+0.314557
+0.315164
+0.315657
+0.320590
+0.322267
+0.373479
+
+./cpfib-gcc 37
+0.629286
+0.630941
+0.631058
+0.631144
+0.632770
+0.632967
+0.633920
+0.634378
+0.683663
+0.687401
+
+./cpfib-lw 37
+0.604637
+0.606595
+0.606647
+0.607443
+0.607990
+0.610490
+0.617403
+0.660379
+0.663260
+0.719009
+
+./cpfib-clos 37
+0.722309
+0.727419
+0.727487
+0.728147
+0.730621
+0.731962
+0.733104
+0.736346
+0.782597
+0.783585
+
+./cpfib-xcc 37
+0.368466
+0.368630
+0.369456
+0.370011
+0.370398
+0.371248
+0.371476
+0.371945
+0.373867
+0.428279
+
+./cpfib-xcccl 37
+0.466178
+0.466757
+0.466766
+0.470330
+0.471601
+0.472591
+0.472938
+0.473306
+0.525299
+0.526268
+
+./cpfib-icc-c 37
+0.328297
+0.335677
+0.331650
+0.335369
+0.386995
+0.334680
+0.329534
+0.334005
+0.334453
+0.329345
+
+./cpfib-icc-lw 37
+0.531487
+0.548647
+0.595109
+0.536580
+0.540681
+0.495940
+0.494242
+0.508910
+0.616519
+0.496022
+
+./cpfib-icc-clos 37
+0.584322
+0.589403
+0.586072
+0.680181
+0.627331
+0.625239
+0.629003
+0.682979
+0.626914
+0.631713
+
+$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation bintree 10^[[D^[[D                  nqueen 10
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+*** warning not output
+*** Iteration=10
+*** N of queens=13
+
+./nqueen-c 1 13
+0.373117
+0.376012
+0.376112
+0.376348
+0.376425
+0.376991
+0.377775
+0.378372
+0.429510
+0.432150
+
+./nqueen-gcc 1 13
+0.485362
+0.485544
+0.486224
+0.486730
+0.487049
+0.487242
+0.489184
+0.499671
+0.521293
+0.543128
+
+./nqueen-lw 1 13
+0.529761
+0.533611
+0.533660
+0.535311
+0.535378
+0.536011
+0.538102
+0.540769
+0.587464
+0.592071
+
+./nqueen-clos 1 13
+0.588444
+0.590275
+0.590499
+0.591042
+0.591388
+0.591989
+0.592959
+0.613505
+0.645653
+0.645666
+
+./nqueen-xcc 1 13
+0.498699
+0.522933
+0.524270
+0.526666
+0.526734
+0.526824
+0.527482
+0.532421
+0.582489
+0.584987
+
+./nqueen-xcccl 1 13
+0.465655
+0.466708
+0.468028
+0.468292
+0.468421
+0.468486
+0.475943
+0.495281
+0.527003
+0.585690
+
+./nqueen-icc-c 1 13
+./nqueen-icc-c: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-c: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-c: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-c: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-c: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-c: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-c: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-c: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-c: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-c: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+
+./nqueen-icc-lw 1 13
+./nqueen-icc-lw: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-lw: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-lw: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-lw: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-lw: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-lw: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-lw: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-lw: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-lw: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-lw: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+
+./nqueen-icc-clos 1 13
+./nqueen-icc-clos: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-clos: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-clos: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-clos: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-clos: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-clos: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-clos: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-clos: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-clos: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+./nqueen-icc-clos: error while loading shared libraries: libimf.so: cannot open shared object file: No such file or directory
+
+$ ^D
+Script done on Thu Jul  5 19:00:28 2007
+
+$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation bintree 10^[[D^[[D                  qsort 10
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+*** warning not output
+*** Iteration=10
+*** N=200000
+
+./qsort-c 200000 200000
+0.161529
+0.177001
+0.178192
+0.180114
+0.181495
+0.183035
+0.183234
+0.185209
+0.186737
+0.233860
+
+./qsort-gcc 200000 200000
+0.483925
+0.484572
+0.485134
+0.485621
+0.488346
+0.488767
+0.488999
+0.489390
+0.492123
+0.538598
+
+./qsort-lw 200000 200000
+1.970441
+1.973837
+1.975001
+2.023588
+2.024988
+2.027242
+2.028490
+2.029555
+2.065602
+2.114470
+
+./qsort-clos 200000 200000
+0.223331
+0.226835
+0.227992
+0.229528
+0.232766
+0.233720
+0.235106
+0.235322
+0.239281
+0.286827
+
+./qsort-xcc 200000 200000
+1.938780
+1.983171
+1.993350
+1.995699
+1.997807
+2.011907
+2.012249
+2.048356
+2.052938
+2.083481
+
+./qsort-xcccl 200000 200000
+0.165901
+0.168204
+0.171731
+0.171777
+0.176754
+0.177952
+0.178207
+0.178964
+0.179785
+0.181368
+
+./qsort-icc-c 200000 200000
+0.161609
+0.169908
+0.166502
+0.170111
+0.222682
+0.163327
+0.170962
+0.165382
+0.161752
+0.174331
+
+./qsort-icc-lw 200000 200000
+1.976345
+2.110767
+2.035956
+2.033909
+1.981153
+2.032621
+2.043928
+1.975759
+2.041068
+2.036138
+
+./qsort-icc-clos 200000 200000
+0.199879
+0.211776
+0.203902
+0.209607
+0.208783
+0.202443
+0.211548
+0.210557
+0.205066
+0.211669
+
+===
+././qsort-c 200000 200000 0
+0.171609
+0.164421
+0.227387
+
+././qsort-c 200000 200000 10
+0.163957
+0.173232
+0.176035
+
+././qsort-c 200000 200000 20
+0.161186
+0.173334
+0.172644
+
+././qsort-c 200000 200000 30
+0.165621
+0.169429
+0.176302
+
+././qsort-c 200000 200000 40
+0.164732
+0.172087
+0.173546
+
+././qsort-c 200000 200000 50
+0.163746
+0.170591
+0.172736
+
+././qsort-c 200000 200000 60
+0.214255
+0.173514
+0.168355
+
+././qsort-c 200000 200000 70
+0.168694
+0.168370
+0.180665
+
+././qsort-c 200000 200000 80
+0.167342
+0.178242
+0.170359
+
+././qsort-c 200000 200000 90
+0.170211
+0.176731
+0.172491
+
+././qsort-c 200000 200000 100
+0.169820
+0.175359
+0.172735
+
+
+././qsort-gcc 200000 200000 0
+0.529259
+0.477758
+0.476013
+
+././qsort-gcc 200000 200000 10
+0.418281
+0.426195
+0.429183
+
+././qsort-gcc 200000 200000 20
+0.425133
+0.540422
+0.439610
+
+././qsort-gcc 200000 200000 30
+0.415001
+0.429949
+0.429846
+
+././qsort-gcc 200000 200000 40
+0.418095
+0.481717
+0.418221
+
+././qsort-gcc 200000 200000 50
+0.420089
+0.425052
+0.430273
+
+././qsort-gcc 200000 200000 60
+0.419939
+0.429604
+0.478725
+
+././qsort-gcc 200000 200000 70
+0.421880
+0.426516
+0.429358
+
+././qsort-gcc 200000 200000 80
+0.416715
+0.428126
+0.429392
+
+././qsort-gcc 200000 200000 90
+0.428267
+0.425709
+0.428817
+
+././qsort-gcc 200000 200000 100
+0.421781
+0.426420
+0.425276
+
+
+././qsort-lw 200000 200000 0
+2.019938
+2.020749
+1.976461
+
+././qsort-lw 200000 200000 10
+2.697048
+2.713500
+2.709841
+
+././qsort-lw 200000 200000 20
+3.403274
+3.492719
+3.456589
+
+././qsort-lw 200000 200000 30
+4.148410
+4.158284
+4.216522
+
+././qsort-lw 200000 200000 40
+4.760637
+4.820864
+4.908542
+
+././qsort-lw 200000 200000 50
+5.471911
+5.523294
+5.536145
+
+././qsort-lw 200000 200000 60
+6.155744
+6.225461
+6.138753
+
+././qsort-lw 200000 200000 70
+6.965790
+6.925613
+6.914160
+
+././qsort-lw 200000 200000 80
+7.913618
+8.854813
+7.782991
+
+././qsort-lw 200000 200000 90
+8.322314
+8.240083
+8.249314
+
+././qsort-lw 200000 200000 100
+8.885990
+8.962475
+8.876531
+
+
+././qsort-clos 200000 200000 0
+0.197573
+0.226910
+0.219109
+
+././qsort-clos 200000 200000 10
+0.203594
+0.218944
+0.227448
+
+././qsort-clos 200000 200000 20
+0.212263
+0.230055
+0.226570
+
+././qsort-clos 200000 200000 30
+0.210999
+0.283688
+0.221861
+
+././qsort-clos 200000 200000 40
+0.217559
+0.230805
+0.228954
+
+././qsort-clos 200000 200000 50
+0.217262
+0.221519
+0.227095
+
+././qsort-clos 200000 200000 60
+0.219401
+0.218236
+0.226943
+
+././qsort-clos 200000 200000 70
+0.212866
+0.228955
+0.287011
+
+././qsort-clos 200000 200000 80
+0.218363
+0.226252
+0.223347
+
+././qsort-clos 200000 200000 90
+0.217116
+0.234416
+0.233811
+
+././qsort-clos 200000 200000 100
+0.219642
+0.221271
+0.227110
+
+
+././qsort-xcc 200000 200000 0
+2.009549
+2.072245
+1.965887
+
+././qsort-xcc 200000 200000 10
+2.092479
+1.998324
+1.983001
+
+././qsort-xcc 200000 200000 20
+1.985851
+2.047652
+2.007573
+
+././qsort-xcc 200000 200000 30
+2.017058
+2.020459
+1.957392
+
+././qsort-xcc 200000 200000 40
+2.125680
+1.992245
+2.001735
+
+././qsort-xcc 200000 200000 50
+2.065150
+2.004778
+1.967845
+
+././qsort-xcc 200000 200000 60
+2.100765
+2.025697
+2.041073
+
+././qsort-xcc 200000 200000 70
+1.974760
+2.014350
+1.996143
+
+././qsort-xcc 200000 200000 80
+1.971310
+2.004974
+2.017897
+
+././qsort-xcc 200000 200000 90
+2.014130
+1.993883
+1.986902
+
+././qsort-xcc 200000 200000 100
+1.927660
+2.010972
+1.993022
+
+
+././qsort-xcccl 200000 200000 0
+0.178904
+0.216153
+0.180158
+
+././qsort-xcccl 200000 200000 10
+0.163643
+0.175836
+0.176146
+
+././qsort-xcccl 200000 200000 20
+0.162714
+0.174285
+0.176118
+
+././qsort-xcccl 200000 200000 30
+0.164327
+0.178214
+0.175275
+
+././qsort-xcccl 200000 200000 40
+0.161615
+0.176046
+0.227001
+
+././qsort-xcccl 200000 200000 50
+0.167620
+0.169273
+0.176890
+
+././qsort-xcccl 200000 200000 60
+0.159696
+0.182616
+0.177480
+
+././qsort-xcccl 200000 200000 70
+0.170416
+0.172411
+0.176414
+
+././qsort-xcccl 200000 200000 80
+0.167865
+0.172314
+0.178534
+
+././qsort-xcccl 200000 200000 90
+0.168243
+0.167442
+0.175982
+
+././qsort-xcccl 200000 200000 100
+0.216211
+0.175621
+0.168897
+
+
+././qsort-icc-c 200000 200000 0
+0.158377
+0.160359
+0.170906
+
+././qsort-icc-c 200000 200000 10
+0.162286
+0.171633
+0.162161
+
+././qsort-icc-c 200000 200000 20
+0.161501
+0.168769
+0.161028
+
+././qsort-icc-c 200000 200000 30
+0.163976
+0.169996
+0.168132
+
+././qsort-icc-c 200000 200000 40
+0.154136
+0.168283
+0.224436
+
+././qsort-icc-c 200000 200000 50
+0.154063
+0.168922
+0.169123
+
+././qsort-icc-c 200000 200000 60
+0.150841
+0.169108
+0.157903
+
+././qsort-icc-c 200000 200000 70
+0.159523
+0.162779
+0.168516
+
+././qsort-icc-c 200000 200000 80
+0.157603
+0.133517
+0.175410
+
+././qsort-icc-c 200000 200000 90
+0.158045
+0.158987
+0.172114
+
+././qsort-icc-c 200000 200000 100
+0.216069
+0.172026
+0.162265
+
+
+././qsort-icc-lw 200000 200000 0
+1.966134
+2.032097
+2.035374
+
+././qsort-icc-lw 200000 200000 10
+2.502374
+2.466282
+2.570927
+
+././qsort-icc-lw 200000 200000 20
+3.270409
+3.358248
+3.326255
+
+././qsort-icc-lw 200000 200000 30
+3.838110
+3.837945
+3.839439
+
+././qsort-icc-lw 200000 200000 40
+4.498342
+4.469176
+4.600004
+
+././qsort-icc-lw 200000 200000 50
+5.274626
+5.228032
+5.273662
+
+././qsort-icc-lw 200000 200000 60
+5.744643
+5.760889
+5.841866
+
+././qsort-icc-lw 200000 200000 70
+6.381783
+6.341400
+6.343394
+
+././qsort-icc-lw 200000 200000 80
+7.187985
+7.040357
+7.042912
+
+././qsort-icc-lw 200000 200000 90
+7.649860
+7.653130
+7.700295
+
+././qsort-icc-lw 200000 200000 100
+8.327219
+8.331316
+8.374675
+
+
+././qsort-icc-clos 200000 200000 0
+0.184007
+0.212628
+0.252777
+
+././qsort-icc-clos 200000 200000 10
+0.206550
+0.210086
+0.209488
+
+././qsort-icc-clos 200000 200000 20
+0.196280
+0.211575
+0.215045
+
+././qsort-icc-clos 200000 200000 30
+0.200071
+0.211256
+0.204798
+
+././qsort-icc-clos 200000 200000 40
+0.202737
+0.266057
+0.202463
+
+././qsort-icc-clos 200000 200000 50
+0.200893
+0.207724
+0.211749
+
+././qsort-icc-clos 200000 200000 60
+0.204601
+0.205772
+0.210374
+
+././qsort-icc-clos 200000 200000 70
+0.202604
+0.205510
+0.209793
+
+././qsort-icc-clos 200000 200000 80
+0.201075
+0.203966
+0.210993
+
+././qsort-icc-clos 200000 200000 90
+0.172092
+0.210337
+0.210332
+
+././qsort-icc-clos 200000 200000 100
+0.197755
+0.210760
+0.210024
+
+
+$ ^D
+Script done on Thu Jul  5 18:17:46 2007
+Script started on Thu Jul  5 18:59:40 2007

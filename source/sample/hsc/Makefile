@@ -1,0 +1,21 @@
+GCC=gcc
+OPT=-g $(COPT)
+LWSCOPT=nestfunc.c -lpthread
+
+progs=bintree-gcc bin2list-gcc\
+ bintree-lw bin2list-lw
+
+all: $(progs)
+
+bintree-gcc: bintree-gcc.c hsc-gcc.c
+	$(GCC) $(OPT) bintree-gcc.c hsc-gcc.c -o bintree-gcc
+bin2list-gcc: bin2list-gcc.c hsc-gcc.c
+	$(GCC) $(OPT) bin2list-gcc.c hsc-gcc.c -o bin2list-gcc
+
+bintree-lw: bintree-lw.c hsc-lw.c
+	$(GCC) $(OPT) bintree-lw.c hsc-lw.c $(LWSCOPT) -o bintree-lw
+bin2list-lw: bin2list-lw.c hsc-lw.c
+	$(GCC) $(OPT) bin2list-lw.c hsc-lw.c $(LWSCOPT) -o bin2list-lw
+
+clean:
+	rm -f $(progs)

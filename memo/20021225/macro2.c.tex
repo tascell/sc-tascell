@@ -1,0 +1,42 @@
+\documentstyle{jarticle}
+\begin{document} \begin{verbatim}
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#include<ctype.h>
+
+
+int 
+main()
+{
+  for (int i = 0; i < 10; i++) {
+    char            (str[3][10]) = {"abcdefg\n", "hijklmn\n", "opqrstu\n"};
+    printf("\n");
+    for (int i = 0; i < 3; i++) {
+      printf(str[i]);
+    }
+  }
+}
+
+void            swap(int (*a), 
+                     int (*b))
+{
+  int             buffer;
+  buffer = *a;
+  *a = *b;
+  *b = buffer;
+  return;
+}
+
+void            swap_w(char (**a), char (**b)) {
+  char            (*buffer);
+  buffer = *a;
+  *a = *b;
+  *b = buffer;
+  return;
+}
+
+void            (*(*gg(void (*(*ff) (int, int)))) (int, int));
+
+typedef void    (*(*gg_t(void (*(*) (int, int)))) (int, int));
+\end{verbatim} \end{document}

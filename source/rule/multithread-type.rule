@@ -1,0 +1,16 @@
+(define-ruleset multithread-type (type-info))
+
+;;; マルチスレッド用プリミティブ
+(extendrule block-item multithread-type
+  ((#?(thread-create ,decl-list ,@body) )
+   (type:with-new-environment
+     (let* ((new-decl-list (mapcar #'declaration decl-list))
+	    (new-body (function-body body)))
+       ~(thread-create ,new-decl-list ,@new-body))) )
+  ((#?(thread-suspend ,id[identifier] ,@body) )
+   (type:with-new-environment
+     (type:add-variable id ~thst-ptr)
+     ~(thread-suspend ,id ,@(function-body body))) )
+  ((#?(thread-resume exp) )
+   ~(thread-resume ,(expression exp)) )
+  )

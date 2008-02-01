@@ -1,0 +1,78 @@
+Return-Path: yasugi@kuis.kyoto-u.ac.jp
+Received: from les0a.kuis.kyoto-u.ac.jp (les0a.kuis.kyoto-u.ac.jp [130.54.21.10])
+	by spa.kuis.kyoto-u.ac.jp (8.8.8/3.7Wspa) with ESMTP id KAA26248
+	for <hiraisi@yuasa.kuis.kyoto-u.ac.jp>; Sat, 26 Jul 2003 10:36:32 +0900 (JST)
+Received: from spa.kuis.kyoto-u.ac.jp (spa.kuis.kyoto-u.ac.jp [130.54.22.190])
+	by les0a.kuis.kyoto-u.ac.jp (8.11.6/8.11.6) with ESMTP id h6Q1aVu05599
+	for <hiraisi@kuis.kyoto-u.ac.jp>; Sat, 26 Jul 2003 10:36:31 +0900
+Received: from localhost (toyako [172.16.22.160])
+	by spa.kuis.kyoto-u.ac.jp (8.8.8/3.7Wspa) with ESMTP id KAA26244;
+	Sat, 26 Jul 2003 10:36:31 +0900 (JST)
+Message-Id: <20030726.103632.01367591.yasugi@kuis.kyoto-u.ac.jp>
+Subject: Re: SC
+From: Masahiro YASUGI <yasugi@kuis.kyoto-u.ac.jp>
+To: hiraisi@kuis.kyoto-u.ac.jp
+Date: Sat, 26 Jul 2003 10:36:32 +0900 (JST)
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=iso-2022-jp
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20030725133820J.hiraisi@kuis.kyoto-u.ac.jp>
+References: <20030625171514U.hiraisi@kuis.kyoto-u.ac.jp>
+	<20030724.151141.107715619.yasugi@kuis.kyoto-u.ac.jp>
+	<20030725133820J.hiraisi@kuis.kyoto-u.ac.jp>
+X-Mailer: Mew version 3.2 on Emacs 20.7 / Mule 4.1 (AOI)
+X-UIDL: ebaa6f6027be28d807e10378b68a6be0
+
+From: Hiraishi Tasuku <hiraisi@kuis.kyoto-u.ac.jp>
+Subject: Re: SC
+Date: Fri, 25 Jul 2003 13:38:20 +0900
+
+> > >*pb -> (ptr pb)
+> > 逆では?
+> 現在の仕様ではこれで正しいのですが。。。
+> まずいでしょうか？ 
+>   int *pb -> (def pb (ptr int))
+>   *pb -> (ptr pb) 
+>   &b  -> (mref b)
+
+逆だと思います。
+
+以下、
+
+  *pb -> (mref pb)   // 内容にアクセス
+  &b  -> (ptr b)     // アドレスを取る
+
+と書くことして、これから int *pb -> (def pb (ptr int)) を導こうと思います。
+
+  *(& b) ≡ b
+  (mref (ptr b)) ≡ b
+
+  &(* pb) ≡ pb
+  (ptr (mref pb)) ≡ pb ----(*)
+
+なので、& と * は互いに逆関数のような関係にあると思います。
+
+int *pb は、*pb の型(pbがpointする箱の内容の型)が int と読むことができます。
+
+ typeof(*pb) ≡ int
+ (typeof (mref pb)) ≡ int 
+
+両辺に & を作用させて、左辺については、typeof の中に入れると:
+
+ &(typeof( (*pb) )) ≡ &(int)
+ typeof( &(*pb) ) ≡ &(int)
+ (typeof (ptr (mref pb))) ≡ (ptr int)
+
+(*) より、
+
+ (typeof pb) ≡ (ptr int)
+
+よって、int *pb -> (def pb (ptr int)) とするのが自然ということになります。
+
+つまり、int *pb の * (内容アクセス) は、pb に作用しているので、
+* を適用する前の pb の型をみるには、* の逆関数(アドレスを取る)を
+適用することになるわけです。
+
+八杉
+
+

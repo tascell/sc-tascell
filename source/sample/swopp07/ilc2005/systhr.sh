@@ -1,0 +1,6 @@
+(extern-decl (csym::systhr-create start-func arg)
+             (fn int (ptr (fn (ptr void) #|(ptr void)|#)) (ptr void)))
+(extern-decl (csym::systhr-bind-to-proc pe)
+             (fn int int))
+(extern-decl (csym::systhr-init np)
+             (fn int int))

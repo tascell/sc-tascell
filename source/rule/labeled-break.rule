@@ -1,0 +1,46 @@
+;;;;; Javaとかで使うlabelつきbreak,continueをSCでも使用できるようにする．
+;;; *label-list* = list of (<do-while等についたラベル>
+;;;                         <continue用のgoto先ラベル>
+;;;                         <break用のgoto先ラベル>) 
+
+(defvar *label-list*)
+
+(define-ruleset labeled-break (sc2c))
+
+(defrule sc-program labeled-break
+  ((#?(,@declaration-list))
+   (let ((*label-list* '()))
+     (iter declaration-list)))
+  )
+
+(defrule iter labeled-break
+  ((#?(label ,id[identifier] (do-while ,exp ,@body))
+    #?(label ,id[identifier] (switch ,exp ,@body)))
+   (let* ((ids (par-identifier id))
+          (*label-list*
+           (cons ~(,id
+                   ,(generate-id ids)
+                   ,(generate-id ids))
+                 *label-list*)))
+     ~(begin (label ,id
+              (,(car (third x)) ,exp ,@(iter body)
+               (label ,(second (first *label-list*)) nil)))
+       (label ,(third (first *label-list*)) nil))) )
+  ((#?(continue ,id[identifier])
+    #?(break ,id[identifier]))
+   (let ((label-tuple 
+          (car (member (par-identifier id) *label-list*
+                       :key #'(lambda (x) (par-identifier (first x)))
+                       :test #'string=))))
+     (unless label-tuple
+       (error "label ~s is undefined." id))
+     ~(goto ,(funcall
+              (case (car x)
+                ((continue) #'second)
+                ((break) #'third))
+              label-tuple))) )
+  ((#?(,@list))
+   (mapcar #'iter list))
+  (otherwise
+   x)
+  )

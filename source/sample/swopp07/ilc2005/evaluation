@@ -1,0 +1,174 @@
+#! /bin/sh
+
+### architecture
+if [ `uname` = "SunOS" ]; then
+    echo "*** Sun OS"
+    SOL="-sol"
+fi
+
+### compiler pathname
+if [ $GCC ]; then # GNU C Compiler
+    GCC=$GCC
+else
+    GCC="gcc"
+fi
+
+if [ $ICC ]; then # Intel C Compiler
+    ICC=$ICC
+else
+    ICC="icc"
+fi
+
+if [ $XCC ]; then # XC-Cube (closure, lightweigt, ...)
+    XCC=$XCC
+else
+    XCC="/tmp/local/bin/gcc"
+fi
+#XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+
+### compiler options
+COPT="-O2 $COPT"
+ICCOPT=$ICCOPT
+GCCOPT=$GCCOPT
+XCCOPT=$XCCOPT
+if [ $NOWARN = "yes" ]; then
+    echo "*** warning not output"
+    COPT="$COPT -w"
+fi
+
+### program name
+if [ $# -le 0 ]; then
+    exec echo "usage: $0 <prog-name> [compile] [<iteration> [<arg1> <arg2> ...]]"
+fi
+NAME=$1
+shift
+
+### source files & program specific options 
+if [ $NAME = "bintree" ]; then
+    SRC_C="bintree0.c copygc0.c -DRAWC"
+    SRC_GCC="bintree0.c copygc0.c"
+    SRC_LWSC="bintree.c nestfunc.c"
+    SRC_XCC="bintree0.c copygc0.c -DCT=lightweight"
+    SRC_CLSC="bintree-clos.c nestfunc.c"
+elif [ $NAME = "bin2list" ]; then
+    SRC_C="bin2list0.c copygc0.c -DRAWC"
+    SRC_GCC="bin2list0.c copygc0.c"
+    SRC_LWSC="bin2list.c nestfunc.c -DCT=lightweight"
+    SRC_XCC="bin2list0.c copygc0.c"
+    SRC_CLSC="bin2list-clos.c nestfunc.c"
+elif [ $NAME = "nqueen" ]; then
+    NOXCCOPTS="-DNOXCC"
+    SRC_C="nqueen-c.c $NOXCCOPTS"
+    SRC_GCC="nqueen-gcc.c $NOXCCOPTS"
+    SRC_LWSC="nqueen.c nestfunc.c $NOXCCOPTS"
+    SRC_XCC="nqueen-xcc.c systhr-i386.o -pthread -DCT=lightweight"
+    SRC_CLSC="nqueen-clos.c nestfunc.c $NOXCCOPTS"
+elif [ $NAME = "cpfib" ]; then
+    SRC_C="cpfib0.c -DRAWC"
+    SRC_GCC="cpfib0.c"
+    SRC_LWSC="cpfib.c nestfunc.c"
+    SRC_XCC="cpfib0.c copygc0.c -DCT=lightweight"
+    SRC_CLSC="cpfib-clos.c"
+else
+    exec echo "Unknown test program name!"
+fi
+
+### compile
+if [ $# -ge 1 ] && [ $1 = "compile" ]
+then
+    shift
+    echo "*** Options=$COPT"
+    echo "** GCC=$GCC"
+    $GCC -v
+    echo-run $GCC $COPT $GCCOPT $SRC_C   -o $NAME-c$SOL
+    echo-run $GCC $COPT $GCCOPT $SRC_GCC -o $NAME-gcc$SOL
+    echo-run $GCC $COPT $GCCOPT $SRC_LWSC -o $NAME-lw$SOL
+    echo-run $GCC $COPT $GCCOPT $SRC_CLSC -o $NAME-clos$SOL
+    if [ `which $XCC` ]; then
+	echo "** XC Cube=$XCC"
+	LANG=C $XCC -v
+	LANG=C echo-run $XCC $COPT $XCCOPT $SRC_XCC -o $NAME-xcc$SOL # XC-cube lightweight
+    fi
+    if [ `which $ICC` ]; then
+	echo "** Intel C Compiler=$ICC"
+	$ICC -v
+	echo-run $ICC $COPT $ICCOPT $SRC_C    -o $NAME-icc-c$SOL
+	echo-run $ICC $COPT $ICCOPT $SRC_LWSC -o $NAME-icc-lw$SOL
+	echo-run $ICC $COPT $ICCOPT $SRC_CLSC -o $NAME-icc-clos$SOL
+    fi
+fi
+
+### Iteration
+if [ $# -ge 1 ]; then
+    m=$1
+    shift
+else
+    m=1
+fi
+echo "*** Iteration=$m"
+
+### Arguments
+if [ $NAME = "bintree" ]; then
+    if [ $# -ge 1 ]; then
+	echo "*** GC on"
+	gc=0    # on
+    else
+	echo "*** GC off"
+	gc=-1   # off
+    fi
+    arg1=200000
+    arg2=300000
+    arg3=$gc
+    arg4=6400000
+elif [ $NAME = "bin2list" ]; then
+    if [ $# -ge 1 ]; then
+	echo "*** GC on"
+	gc=0    # on
+	tosize=20000000
+    else
+	echo "*** GC off"
+	gc=-1   # off
+	tosize=51200000
+    fi
+    echo "*** Tosize=$tosize"
+    arg1=500000    # maxins
+    arg2=1         # maxsearch
+    arg3=$gc      
+    arg4=$tosize   # tosize
+elif [ $NAME = "nqueen" ]; then
+    if [ $# -ge 1 ]; then
+	n=$1
+    else
+	n=13
+    fi
+    echo "*** N of queens=$n"
+    arg1=1   # N of threads
+    arg2=$n
+elif [ $NAME = "cpfib" ]; then
+    if [ $# -ge 1 ]; then
+	n=$1
+    else
+	n=34
+    fi
+    echo "*** N=$n"
+    arg1=$n
+else
+    exec echo "Unknown test program name!"
+fi
+
+### Run!
+echo
+progs="./$NAME-c$SOL ./$NAME-gcc$SOL ./$NAME-lw$SOL ./$NAME-xcc$SOL ./$NAME-clos$SOL ./$NAME-icc-c$SOL ./$NAME-icc-lw$SOL ./$NAME-icc-clos$SOL"
+
+for prog in $progs; do
+    i=0
+    if [ -x $prog ]; then
+	while [ $i -lt $m ]; do
+	    echo-run $prog $arg1 $arg2 $arg3 $arg4
+	    i=`expr $i + 1`
+	done
+    else
+	echo "*** There is no \"$prog\" executable!"
+    fi
+    echo ""
+done

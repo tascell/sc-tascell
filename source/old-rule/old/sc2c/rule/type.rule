@@ -1,0 +1,390 @@
+;;;; sc0 => sc0-with-type-information (the <type> <expression>)
+
+;;; 全てのexpressionを(the <type-expression> <expression>)
+;;; の形にする。
+;;; 関数呼び出し式の先頭に'call'を付ける。
+
+;;; マルチスレッド用プリミティブに対応(2003/12/26)
+;;; lightweight入れ子関数に対応(2003/12/28)
+;;; typedef-name を全て元の名前に置き換えるよう変更(2004/1/5)
+;;; 関数、関数ポインタに関する処理を修正(2004/1/7)
+(%require "TYPE-DEFS")
+(%initial-rule Tp0)
+
+(Tp0 (,@declaration-list) )
+-> (progn
+     (defvar *str-alist*)
+     (defvar *var-alist*)
+
+     (let ((sc-util:*keyword-list* (cons 'lightweight *keyword-list*))
+	     ; ...誰がやるべきか?
+	   (*str-alist* '() )
+	   (*var-alist* '() ))
+       (mapcar #'Tp1 declaration-list)))
+
+;;; *str-alist* : list of ( <strname> . ( [(<fid> . <type>)]* ) )
+;;; *var-alist* : list of ( <name> . <type> )
+;;; deftype -> ( name . ($type <type>) ) in *var-alist*
+;;; enum and struct without name -> $<typedef-name> 
+;;; (struct $str) (enum $en) etc.
+
+;;;;;; declaration ;;;;;;
+;variable (length of init is probably 1)
+(Tp1 (,scs[SCS] ,id[ID] ,texp ,@init))
+-> (progn
+     (push (cons id (remove-type-qualifier texp))
+	   *var-alist)
+     `(,scs ,id ,texp ,@(mapcar #'Tpi init)))
+   ;initializer
+   (Tpi (array ,@init))
+   (Tpi (struct ,@init))
+   -> `(,(car x) ,@(mapcar #'Tpi init))
+   (Tpi ,exp)
+   -> (Tpe exp)
+
+;function
+(Tp1 (,scs[SCS] (,@id-list[ID]) (fn ,@texp-list) ,@body) )
+(Tp1 (,scs[SCS] (,@id-list[ID]) (lightweight ,@texp-list) ,@body) ) ;lw
+-> (let* ((fn-tag (car (third (car x))))
+	  (texp-list2 (mapcar #'remove-type-qualifier texp-list)))
+     (push (cons (first id-list) `(ptr (,fn-tag ,@texp-list2)))
+	   *var-alist*)
+     (let* ((arg-bind-alist (cmpd-list (cdr id-list) (cdr texp-list2)))
+	    (*var-alist* (append arg-bind-alist *var-alist*))
+	    (*str-alist* *str-alist)
+	    (new-body (Tpb0 body)))
+       `(,scs (,@id-list) (,fn-tag ,@texp-list) ,@new-body)))
+
+;struct, union
+(Tp1 (,dd[DEF-DECL] (,soru[S-OR-U] ,id[ID]) ,@sdeclist) )
+-> (let* ((orig-var-alist *var-alist*)
+	  (*var-alist* *var-alist*)
+	  (sdecl-with-type (Tp-sdecl sdeclist))
+	  (member-bind-alist (ldiff *var-alist* orig-var-alist)))
+     (push (cons id member-list) *str-alist*)
+     `(,dd (,soru ,id) ,@sdecl-with-type) )
+
+;(struct-declaration)
+(Tp-sdecl (:bit ,bit ,@sdecl-list))
+-> `(:bit ,(Tpe bit) ,@(Tp-sdecl sdecl-list))
+(Tp-sdecl (,@sdecl-list))
+-> `(,(Tp1 (car sdecl-list))
+     ,@(Tp-sdecl (cdr-sdecl-list)) )
+
+;enum
+(Tp1 (def (enum ,id[ID]) ,@enum-list) )
+-> (progn
+     (dolist (en enum-list)
+       (when (consp en) (setq en (car en)))
+       (push (cons en `(enum ,id)) *var-alist*))
+     `(def (enum ,id) ,@enum-list) )
+
+;deftype (struct)
+(Tp1 (deftype ,id[ID] struct ,@sdecllist) )
+-> (prog1
+       (let* ((orig-var-alist *var-alist*)
+	      (*var-alist* *var-alist*)
+	      (sdecl-with-type (Tp-sdecl sdeclist))
+	      (member-list (ldiff *var-alist* orig-var-alist)))
+	 (push (cons (symbol+ '$ id) member-list)
+	       *str-alist*)
+	 `(deftype ,id struct ,@sdecl-with-type))
+     (push (cons id `($type (struct ,(symbol+ '$ id))))
+	   *var-alist*))
+
+;deftype (enum)
+(Tp1 (deftype ,id[ID] enum ,@enum-list) )
+-> (progn
+     (dolist (en enum-list)
+       (when (consp en) (setq en (car en)))
+       (push `(,en . ,id) *var-alist*))
+     (push (cons id `($type (enum ,(symbol+ '$ id))))
+	   *var-alist*)
+     `(deftype ,id enum ,@enum-list))
+
+;deftype
+(Tp1 (deftype ,id[ID] ,texp) )
+-> (progn
+     (push (cons id `($type ,(remove-type-qualifier texp))) 
+	   *var-alist*)
+     `(deftype ,id ,texp))
+
+;c-exp
+(Tp1 (c-exp ,@rem))
+-> x
+
+(Tp1 ,otherwise)
+-> (error "syntax error in ~s." otherwise)
+
+;;;;;;; body +α ;;;;;;
+; function-attribute & register-decl
+(Tpb0 (:attr ,atr   ,@body) )
+-> `(:attr ,atr ,@(Tpb0 body))
+(Tpb0 ((register ,@regarg)   ,@body) )
+-> `((register ,@regarg) ,@(Tpb0 body))
+(Tpb0 (,@body))
+-> (mapcar #'Tpb body)
+
+;begin
+(Tpb (begin ,@body))
+-> `(begin ,@(Tpb0 body))
+
+;label
+(Tpb (label ,id ,stat))
+-> `(label ,id ,(Tpb stat))
+
+;case
+(Tpb (case ,exp) )
+-> `(case ,(Tpe exp))
+
+;default
+(Tpb (default) )
+-> '(default) 
+
+;if
+(Tpb (if ,exp ,stat1 {,stat2}) )
+-> (if (pattern-variable-p 'stat2)
+       `(if ,(Tpe exp) ,(Tpb stat1) ,(Tpb stat2))
+     `(if ,(Tpe exp) ,(Tpb stat1)))
+
+;switch
+(Tpb (switch ,exp ,@body) )
+-> `(switch ,(Tpe exp) ,@(Tpb0 body))
+
+;do-while
+(Tpb (do-while ,exp ,@body) )
+-> `(do-while ,(Tpe exp) ,@(Tpb0 body))
+
+;goto, continue, break
+(Tpb (goto ,id) )
+(Tpb (continue) )
+(Tpb (break) )
+-> x
+
+;return
+(Tpb (return {,exp}) )
+-> (if (pattern-variable-p 'exp)
+       '(return)
+     `(return ,(Tpe exp)))
+
+;null statement
+(Tpb () )
+-> '()
+
+;;; <- マルチスレッド用プリミティブ
+(Tpb (thread-create ,decl-list ,@body) )
+-> (let* ((*var-alist* *var-alist*)
+	  (n-decls (length decl-list))
+	  (tpb-x (Tpb0 `(,@decl-list ,@body)))
+	  (new-body (nthcdr n-decls tpb-x))
+	  (new-decl-list (firstn tpb-x n-decls)))
+     `(thread-create ,new-decl-list ,@new-body))
+
+(Tpb (thread-suspend ,id[ID] ,@body) )
+-> (let ((*var-alist* *var-alist*))
+     (push (cons id 'thst-ptr) *var-alist*)
+     (cons `(thread-suspend ,id ,@(Tpb0 body))))
+
+(Tpb (thread-resume ,exp) )
+-> `(thread-resume ,(Tpe exp))
+
+;;; マルチスレッド用プリミティブ ->
+
+;expression-statement or declaration
+(Tpb ,otherwise )
+-> (let ((expression-stat (Tpe otherwise)))
+     (if (eq '$not-expression expression-stat)
+	 (Tp1 otherwise)
+       expression-stat))
+
+;;;;;;; expression ;;;;;;;
+
+; identifier
+(Tpe ,id[ID])
+-> `(the ,(assoc-vartype id) ,id)
+
+; constant
+(Tpe ,num[integerp])
+-> `(the int ,num)
+(Tpe ,cha[characterp])
+-> `(the char ,cha)
+(Tpe ,num[numberp])
+-> `(the double ,num)
+
+; string-literal
+(Tpe ,str[stringp])
+-> `(the (array char) ,str)
+
+; aref
+(Tpe (aref ,exp1 ,@rem-exp))
+-> (cond
+    ((cdr rem-exp)
+     (Tpe `(aref (aref ,exp1 ,(car rem-exp)) ,@(cdr rem-exp))))
+    ((null rem-exp)
+     (Tpe exp1))
+    (t
+     (let* ((exp1-with-type (Tpe exp1))
+	    (exp1-type (cadr exp1-with-type)))
+       `(the ,(deref-type exp1-type)
+	     (aref ,exp1-with-type ,(Tpe (car rem-exp)))))))
+
+; fref
+(Tpe (fref ,exp1 ,id1 ,@rem-id) )
+-> (if rem-id
+       (Tpe `(fref (fref ,exp1 ,id1) ,@rem-id))
+     (let* ((exp1-with-type (Tpe exp1))
+	    (exp1-type (cadr exp1-with-type)))
+       (unless (and (listp exp1-type)
+		    (or (eq 'struct (car exp1-type))
+			(eq 'union  (car exp1-type))))
+	 (error "~s is neither struct nor union" exp1))
+       (let* ((*var-alist* (assoc-struct (cadr exp1-type)))
+	      (id1-with-type (Tpe id1)))
+	 `(the ,(cadr id1-with-type) (fref ,exp1-with-type ,id1)))))
+
+; inc, dec, ++, --, bit-not
+(Tpe (inc ,exp))
+(Tpe (dec ,exp))
+(Tpe (++ ,exp))
+(Tpe (-- ,exp))
+(Tpe (bit-not ,exp))
+-> (let ((exp-with-type (Tpe exp)))
+      `(the ,(cadr exp-with-type) (,(car x) ,exp-with-type))) 
+
+; ptr
+(Tpe (ptr ,exp))
+-> (let ((exp-with-type (Tpe exp)))
+      `(the (ptr ,(cadr exp-with-type)) (ptr ,exp-with-type)))
+
+; mref
+(Tpe (mref ,exp))
+-> (let* ((exp-with-type (Tpe exp))
+	  (exp-type (cadr exp-with-type)))
+     `(the ,(deref-type exp-type) (mref ,exp-with-type)))      
+
+; not
+(Tpe (not ,exp))
+-> `(the int ,(Tpe exp))
+
+; sizeof
+(Tpe (sizeof ,id[ID]))
+-> (let ((idtype (assoc-vartype id)))
+     (break)
+     `(the int 
+       (sizeof ,(if (eq '$type (car idtype))
+                    id
+                    `(the ,idtype ,id)))))
+(Tpe (sizeof ,exp[EXPR]) )
+-> `(the int (sizeof ,(Tpe exp)))
+(Tpe (sizeof ,texp))
+-> `(the int (sizeof ,texp))
+             
+; cast
+(Tpe (cast ,texp ,exp))
+-> `(the ,texp (cast ,texp ,(Tpe exp)))
+
+; operator(arithmetic)
+(Tpe (* ,exp1 ,@rem-exp))
+(Tpe (/ ,exp1 ,@rem-exp))
+(Tpe (% ,exp1 ,@rem-exp))
+(Tpe (+ ,exp1 ,@rem-exp)) ;unary-operatorの+, -もここで
+(Tpe (- ,exp1 ,@rem-exp))
+(Tpe (bit-xor ,exp1 ,@rem-exp))
+(Tpe (bit-and ,exp1 ,@rem-exp))
+(Tpe (bit-or  ,exp1 ,@rem-exp))
+; operator(bit-shift)
+(Tpe (<< ,exp1 ,@rem-exp))
+(Tpe (>> ,exp1 ,@rem-exp))
+; operator(logical)
+(Tpe (and ,exp1 ,@rem-exp))
+(Tpe (or  ,exp1 ,@rem-exp))
+; comparator ( (length rem-exp) is expected to be 1)
+(Tpe (<  ,exp1 ,@rem-exp))
+(Tpe (>  ,exp1 ,@rem-exp))
+(Tpe (<= ,exp1 ,@rem-exp))
+(Tpe (>= ,exp1 ,@rem-exp))
+(Tpe (== ,exp1 ,@rem-exp))
+(Tpe (!= ,exp1 ,@rem-exp))
+; assignment-operator ( (length rem-exp) is expected to be 1)
+(Tpe (=  ,exp1 ,@rem-exp))
+(Tpe (*= ,exp1 ,@rem-exp))
+(Tpe (/= ,exp1 ,@rem-exp))
+(Tpe (%= ,exp1 ,@rem-exp))
+(Tpe (+= ,exp1 ,@rem-exp))
+(Tpe (-= ,exp1 ,@rem-exp))
+(Tpe (<<= ,exp1 ,@rem-exp))
+(Tpe (>>= ,exp1 ,@rem-exp))
+(Tpe (bit-and= ,exp1 ,@rem-exp))
+(Tpe (bit-xor= ,exp1 ,@rem-exp))
+(Tpe (bit-or=  ,exp1 ,@rem-exp))
+; exps
+(Tpe (exps ,exp1 ,@rem-exp))
+-> (let ((op (car x)))
+     (cond
+      ((cdr rem-exp)
+       (case op
+	 ((< > <= >= == !=
+	     = *= /= %= += -= <<= >>= bit-and= bit-xor= bit-or=)
+	  (error "~s:too many arguments." x))
+	 (otherwise
+	  (Tpe `(,op (,op ,exp1 ,(car rem-exp)) ,@(cdr rem-exp))))))
+      ((null rem-exp)
+       (case op
+	 ((< > <= >= == !=
+	     = *= /= %= += -= <<= >>= bit-and= bit-xor= bit-or=)
+	  (error "~s:too few arguments." x))
+	 (otherwise
+	  (let ((exp1-with-type (Tpe exp1)))
+	    `(the ,(cadr exp1-with-type) (,op ,exp1-with-type))))))
+      (t
+       (let* ((exp2 (car rem-exp))
+	      (exp-with-type1 (Tpe exp1))
+	      (exp-with-type2 (Tpe exp2))
+	      (exp-type1 (cadr exp-with-type1))
+	      (exp-type2 (cadr exp-with-type2))
+	      (whole-type
+	       (case op
+		 ((* / % + - bit-xor bit-and bit-or
+		     *= /= %= += -= bit-and= bit-xor= bit-or=)
+		  (type-conversion exp-type1 exp-type2))
+		 ((<< >> = <<= >>=)
+		  (cadr exp-with-type1))
+		 ((exps)
+		  (cadr exp-with-type2))
+		 ((and or < > <= >= == !=)
+		  'int)
+		 (otherwise (error "unexpected operator in Tpe.")))))
+	 `(the ,whole-type (,op ,exp-with-type1 ,exp-with-type2))))))     
+
+; if-exp
+(Tpe (if-exp ,exp1 ,exp2 ,exp3))
+-> (let* ((exp-with-type1 (Tpe exp1))
+	  (exp-with-type2 (Tpe exp2))
+	  (exp-with-type3 (Tpe exp3))
+	  (exp-type2 (cadr exp-with-type2))
+	  (exp-type3 (cadr exp-with-type3))
+	  (whole-type (type-conversion exp-type2 exp-type3)))
+     `(the ,whole-type (if-exp ,exp-with-type1
+			       ,exp-with-type2
+			       ,exp-with-type3)))
+
+; c-exp
+(Tpe (c-exp ,str ,@exp-list))
+-> `(c-exp ,str ,@(mapcar #'Tpe exp-list))
+
+; function-call
+(Tpe (,fexp[EXPR] ,@arg-list))
+-> (let* ((fexp-with-type (Tpe fexp))
+	  (fexp-type (cadr fexp-with-type))
+	  (type-fn nil))
+     (unless (and (listp fexp-type)
+		  (eq 'ptr (car fexp-type))
+		  (listp (setq type-fn (cadr fexp-type)))
+		  (or (eq 'fn (car type-fn))
+		      (eq 'lightweight (car type-fn)))) ;lw
+       (error "~s is not a function." fexp))
+     `(the ,(cadr type-fn) (call (the ,type-fn ,(caddr fexp-with-type))
+			    ,@(mapcar #'Tpe arg-list)))) 
+
+(Tpe ,otherwise)
+-> '$not-expression

@@ -1,0 +1,1145 @@
+machine: totukawa
+prog: fib
+exefile: ./fib-c
+treq 0 any
+time: 0.393035
+rslt 0
+ 24157817
+treq 0 any
+time: 0.409228
+rslt 0
+ 24157817
+treq 0 any
+time: 0.374543
+rslt 0
+ 24157817
+treq 0 any
+time: 0.374559
+rslt 0
+ 24157817
+treq 0 any
+time: 0.400650
+rslt 0
+ 24157817
+treq 0 any
+time: 0.380223
+rslt 0
+ 24157817
+treq 0 any
+time: 0.374549
+rslt 0
+ 24157817
+treq 0 any
+time: 0.376208
+rslt 0
+ 24157817
+treq 0 any
+time: 0.379912
+rslt 0
+ 24157817
+treq 0 any
+exefile: ./fib-gcc
+treq 0 any
+dvbl
+time: 0.553268
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.554467
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.576685
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.554012
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.576910
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.553398
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.553437
+rslt 0
+ 24157817
+treq 0 any
+exefile: ./fib-lw
+treq 0 any
+dvbl
+time: 0.737681
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.737672
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.737650
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.737663
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.737685
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.737614
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.737680
+rslt 0
+ 24157817
+treq 0 any
+exefile: ./fib-clos
+treq 0 any
+dvbl
+time: 0.756413
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.753054
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.756360
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.754143
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.753880
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.754859
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.752506
+rslt 0
+ 24157817
+treq 0 any
+exefile: ./fib-xcc
+treq 0 any
+dvbl
+time: 0.488005
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.488243
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.488294
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.488132
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.488128
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.488568
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.488433
+rslt 0
+ 24157817
+treq 0 any
+exefile: ./fib-xcccl
+treq 0 any
+dvbl
+time: 0.493182
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.494316
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.487469
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.501330
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.495217
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.527431
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.523461
+rslt 0
+ 24157817
+treq 0 any
+exefile: ./fib-icc-c
+treq 0 any
+time: 0.305510
+rslt 0
+ 24157817
+treq 0 any
+time: 0.305825
+rslt 0
+ 24157817
+treq 0 any
+time: 0.305898
+rslt 0
+ 24157817
+treq 0 any
+time: 0.305662
+rslt 0
+ 24157817
+treq 0 any
+time: 0.305785
+rslt 0
+ 24157817
+treq 0 any
+time: 0.305918
+rslt 0
+ 24157817
+treq 0 any
+time: 0.306704
+rslt 0
+ 24157817
+treq 0 any
+time: 0.309474
+rslt 0
+ 24157817
+treq 0 any
+time: 0.309428
+rslt 0
+ 24157817
+treq 0 any
+exefile: ./fib-icc-lw
+treq 0 any
+dvbl
+time: 0.559527
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.559439
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.559444
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.564338
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.564338
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.559553
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.559462
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.559525
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.559525
+rslt 0
+ 24157817
+treq 0 any
+exefile: ./fib-icc-clos
+treq 0 any
+dvbl
+time: 0.635250
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.635455
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.635098
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.635483
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.635288
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.635305
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.635310
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.635359
+rslt 0
+ 24157817
+treq 0 any
+dvbl
+time: 0.635333
+rslt 0
+ 24157817
+treq 0 any
+prog: lu
+exefile: ./lu-c
+treq 0 any
+time: 0.650241
+rslt 0
+0.641927
+treq 0 any
+time: 0.645341
+rslt 0
+0.637192
+treq 0 any
+time: 0.650781
+rslt 0
+0.642604
+treq 0 any
+time: 0.648456
+rslt 0
+0.640285
+treq 0 any
+time: 0.650854
+rslt 0
+0.642671
+treq 0 any
+time: 0.646459
+rslt 0
+0.638291
+treq 0 any
+time: 0.649724
+rslt 0
+0.641561
+treq 0 any
+exefile: ./lu-gcc
+treq 0 any
+dvbl
+time: 0.647246
+rslt 0
+0.638957
+treq 0 any
+dvbl
+time: 0.650473
+rslt 0
+0.642323
+treq 0 any
+dvbl
+time: 0.650375
+rslt 0
+0.642226
+treq 0 any
+dvbl
+time: 0.650416
+rslt 0
+0.642243
+treq 0 any
+dvbl
+time: 0.650627
+rslt 0
+0.642526
+treq 0 any
+dvbl
+time: 0.649393
+rslt 0
+0.641240
+treq 0 any
+dvbl
+time: 0.650588
+rslt 0
+0.642450
+treq 0 any
+exefile: ./lu-lw
+treq 0 any
+dvbl
+time: 0.650599
+rslt 0
+0.642277
+treq 0 any
+dvbl
+time: 0.650821
+rslt 0
+0.642635
+treq 0 any
+dvbl
+time: 0.650995
+rslt 0
+0.642830
+treq 0 any
+dvbl
+time: 0.650842
+rslt 0
+0.642670
+treq 0 any
+dvbl
+time: 0.649096
+rslt 0
+0.640989
+treq 0 any
+dvbl
+time: 0.648893
+rslt 0
+0.640738
+treq 0 any
+dvbl
+time: 0.651061
+rslt 0
+0.642901
+treq 0 any
+exefile: ./lu-clos
+treq 0 any
+dvbl
+time: 0.650909
+rslt 0
+0.642578
+treq 0 any
+dvbl
+time: 0.648836
+rslt 0
+0.640607
+treq 0 any
+dvbl
+time: 0.651670
+rslt 0
+0.643494
+treq 0 any
+dvbl
+time: 0.651906
+rslt 0
+0.643783
+treq 0 any
+dvbl
+time: 0.651570
+rslt 0
+0.643404
+treq 0 any
+dvbl
+time: 0.652361
+rslt 0
+0.644199
+treq 0 any
+dvbl
+time: 0.651914
+rslt 0
+0.643741
+treq 0 any
+exefile: ./lu-xcc
+treq 0 any
+dvbl
+time: 0.648471
+rslt 0
+0.640116
+treq 0 any
+dvbl
+time: 0.649292
+rslt 0
+0.641124
+treq 0 any
+dvbl
+time: 0.649032
+rslt 0
+0.640888
+treq 0 any
+dvbl
+time: 0.647627
+rslt 0
+0.639407
+treq 0 any
+dvbl
+time: 0.650635
+rslt 0
+0.642470
+treq 0 any
+dvbl
+time: 0.650272
+rslt 0
+0.642046
+treq 0 any
+dvbl
+time: 0.650174
+rslt 0
+0.642015
+treq 0 any
+exefile: ./lu-xcccl
+treq 0 any
+dvbl
+time: 0.646634
+rslt 0
+0.638337
+treq 0 any
+dvbl
+time: 0.649152
+rslt 0
+0.640990
+treq 0 any
+dvbl
+time: 0.649492
+rslt 0
+0.641349
+treq 0 any
+dvbl
+time: 0.648313
+rslt 0
+0.640143
+treq 0 any
+dvbl
+time: 0.647540
+rslt 0
+0.639395
+treq 0 any
+dvbl
+time: 0.648803
+rslt 0
+0.640637
+treq 0 any
+dvbl
+time: 0.648601
+rslt 0
+0.640448
+treq 0 any
+exefile: ./lu-icc-c
+treq 0 any
+time: 0.458464
+rslt 0
+0.450274
+treq 0 any
+time: 0.454308
+rslt 0
+0.446265
+treq 0 any
+time: 0.455306
+rslt 0
+0.447289
+treq 0 any
+time: 0.456927
+rslt 0
+0.448909
+treq 0 any
+time: 0.456950
+rslt 0
+0.448880
+treq 0 any
+time: 0.456782
+rslt 0
+0.448764
+treq 0 any
+time: 0.456398
+rslt 0
+0.448386
+treq 0 any
+exefile: ./lu-icc-lw
+treq 0 any
+dvbl
+time: 0.413457
+rslt 0
+0.405273
+treq 0 any
+dvbl
+time: 0.415249
+rslt 0
+0.407196
+treq 0 any
+dvbl
+time: 0.413910
+rslt 0
+0.405878
+treq 0 any
+dvbl
+time: 0.412218
+rslt 0
+0.404220
+treq 0 any
+dvbl
+time: 0.412288
+rslt 0
+0.404270
+treq 0 any
+dvbl
+time: 0.414042
+rslt 0
+0.406015
+treq 0 any
+dvbl
+time: 0.411785
+rslt 0
+0.403775
+treq 0 any
+exefile: ./lu-icc-clos
+treq 0 any
+dvbl
+time: 0.411867
+rslt 0
+0.403693
+treq 0 any
+dvbl
+time: 0.410357
+rslt 0
+0.402322
+treq 0 any
+dvbl
+time: 0.412460
+rslt 0
+0.404443
+treq 0 any
+dvbl
+time: 0.412617
+rslt 0
+0.404583
+treq 0 any
+dvbl
+time: 0.410135
+rslt 0
+0.402101
+treq 0 any
+dvbl
+time: 0.411312
+rslt 0
+0.403240
+treq 0 any
+dvbl
+time: 0.411163
+rslt 0
+0.403099
+treq 0 any
+prog: pen
+exefile: ./pen-c
+treq 0 any
+time: 1.254093
+rslt 0
+ 2339
+treq 0 any
+time: 1.254201
+rslt 0
+ 2339
+treq 0 any
+time: 1.254108
+rslt 0
+ 2339
+treq 0 any
+time: 1.254119
+rslt 0
+ 2339
+treq 0 any
+time: 1.254136
+rslt 0
+ 2339
+treq 0 any
+exefile: ./pen-gcc
+treq 0 any
+dvbl
+time: 1.771457
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.771255
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.771163
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.772271
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.772408
+rslt 0
+ 2339
+treq 0 any
+exefile: ./pen-lw
+treq 0 any
+dvbl
+time: 1.528372
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.528943
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.528535
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.528209
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.528267
+rslt 0
+ 2339
+treq 0 any
+exefile: ./pen-clos
+treq 0 any
+dvbl
+time: 1.664530
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.664466
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.664385
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.664397
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.664658
+rslt 0
+ 2339
+treq 0 any
+exefile: ./pen-xcc
+treq 0 any
+dvbl
+time: 1.523120
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.522919
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.522396
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.522220
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.522214
+rslt 0
+ 2339
+treq 0 any
+exefile: ./pen-xcccl
+treq 0 any
+dvbl
+time: 1.814155
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.814237
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.814276
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.813845
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.814171
+rslt 0
+ 2339
+treq 0 any
+exefile: ./pen-icc-c
+treq 0 any
+time: 1.121635
+rslt 0
+ 2339
+treq 0 any
+time: 1.121400
+rslt 0
+ 2339
+treq 0 any
+time: 1.121501
+rslt 0
+ 2339
+treq 0 any
+time: 1.121346
+rslt 0
+ 2339
+treq 0 any
+time: 1.121346
+rslt 0
+ 2339
+treq 0 any
+exefile: ./pen-icc-lw
+treq 0 any
+dvbl
+time: 1.285357
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.285312
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.285518
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.285260
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.285396
+rslt 0
+ 2339
+treq 0 any
+exefile: ./pen-icc-clos
+treq 0 any
+dvbl
+time: 1.603817
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.603818
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.603807
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.603805
+rslt 0
+ 2339
+treq 0 any
+dvbl
+time: 1.603891
+rslt 0
+ 2339
+treq 0 any
+prog: cmp
+exefile: ./cmp-c
+treq 0 any
+time: 2.500438
+rslt 0
+ 19999
+treq 0 any
+time: 2.500393
+rslt 0
+ 19999
+treq 0 any
+time: 2.500253
+rslt 0
+ 19999
+treq 0 any
+time: 2.500056
+rslt 0
+ 19999
+treq 0 any
+time: 2.501777
+rslt 0
+ 19999
+treq 0 any
+exefile: ./cmp-gcc
+treq 0 any
+dvbl
+time: 3.592357
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.598809
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.596177
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.595358
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.594878
+rslt 0
+ 19999
+treq 0 any
+exefile: ./cmp-lw
+treq 0 any
+dvbl
+time: 4.161866
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 4.165102
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 4.168632
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 4.170337
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 4.164880
+rslt 0
+ 19999
+treq 0 any
+exefile: ./cmp-clos
+treq 0 any
+dvbl
+time: 4.033093
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.992826
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 4.031846
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 4.014234
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.982351
+rslt 0
+ 19999
+treq 0 any
+exefile: ./cmp-xcc
+treq 0 any
+dvbl
+time: 3.521236
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.519392
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.518295
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.518674
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.519088
+rslt 0
+ 19999
+treq 0 any
+exefile: ./cmp-xcccl
+treq 0 any
+dvbl
+time: 3.169163
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.188990
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.167178
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.184446
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.182298
+rslt 0
+ 19999
+treq 0 any
+exefile: ./cmp-icc-c
+treq 0 any
+time: 2.925306
+rslt 0
+ 19999
+treq 0 any
+time: 2.920484
+rslt 0
+ 19999
+treq 0 any
+time: 2.950706
+rslt 0
+ 19999
+treq 0 any
+time: 2.947033
+rslt 0
+ 19999
+treq 0 any
+time: 2.949514
+rslt 0
+ 19999
+treq 0 any
+exefile: ./cmp-icc-lw
+treq 0 any
+dvbl
+time: 3.511150
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.511721
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.498911
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.495163
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 3.492590
+rslt 0
+ 19999
+treq 0 any
+exefile: ./cmp-icc-clos
+treq 0 any
+dvbl
+time: 4.043855
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 4.035959
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 4.038725
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 4.040445
+rslt 0
+ 19999
+treq 0 any
+dvbl
+time: 4.044143
+rslt 0
+ 19999
+treq 0 any

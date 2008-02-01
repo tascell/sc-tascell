@@ -1,0 +1,4 @@
+(define-ruleset nestfunc-type (type-info))
+
+(extendrule function-tag nestfunc-type
+  ((#?lightweight) x))

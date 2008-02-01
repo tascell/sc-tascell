@@ -1,0 +1,67 @@
+# set xlabel "Depth of Execution Stack (# of calls)"; set ylabel "Elapsed Time [sec]"; set key left top
+# plot "gnuplot-qsort-wfs2" index 0 using 1:2 ti "C" with points 4, "gnuplot-qsort-wfs2" index 1 using 1:2 title "GCC", "gnuplot-qsort-wfs2" index 2 using 1:2 ti "LW-SC" with points 5, "gnuplot-qsort-wfs2" index 3 using 1:2 ti "XCC" with points 1, "gnuplot-qsort-wfs2" index 4 using 1:2 ti "CL-SC" with points 3
+# set size 0.56,0.56; set term postscript eps enhanced 
+# set output "qsort-sol.eps"
+0   0.795917
+10  0.794662
+20  0.794578
+30  0.794471
+40  0.794698
+50  0.795148
+60  0.794440
+70  0.794859
+80  0.795073
+90  0.795402
+100 0.795736
+
+
+0   0.821154
+10  0.821309
+20  0.820081
+30  0.819685
+40  0.820792
+50  0.819687
+60  0.819434
+70  0.819203
+80  0.820880
+90  0.822711
+100 0.820121
+
+
+0   7.035280
+10  13.132535
+20  18.899523
+30  24.604284
+40  30.532493
+50  35.955422
+60  41.603549
+70  47.274881
+80  52.907938
+90  58.651210
+100 63.526928
+
+
+0   8.025209
+10  8.027777
+20  8.026236
+30  8.026290
+40  8.026687
+50  8.024893
+60  8.027356
+70  8.025758
+80  8.026363
+90  8.025573
+100 8.025071
+
+
+0   0.930865
+10  0.931629
+20  0.934088
+30  0.933920
+40  0.931705
+50  0.930804
+60  0.931075
+70  0.931063
+80  0.930870
+90  0.932690
+100 0.931894

@@ -1,0 +1,47 @@
+#! /bin/sh
+#XCC="$HOME/../yasugi/tmp/sparc-sol2.6/n3/bin/gcc -DSUN -DCT=lightweight"
+XCC="/tmp/local/bin/gcc -DCT=lightweight"
+COPT="-O2 $COPT"
+
+if [ $# -ge 1 ] && [ `which $1` ]
+then
+echo "option=$COPT"
+$1 -v
+$1 $COPT bintree0.c copygc0.c -DRAWC -o sol-bintree-c
+$1 $COPT bintree0.c copygc0.c -o sol-bintree-gcc
+$1 $COPT bintree.c nestfunc.c -o sol-bintree-lw
+LANG=C $XCC -v
+LANG=C $XCC $COPT bintree0.c copygc0.c -o sol-bintree-xcc # XC-cube lightweight
+$1 $COPT bintree-clos.c nestfunc.c -o sol-bintree-clos
+fi
+
+if [ $# -le 1 ]; then
+ m=1
+else
+ m=$2
+fi
+
+if [ $# -le 2 ]; then
+ echo "GC off"
+ gc=-1   # off
+else
+ echo "GC on"
+ gc=0    # on
+fi
+
+progs="./sol-bintree-c ./sol-bintree-gcc ./sol-bintree-lw ./sol-bintree-xcc ./sol-bintree-clos"
+
+arg1=200000
+arg2=300000
+arg3=$gc
+arg4=6400000
+
+for prog in $progs; do
+    i=0
+    echo $prog
+    while [ $i -lt $m ]; do
+	$prog $arg1 $arg2 $arg3 $arg4
+	i=`expr $i + 1`
+    done
+    echo ""
+done

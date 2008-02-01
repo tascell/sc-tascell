@@ -1,0 +1,6 @@
+#!/bin/sh
+DO="rm -v *.o *.fasl *.x86f *.fas *.lib"
+$DO
+(cd rule && $DO)
+(cd sample/tcell && $DO)
+(cd sample/tcell/socket && $DO)

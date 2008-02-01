@@ -1,0 +1,17 @@
+;;;; sc0t to sc0t (identity transformation for SC0 with type info)
+(require-ruleset :sc0-to-sc0)
+
+(define-ruleset sc0t-to-sc0t (sc0-to-sc0)
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; 5.Expressions
+(defrule expression sc0t-to-sc0t
+  ;; number, character, string-literal
+  ((#?(the ,texp ,exp))
+   (let* ((ex-tag (if (and (consp exp)
+                           (eq ~call (car exp)))
+                      (pop exp)))
+          (exp-ret0 (call-next-rule exp))
+          (exp-ret (aif ex-tag (cons it exp-ret0) exp-ret0)))
+     ~(the ,texp ,exp-ret))))

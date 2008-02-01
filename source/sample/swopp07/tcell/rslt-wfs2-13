@@ -1,0 +1,1102 @@
+Script started on Sun Jul 08 17:23:48 2007
+[m[m[m[Jwfs2% [K../evaluation
+machine: wfs2
+prog: fib
+exefile: ./fib-c
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+time: 0.889246
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+time: 0.887020
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+time: 0.888552
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+time: 0.887469
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+time: 0.886470
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+time: 0.888574
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+time: 0.888143
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+
+exefile: ./fib-gcc
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 3.893455
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 3.883184
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 3.857611
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 3.871119
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 3.870191
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+
+exefile: ./fib-lw
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.478317
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.480367
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.479842
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.482171
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.484162
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+
+exefile: ./fib-clos
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.708317
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.708555
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.710346
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.709247
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.708127
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+
+exefile: ./fib-xcc
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.177237
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.176848
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.176520
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.176819
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.176641
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+
+exefile: ./fib-xcccl
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.330802
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.330361
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.331699
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.332197
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 1.331393
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+
+prog: lu
+exefile: ./lu-c
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+3.043738
+time: 3.108374
+rslt 0
+3.043738
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+3.028789
+time: 3.060909
+rslt 0
+3.028789
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+3.028308
+time: 3.060544
+rslt 0
+3.028308
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+3.016445
+time: 3.048422
+rslt 0
+3.016445
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+3.036113
+time: 3.081113
+rslt 0
+3.036113
+treq 0 any
+
+exefile: ./lu-gcc
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.053945
+time: 3.119149
+rslt 0
+3.053945
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.047054
+time: 3.079497
+rslt 0
+3.047054
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.024876
+time: 3.055167
+rslt 0
+3.024876
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.044898
+time: 3.072525
+rslt 0
+3.044898
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.049305
+time: 3.084416
+rslt 0
+3.049305
+treq 0 any
+
+exefile: ./lu-lw
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.018705
+time: 3.082479
+rslt 0
+3.018705
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.012811
+time: 3.041918
+rslt 0
+3.012811
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.021101
+time: 3.057474
+rslt 0
+3.021101
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.023992
+time: 3.063574
+rslt 0
+3.023992
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.002878
+time: 3.034090
+rslt 0
+3.002878
+treq 0 any
+
+exefile: ./lu-clos
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.016774
+time: 3.081315
+rslt 0
+3.016774
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.004820
+time: 3.036787
+rslt 0
+3.004820
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+2.999479
+time: 3.029250
+rslt 0
+2.999479
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.017547
+time: 3.062173
+rslt 0
+3.017547
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.000357
+time: 3.031126
+rslt 0
+3.000357
+treq 0 any
+
+exefile: ./lu-xcc
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.030400
+time: 3.093385
+rslt 0
+3.030400
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.022202
+time: 3.064596
+rslt 0
+3.022202
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.041999
+time: 3.090270
+rslt 0
+3.041999
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.025334
+time: 3.064559
+rslt 0
+3.025334
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.038152
+time: 3.084681
+rslt 0
+3.038152
+treq 0 any
+
+exefile: ./lu-xcccl
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.022139
+time: 3.085141
+rslt 0
+3.022139
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.005852
+time: 3.046117
+rslt 0
+3.005852
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+2.999240
+time: 3.025480
+rslt 0
+2.999240
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.004232
+time: 3.047194
+rslt 0
+3.004232
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+3.004673
+time: 3.031539
+rslt 0
+3.004673
+treq 0 any
+
+prog: pen
+exefile: ./pen-c
+treq 0 any
+task 0 0 0 1
+
+time: 2.744178
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+time: 2.740213
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+time: 2.733311
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+time: 2.720167
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+time: 2.725438
+rslt 0
+ 2339
+treq 0 any
+
+exefile: ./pen-gcc
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 5.137639
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 5.149929
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 5.139162
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 5.149296
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 5.145292
+rslt 0
+ 2339
+treq 0 any
+
+exefile: ./pen-lw
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.903327
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.900122
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.901176
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.900971
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.899436
+rslt 0
+ 2339
+treq 0 any
+
+exefile: ./pen-clos
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 4.890570
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 4.891335
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 4.887925
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 4.887391
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 4.889572
+rslt 0
+ 2339
+treq 0 any
+
+exefile: ./pen-xcc
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.747612
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.748125
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.747828
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.748573
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.747924
+rslt 0
+ 2339
+treq 0 any
+
+exefile: ./pen-xcccl
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 4.656301
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 4.655806
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 4.657727
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 4.660243
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 4.657450
+rslt 0
+ 2339
+treq 0 any
+
+prog: cmp
+exefile: ./cmp-c
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+time: 7.778220
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+time: 7.777459
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+time: 7.774921
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+time: 7.777156
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+time: 7.778847
+rslt 0
+ 19999
+treq 0 any
+
+exefile: ./cmp-gcc
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 21.984259
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 22.029184
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 21.997790
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+task 0 0 0 0
+20000 -1
+time: 22.042005
+rslt 0
+ 1216920
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 22.052241
+rslt 0
+ 19999
+treq 0 any
+
+exefile: ./cmp-lw
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 8.759940
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 8.762902
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 8.773244
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 8.761412
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 8.763538
+rslt 0
+ 19999
+treq 0 any
+
+exefile: ./cmp-clos
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 11.100055
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 11.110800
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 11.094372
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 11.111954
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 11.110937
+rslt 0
+ 19999
+treq 0 any
+
+exefile: ./cmp-xcc
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 8.907452
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 8.868131
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 8.832948
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 8.788987
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 8.798122
+rslt 0
+ 19999
+treq 0 any
+
+exefile: ./cmp-xcccl
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 10.500333
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 10.657589
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 10.641799
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 10.609764
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 10.634253
+rslt 0
+ 19999
+treq 0 any
+
+[m[m[m[Jwfs2% [Keexit
+
+script done on Sun Jul 08 17:41:15 2007

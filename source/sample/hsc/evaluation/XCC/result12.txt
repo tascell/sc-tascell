@@ -1,0 +1,171 @@
+tosize=5242880, stack=655360, limit=32
+Bintree=20, maxins=160000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4190976)
+BREADTH_FIRST_GC start
+GC complete (4453952)
+BREADTH_FIRST_GC start
+GC complete (4651112)
+BREADTH_FIRST_GC start
+GC complete (4799112)
+BREADTH_FIRST_GC start
+GC complete (4910064)
+BREADTH_FIRST_GC start
+GC complete (4993136)
+BREADTH_FIRST_GC start
+GC complete (5055608)
+BREADTH_FIRST_GC start
+GC complete (5102472)
+total=0.673564 gc=0.356896 other=0.316668
+tosize=5242880, stack=655360, limit=32
+Bintree=20, maxins=160000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4190976)
+BREADTH_FIRST_GC start
+GC complete (4453952)
+BREADTH_FIRST_GC start
+GC complete (4651112)
+BREADTH_FIRST_GC start
+GC complete (4799112)
+BREADTH_FIRST_GC start
+GC complete (4910064)
+BREADTH_FIRST_GC start
+GC complete (4993136)
+BREADTH_FIRST_GC start
+GC complete (5055608)
+BREADTH_FIRST_GC start
+GC complete (5102472)
+total=0.660789 gc=0.354487 other=0.306302
+tosize=5242880, stack=655360, limit=32
+Bintree=20, maxins=160000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4190976)
+BREADTH_FIRST_GC start
+GC complete (4453952)
+BREADTH_FIRST_GC start
+GC complete (4651112)
+BREADTH_FIRST_GC start
+GC complete (4799112)
+BREADTH_FIRST_GC start
+GC complete (4910064)
+BREADTH_FIRST_GC start
+GC complete (4993136)
+BREADTH_FIRST_GC start
+GC complete (5055608)
+BREADTH_FIRST_GC start
+GC complete (5102472)
+total=0.662320 gc=0.357531 other=0.304789
+tosize=5242880, stack=655360, limit=32
+Bintree=20, maxins=160000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4190976)
+BREADTH_FIRST_GC start
+GC complete (4453952)
+BREADTH_FIRST_GC start
+GC complete (4651112)
+BREADTH_FIRST_GC start
+GC complete (4799112)
+BREADTH_FIRST_GC start
+GC complete (4910064)
+BREADTH_FIRST_GC start
+GC complete (4993136)
+BREADTH_FIRST_GC start
+GC complete (5055608)
+BREADTH_FIRST_GC start
+GC complete (5102472)
+total=0.710561 gc=0.376499 other=0.334062
+tosize=5242880, stack=655360, limit=32
+Bintree=20, maxins=160000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4190976)
+BREADTH_FIRST_GC start
+GC complete (4453952)
+BREADTH_FIRST_GC start
+GC complete (4651112)
+BREADTH_FIRST_GC start
+GC complete (4799112)
+BREADTH_FIRST_GC start
+GC complete (4910064)
+BREADTH_FIRST_GC start
+GC complete (4993136)
+BREADTH_FIRST_GC start
+GC complete (5055608)
+BREADTH_FIRST_GC start
+GC complete (5102472)
+total=0.709338 gc=0.378331 other=0.331007
+tosize=5242880, stack=655360, limit=32
+Bintree=20, maxins=160000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4190976)
+BREADTH_FIRST_GC start
+GC complete (4453952)
+BREADTH_FIRST_GC start
+GC complete (4651112)
+BREADTH_FIRST_GC start
+GC complete (4799112)
+BREADTH_FIRST_GC start
+GC complete (4910064)
+BREADTH_FIRST_GC start
+GC complete (4993136)
+BREADTH_FIRST_GC start
+GC complete (5055608)
+BREADTH_FIRST_GC start
+GC complete (5102472)
+total=0.664636 gc=0.356688 other=0.307948
+tosize=5242880, stack=655360, limit=32
+Bintree=20, maxins=160000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4190976)
+BREADTH_FIRST_GC start
+GC complete (4453952)
+BREADTH_FIRST_GC start
+GC complete (4651112)
+BREADTH_FIRST_GC start
+GC complete (4799112)
+BREADTH_FIRST_GC start
+GC complete (4910064)
+BREADTH_FIRST_GC start
+GC complete (4993136)
+BREADTH_FIRST_GC start
+GC complete (5055608)
+BREADTH_FIRST_GC start
+GC complete (5102472)
+total=0.661326 gc=0.355068 other=0.306258
+tosize=5242880, stack=655360, limit=32
+Bintree=20, maxins=160000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4190976)
+BREADTH_FIRST_GC start
+GC complete (4453952)
+BREADTH_FIRST_GC start
+GC complete (4651112)
+BREADTH_FIRST_GC start
+GC complete (4799112)
+BREADTH_FIRST_GC start
+GC complete (4910064)
+BREADTH_FIRST_GC start
+GC complete (4993136)
+BREADTH_FIRST_GC start
+GC complete (5055608)
+BREADTH_FIRST_GC start
+GC complete (5102472)
+total=0.664417 gc=0.355023 other=0.309394
+tosize=5242880, stack=655360, limit=32
+Bintree=20, maxins=160000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4190976)
+BREADTH_FIRST_GC start
+GC complete (4453952)
+BREADTH_FIRST_GC start
+GC complete (4651112)
+BREADTH_FIRST_GC start
+GC complete (4799112)
+BREADTH_FIRST_GC start
+GC complete (4910064)
+BREADTH_FIRST_GC start
+GC complete (4993136)
+BREADTH_FIRST_GC start
+GC complete (5055608)
+BREADTH_FIRST_GC start
+GC complete (5102472)
+total=0.668614 gc=0.357407 other=0.311207

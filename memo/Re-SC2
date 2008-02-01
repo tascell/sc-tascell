@@ -1,0 +1,159 @@
+> ちなみに、
+> 
+> (def (struct s)
+>   (x int)
+>   (y int)
+>   (d double))
+> 
+> としていないのは、C++に拡張したときのことを考えてですが、
+> とりあえずは考えなくてもよいかもしれません。
+
+思いきってdefを全部取っても短くなってよいかもしれません。
+blockをletにしたら parseはできるはずです。
+
+あと、parameter に register がついたときのことを考慮してみました。
+
+あと、ref/derefを addr/mrefに変えてみました。
+
+八杉
+
+----------------------------------------
+
+int f (int x) { return x; }
+((f x) (fn int int) (return x))
+
+int x;
+(x int)
+
+int x, y;
+(x int)
+(y int)
+
+extern int x;
+(x int)
+
+static int x;
+(static x int)
+
+int x = 0;
+(x int 0)
+
+int f (int x) {
+  int a;
+  int b = x + 1;
+  static int c = 0;
+  a = b * 2;
+  return a + c++;
+}
+((f x) (fn int int)
+  (let ((a int)
+        (b int (+ x 1))
+        (static c int 0))
+    (= a (* b 2))
+    (return (+ a (inc c)))))
+
+
+struct A { int x; };
+void f(){
+  struct A;
+  struct B { struct A *p; } bb = { 0 };
+  struct A { struct B *p; } aa = { &bb };
+  bb.p = &aa;
+  aa = *bb.p;
+  g(aa,bb);
+}
+((struct A) (x int))
+((f) (fn void)
+  (let ((decl (struct A))
+        ((struct B) (p (addr (struct A))))
+        (bb (struct B) (0))
+        ((struct A) (p (addr (struct B))))
+        (aa (struct A) ((addr bb))))
+    (= (part bb p) (addr aa))
+    (= aa (mref (part bb p)))
+    (g aa bb)))
+
+int f (int);
+(decl f (fn int int))
+
+void f(){}
+((f) (fn void))
+
+extern int f (int);
+(extern f (fn int int))
+
+extern int f (int x);
+(extern-decl (f x) (fn int int))
+
+extern void f (int x){}
+// = void f (int x){}
+(extern (f x) (fn void int))
+// = ((f x) (fn void int))
+
+struct s;
+(decl (struct s))
+
+struct s {
+  int x, y;
+  double d;
+};
+((struct s)
+   (x int)
+   (y int)
+   (d double))
+
+struct s {
+  int x, y;
+  double d;
+} data;
+((struct s)
+   (x int)
+   (y int)
+   (d double))
+(data (struct s))
+
+typedef struct {
+  int x, y;
+  double d;
+} xyd_t, *xyd_ptr_t;
+(deftype xyd-t struct (x int) (y int) (d double))
+(deftype xyd-ptr-t (addr xyd-t))
+
+int a[10];
+(a (array int 10))
+
+int a[5][2];
+(a (array int 5 2))
+// = (a (array (array int 2) 5))
+
+int g(){ return a[x][y]; }
+((g) (fn int) (return (aref a x y)))
+// = ((g) (fn int) (return (aref (aref a x) y)))
+
+int a1[]= {1, 2, 3};
+(a (array int) (1 2 3))
+
+void *(*gg(void *(*ff) (int, int))) (int, int) {
+  return ff;
+}
+((gg ff) (fn (addr (fn (addr void) int int))
+             (addr (fn (addr void) int int)))
+  (return ff))
+
+typedef void *(*gg_t(void *(*) (int, int))) (int, int) ;
+(deftype gg-t (fn (addr (fn (addr void) int int))
+                  (addr (fn (addr void) int int))))
+
+enum { C0, C1 } qq1, qq2;
+(deftype c01 enum C0 C1)
+(qq1 c01)
+(qq2 c01)
+
+enum abc { A, B, C };
+((enum abc) A B C)
+
+int f(register int x){ return x; }
+((f x) (fn int int) (register x)
+  (return x))
+
+

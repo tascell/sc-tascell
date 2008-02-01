@@ -1,0 +1,171 @@
+;;;; sc0 => sc0
+;;;; 関数内の全ての識別子名が異なるように名前を変換
+:lisp-begin
+(defpackage "RENAME"
+  (:use "SCT-USER" "CL" "SC-MISC" "SC-UTIL"))
+(in-package "RENAME")
+  
+(defvar *id-alist* nil)      ; list of (<id> . <block-level>)
+(defvar *replace-alist* nil) ; list of (<oldid> . <newid>)
+(defvar *used-id-list* nil)  ; 使用済識別子(string)のリスト
+			     ; 新しい識別子名を作ったときに追加
+(defvar *block-id* 0)        ; 現在のブロックID
+(defvar *next-block-id* 0)   ; 次に使用するブロックID-1
+
+(scr:require "RENAME-DEFS")
+:lisp-end
+
+(Ren0 (,@declaration-list) )
+-> (let ((*id-alist* *id-alist*)
+         (*replace-alist* *replace-alist*)
+         (*used-id-list* (get-all-identifier declaration-list))
+         (*block-id* 0)
+         (*next-block-id* 0))	      
+     (mapcar #'Ren1 declaration-list))
+
+;;;;;; declaration ;;;;;;
+;variable (length of init is probably 1)
+(Ren1 (,scs[SCS] ,id[ID] ,texp ,@init) )
+-> (let ((id-repl (bind-id id)))
+     `(,scs ,id-repl ,texp ,@(repl-id init)))
+
+;function
+(Ren1 (,scs[SCS] (,@id-list[ID]) (fn ,@texp-list) ,@body) )
+(Ren1 (,scs[SCS] (,@id-list[ID]) (lightweight ,@texp-list) ,@body) )
+-> (let ((funcid-repl (bind-id (car id-list)))
+	 (fntag (car (third x))))
+     (begin-function
+      (let* ((arg-list-repl (bind-id (cdr id-list)))
+	     (body-repl (Renb0 body)))
+	`(,scs (,funcid-repl ,@arg-list-repl) (,fntag ,@texp-list)
+	  ,@body-repl))))
+
+;struct, union
+(Ren1 (,dd[DEF-DECL] (,soru[S-OR-U] ,id[ID]) ,@sdeclist) )
+-> (let ((id-repl (bind-id id)))
+     `(,dd (,soru ,id-repl) ,@sdeclist))
+
+;enum
+(Ren1 (def (enum ,id[ID]) ,@enum-list) )
+-> (let ((id-repl (bind-id id))
+	 (enum-list-repl
+	  (mapcar #'(lambda (en)
+		      (if (listp en)
+			  (cons (bind-id (car en)) (cdr en))
+			(bind-id en)))
+		  enum-list)))
+     `(def (enum ,id-repl) ,@enum-list-repl))
+
+;deftype (struct)
+(Ren1 (deftype ,id[ID] struct ,@sdecllist) )
+-> (let ((id-repl (bind-id id)))
+     `(deftype ,id-repl struct ,@sdecllist))
+
+;deftype (enum)
+(Ren1 (deftype ,id[ID] enum ,@enum-list) )
+-> (let ((id-repl (bind-id id))
+	 (enum-list-repl
+	  (mapcar #'(lambda (en)
+		      (if (listp en)
+			  (cons (bind-id (car en)) (cdr en))
+			(bind-id en)))
+		  enum-list)))
+     `(deftype ,id-repl enum ,@enum-list-repl))
+
+;deftype
+(Ren1 (deftype ,id[ID] ,texp) )
+-> (let ((id-repl (bind-id id)))
+     `(deftype ,id-repl ,texp))
+
+;c-exp
+(Ren1 (c-exp ,@rem))
+-> `(c-exp ,@rem)
+
+(Ren1 ,otherwise)
+-> nil
+
+;;;;;;; body +α ;;;;;;
+; function-attribute & register-decl
+(Renb0 (:attr ,atr   ,@body) )
+-> `(:attr ,atr ,@(Renb0 body))
+(Renb0 ((register ,@regarg)   ,@body) )
+-> `((register ,@(repl-id regarg)) ,@(Renb0 body))
+(Renb0 (,@body))
+-> (mapcar #'Renb body)
+
+;begin
+(Renb (begin ,@body) )
+-> (inc-block-level
+    `(begin ,@(Renb0 body)))
+
+;label
+(Renb (label ,id ,stat) )
+-> `(label ,id ,(Renb stat))
+
+;case
+(Renb (case ,exp) )
+-> `(case ,(repl-id exp))
+
+;default
+(Renb (default) )
+-> '(default) 
+
+;if
+(Renb (if ,exp ,stat1 {,stat2}) )
+-> (if (pattern-variable-p 'stat2)
+       `(if ,(repl-id exp) ,(Renb stat1) ,(Renb stat2))
+     `(if ,(repl-id exp) ,(Renb stat1)))
+
+;switch
+(Renb (switch ,exp ,@body) )
+-> `(switch ,(repl-id exp)
+	    ,@(inc-block-level (Renb0 body)))
+
+;do-while
+(Renb (do-while ,exp ,@body) )
+-> `(do-while ,(repl-id exp)
+	      ,@(inc-block-level (Renb0 body)))
+
+;goto, continue, break
+(Renb (goto ,id) )
+(Renb (continue) )
+(Renb (break) )
+-> x
+
+;return
+(Renb (return {,exp}) )
+-> (if (pattern-variable-p 'exp)
+       `(return ,(repl-id exp))
+     '(return) )
+
+;;; <- マルチスレッド用プリミティブ
+(Renb (thread-create ,decl-list ,@body) )
+-> (inc-block-level
+    (let* ((new-decl-list (mapcar #'Ren1 decl-list))
+	   (new-body (Renb0 body)))
+      `(thread-create ,new-decl-list ,@new-body)))
+
+(Renb (thread-suspend ,id[ID] ,@body) )
+-> (inc-block-level
+    (let* ((repl-id (bind-id id))
+	   (new-body (Renb0 body)))
+      `(thread-suspend ,repl-id ,@new-body)))
+
+(Renb (thread-resume ,exp) )
+-> `(thread-resume ,(repl-id exp) )
+
+;;; マルチスレッド用プリミティブ ->
+
+; null-statement
+(Renb () )
+-> '()
+
+; c-expression
+(Renb (c-exp ,str ,@exp-list) )
+-> `(c-exp ,str ,@(mapcar #'repl-id exp-list))
+
+; expression-statement or declaration
+(Renb ,otherwise)
+-> (aif (Ren1 otherwise)
+	it
+	(repl-id otherwise))

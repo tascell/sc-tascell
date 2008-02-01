@@ -1,0 +1,54 @@
+C <--> SC 間の識別子変換について
+
+* 共通事項
+SCの '-' は '_' になる。
+SCの '_' は '_' のまま。
+(どちらで書いてもよい)
+
+* readtable-case をサポートしていないLisp処理系( kcl, gcl, ecl ... )
+アルファベットは、symbol の print name に関係なく、すべて小文字になる。
+大文字を使いたいときは、symbolの途中に'@'を置くと、
+それ以降の文字は大文字になる。
+もう一度'@'を置くと、小文字に戻る。以降'@'を置くたびに切り替わる。
+
+(例)
+ SC             print-name(in Lisp)     C
+-----------------------------------------------
+abc             "ABC"                   abc
+|Abc|           "Abc"                   abc
+NULL            "NULL"                  null
+@NULL           "@NULL"                 NULL
+@null           "@NULL"                 NULL
+FreeBSD         "FREEBSD"               freebsd
+@F@ree@BSD      "@F@REE@BSD"            FreeBSD
+@f@ree@bsd      "@F@REE@BSD"            FreeBSD
+
+
+* readtable-case をサポートしているLisp処理系( cmucl, clisp, ... )
+SCファイル、及び規則(rule)ファイルは、
+(setf (readtable-case <readtable>) :invert) をした readtable で読み込む。
+（これにより、SC-0のキーワードは、
+  例えば "def" と小文字で書かなければならない）
+symbol の print name の大文字小文字を逆転したものが、Cの識別子になる。
+symbol中に'@'が含まれてもいいが、無視される。
+|...|で囲んだ symbol は見た目とCの大文字小文字が逆転するので注意。
+
+(例)
+ SC             print-name(in Lisp)     C
+-----------------------------------------------
+abc             "ABC"                   abc
+|Abc|           "Abc"                   aBC
+NULL            "null"                  NULL
+@NULL           "@null"                 NULL
+@null           "@NULL"                 null
+FreeBSD         "fREEbsd"               FreeBSD
+@F@ree@BSD      "@f@REE@bsd"            FreeBSD
+@f@ree@bsd      "@F@REE@BSD"            freebsd
+
+
+※ 今後は、後者の処理系に移行する方針
+※ 後者の処理系では、出力時にもreadtableを切替えておく必要がある。
+(基本的に読み込みには read-sc-file, 書き込みには write-sc-file
+ を使うこと)
+※ http://www.lispworks.com/documentation/HyperSpec/Body/f_rdtabl.htm
+   も参照のこと．

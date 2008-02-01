@@ -1,0 +1,2666 @@
+Script started on 2007Ç¯07·î05Æü 10»ş48Ê¬16ÉÃ
+sh-2.05b$ ./fib-c
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.427106
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.423956
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.443321
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.424677
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.427160
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.431355
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.403101
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.428723
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.424559
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+
+sh-2.05b$ ./fib-c[Klw[K[Kgcc
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.586568
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.576121
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.570563
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.591082
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.567403
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.569728
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.571268
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.569043
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.567982
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+
+sh-2.05b$ ./fib-gcc[K[K[Klw
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.689242
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.681540
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.682006
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.682446
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.681407
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.687684
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.686774
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.683050
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.682656
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+
+sh-2.05b$ ./fib-lw[K[Kclos
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.765394
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.757686
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.759640
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.758585
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.760646
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.758544
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.771862
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.758372
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.775417
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+
+sh-2.05b$ ./fib-clos[K[K[K[Kl[Kxcc
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.540471
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.511916
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.533588
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.532376
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.532563
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.533328
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.535353
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.520320
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.538413
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+
+sh-2.05b$ ./fib-xcccl
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.537385
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.535128
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.536854
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.535857
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.535628
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.554267
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.539633
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.551852
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.551852
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+
+sh-2.05b$ ./fib-xcccl[K[K[K[K[Kicc-c
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.401875
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.400616
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.401221
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.394895
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.398073
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.401044
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.400505
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.405322
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.399884
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+
+sh-2.05b$ ./fib-icc-c[Klw
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.659570
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.656119
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.626096
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.656442
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.637904
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.616428
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.635603
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.608938
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.663315
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+
+sh-2.05b$ ./fib-icc-lw[K[Kclos
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.750893
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.753346
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.751115
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.749330
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.748810
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.749265
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.744926
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.748874
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+task 0 0 0 0
+37
+receive 37
+start fib(37)
+dvbl
+time: 0.752660
+rslt 0
+send fib(37)=24157817
+ 24157817
+treq 0 any
+
+sh-2.05b$ ./fib-icc-clos[K[K[K[K[K[K[K[K[K[K[K[Klu-c
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.047035
+time: 1.060893
+rslt 0
+1.047035
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.044557
+time: 1.058464
+rslt 0
+1.044557
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.026844
+time: 1.040744
+rslt 0
+1.026844
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.033881
+time: 1.047726
+rslt 0
+1.033881
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.034900
+time: 1.048725
+rslt 0
+1.034900
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.042642
+time: 1.056545
+rslt 0
+1.042642
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.046440
+time: 1.060251
+rslt 0
+1.046440
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.056308
+time: 1.070192
+rslt 0
+1.056308
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.057446
+time: 1.071334
+rslt 0
+1.057446
+treq 0 any
+
+sh-2.05b$ ./lu-c[Kgcc
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.037086
+time: 1.051055
+rslt 0
+1.037086
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.040086
+time: 1.054032
+rslt 0
+1.040086
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.033448
+time: 1.047258
+rslt 0
+1.033448
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.037610
+time: 1.051436
+rslt 0
+1.037610
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.044329
+time: 1.059345
+rslt 0
+1.044329
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.038660
+time: 1.052536
+rslt 0
+1.038660
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.041482
+time: 1.056763
+rslt 0
+1.041482
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.043534
+time: 1.057459
+rslt 0
+1.043534
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.041247
+time: 1.056604
+rslt 0
+1.041247
+treq 0 any
+
+sh-2.05b$ ./lu-gcc[K[K[Klw
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.037350
+time: 1.051235
+rslt 0
+1.037350
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.040956
+time: 1.054829
+rslt 0
+1.040956
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.025836
+time: 1.039676
+rslt 0
+1.025836
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.026116
+time: 1.039960
+rslt 0
+1.026116
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.026604
+time: 1.040465
+rslt 0
+1.026604
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.027569
+time: 1.041391
+rslt 0
+1.027569
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.036237
+time: 1.050124
+rslt 0
+1.036237
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.040251
+time: 1.054099
+rslt 0
+1.040251
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.038901
+time: 1.052797
+rslt 0
+1.038901
+treq 0 any
+
+sh-2.05b$ ./lu-lw[K[Kclos
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.099507
+time: 1.113499
+rslt 0
+1.099507
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.036522
+time: 1.050491
+rslt 0
+1.036522
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.040251
+time: 1.054225
+rslt 0
+1.040251
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.038693
+time: 1.052510
+rslt 0
+1.038693
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.041899
+time: 1.055711
+rslt 0
+1.041899
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.045305
+time: 1.059187
+rslt 0
+1.045305
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.042931
+time: 1.056903
+rslt 0
+1.042931
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.049098
+time: 1.063041
+rslt 0
+1.049098
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.046862
+time: 1.060833
+rslt 0
+1.046862
+treq 0 any
+
+sh-2.05b$ ./lu-clos[K[K[K[Kxcc
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.039002
+time: 1.053122
+rslt 0
+1.039002
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.042532
+time: 1.056426
+rslt 0
+1.042532
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.032095
+time: 1.045984
+rslt 0
+1.032095
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.035255
+time: 1.049236
+rslt 0
+1.035255
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.036923
+time: 1.050794
+rslt 0
+1.036923
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.034822
+time: 1.048672
+rslt 0
+1.034822
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.037926
+time: 1.051714
+rslt 0
+1.037926
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.037668
+time: 1.051802
+rslt 0
+1.037668
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.038087
+time: 1.051991
+rslt 0
+1.038087
+treq 0 any
+
+sh-2.05b$ ./lu-xcccl
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.040926
+time: 1.054832
+rslt 0
+1.040926
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.044485
+time: 1.058336
+rslt 0
+1.044485
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.035930
+time: 1.049882
+rslt 0
+1.035930
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.040869
+time: 1.054688
+rslt 0
+1.040869
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.024372
+time: 1.038413
+rslt 0
+1.024372
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.037727
+time: 1.051603
+rslt 0
+1.037727
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.038102
+time: 1.052063
+rslt 0
+1.038102
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.036034
+time: 1.049991
+rslt 0
+1.036034
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+1.041306
+time: 1.055167
+rslt 0
+1.041306
+treq 0 any
+
+sh-2.05b$ ./lu-xcccl[K[K[K[K[Kicc-c
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.860706
+time: 0.874636
+rslt 0
+0.860706
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.861491
+time: 0.875486
+rslt 0
+0.861491
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.868350
+time: 0.882257
+rslt 0
+0.868350
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.855262
+time: 0.869078
+rslt 0
+0.855262
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.855654
+time: 0.869486
+rslt 0
+0.855654
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.857217
+time: 0.871167
+rslt 0
+0.857217
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.851323
+time: 0.865149
+rslt 0
+0.851323
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.863609
+time: 0.877596
+rslt 0
+0.863609
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.864207
+time: 0.878111
+rslt 0
+0.864207
+treq 0 any
+
+sh-2.05b$ ./lu-icc-c[Klw
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.762238
+time: 0.776226
+rslt 0
+0.762238
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.756168
+time: 0.770200
+rslt 0
+0.756168
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.755863
+time: 0.770009
+rslt 0
+0.755863
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.759066
+time: 0.772933
+rslt 0
+0.759066
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.760170
+time: 0.774297
+rslt 0
+0.760170
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.758546
+time: 0.772380
+rslt 0
+0.758546
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.765921
+time: 0.779712
+rslt 0
+0.765921
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.762558
+time: 0.776439
+rslt 0
+0.762558
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.761485
+time: 0.775329
+rslt 0
+0.761485
+treq 0 any
+
+sh-2.05b$ ./lu-icc-lw[K[Kclos
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.761304
+time: 0.775310
+rslt 0
+0.761304
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.757400
+time: 0.771292
+rslt 0
+0.757400
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.759880
+time: 0.773810
+rslt 0
+0.759880
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.761297
+time: 0.775440
+rslt 0
+0.761297
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.762955
+time: 0.776824
+rslt 0
+0.762955
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.763353
+time: 0.777172
+rslt 0
+0.763353
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.779519
+time: 0.793336
+rslt 0
+0.779519
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.759431
+time: 0.773316
+rslt 0
+0.759431
+treq 0 any
+task 0 0 0 0
+0 1000 3 0
+start 0
+dvbl
+0.771906
+time: 0.785871
+rslt 0
+0.771906
+treq 0 any
+
+sh-2.05b$ ./lu-icc-clos[2Plwclossh-2.05b$ [K./lu-icc-clos[K[K[K[K[K[K[K[K[K[K[Kpen-c
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.120372
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.114031
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.117682
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.120092
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.109754
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.111564
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.119090
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.130630
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.131396
+rslt 0
+ 2339
+treq 0 any
+
+sh-2.05b$ ./pen-c[Kgcc
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.797809
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.753443
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.759803
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.753169
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.798696
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.855513
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.841544
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.831916
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.832490
+rslt 0
+ 2339
+treq 0 any
+
+sh-2.05b$ ./pen-gcc[K[K[Klw
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.549819
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.554535
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.284962
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.320823
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.241554
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.476998
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.427211
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.374998
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.389902
+rslt 0
+ 2339
+treq 0 any
+
+sh-2.05b$ ./pen-lw
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.123167
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.226273
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.150739
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.200737
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.217685
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.206884
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.553862
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.450006
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.364795
+rslt 0
+ 2339
+treq 0 any
+
+sh-2.05b$ ./pen-lw[K[Kclos
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.651161
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.875716
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.815785
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.991154
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 3.047918
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.874641
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 3.015895
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 3.014796
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.945884
+rslt 0
+ 2339
+treq 0 any
+
+sh-2.05b$ ./pen-clos[K[K[K[Kxcc
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.350486
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.504771
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.337635
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.600318
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.565617
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.611439
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.556163
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.531351
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.678591
+rslt 0
+ 2339
+treq 0 any
+
+sh-2.05b$ ./pen-xcc[K[K[Kicc-c
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.622533
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.627703
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.662440
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.614513
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.799378
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.589367
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.481092
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.495252
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.602389
+rslt 0
+ 2339
+treq 0 any
+
+sh-2.05b$ ./pen-icc-c[Klw
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.043278
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.938911
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.052105
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.302749
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.166973
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.268809
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.308853
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.244241
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.207411
+rslt 0
+ 2339
+treq 0 any
+
+sh-2.05b$ ./pen-icc-lw[K[Kclos
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.437294
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.396715
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 2.741297
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.892608
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.568031
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.555681
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.572854
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.558388
+rslt 0
+ 2339
+treq 0 any
+task 0 0 0 1
+
+dvbl
+time: 1.559725
+rslt 0
+ 2339
+treq 0 any
+
+sh-2.05b$ ./pen-icc-clos[K[K[K[K[K[K[K[K[K[K[K[Kcmp-c
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 2.785568
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 2.801243
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 2.770045
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 2.798402
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 2.774557
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 2.777883
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 2.785127
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 2.788105
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 2.786796
+rslt 0
+ 19999
+treq 0 any
+
+sh-2.05b$ ./cmp-c[Kgcc
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.811954
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.824266
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.836030
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.826333
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.826490
+rslt 0
+ 19999
+treq 0 any
+
+sh-2.05b$ ./cmp-gcc
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.840214
+rslt 0
+ 19999
+treq 0 any
+
+sh-2.05b$ ./cmp-gcc[K[K[Klw
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.930204
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.934603
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.928306
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.929486
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.927067
+rslt 0
+ 19999
+treq 0 any
+
+sh-2.05b$ ./cmp-lw[K[Kclos
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 4.947610
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 4.932411
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 4.942909
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 4.932288
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 4.928861
+rslt 0
+ 19999
+treq 0 any
+
+sh-2.05b$ ./cmp-clos[K[K[K[Kxcc
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.247849
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.232130
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.257165
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.231520
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.230689
+rslt 0
+ 19999
+treq 0 any
+
+sh-2.05b$ ./cmp-xcccl
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.150935
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.166322
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.155169
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.158948
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.157313
+rslt 0
+ 19999
+treq 0 any
+
+sh-2.05b$ ./cmp-xcccl
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.132787
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.142985
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.135923
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.136929
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.150409
+rslt 0
+ 19999
+treq 0 any
+
+sh-2.05b$ ./cmp-xcccl[K[K[K[K[Kicc-c
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.308610
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.337307
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.317602
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.292562
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 3.327355
+rslt 0
+ 19999
+treq 0 any
+
+sh-2.05b$ ./cmp-icc-c[Kxcc
+sh: ./cmp-icc-xcc: ¤½¤Î¤è¤¦¤Ê¥Õ¥¡¥¤¥ë¤ä¥Ç¥£¥ì¥¯¥È¥ê¤Ï¤¢¤ê¤Ş¤»¤ó
+sh-2.05b$ ./cmp-icc-xcc[K[K[Klw
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 4.336291
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 4.337484
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 4.334637
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 4.346169
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 4.349030
+rslt 0
+ 19999
+treq 0 any
+
+sh-2.05b$ ./cmp-icc-lw[K[Kclos
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 5.265921
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 5.287773
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 5.286167
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 5.259899
+rslt 0
+ 19999
+treq 0 any
+task 0 0 0 0
+20000 -1
+start 20000 -1
+dvbl
+time: 5.266520
+rslt 0
+ 19999
+treq 0 any
+
+sh-2.05b$ exit
+
+Script done on 2007Ç¯07·î05Æü 11»ş52Ê¬05ÉÃ

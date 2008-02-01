@@ -1,0 +1,44 @@
+;;;; sc0 with-type-information => sc0
+
+;;; (the <type-expression> <expression>) を <expression> に戻す。
+;;; call を消す。
+
+(defpackage "UNTYPE"
+  (:export :begin-with-$ :remove-$)
+  (:use "CL"))
+
+(in-package "UNTYPE")
+(defun begin-with-$ (sym)
+  (and (symbolp sym)
+       (let ((symname (symbol-name sym)))
+         (eq #\$ (aref symname 0)))))
+
+(defun remove-$ (sym)
+  (rule:make-id 
+   (rule:identifier0 (make-symbol (remove #\$ (symbol-name sym) :end 1))
+                     :sc2c)))
+
+(in-package "RULE")
+
+(define-ruleset untype ()
+  (entry 'sc-program)
+  )
+
+(defrule sc-program untype
+  ((#?,decl-list)
+   (iter decl-list))
+  )
+
+(defrule iter untype
+  ((#?(the ,texp ,exp))
+   (iter exp))
+  ((#?(call ,@exp-list))
+   (mapcar #'iter exp-list))
+  ((#?(struct ,$id[#'untype:begin-with-$])
+    #?(union  ,$id[#'untype:begin-with-$])
+    #?(enum   ,$id[#'untype:begin-with-$]))
+   (untype:remove-$ $id))
+  ((#?(,@lst))
+   (mapcar #'iter lst))
+  (otherwise
+   x))

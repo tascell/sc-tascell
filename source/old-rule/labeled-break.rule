@@ -1,0 +1,50 @@
+;;;;; Javaとかで使うlabelつきbreak,continueをSCでも使用できるようにする．
+;;; *label-list* = list of (<do-while等についたラベル>
+;;;                         <continue用のgoto先ラベル>
+;;;                         <break用のgoto先ラベル>) 
+
+:lisp-begin
+(defpackage "LABELED-BREAK"
+  (:nicknames "LBREAK")
+  (:use "SCT-USER" "CL"))
+(in-package "LABELED-BREAK")
+
+(defvar *used-identifier*)
+(defvar *label-list*)
+
+:lisp-end
+
+(LBC0 (,@declaration-list))
+-> (let ((*used-identifier* (get-all-identifier x))
+         (*label-list* nil))
+     (LBC1 declaration-list))
+
+(LBC1 (label ,id[ID] (do-while ,exp ,@body)))
+(LBC1 (label ,id[ID] (switch ,exp ,@body)))
+-> (let* ((ids (par-identifier id))
+          (*label-list*
+           (cons `(,id
+                   ,(generate-id ids *used-identifier*)
+                   ,(generate-id ids *used-identifier*))
+                 *label-list*)))
+     `(begin (label ,id
+              (,(car (third x)) ,exp ,@(LBC1 body)
+               (label ,(second (first *label-list*)) nil)))
+       (label ,(third (first *label-list*)) nil)))
+(LBC1 (continue ,id[ID]))
+(LBC1 (break ,id[ID]))
+-> (let ((label-tuple 
+          (car (member (par-identifier id) *label-list*
+                       :key #'(lambda (x) (par-identifier (first x)))
+                       :test #'string=))))
+     (unless label-tuple
+       (error "label ~s is undefined." id))
+     `(goto ,(funcall
+              (case (car x)
+                ((continue) #'second)
+                ((break) #'third))
+              label-tuple)))
+(LBC1 (,@list))
+-> (mapcar #'LBC1 list)
+(LBC1 ,otherwise)
+-> otherwise

@@ -1,0 +1,246 @@
+Script started on 2007年07月04日 21時15分55秒
+sh-2.05b$ MOPT="-march=pentium4m" make
+/tmp/local/bin/gcc -O2 -w -march=pentium4m  -lpthread worker2.c fib-c.c sendrecv.c -o fib-c
+/tmp/local/bin/gcc -O2 -w -march=pentium4m  -lpthread worker2.c lu-c.c sendrecv.c -o lu-c
+/tmp/local/bin/gcc -O2 -w -march=pentium4m  -lpthread worker2.c cmp-c.c sendrecv.c -o cmp-c
+/tmp/local/bin/gcc -O2 -w -march=pentium4m  -lpthread worker2.c pen-c.c sendrecv.c -o pen-c
+/tmp/local/bin/gcc -O2 -w -march=pentium4m  -lpthread worker2.c fib-gcc.c sendrecv.c -o fib-gcc	
+/tmp/local/bin/gcc -O2 -w -march=pentium4m  -lpthread worker2.c lu-gcc.c sendrecv.c -o lu-gcc
+/tmp/local/bin/gcc -O2 -w -march=pentium4m  -lpthread worker2.c cmp-gcc.c sendrecv.c -o cmp-gcc
+/tmp/local/bin/gcc -O2 -w -march=pentium4m  -lpthread worker2.c pen-gcc.c sendrecv.c -o pen-gcc
+/tmp/local/bin/gcc -O2 -w -march=pentium4m  -lpthread worker2-lw.c fib-lw.c nestfunc.c sendrecv.c -o fib-lw
+/tmp/local/bin/gcc -O2 -w -march=pentium4m  -lpthread worker2-lw.c lu-lw.c nestfunc.c sendrecv.c -o lu-lw
+/tmp/local/bin/gcc -O2 -w -march=pentium4m  -lpthread worker2-lw.c cmp-lw.c nestfunc.c sendrecv.c -o cmp-lw
+/tmp/local/bin/gcc -O2 -w -march=pentium4m  -lpthread worker2-lw.c pen-lw.c nestfunc.c sendrecv.c -o pen-lw
+/tmp/local/bin/gcc -O2 -w -march=pentium4m  -lpthread worker2-clos.c fib-clos.c nestfunc.c sendrecv.c -o fib-clos
+/tmp/local/bin/gcc -O2 -w -march=pentium4m  -lpthread worker2-clos.c lu-clos.c nestfunc.c sendrecv.c -o lu-clos
+/tmp/local/bin/gcc -O2 -w -march=pentium4m  -lpthread worker2-clos.c cmp-clos.c nestfunc.c sendrecv.c -o cmp-clos
+/tmp/local/bin/gcc -O2 -w -march=pentium4m  -lpthread worker2-clos.c pen-clos.c nestfunc.c sendrecv.c -o pen-clos
+/tmp/local/bin/gcc -O2 -w -march=pentium4m -DCT=lightweight -lpthread worker2.c fib-xcc.c sendrecv.c -o fib-xcc
+/tmp/local/bin/gcc -O2 -w -march=pentium4m -DCT=lightweight -lpthread worker2.c lu-xcc.c sendrecv.c -o lu-xcc
+/tmp/local/bin/gcc -O2 -w -march=pentium4m -DCT=lightweight -lpthread worker2.c cmp-xcc.c sendrecv.c -o cmp-xcc
+/tmp/local/bin/gcc -O2 -w -march=pentium4m -DCT=lightweight -lpthread worker2.c pen-xcc.c sendrecv.c -o pen-xcc
+/tmp/local/bin/gcc -O2 -w -march=pentium4m -DCT=closure -lpthread worker2.c fib-xcccl.c sendrecv.c -o fib-xcccl
+/tmp/local/bin/gcc -O2 -w -march=pentium4m -DCT=closure -lpthread worker2.c lu-xcccl.c sendrecv.c -o lu-xcccl
+/tmp/local/bin/gcc -O2 -w -march=pentium4m -DCT=closure -lpthread worker2.c cmp-xcccl.c sendrecv.c -o cmp-xcccl
+/tmp/local/bin/gcc -O2 -w -march=pentium4m -DCT=closure -lpthread worker2.c pen-xcccl.c sendrecv.c -o pen-xcccl
+icc -O2 -w -march=pentium4m  -lpthread worker2.c fib-c.c sendrecv.c -o fib-icc-c
+icc -O2 -w -march=pentium4m  -lpthread worker2.c lu-c.c sendrecv.c -o lu-icc-c
+lu-c.c(895): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(892): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(892): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(892): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(892): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(306): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(306): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(306): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(344): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(832): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(832): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(832): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(832): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(832): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(859): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(859): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(864): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(466): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(468): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(468): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(468): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(468): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(469): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(469): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(469): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(469): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(399): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(243): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-c.c(243): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-c.c(243): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-c.c(243): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-c.c(248): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-c.c(226): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(226): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(226): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(226): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(165): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(388): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-c.c(333): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-c.c(268): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(283): (col. 6) remark: LOOP WAS VECTORIZED.
+lu-c.c(295): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-c.c(295): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-c.c(184): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(199): (col. 6) remark: LOOP WAS VECTORIZED.
+lu-c.c(213): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-c.c(213): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-c.c(603): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(567): (col. 3) remark: LOOP WAS VECTORIZED.
+lu-c.c(581): (col. 8) remark: LOOP WAS VECTORIZED.
+lu-c.c(548): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(996): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(997): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(998): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(983): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(985): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(974): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(976): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(967): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(800): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(666): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(617): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(766): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(716): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-c.c(1063): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(1066): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(1069): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(1076): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-c.c(147): (col. 5) remark: LOOP WAS VECTORIZED.
+icc -O2 -w -march=pentium4m  -lpthread worker2.c cmp-c.c sendrecv.c -o cmp-icc-c
+cmp-c.c(142): (col. 16) remark: LOOP WAS VECTORIZED.
+cmp-c.c(169): (col. 12) remark: LOOP WAS VECTORIZED.
+cmp-c.c(155): (col. 7) remark: LOOP WAS VECTORIZED.
+icc -O2 -w -march=pentium4m  -lpthread worker2.c pen-c.c sendrecv.c -o pen-icc-c
+pen-c.c(151): (col. 5) remark: LOOP WAS VECTORIZED.
+icc -O2 -w -march=pentium4m  -lpthread worker2-lw.c fib-lw.c nestfunc.c sendrecv.c -o fib-icc-lw
+icc -O2 -w -march=pentium4m  -lpthread worker2-lw.c lu-lw.c nestfunc.c sendrecv.c -o lu-icc-lw
+lu-lw.c(2137): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2137): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2137): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2137): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2137): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2234): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2234): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2239): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1728): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1728): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1728): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1728): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1729): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1729): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1729): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1729): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1703): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1247): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1599): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1384): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-lw.c(348): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(348): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(348): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(348): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(654): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(654): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(654): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(654): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(876): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(182): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1058): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-lw.c(761): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-lw.c(574): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(589): (col. 6) remark: LOOP WAS VECTORIZED.
+lu-lw.c(601): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-lw.c(601): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-lw.c(201): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(216): (col. 6) remark: LOOP WAS VECTORIZED.
+lu-lw.c(230): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-lw.c(230): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1864): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1828): (col. 3) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1842): (col. 8) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1809): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2592): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2593): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2594): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2579): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2581): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2570): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2572): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2563): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2061): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1927): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1878): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2027): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1977): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2659): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2662): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2665): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(2672): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1138): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(164): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-lw.c(1190): (col. 5) remark: LOOP WAS VECTORIZED.
+icc -O2 -w -march=pentium4m  -lpthread worker2-lw.c cmp-lw.c nestfunc.c sendrecv.c -o cmp-icc-lw
+cmp-lw.c(443): (col. 12) remark: LOOP WAS VECTORIZED.
+cmp-lw.c(248): (col. 7) remark: LOOP WAS VECTORIZED.
+icc -O2 -w -march=pentium4m  -lpthread worker2-lw.c pen-lw.c nestfunc.c sendrecv.c -o pen-icc-lw
+pen-lw.c(311): (col. 5) remark: LOOP WAS VECTORIZED.
+icc -O2 -w -march=pentium4m  -lpthread worker2-clos.c fib-clos.c nestfunc.c sendrecv.c -o fib-icc-clos
+icc -O2 -w -march=pentium4m  -lpthread worker2-clos.c lu-clos.c nestfunc.c sendrecv.c -o lu-icc-clos
+lu-clos.c(1345): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1345): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1345): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1345): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1382): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1382): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1387): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(945): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(952): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(952): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(952): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(952): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(953): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(953): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(953): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(953): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(823): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(856): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-clos.c(896): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-clos.c(326): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(326): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(326): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(326): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(463): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(463): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(463): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(463): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(603): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(182): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(662): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-clos.c(504): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-clos.c(393): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(408): (col. 6) remark: LOOP WAS VECTORIZED.
+lu-clos.c(420): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-clos.c(420): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-clos.c(201): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(216): (col. 6) remark: LOOP WAS VECTORIZED.
+lu-clos.c(230): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-clos.c(230): (col. 4) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1088): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1052): (col. 3) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1066): (col. 8) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1033): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1595): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1596): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1597): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1582): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1584): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1573): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1575): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1566): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1285): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1151): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1102): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1251): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1201): (col. 7) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1662): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1665): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1668): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(1675): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(739): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(164): (col. 5) remark: LOOP WAS VECTORIZED.
+lu-clos.c(788): (col. 5) remark: LOOP WAS VECTORIZED.
+icc -O2 -w -march=pentium4m  -lpthread worker2-clos.c cmp-clos.c nestfunc.c sendrecv.c -o cmp-icc-clos
+cmp-clos.c(385): (col. 12) remark: LOOP WAS VECTORIZED.
+cmp-clos.c(224): (col. 7) remark: LOOP WAS VECTORIZED.
+icc -O2 -w -march=pentium4m  -lpthread worker2-clos.c pen-clos.c nestfunc.c sendrecv.c -o pen-icc-clos
+sh-2.05b$ exit
+
+Script done on 2007年07月04日 21時16分49秒

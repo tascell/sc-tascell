@@ -1,0 +1,725 @@
+/opt/intel/cc/10.0.023/bin/icc
+/tmp/local/bin/gcc
+/tmp/local/bin/gcc
+*** warning not output
+rm -f ./bintree-c ./bintree-gcc ./bintree-lw ./bintree-clos ./bintree-xcc ./bintree-xcccl ./bintree-icc-c ./bintree-icc-lw ./bintree-icc-clos
+*** Options=-O2  -march=pentium4 -w
+** GCC=/tmp/local/bin/gcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w bintree0.c copygc0.c -DRAWC -o bintree-c
+/tmp/local/bin/gcc -O2 -march=pentium4 -w bintree0.c copygc0.c -o bintree-gcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w bintree.c nestfunc.c -o bintree-lw
+/tmp/local/bin/gcc -O2 -march=pentium4 -w bintree-clos.c nestfunc.c -o bintree-clos
+** XC Cube=/tmp/local/bin/gcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w bintree0.c copygc0.c -DCT=lightweight -o bintree-xcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w bintree0.c copygc0.c -DCT=closure -o bintree-xcccl
+** Intel C Compiler=icc
+icc -O2 -march=pentium4 -w bintree0.c copygc0.c -DRAWC -o bintree-icc-c
+icc -O2 -march=pentium4 -w bintree.c nestfunc.c -o bintree-icc-lw
+icc -O2 -march=pentium4 -w bintree-clos.c nestfunc.c -o bintree-icc-clos
+*** Iteration=10
+*** GC off
+
+prog: bintree
+machine: spao
+exefile: ./bintree-c
+./bintree-c 200000 300000 -1 6400000
+time: 0.153222
+time: 0.153702
+time: 0.144694
+time: 0.153312
+time: 0.162162
+time: 0.162657
+time: 0.154183
+time: 0.153332
+time: 0.162257
+time: 0.162020
+
+exefile: ./bintree-gcc
+./bintree-gcc 200000 300000 -1 6400000
+time: 0.161398
+time: 0.170450
+time: 0.177262
+time: 0.173659
+time: 0.162607
+time: 0.171460
+time: 0.171071
+time: 0.177991
+time: 0.163096
+time: 0.169954
+
+exefile: ./bintree-lw
+./bintree-lw 200000 300000 -1 6400000
+time: 0.161173
+time: 0.160684
+time: 0.153887
+time: 0.154210
+time: 0.162257
+time: 0.161912
+time: 0.154230
+time: 0.158281
+time: 0.162031
+time: 0.162598
+
+exefile: ./bintree-clos
+./bintree-clos 200000 300000 -1 6400000
+time: 0.167560
+time: 0.164355
+time: 0.175166
+time: 0.172515
+time: 0.165829
+time: 0.169187
+time: 0.173775
+time: 0.172456
+time: 0.167735
+time: 0.169384
+
+exefile: ./bintree-xcc
+./bintree-xcc 200000 300000 -1 6400000
+time: 0.158645
+time: 0.160178
+time: 0.150753
+time: 0.156176
+time: 0.174174
+time: 0.160322
+time: 0.158230
+time: 0.152023
+time: 0.150827
+time: 0.161002
+
+exefile: ./bintree-xcccl
+./bintree-xcccl 200000 300000 -1 6400000
+time: 0.162905
+time: 0.165693
+time: 0.164240
+time: 0.173767
+time: 0.172349
+time: 0.165187
+time: 0.168437
+time: 0.173067
+time: 0.174074
+time: 0.165145
+
+exefile: ./bintree-icc-c
+./bintree-icc-c 200000 300000 -1 6400000
+time: 0.152947
+time: 0.154867
+time: 0.154378
+time: 0.146199
+time: 0.145783
+time: 0.158401
+time: 0.154414
+time: 0.146284
+time: 0.146472
+time: 0.154545
+
+exefile: ./bintree-icc-lw
+./bintree-icc-lw 200000 300000 -1 6400000
+time: 0.152613
+time: 0.151161
+time: 0.156218
+time: 0.163475
+time: 0.159986
+time: 0.153853
+time: 0.152151
+time: 0.159256
+time: 0.160242
+time: 0.151518
+
+exefile: ./bintree-icc-clos
+./bintree-icc-clos 200000 300000 -1 6400000
+time: 0.158739
+time: 0.167073
+time: 0.164397
+time: 0.151391
+time: 0.155520
+time: 0.153168
+time: 0.159841
+time: 0.151571
+time: 0.150852
+time: 0.145643
+
+/opt/intel/cc/10.0.023/bin/icc
+/tmp/local/bin/gcc
+/tmp/local/bin/gcc
+*** warning not output
+rm -f ./bin2list-c ./bin2list-gcc ./bin2list-lw ./bin2list-clos ./bin2list-xcc ./bin2list-xcccl ./bin2list-icc-c ./bin2list-icc-lw ./bin2list-icc-clos
+*** Options=-O2  -march=pentium4 -w
+** GCC=/tmp/local/bin/gcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w bin2list0.c copygc0.c -DRAWC -o bin2list-c
+/tmp/local/bin/gcc -O2 -march=pentium4 -w bin2list0.c copygc0.c -o bin2list-gcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w bin2list.c nestfunc.c -o bin2list-lw
+/tmp/local/bin/gcc -O2 -march=pentium4 -w bin2list-clos.c nestfunc.c -o bin2list-clos
+** XC Cube=/tmp/local/bin/gcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w bin2list0.c copygc0.c -DCT=lightweight -o bin2list-xcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w bin2list0.c copygc0.c -DCT=closure -o bin2list-xcccl
+** Intel C Compiler=icc
+icc -O2 -march=pentium4 -w bin2list0.c copygc0.c -DRAWC -o bin2list-icc-c
+icc -O2 -march=pentium4 -w bin2list.c nestfunc.c -o bin2list-icc-lw
+icc -O2 -march=pentium4 -w bin2list-clos.c nestfunc.c -o bin2list-icc-clos
+*** Iteration=10
+*** GC off
+*** Tosize=51200000
+
+prog: bin2list
+machine: spao
+exefile: ./bin2list-c
+./bin2list-c 500000 1 -1 51200000
+time: 0.161610
+time: 0.161113
+time: 0.160207
+time: 0.160547
+time: 0.155440
+time: 0.159943
+time: 0.160186
+time: 0.160045
+time: 0.155476
+time: 0.160159
+
+exefile: ./bin2list-gcc
+./bin2list-gcc 500000 1 -1 51200000
+time: 0.160279
+time: 0.161306
+time: 0.163079
+time: 0.163254
+time: 0.163225
+time: 0.158629
+time: 0.163172
+time: 0.163072
+time: 0.163145
+time: 0.158959
+
+exefile: ./bin2list-lw
+./bin2list-lw 500000 1 -1 51200000
+time: 0.167386
+time: 0.167161
+time: 0.167486
+time: 0.168756
+time: 0.163903
+time: 0.166922
+time: 0.167519
+time: 0.167232
+time: 0.162720
+time: 0.167210
+
+exefile: ./bin2list-clos
+./bin2list-clos 500000 1 -1 51200000
+time: 0.168294
+time: 0.168264
+time: 0.172796
+time: 0.172546
+time: 0.168058
+time: 0.169592
+time: 0.174254
+time: 0.176741
+time: 0.172752
+time: 0.168286
+
+exefile: ./bin2list-xcc
+./bin2list-xcc 500000 1 -1 51200000
+time: 0.163243
+time: 0.162923
+time: 0.163337
+time: 0.163689
+time: 0.158801
+time: 0.163148
+time: 0.163252
+time: 0.164818
+time: 0.160817
+time: 0.163268
+
+exefile: ./bin2list-xcccl
+./bin2list-xcccl 500000 1 -1 51200000
+time: 0.162747
+time: 0.158288
+time: 0.162662
+time: 0.163101
+time: 0.162975
+time: 0.162745
+time: 0.162624
+time: 0.162836
+time: 0.158341
+time: 0.159610
+
+exefile: ./bin2list-icc-c
+./bin2list-icc-c 500000 1 -1 51200000
+time: 0.120531
+time: 0.120277
+time: 0.120373
+time: 0.120283
+time: 0.124835
+time: 0.121544
+time: 0.121508
+time: 0.120358
+time: 0.120493
+time: 0.120454
+
+exefile: ./bin2list-icc-lw
+./bin2list-icc-lw 500000 1 -1 51200000
+time: 0.129568
+time: 0.129808
+time: 0.130130
+time: 0.129681
+time: 0.129461
+time: 0.129900
+time: 0.129855
+time: 0.129348
+time: 0.131552
+time: 0.129813
+
+exefile: ./bin2list-icc-clos
+./bin2list-icc-clos 500000 1 -1 51200000
+time: 0.140493
+time: 0.139935
+time: 0.140393
+time: 0.144791
+time: 0.140320
+time: 0.140476
+time: 0.141998
+time: 0.145516
+time: 0.140259
+time: 0.140301
+
+/opt/intel/cc/10.0.023/bin/icc
+/tmp/local/bin/gcc
+/tmp/local/bin/gcc
+*** warning not output
+rm -f ./cpfib-c ./cpfib-gcc ./cpfib-lw ./cpfib-clos ./cpfib-xcc ./cpfib-xcccl ./cpfib-icc-c ./cpfib-icc-lw ./cpfib-icc-clos
+*** Options=-O2  -march=pentium4 -w
+** GCC=/tmp/local/bin/gcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w cpfib0.c -DRAWC -o cpfib-c
+/tmp/local/bin/gcc -O2 -march=pentium4 -w cpfib0.c -o cpfib-gcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w cpfib.c nestfunc.c -o cpfib-lw
+/tmp/local/bin/gcc -O2 -march=pentium4 -w cpfib-clos.c -o cpfib-clos
+** XC Cube=/tmp/local/bin/gcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w cpfib0.c copygc0.c -DCT=lightweight -o cpfib-xcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w cpfib0.c copygc0.c -DCT=closure -o cpfib-xcccl
+** Intel C Compiler=icc
+icc -O2 -march=pentium4 -w cpfib0.c -DRAWC -o cpfib-icc-c
+icc -O2 -march=pentium4 -w cpfib.c nestfunc.c -o cpfib-icc-lw
+icc -O2 -march=pentium4 -w cpfib-clos.c -o cpfib-icc-clos
+*** Iteration=10
+*** N=37
+
+prog: cpfib
+machine: spao
+exefile: ./cpfib-c
+./cpfib-c 37
+time: 0.350071
+time: 0.336847
+time: 0.335877
+time: 0.330341
+time: 0.333928
+time: 0.330948
+time: 0.335297
+time: 0.346727
+time: 0.334845
+time: 0.336994
+
+exefile: ./cpfib-gcc
+./cpfib-gcc 37
+time: 0.633877
+time: 0.633362
+time: 0.634691
+time: 0.637719
+time: 0.634939
+time: 0.635584
+time: 0.638550
+time: 0.638120
+time: 0.635677
+time: 0.639908
+
+exefile: ./cpfib-lw
+./cpfib-lw 37
+time: 0.602026
+time: 0.609189
+time: 0.610521
+time: 0.613501
+time: 0.607577
+time: 0.609389
+time: 0.608155
+time: 0.607177
+time: 0.611942
+time: 0.604582
+
+exefile: ./cpfib-clos
+./cpfib-clos 37
+time: 0.748288
+time: 0.743489
+time: 0.746370
+time: 0.748507
+time: 0.746715
+time: 0.744564
+time: 0.755470
+time: 0.745913
+time: 0.747059
+time: 0.745686
+
+exefile: ./cpfib-xcc
+./cpfib-xcc 37
+time: 0.394533
+time: 0.387818
+time: 0.390156
+time: 0.394014
+time: 0.400079
+time: 0.392390
+time: 0.394227
+time: 0.397122
+time: 0.388507
+time: 0.393516
+
+exefile: ./cpfib-xcccl
+./cpfib-xcccl 37
+time: 0.468534
+time: 0.465348
+time: 0.467227
+time: 0.468294
+time: 0.464441
+time: 0.473044
+time: 0.466624
+time: 0.469577
+time: 0.471207
+time: 0.470150
+
+exefile: ./cpfib-icc-c
+./cpfib-icc-c 37
+time: 0.337008
+time: 0.329136
+time: 0.330438
+time: 0.333234
+time: 0.316324
+time: 0.350661
+time: 0.335190
+time: 0.337292
+time: 0.319909
+time: 0.324142
+
+exefile: ./cpfib-icc-lw
+./cpfib-icc-lw 37
+time: 0.570247
+time: 0.583903
+time: 0.585413
+time: 0.582390
+time: 0.582300
+time: 0.581860
+time: 0.571947
+time: 0.571705
+time: 0.576400
+time: 0.577282
+
+exefile: ./cpfib-icc-clos
+./cpfib-icc-clos 37
+time: 0.688507
+time: 0.691643
+time: 0.689470
+time: 0.691828
+time: 0.686171
+time: 0.689771
+time: 0.688969
+time: 0.692942
+time: 0.689888
+time: 0.689533
+
+/opt/intel/cc/10.0.023/bin/icc
+/tmp/local/bin/gcc
+/tmp/local/bin/gcc
+*** warning not output
+rm -f ./nqueen-c ./nqueen-gcc ./nqueen-lw ./nqueen-clos ./nqueen-xcc ./nqueen-xcccl ./nqueen-icc-c ./nqueen-icc-lw ./nqueen-icc-clos
+*** Options=-O2  -march=pentium4 -w
+** GCC=/tmp/local/bin/gcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w nqueen-c.c -lm -DNOXCC -o nqueen-c
+/tmp/local/bin/gcc -O2 -march=pentium4 -w nqueen-gcc.c -lm -DNOXCC -o nqueen-gcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w nqueen.c nestfunc.c -lm -DNOXCC -o nqueen-lw
+/tmp/local/bin/gcc -O2 -march=pentium4 -w nqueen-clos.c nestfunc.c -lm -DNOXCC -o nqueen-clos
+** XC Cube=/tmp/local/bin/gcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w nqueen-xcc.c -lm systhr-i386.o -lpthread -DCT=lightweight -DNOXCC -o nqueen-xcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w nqueen-xcc.c -lm systhr-i386.o -lpthread -DCT=closure -DNOXCC -o nqueen-xcccl
+** Intel C Compiler=icc
+icc -O2 -march=pentium4 -w nqueen-c.c -lm -DNOXCC -o nqueen-icc-c
+nqueen-c.c(58): (col. 3) remark: LOOP WAS VECTORIZED.
+nqueen-c.c(58): (col. 3) remark: LOOP WAS VECTORIZED.
+nqueen-c.c(12): (col. 3) remark: LOOP WAS VECTORIZED.
+nqueen-c.c(13): (col. 3) remark: LOOP WAS VECTORIZED.
+icc -O2 -march=pentium4 -w nqueen.c nestfunc.c -lm -DNOXCC -o nqueen-icc-lw
+nqueen.c(681): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(691): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(701): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(713): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(723): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(733): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(781): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(791): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(801): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(258): (col. 18) remark: LOOP WAS VECTORIZED.
+icc -O2 -march=pentium4 -w nqueen-clos.c nestfunc.c -lm -DNOXCC -o nqueen-icc-clos
+nqueen-clos.c(284): (col. 18) remark: LOOP WAS VECTORIZED.
+*** Iteration=10
+*** N of queens=13
+
+prog: nqueen
+machine: spao
+exefile: ./nqueen-c
+./nqueen-c 1 13
+time: 0.229177
+time: 0.224857
+time: 0.236402
+time: 0.226026
+time: 0.226585
+time: 0.231581
+time: 0.236670
+time: 0.226487
+time: 0.227731
+time: 0.230074
+
+exefile: ./nqueen-gcc
+./nqueen-gcc 1 13
+time: 0.338544
+time: 0.337608
+time: 0.337463
+time: 0.345030
+time: 0.346629
+time: 0.338068
+time: 0.338726
+time: 0.343877
+time: 0.338038
+time: 0.339189
+
+exefile: ./nqueen-lw
+./nqueen-lw 1 13
+time: 0.348284
+time: 0.345474
+time: 0.352793
+time: 0.345181
+time: 0.354359
+time: 0.350107
+time: 0.353960
+time: 0.341807
+time: 0.349562
+time: 0.349917
+
+exefile: ./nqueen-clos
+./nqueen-clos 1 13
+time: 0.489574
+time: 0.484093
+time: 0.489522
+time: 0.490292
+time: 0.495333
+time: 0.488278
+time: 0.489084
+time: 0.488763
+time: 0.494280
+time: 0.488209
+
+exefile: ./nqueen-xcc
+./nqueen-xcc 1 13
+time: 0.322116
+time: 0.317762
+time: 0.329261
+time: 0.323584
+time: 0.321475
+time: 0.322049
+time: 0.332940
+time: 0.322183
+time: 0.321913
+time: 0.324105
+
+exefile: ./nqueen-xcccl
+./nqueen-xcccl 1 13
+time: 0.381794
+time: 0.382251
+time: 0.382674
+time: 0.383796
+time: 0.387314
+time: 0.382895
+time: 0.382373
+time: 0.379889
+time: 0.378512
+time: 0.384310
+
+exefile: ./nqueen-icc-c
+./nqueen-icc-c 1 13
+time: 0.265892
+time: 0.265463
+time: 0.268824
+time: 0.266643
+time: 0.265598
+time: 0.266674
+time: 0.262126
+time: 0.261699
+time: 0.265394
+time: 0.267317
+
+exefile: ./nqueen-icc-lw
+./nqueen-icc-lw 1 13
+time: 0.405510
+time: 0.397212
+time: 0.402749
+time: 0.404120
+time: 0.406180
+time: 0.398391
+time: 0.401274
+time: 0.403912
+time: 0.400643
+time: 0.402677
+
+exefile: ./nqueen-icc-clos
+./nqueen-icc-clos 1 13
+time: 0.484099
+time: 0.483055
+time: 0.482812
+time: 0.486796
+time: 0.482945
+time: 0.487483
+time: 0.485197
+time: 0.483989
+time: 0.480179
+time: 0.483207
+
+/opt/intel/cc/10.0.023/bin/icc
+/tmp/local/bin/gcc
+/tmp/local/bin/gcc
+*** warning not output
+rm -f ./qsort-c ./qsort-gcc ./qsort-lw ./qsort-clos ./qsort-xcc ./qsort-xcccl ./qsort-icc-c ./qsort-icc-lw ./qsort-icc-clos
+*** Options=-O2  -march=pentium4 -w
+** GCC=/tmp/local/bin/gcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w qsort-c.c -o qsort-c
+/tmp/local/bin/gcc -O2 -march=pentium4 -w qsort-gcc.c -o qsort-gcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w qsort.c nestfunc.c -o qsort-lw
+/tmp/local/bin/gcc -O2 -march=pentium4 -w qsort-clos.c nestfunc.c -o qsort-clos
+** XC Cube=/tmp/local/bin/gcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w qsort-gcc.c -DCT=lightweight -o qsort-xcc
+/tmp/local/bin/gcc -O2 -march=pentium4 -w qsort-gcc.c -DCT=closure -o qsort-xcccl
+** Intel C Compiler=icc
+icc -O2 -march=pentium4 -w qsort-c.c -o qsort-icc-c
+qsort-c.c(286): (col. 23) remark: LOOP WAS VECTORIZED.
+qsort-c.c(162): (col. 23) remark: LOOP WAS VECTORIZED.
+qsort-c.c(183): (col. 19) remark: LOOP WAS VECTORIZED.
+qsort-c.c(195): (col. 19) remark: LOOP WAS VECTORIZED.
+qsort-c.c(204): (col. 23) remark: LOOP WAS VECTORIZED.
+qsort-c.c(217): (col. 5) remark: LOOP WAS VECTORIZED.
+qsort-c.c(124): (col. 25) remark: LOOP WAS VECTORIZED.
+icc -O2 -march=pentium4 -w qsort.c nestfunc.c -o qsort-icc-lw
+qsort.c(2265): (col. 18) remark: LOOP WAS VECTORIZED.
+qsort.c(88): (col. 16) remark: LOOP WAS VECTORIZED.
+icc -O2 -march=pentium4 -w qsort-clos.c nestfunc.c -o qsort-icc-clos
+*** Iteration=10
+*** N=200000
+
+prog: qsort
+machine: spao
+exefile: ./qsort-c
+./qsort-c 200000 200000
+time: 0.144847
+time: 0.145320
+time: 0.149586
+time: 0.140153
+time: 0.144922
+time: 0.146202
+time: 0.149070
+time: 0.141297
+time: 0.145755
+time: 0.145490
+
+exefile: ./qsort-gcc
+./qsort-gcc 200000 200000
+time: 0.776615
+time: 0.772644
+time: 0.781136
+time: 0.782585
+time: 0.779554
+time: 0.775783
+time: 0.781032
+time: 0.784145
+time: 0.780940
+time: 0.778223
+
+exefile: ./qsort-lw
+./qsort-lw 200000 200000
+time: 1.905871
+time: 1.907145
+time: 1.910440
+time: 1.906660
+time: 1.908096
+time: 1.931648
+time: 1.904047
+time: 1.906323
+time: 1.907824
+time: 1.906018
+
+exefile: ./qsort-clos
+./qsort-clos 200000 200000
+time: 0.187223
+time: 0.187516
+time: 0.188468
+time: 0.189699
+time: 0.187293
+time: 0.187829
+time: 0.187348
+time: 0.189247
+time: 0.193330
+time: 0.187404
+
+exefile: ./qsort-xcc
+./qsort-xcc 200000 200000
+time: 0.889361
+time: 0.899560
+time: 0.867944
+time: 0.880942
+time: 0.884870
+time: 0.899150
+time: 0.867014
+time: 0.864975
+time: 0.897017
+time: 0.864157
+
+exefile: ./qsort-xcccl
+./qsort-xcccl 200000 200000
+time: 0.128589
+time: 0.128149
+time: 0.132425
+time: 0.134729
+time: 0.128946
+time: 0.129479
+time: 0.132849
+time: 0.134061
+time: 0.127958
+time: 0.128421
+
+exefile: ./qsort-icc-c
+./qsort-icc-c 200000 200000
+time: 0.125028
+time: 0.126507
+time: 0.125068
+time: 0.122079
+time: 0.120198
+time: 0.126661
+time: 0.121096
+time: 0.121219
+time: 0.120681
+time: 0.127426
+
+exefile: ./qsort-icc-lw
+./qsort-icc-lw 200000 200000
+time: 1.998548
+time: 1.999502
+time: 1.999018
+time: 2.000409
+time: 1.993100
+time: 2.001477
+time: 2.003294
+time: 2.002846
+time: 2.002084
+time: 2.000845
+
+exefile: ./qsort-icc-clos
+./qsort-icc-clos 200000 200000
+time: 0.155929
+time: 0.152748
+time: 0.159283
+time: 0.150732
+time: 0.158213
+time: 0.156284
+time: 0.153603
+time: 0.151457
+time: 0.156798
+time: 0.157017
+

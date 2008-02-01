@@ -1,0 +1,45 @@
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4799808)
+total=0.286437 gc=0.075669 other=0.210768
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4799808)
+total=0.298000 gc=0.072317 other=0.225683
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4799808)
+total=0.305792 gc=0.076097 other=0.229695
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4799808)
+total=0.283719 gc=0.075782 other=0.207937
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4799808)
+total=0.281293 gc=0.075713 other=0.205580
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4799808)
+total=0.288837 gc=0.076033 other=0.212804
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4799808)
+total=0.283302 gc=0.076560 other=0.206742
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4799808)
+total=0.289438 gc=0.077673 other=0.211765
+tosize=5242880, stack=655360, limit=32
+Bintree=20, masins=200000, maxsearch=300000
+BREADTH_FIRST_GC start
+GC complete (4799808)
+total=0.286713 gc=0.076021 other=0.210692

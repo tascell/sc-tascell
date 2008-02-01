@@ -1,0 +1,55 @@
+/* Copyright (c) 2002 Massachusetts Institute of Technology
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+static const char *ident __attribute__((__unused__))
+     = "$HeadURL: https://bradley.csail.mit.edu/svn/repos/cilk/5.4.3/examples/nd/library/race.cilk $ $LastChangedBy: bradley $ $Rev: 73 $ $Date: 2002-12-25 19:09:12 -0500 (Wed, 25 Dec 2002) $";
+
+#include <cilk.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int x;
+cilk void foo()
+{
+  int local_x;
+
+  local_x = x + 1;
+  x = local_x;
+  return;
+}
+
+cilk int wrap()
+{
+  x = 0;
+  spawn foo();
+  spawn foo();
+  sync;
+  printf("x is %d\n", x);
+  return 0;
+}
+
+int main(int argc, char *argv[])
+{
+  Cilk_options options;
+
+  if (Cilk_parse_command_line(&options, &argc, argv))
+    exit(1);
+  Cilk_init(&options);
+  Cilk_run(wrap, NULL);
+  Cilk_finish();
+  return 0;
+}

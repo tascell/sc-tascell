@@ -1,0 +1,616 @@
+*** warning not output
+*** Iteration=10
+*** GC off
+
+prog: bintree
+machine: dougo.ylab-local.kuis.kyoto-u.ac.jp
+exefile: ./bintree-c
+./bintree-c 200000 300000 -1 6400000
+time: 0.157461
+time: 0.159696
+time: 0.150492
+time: 0.151986
+time: 0.208219
+time: 0.155405
+time: 0.152747
+time: 0.149136
+time: 0.157365
+time: 0.151174
+
+exefile: ./bintree-gcc
+./bintree-gcc 200000 300000 -1 6400000
+time: 0.218122
+time: 0.162096
+time: 0.163739
+time: 0.162670
+time: 0.166676
+time: 0.161281
+time: 0.217894
+time: 0.160544
+time: 0.162858
+time: 0.160382
+
+exefile: ./bintree-lw
+./bintree-lw 200000 300000 -1 6400000
+time: 0.157793
+time: 0.158237
+time: 0.212357
+time: 0.156041
+time: 0.156335
+time: 0.154951
+time: 0.159898
+time: 0.158822
+time: 0.223415
+time: 0.154872
+
+exefile: ./bintree-clos
+./bintree-clos 200000 300000 -1 6400000
+time: 0.168231
+time: 0.168004
+time: 0.166670
+time: 0.165410
+time: 0.223544
+time: 0.167588
+time: 0.164240
+time: 0.166479
+time: 0.164446
+time: 0.164504
+
+exefile: ./bintree-xcc
+./bintree-xcc 200000 300000 -1 6400000
+time: 0.152352
+time: 0.151565
+time: 0.151594
+time: 0.150899
+time: 0.148478
+time: 0.148352
+time: 0.207199
+time: 0.151518
+time: 0.153645
+time: 0.150680
+
+exefile: ./bintree-xcccl
+./bintree-xcccl 200000 300000 -1 6400000
+time: 0.160554
+time: 0.160799
+time: 0.235027
+time: 0.160527
+time: 0.161349
+time: 0.159384
+time: 0.161877
+time: 0.168122
+time: 0.163410
+time: 0.162795
+
+exefile: ./bintree-icc-c
+./bintree-icc-c 200000 300000 -1 6400000
+time: 0.137906
+time: 0.137690
+time: 0.139700
+time: 0.136771
+time: 0.138215
+time: 0.138615
+time: 0.136764
+time: 0.136648
+time: 0.137403
+time: 0.193036
+
+exefile: ./bintree-icc-lw
+./bintree-icc-lw 200000 300000 -1 6400000
+time: 0.144227
+time: 0.144854
+time: 0.140443
+time: 0.145003
+time: 0.146272
+time: 0.145845
+time: 0.145185
+time: 0.143885
+time: 0.144525
+time: 0.143534
+
+exefile: ./bintree-icc-clos
+./bintree-icc-clos 200000 300000 -1 6400000
+time: 0.146722
+time: 0.146052
+time: 0.144206
+time: 0.148428
+time: 0.146724
+time: 0.146206
+time: 0.146765
+time: 0.145262
+time: 0.146209
+time: 0.149469
+
+*** warning not output
+*** Iteration=10
+*** GC off
+*** Tosize=51200000
+
+prog: bin2list
+machine: dougo.ylab-local.kuis.kyoto-u.ac.jp
+exefile: ./bin2list-c
+./bin2list-c 500000 1 -1 51200000
+time: 0.153221
+time: 0.153902
+time: 0.154332
+time: 0.151598
+time: 0.152118
+time: 0.153505
+time: 0.153267
+time: 0.152857
+time: 0.206873
+time: 0.155495
+
+exefile: ./bin2list-gcc
+./bin2list-gcc 500000 1 -1 51200000
+time: 0.157264
+time: 0.157527
+time: 0.154732
+time: 0.154652
+time: 0.154140
+time: 0.154382
+time: 0.159540
+time: 0.157387
+time: 0.202871
+time: 0.157051
+
+exefile: ./bin2list-lw
+./bin2list-lw 500000 1 -1 51200000
+time: 0.157749
+time: 0.161046
+time: 0.158379
+time: 0.159497
+time: 0.216432
+time: 0.162447
+time: 0.161710
+time: 0.159638
+time: 0.160241
+time: 0.160855
+
+exefile: ./bin2list-clos
+./bin2list-clos 500000 1 -1 51200000
+time: 0.158655
+time: 0.159019
+time: 0.161855
+time: 0.160587
+time: 0.163316
+time: 0.159463
+time: 0.159596
+time: 0.159598
+time: 0.159949
+time: 0.161494
+
+exefile: ./bin2list-xcc
+./bin2list-xcc 500000 1 -1 51200000
+time: 0.211265
+time: 0.156865
+time: 0.155791
+time: 0.157380
+time: 0.155887
+time: 0.155582
+time: 0.153363
+time: 0.155612
+time: 0.153744
+time: 0.156443
+
+exefile: ./bin2list-xcccl
+./bin2list-xcccl 500000 1 -1 51200000
+time: 0.214420
+time: 0.153849
+time: 0.152887
+time: 0.210046
+time: 0.157141
+time: 0.159210
+time: 0.155243
+time: 0.152504
+time: 0.155899
+time: 0.156373
+
+exefile: ./bin2list-icc-c
+./bin2list-icc-c 500000 1 -1 51200000
+time: 0.105983
+time: 0.105248
+time: 0.105438
+time: 0.165242
+time: 0.107666
+time: 0.106727
+time: 0.107627
+time: 0.106427
+time: 0.106299
+time: 0.105139
+
+exefile: ./bin2list-icc-lw
+./bin2list-icc-lw 500000 1 -1 51200000
+time: 0.119882
+time: 0.114924
+time: 0.115170
+time: 0.116277
+time: 0.118266
+time: 0.115708
+time: 0.118082
+time: 0.117990
+time: 0.116783
+time: 0.115323
+
+exefile: ./bin2list-icc-clos
+./bin2list-icc-clos 500000 1 -1 51200000
+time: 0.120730
+time: 0.180772
+time: 0.120032
+time: 0.122214
+time: 0.120337
+time: 0.164703
+time: 0.123778
+time: 0.122027
+time: 0.119948
+time: 0.121917
+
+*** warning not output
+*** Iteration=10
+*** N=37
+
+prog: cpfib
+machine: dougo.ylab-local.kuis.kyoto-u.ac.jp
+exefile: ./cpfib-c
+./cpfib-c 37
+time: 0.291094
+time: 0.302054
+time: 0.297718
+time: 0.300681
+time: 0.289264
+time: 0.299578
+time: 0.353163
+time: 0.300824
+time: 0.296942
+time: 0.302972
+
+exefile: ./cpfib-gcc
+./cpfib-gcc 37
+time: 0.649740
+time: 0.645876
+time: 0.703605
+time: 0.648047
+time: 0.645874
+time: 0.646775
+time: 0.651833
+time: 0.700456
+time: 0.652539
+time: 0.648870
+
+exefile: ./cpfib-lw
+./cpfib-lw 37
+time: 0.550464
+time: 0.615632
+time: 0.557939
+time: 0.558153
+time: 0.559828
+time: 0.570226
+time: 0.557829
+time: 0.612394
+time: 0.561988
+time: 0.567220
+
+exefile: ./cpfib-clos
+./cpfib-clos 37
+time: 0.668301
+time: 0.734953
+time: 0.679781
+time: 0.674924
+time: 0.680161
+time: 0.677242
+time: 0.733411
+time: 0.678828
+time: 0.677380
+time: 0.676315
+
+exefile: ./cpfib-xcc
+./cpfib-xcc 37
+time: 0.396877
+time: 0.342395
+time: 0.335184
+time: 0.343414
+time: 0.342670
+time: 0.344722
+time: 0.342730
+time: 0.342547
+time: 0.344724
+time: 0.435540
+
+exefile: ./cpfib-xcccl
+./cpfib-xcccl 37
+time: 0.456243
+time: 0.421396
+time: 0.424431
+time: 0.419039
+time: 0.419672
+time: 0.430236
+time: 0.472736
+time: 0.407122
+time: 0.421248
+time: 0.422110
+
+exefile: ./cpfib-icc-c
+./cpfib-icc-c 37
+time: 0.297332
+time: 0.304495
+time: 0.304469
+time: 0.359864
+time: 0.301845
+time: 0.306107
+time: 0.304222
+time: 0.304102
+time: 0.304389
+time: 0.311214
+
+exefile: ./cpfib-icc-lw
+./cpfib-icc-lw 37
+time: 0.484802
+time: 0.494230
+time: 0.547797
+time: 0.491597
+time: 0.491618
+time: 0.493749
+time: 0.492148
+time: 0.547761
+time: 0.492169
+time: 0.496519
+
+exefile: ./cpfib-icc-clos
+./cpfib-icc-clos 37
+time: 0.596536
+time: 0.594409
+time: 0.597109
+time: 0.649559
+time: 0.596492
+time: 0.597273
+time: 0.593922
+time: 0.658315
+time: 0.594237
+time: 0.597913
+
+*** warning not output
+*** Iteration=10
+*** N of queens=13
+
+prog: nqueen
+machine: dougo.ylab-local.kuis.kyoto-u.ac.jp
+exefile: ./nqueen-c
+./nqueen-c 1 13
+time: 0.330938
+time: 0.335818
+time: 0.331864
+time: 0.332840
+time: 0.399389
+time: 0.332660
+time: 0.335617
+time: 0.331088
+time: 0.330503
+time: 0.336065
+
+exefile: ./nqueen-gcc
+./nqueen-gcc 1 13
+time: 0.395747
+time: 0.397343
+time: 0.453716
+time: 0.396062
+time: 0.398575
+time: 0.397130
+time: 0.396203
+time: 0.400576
+time: 0.396530
+time: 0.397537
+
+exefile: ./nqueen-lw
+./nqueen-lw 1 13
+time: 0.486261
+time: 0.443798
+time: 0.438156
+time: 0.440521
+time: 0.437853
+time: 0.437836
+time: 0.468085
+time: 0.543282
+time: 0.439391
+time: 0.437885
+
+exefile: ./nqueen-clos
+./nqueen-clos 1 13
+time: 0.581118
+time: 0.583168
+time: 0.641970
+time: 0.582317
+time: 0.580477
+time: 0.583362
+time: 0.583245
+time: 0.634679
+time: 0.583426
+time: 0.581026
+
+exefile: ./nqueen-xcc
+./nqueen-xcc 1 13
+time: 0.467020
+time: 0.466458
+time: 0.522916
+time: 0.466134
+time: 0.468349
+time: 0.467579
+time: 0.469191
+time: 0.468032
+time: 0.468804
+time: 0.520263
+
+exefile: ./nqueen-xcccl
+./nqueen-xcccl 1 13
+time: 0.450282
+time: 0.449735
+time: 0.448143
+time: 0.446910
+time: 0.450964
+time: 0.501785
+time: 0.450977
+time: 0.447313
+time: 0.447768
+time: 0.451628
+
+exefile: ./nqueen-icc-c
+./nqueen-icc-c 1 13
+time: 0.331809
+time: 0.336206
+time: 0.386781
+time: 0.330971
+time: 0.331477
+time: 0.331463
+time: 0.330483
+time: 0.333656
+time: 0.330882
+time: 0.331874
+
+exefile: ./nqueen-icc-lw
+./nqueen-icc-lw 1 13
+time: 0.546759
+time: 0.496747
+time: 0.504331
+time: 0.493182
+time: 0.500812
+time: 0.494044
+time: 0.537551
+time: 0.496775
+time: 0.495594
+time: 0.490882
+
+exefile: ./nqueen-icc-clos
+./nqueen-icc-clos 1 13
+time: 0.564114
+time: 0.574001
+time: 0.626000
+time: 0.576039
+time: 0.572384
+time: 0.570858
+time: 0.572023
+time: 0.711896
+time: 0.573820
+time: 0.567959
+
+*** warning not output
+*** Iteration=10
+*** N=200000
+
+prog: qsort
+machine: dougo.ylab-local.kuis.kyoto-u.ac.jp
+exefile: ./qsort-c
+./qsort-c 200000 200000
+time: 0.150073
+time: 0.148122
+time: 0.151371
+time: 0.152330
+time: 0.152224
+time: 0.156033
+time: 0.152304
+time: 0.208129
+time: 0.151250
+time: 0.149591
+
+exefile: ./qsort-gcc
+./qsort-gcc 200000 200000
+time: 0.553767
+time: 0.558948
+time: 0.563044
+time: 0.560925
+time: 0.609444
+time: 0.564393
+time: 0.561587
+time: 0.564418
+time: 0.561041
+time: 0.618174
+
+exefile: ./qsort-lw
+./qsort-lw 200000 200000
+time: 1.969028
+time: 2.038047
+time: 2.029332
+time: 1.977248
+time: 2.034749
+time: 2.030542
+time: 1.986267
+time: 2.030659
+time: 2.032088
+time: 1.983103
+
+exefile: ./qsort-clos
+./qsort-clos 200000 200000
+time: 0.196118
+time: 0.204930
+time: 0.261166
+time: 0.265172
+time: 0.226453
+time: 0.203591
+time: 0.204677
+time: 0.202744
+time: 0.203441
+time: 0.206933
+
+exefile: ./qsort-xcc
+./qsort-xcc 200000 200000
+time: 0.958466
+time: 1.020177
+time: 0.975672
+time: 0.961828
+time: 1.030477
+time: 0.949863
+time: 0.961350
+time: 1.020918
+time: 0.948156
+time: 0.967297
+
+exefile: ./qsort-xcccl
+./qsort-xcccl 200000 200000
+time: 0.144390
+time: 0.205284
+time: 0.153158
+time: 0.150010
+time: 0.147626
+time: 0.150991
+time: 0.152665
+time: 0.149078
+time: 0.148342
+time: 0.151898
+
+exefile: ./qsort-icc-c
+./qsort-icc-c 200000 200000
+time: 0.140125
+time: 0.141103
+time: 0.143514
+time: 0.141712
+time: 0.130661
+time: 0.133416
+time: 0.139485
+time: 0.140661
+time: 0.140071
+time: 0.143151
+
+exefile: ./qsort-icc-lw
+./qsort-icc-lw 200000 200000
+time: 1.999551
+time: 2.023713
+time: 1.950940
+time: 2.011846
+time: 2.014107
+time: 1.951662
+time: 2.009551
+time: 2.094312
+time: 1.957248
+time: 2.000595
+
+exefile: ./qsort-icc-clos
+./qsort-icc-clos 200000 200000
+time: 0.176917
+time: 0.184895
+time: 0.176886
+time: 0.179059
+time: 0.184164
+time: 0.238393
+time: 0.182835
+time: 0.183527
+time: 0.179359
+time: 0.184520
+

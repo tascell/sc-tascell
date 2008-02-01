@@ -1,0 +1,34 @@
+Changes made from the original serial version of Barnes-Hut code
+(obtained from ftp://hubble.ifa.hawaii.edu/pub/barnes/treecode/code_c.tar.Z)
+
+- Modify makefile
+  - copied over example makefile
+  - added -DDOUBLEPREC to CFLAGS
+  - rewrote % directive into a code directive.
+  - updated clean target, added distclean target
+
+- added #include <cilk.h>,<cilk-lib.h>, and <cilk-compat.h> to defs.h
+- moved code.c to code.cilk
+- changed NULL to '\0', as original code didn't typecheck correctly.
+
+Program now compiles, links, and runs.  Not parallel yet.
+
+- made main() and stepsystem() cilk procedures, spawned/sync'd stepsystem
+  from main
+- added DandC_hackgrav() routine to do hackgrav() calculations in a
+  divide-and-conquer fashion.
+- moved grav.c to grav.cilk, and made some static variables private.
+- moved some variable declarations from header files (code.h and defs.h)
+  to code.cilk and declared each shared or private, as needed.
+- rearranged statistics gathering.
+
+Program now does the force calculations in parallel.  Now, other
+phases of the code are parallelized.
+
+- made particle pushes go in parallel (code.c).
+- added lock to cell structure in defs.h.
+- moved load.c and io.c to load.cilk and io.cilk.
+- made maketree run in parallel.  Redesigned newtree() and makecell()
+  to allow parallel allocation of tree cells.
+- made loadbody parallel (this is the tough part - uses locks).
+- made hackcofm, threadtree, and hackquad parallel.

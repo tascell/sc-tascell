@@ -1,0 +1,2 @@
+set path= ( /work/cilk/bin $path )
+setenv LD_LIBRARY_PATH /work/cilk/lib:$LD_LIBRARY_PATH

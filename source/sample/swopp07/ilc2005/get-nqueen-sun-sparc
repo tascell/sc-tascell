@@ -1,0 +1,44 @@
+#!/bin/sh
+#XCC="$HOME/../yasugi/tmp/sparc-sol2.6/n3/bin/gcc -mcpu=ultrasparc -lthread -DCT=lightweight"
+XCC="/tmp/local/bin/gcc -mcpu=ultrasparc -lthread -DCT=lightweight"
+COPTS="-O2 -lm $COPTS"
+NOXCCOPTS="-DNOXCC"
+
+if [ $# -ge 1 ] && [ `which $1` ]
+then
+echo "options=$COPTS"
+echo "noxcc-options=$NOXCCOPTS"
+$1 -v
+$1 $COPTS $NOXCCOPTS nqueen-c.c -o sol-nqueen-c
+$1 $COPTS $NOXCCOPTS nqueen-gcc.c -o sol-nqueen-gcc
+$1 $COPTS $NOXCCOPTS nqueen.c -o sol-nqueen-lw
+LANG=C $XCC -v
+LANG=C $XCC $COPTS systhr-sparc.o nqueen-xcc.c -o sol-nqueen-xcc # XC-cube lightweight
+$1 $COPTS $NOXCCOPTS nqueen-clos.c nestfunc.c -o sol-nqueen-clos
+fi
+
+if [ $# -le 1 ]; then
+ m=1
+else
+ m=$2
+fi
+
+if [ $# -le 2 ]; then
+ n=13
+else
+ n=$3
+fi
+
+progs="./sol-nqueen-c ./sol-nqueen-gcc ./sol-nqueen-lw ./sol-nqueen-xcc ./sol-nqueen-clos"
+
+for prog in $progs; do
+    i=0
+    echo $prog
+    while [ $i -lt $m ]; do
+	$prog $p $n
+	i=`expr $i + 1`
+    done
+    p=1
+    echo ""
+done
+

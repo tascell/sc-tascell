@@ -1,0 +1,14 @@
+(define-ruleset hsc-type (type-info))
+
+(extendrule expression hsc-type
+  ((#?(new ,expr))
+   (let* ((expr-ret (expression expr))
+          (expr-type (second expr-ret)))
+     ~(the (ptr ,expr-type) (new ,expr-ret))))
+  (#?(new-array ,size ,texp ,@initvals)
+   (let ((texp-ret (type-expression! texp)))
+     ~(the (array ,texp-ret)
+           (new-array ,(expression! size)
+                      ,texp-ret
+                      ,@(mapcar #'expression! initvals)))))
+  )

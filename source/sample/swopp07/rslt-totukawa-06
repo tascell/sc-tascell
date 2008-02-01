@@ -1,0 +1,621 @@
+/opt/intel/cc/10.0.023/bin/icc
+*** warning not output
+*** Iteration=10
+*** GC off
+
+prog: bintree
+machine: totukawa
+exefile: ./bintree-c
+./bintree-c 200000 300000 -1 6400000
+time: 0.082579
+time: 0.081373
+time: 0.082544
+time: 0.080984
+time: 0.081856
+time: 0.081184
+time: 0.081843
+time: 0.081103
+time: 0.081599
+time: 0.081083
+
+exefile: ./bintree-gcc
+./bintree-gcc 200000 300000 -1 6400000
+time: 0.090420
+time: 0.089406
+time: 0.089859
+time: 0.089416
+time: 0.090707
+time: 0.089390
+time: 0.089420
+time: 0.089823
+time: 0.089681
+time: 0.089269
+
+exefile: ./bintree-lw
+./bintree-lw 200000 300000 -1 6400000
+time: 0.084590
+time: 0.085730
+time: 0.085150
+time: 0.084189
+time: 0.084581
+time: 0.083967
+time: 0.084550
+time: 0.083951
+time: 0.083836
+time: 0.084013
+
+exefile: ./bintree-clos
+./bintree-clos 200000 300000 -1 6400000
+time: 0.093753
+time: 0.093591
+time: 0.093392
+time: 0.093645
+time: 0.093975
+time: 0.093711
+time: 0.094649
+time: 0.093945
+time: 0.094114
+time: 0.093437
+
+exefile: ./bintree-xcc
+./bintree-xcc 200000 300000 -1 6400000
+time: 0.083140
+time: 0.081783
+time: 0.083285
+time: 0.083250
+time: 0.082767
+time: 0.082681
+time: 0.084517
+time: 0.083944
+time: 0.083255
+time: 0.083389
+
+exefile: ./bintree-xcccl
+./bintree-xcccl 200000 300000 -1 6400000
+time: 0.091522
+time: 0.089849
+time: 0.092097
+time: 0.090426
+time: 0.091571
+time: 0.090517
+time: 0.090508
+time: 0.090272
+time: 0.091691
+time: 0.090814
+
+exefile: ./bintree-icc-c
+./bintree-icc-c 200000 300000 -1 6400000
+time: 0.079584
+time: 0.078645
+time: 0.078897
+time: 0.078888
+time: 0.078797
+time: 0.078819
+time: 0.079003
+time: 0.078836
+time: 0.078807
+time: 0.078812
+
+exefile: ./bintree-icc-lw
+./bintree-icc-lw 200000 300000 -1 6400000
+time: 0.082770
+time: 0.079873
+time: 0.080666
+time: 0.080589
+time: 0.080895
+time: 0.080175
+time: 0.080343
+time: 0.079134
+time: 0.080675
+time: 0.079337
+
+exefile: ./bintree-icc-clos
+./bintree-icc-clos 200000 300000 -1 6400000
+time: 0.078728
+time: 0.079605
+time: 0.080221
+time: 0.081017
+time: 0.080102
+time: 0.080473
+time: 0.081042
+time: 0.079246
+time: 0.079906
+time: 0.079908
+
+/opt/intel/cc/10.0.023/bin/icc
+*** warning not output
+*** Iteration=10
+*** GC off
+*** Tosize=51200000
+
+prog: bin2list
+machine: totukawa
+exefile: ./bin2list-c
+./bin2list-c 500000 1 -1 51200000
+time: 0.100176
+time: 0.100277
+time: 0.100293
+time: 0.100258
+time: 0.100167
+time: 0.100145
+time: 0.100248
+time: 0.100685
+time: 0.100316
+time: 0.100184
+
+exefile: ./bin2list-gcc
+./bin2list-gcc 500000 1 -1 51200000
+time: 0.104133
+time: 0.103731
+time: 0.104014
+time: 0.103882
+time: 0.103635
+time: 0.104911
+time: 0.103856
+time: 0.103736
+time: 0.103553
+time: 0.104324
+
+exefile: ./bin2list-lw
+./bin2list-lw 500000 1 -1 51200000
+time: 0.108116
+time: 0.108520
+time: 0.108469
+time: 0.108308
+time: 0.108287
+time: 0.108618
+time: 0.108375
+time: 0.108244
+time: 0.108104
+time: 0.108294
+
+exefile: ./bin2list-clos
+./bin2list-clos 500000 1 -1 51200000
+time: 0.110151
+time: 0.110271
+time: 0.110211
+time: 0.110902
+time: 0.110315
+time: 0.110248
+time: 0.110322
+time: 0.110399
+time: 0.110414
+time: 0.110366
+
+exefile: ./bin2list-xcc
+./bin2list-xcc 500000 1 -1 51200000
+time: 0.103606
+time: 0.103186
+time: 0.103566
+time: 0.103009
+time: 0.103686
+time: 0.103249
+time: 0.103414
+time: 0.103541
+time: 0.103373
+time: 0.103789
+
+exefile: ./bin2list-xcccl
+./bin2list-xcccl 500000 1 -1 51200000
+time: 0.103770
+time: 0.105380
+time: 0.103544
+time: 0.103803
+time: 0.103314
+time: 0.103441
+time: 0.103298
+time: 0.104040
+time: 0.103464
+time: 0.104667
+
+exefile: ./bin2list-icc-c
+./bin2list-icc-c 500000 1 -1 51200000
+time: 0.079224
+time: 0.079663
+time: 0.079711
+time: 0.079759
+time: 0.079790
+time: 0.079262
+time: 0.079436
+time: 0.079783
+time: 0.079421
+time: 0.079492
+
+exefile: ./bin2list-icc-lw
+./bin2list-icc-lw 500000 1 -1 51200000
+time: 0.081440
+time: 0.082405
+time: 0.081337
+time: 0.081303
+time: 0.081313
+time: 0.081333
+time: 0.081498
+time: 0.081505
+time: 0.081395
+time: 0.081437
+
+exefile: ./bin2list-icc-clos
+./bin2list-icc-clos 500000 1 -1 51200000
+time: 0.087921
+time: 0.087827
+time: 0.087734
+time: 0.088306
+time: 0.087695
+time: 0.087577
+time: 0.087679
+time: 0.087777
+time: 0.087872
+time: 0.087743
+
+/opt/intel/cc/10.0.023/bin/icc
+*** warning not output
+*** Iteration=10
+*** N=37
+
+prog: cpfib
+machine: totukawa
+exefile: ./cpfib-c
+./cpfib-c 37
+time: 0.434798
+time: 0.435135
+time: 0.434963
+time: 0.435303
+time: 0.452344
+time: 0.449303
+time: 0.435189
+time: 0.435292
+time: 0.435230
+time: 0.434880
+
+exefile: ./cpfib-gcc
+./cpfib-gcc 37
+time: 0.572235
+time: 0.558326
+time: 0.592478
+time: 0.561381
+time: 0.577094
+time: 0.614026
+time: 0.630592
+time: 0.569729
+time: 0.568872
+time: 0.558657
+
+exefile: ./cpfib-lw
+./cpfib-lw 37
+time: 0.710702
+time: 0.712251
+time: 0.712301
+time: 0.710703
+time: 0.711186
+time: 0.712279
+time: 0.712250
+time: 0.710657
+time: 0.712379
+time: 0.712305
+
+exefile: ./cpfib-clos
+./cpfib-clos 37
+time: 0.682503
+time: 0.667588
+time: 0.658611
+time: 0.682175
+time: 0.667527
+time: 0.659213
+time: 0.668357
+time: 0.668632
+time: 0.680732
+time: 0.659223
+
+exefile: ./cpfib-xcc
+./cpfib-xcc 37
+time: 0.497442
+time: 0.499578
+time: 0.495178
+time: 0.498190
+time: 0.496959
+time: 0.497017
+time: 0.496714
+time: 0.493263
+time: 0.485683
+time: 0.495483
+
+exefile: ./cpfib-xcccl
+./cpfib-xcccl 37
+time: 0.463917
+time: 0.463860
+time: 0.468757
+time: 0.464298
+time: 0.463852
+time: 0.463913
+time: 0.463905
+time: 0.464622
+time: 0.464141
+time: 0.463902
+
+exefile: ./cpfib-icc-c
+./cpfib-icc-c 37
+time: 0.343372
+time: 0.343604
+time: 0.343476
+time: 0.343374
+time: 0.343483
+time: 0.343509
+time: 0.343537
+time: 0.343510
+time: 0.343491
+time: 0.343643
+
+exefile: ./cpfib-icc-lw
+./cpfib-icc-lw 37
+time: 0.387509
+time: 0.409728
+time: 0.410513
+time: 0.380393
+time: 0.380620
+time: 0.380778
+time: 0.407114
+time: 0.380387
+time: 0.380648
+time: 0.380217
+
+exefile: ./cpfib-icc-clos
+./cpfib-icc-clos 37
+time: 0.581725
+time: 0.579968
+time: 0.525034
+time: 0.580842
+time: 0.570728
+time: 0.580168
+time: 0.581231
+time: 0.577126
+time: 0.580018
+time: 0.577717
+
+/opt/intel/cc/10.0.023/bin/icc
+*** warning not output
+*** Iteration=10
+*** N of queens=13
+
+prog: nqueen
+machine: totukawa
+exefile: ./nqueen-c
+./nqueen-c 1 13
+time: 0.259203
+time: 0.258036
+time: 0.255534
+time: 0.259745
+time: 0.256841
+time: 0.255186
+time: 0.260103
+time: 0.255042
+time: 0.255944
+time: 0.256586
+
+exefile: ./nqueen-gcc
+./nqueen-gcc 1 13
+time: 0.304804
+time: 0.305134
+time: 0.304002
+time: 0.308224
+time: 0.302325
+time: 0.304859
+time: 0.305738
+time: 0.322048
+time: 0.306445
+time: 0.304504
+
+exefile: ./nqueen-lw
+./nqueen-lw 1 13
+time: 0.353465
+time: 0.353426
+time: 0.353599
+time: 0.353347
+time: 0.356653
+time: 0.359467
+time: 0.354424
+time: 0.371273
+time: 0.353265
+time: 0.353645
+
+exefile: ./nqueen-clos
+./nqueen-clos 1 13
+time: 0.379398
+time: 0.370258
+time: 0.365984
+time: 0.372821
+time: 0.370506
+time: 0.367481
+time: 0.381582
+time: 0.390766
+time: 0.393740
+time: 0.366061
+
+exefile: ./nqueen-xcc
+./nqueen-xcc 1 13
+time: 0.314161
+time: 0.314476
+time: 0.315529
+time: 0.315201
+time: 0.314410
+time: 0.325486
+time: 0.315498
+time: 0.315388
+time: 0.315722
+time: 0.316440
+
+exefile: ./nqueen-xcccl
+./nqueen-xcccl 1 13
+time: 0.352439
+time: 0.359942
+time: 0.351510
+time: 0.364446
+time: 0.363411
+time: 0.351385
+time: 0.368030
+time: 0.356857
+time: 0.351195
+time: 0.364412
+
+exefile: ./nqueen-icc-c
+./nqueen-icc-c 1 13
+time: 0.267117
+time: 0.266759
+time: 0.266882
+time: 0.266979
+time: 0.266880
+time: 0.266879
+time: 0.268930
+time: 0.266684
+time: 0.266879
+time: 0.266878
+
+exefile: ./nqueen-icc-lw
+./nqueen-icc-lw 1 13
+time: 0.375247
+time: 0.375390
+time: 0.375239
+time: 0.375039
+time: 0.376508
+time: 0.375224
+time: 0.390701
+time: 0.376763
+time: 0.423155
+time: 0.375179
+
+exefile: ./nqueen-icc-clos
+./nqueen-icc-clos 1 13
+time: 0.442796
+time: 0.405959
+time: 0.395775
+time: 0.418264
+time: 0.395853
+time: 0.428315
+time: 0.415523
+time: 0.409164
+time: 0.395756
+time: 0.415368
+
+/opt/intel/cc/10.0.023/bin/icc
+*** warning not output
+*** Iteration=10
+*** N=200000
+
+prog: qsort
+machine: totukawa
+exefile: ./qsort-c
+./qsort-c 200000 200000
+time: 0.039080
+time: 0.039031
+time: 0.039012
+time: 0.038905
+time: 0.038945
+time: 0.038993
+time: 0.039016
+time: 0.039000
+time: 0.041196
+time: 0.039086
+
+exefile: ./qsort-gcc
+./qsort-gcc 200000 200000
+time: 0.038745
+time: 0.038814
+time: 0.038793
+time: 0.038745
+time: 0.038748
+time: 0.038754
+time: 0.038759
+time: 0.038766
+time: 0.038832
+time: 0.038754
+
+exefile: ./qsort-lw
+./qsort-lw 200000 200000
+time: 1.320575
+time: 1.312820
+time: 1.320163
+time: 1.321750
+time: 1.319800
+time: 1.320171
+time: 1.319237
+time: 1.319230
+time: 1.319950
+time: 1.319332
+
+exefile: ./qsort-clos
+./qsort-clos 200000 200000
+time: 0.086389
+time: 0.086315
+time: 0.087803
+time: 0.086399
+time: 0.086253
+time: 0.086226
+time: 0.086312
+time: 0.086244
+time: 0.086202
+time: 0.086427
+
+exefile: ./qsort-xcc
+./qsort-xcc 200000 200000
+time: 0.647349
+time: 0.644036
+time: 0.644064
+time: 0.644814
+time: 0.644487
+time: 0.644718
+time: 0.644046
+time: 0.643563
+time: 0.646562
+time: 0.642821
+
+exefile: ./qsort-xcccl
+./qsort-xcccl 200000 200000
+time: 0.039356
+time: 0.039367
+time: 0.039363
+time: 0.039449
+time: 0.039379
+time: 0.039371
+time: 0.039455
+time: 0.039401
+time: 0.039413
+time: 0.039353
+
+exefile: ./qsort-icc-c
+./qsort-icc-c 200000 200000
+time: 0.036623
+time: 0.036775
+time: 0.036717
+time: 0.036615
+time: 0.036634
+time: 0.036658
+time: 0.036595
+time: 0.036572
+time: 0.036579
+time: 0.036610
+
+exefile: ./qsort-icc-lw
+./qsort-icc-lw 200000 200000
+time: 1.396895
+time: 1.397229
+time: 1.401552
+time: 1.398350
+time: 1.401599
+time: 1.397553
+time: 1.403040
+time: 1.407879
+time: 1.403900
+time: 1.404170
+
+exefile: ./qsort-icc-clos
+./qsort-icc-clos 200000 200000
+time: 0.066147
+time: 0.066792
+time: 0.066539
+time: 0.066528
+time: 0.066578
+time: 0.066453
+time: 0.066245
+time: 0.066825
+time: 0.066891
+time: 0.066731
+

@@ -1,0 +1,43 @@
+#!/bin/sh
+#XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc"
+XCC="/tmp/local/bin/gcc"
+COPTS="-O2 -lm $COPTS"
+NOXCCOPTS="-DNOXCC"
+
+if [ $# -ge 1 ] && [ `which $1` ]
+then
+echo "options=$COPTS"
+echo "noxcc-options=$NOXCCOPTS"
+$1 -v
+$1 $COPTS $NOXCCOPTS nqueen-c.c -o nqueen-c
+$1 $COPTS $NOXCCOPTS nqueen-gcc.c -o nqueen-gcc
+$1 $COPTS $NOXCCOPTS nqueen.c nestfunc.c -o nqueen-lw
+LANG=C $XCC -v
+LANG=C $XCC $COPTS nqueen-xcc.c systhr-i386.o -pthread -DCT=lightweight -o nqueen-xcc # XC-cube lightweight
+$1 $DOPTS $NOXCCOPTS nqueen-clos.c nestfunc.c -o nqueen-clos
+fi
+
+if [ $# -le 1 ]; then
+ m=1
+else
+ m=$2
+fi
+
+progs="./nqueen-c ./nqueen-gcc ./nqueen-lw ./nqueen-xcc ./nqueen-clos"
+
+if [ $# -le 2 ]; then
+ n=13
+else
+ n=$3
+fi
+
+for prog in $progs; do
+    i=0
+    echo $prog
+    while [ $i -lt $m ]; do
+	$prog $arg1 $n && sleep 0.3
+	i=`expr $i + 1`
+    done
+    arg1=1
+    echo ""
+done

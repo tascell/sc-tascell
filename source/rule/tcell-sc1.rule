@@ -1,0 +1,46 @@
+(require-ruleset :tcell)
+(define-ruleset tcell-sc1 (sc1-to-sc0))
+
+(extendrule function-tag tcell-sc1
+  ((#?wfn) x))
+
+(extendrule inlined-declaration tcell-sc1
+  ;;; def task
+  ;; * task-data -> struct
+  ((#?(def (task ,id[identifier]) ,@rest))
+   x)
+  ;; * do_task_body
+  ;; * send_task_body
+  ;; * send_rslt_body
+  ;; * recv_task_body
+  ;; * recv_rslt_body
+  ((#?(def (,task-tag[~(task-body task-sender task-receiver rslt-sender rslt-receiver)]
+		       ,id[identifier]) ,@body))
+   ~(def (,task-tag ,id) ,@(function-body body)))
+  )
+
+(extendrule statement tcell-sc1
+  ((#?(do-two ,stat1 ,stat2 (,id (:put ,@put-body) (:get ,@get-body))))
+   ~(do-two (begin ,(statement stat1)) (begin ,(statement stat2))
+            (,id
+             (:put ,@(function-body put-body))
+             (:get ,@(function-body get-body)))) )
+  ((#?(do-many for ,var from ,from to ,to
+	,@body
+	(,id
+	 (:put from ,put-from to ,put-to ,@put-body)
+	 (:get ,@get-body))))
+   ~(do-many for ,var from ,(expression from) to ,(expression to)
+      ,@(function-body body)
+      (,id
+       (:put from ,put-from to ,put-to ,@(function-body put-body))
+       (:get ,@(function-body get-body)))) )
+  ((#?(dynamic-wind
+       (:before ,@bef-body)
+       (:body ,@body)
+       (:after ,@aft-body)))
+   ~(dynamic-wind
+      (:before ,@(function-body bef-body))
+      (:body ,@(function-body body))
+      (:after ,@(function-body aft-body))) )
+  )

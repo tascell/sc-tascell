@@ -1,0 +1,73 @@
+;; T-Cell言語 -> LW-SC
+
+:lisp-begin
+(defpackage "T-CELL"
+  (:nicknames "TCELL")
+  (:use "SCT-USER" "CL" "SC-MISC" "SC-UTIL")
+  (:export))
+(in-package "T-CELL")
+
+(set-rule-environment
+ (:package-sensitive nil))
+
+(defstruct
+  )
+
+(defvar *task-defs* '())
+  
+:lisp-end
+
+(Tc0 ,@decl-list)
+-> (mappend #'Tc1 decl-list)
+
+;; def task
+;; * struct
+;; * recv_task_body
+;; * send_rslt_body
+(Tc1 (def (task ,id[ID]) ,@datdefs))
+-> (let ((struct-id (generate-id (id-sc2c id) "_data")))
+     (list
+      `(def (struct ,struct-id)
+	 
+	    )))
+	  
+;; do-two
+;; * stat1->stat2 の順に実行
+;; * stat2 実行中に仕事の要求がきたら，:put以下を実行してsendする．
+;;   <stat1>が終わり，sendした仕事の結果が返ってきたら，:get 以下を実行．
+(Tcb (do-two stat1 stat2 (,id (:put ,@body) (:get ,@body)))
+-> 
+;; do-many
+;; * 
+
+#|
+(def (task fib)
+  (def <id> <type> <[:in|:out]>)
+  ...
+)
+
+
+(do-two
+  <stat1>
+  <stat2>
+  (<task-name>
+   (:set <statement> ...)
+   (:get <statement> ...)))
+
+(do-many (<var> <from> <to>)
+  <body>
+  (<task-name>
+   (:set (:range <from> <to>) (<statement> ...)
+   (:get <statement> ...)))
+
+(dynamic-wind 
+ :before
+   <body>
+ :body
+   <body>
+ :after
+   <body>
+ )
+
+|#
+

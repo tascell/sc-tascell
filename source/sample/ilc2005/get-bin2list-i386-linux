@@ -1,0 +1,45 @@
+#! /bin/sh
+if [ $# -ge 1 ] && [ `which $1` ]
+then
+$1 -v
+$1 -O2 bin2list0.c copygc0.c -DRAWC -o bin2list-c
+$1 -O2 bin2list0.c copygc0.c -o bin2list-gcc
+$1 -O2 bin2list.c nestfunc.c -o bin2list-lw
+LANG=C /home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -DCT=lightweight -O2 bin2list0.c copygc0.c -o bin2list-xcc # XC-cube lightweight
+$1 -O2 bin2list-clos.c nestfunc.c -o bin2list-clos
+fi
+
+if [ $# -le 1 ]; then
+ m=1
+else
+ m=$2
+fi
+
+if [ $# -le 2 ]; then
+ gc=-1   # off
+ tosize=51200000
+else
+ gc=0    # on
+ tosize=20000000
+fi
+
+if [ $gc = 0 ]; then
+    progs="./bin2list-gcc ./bin2list-lw ./bin2list-xcc ./bin2list-clos"
+else
+    progs="./bin2list-c ./bin2list-gcc ./bin2list-lw ./bin2list-xcc ./bin2list-clos"
+fi
+
+arg1=500000    # maxins
+arg2=1         # maxsearch
+arg3=$gc      
+arg4=$tosize   # tosize
+
+for prog in $progs; do
+    i=0
+    echo $prog
+    while [ $i -lt $m ]; do
+	$prog $arg1 $arg2 $arg3 $arg4 && sleep 0.3
+	i=`expr $i + 1`
+    done
+    echo ""
+done

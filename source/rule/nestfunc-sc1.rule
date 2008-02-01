@@ -1,0 +1,4 @@
+(define-ruleset nestfunc-sc1 (sc1-to-sc0))
+
+(extendrule function-tag nestfunc-sc1
+  ((#?lightweight) x))

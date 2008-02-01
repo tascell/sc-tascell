@@ -1,0 +1,15 @@
+#!/bin/sh
+
+pousse_args="-nproc 5 -t 27"
+
+read size
+(
+	echo $size;
+	while read move; do echo $move; done
+) | ./pousse_$size $pousse_args
+
+
+
+
+
+

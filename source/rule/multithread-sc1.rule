@@ -1,0 +1,13 @@
+(define-ruleset multithread-sc1 (sc1))
+
+;; マルチスレッド用プリミティブ
+(extendrule statement multithread-sc1
+  ((#?(thread-create ,dec-list ,@body))
+   ~( (thread-create
+       ,(apply #'append (mapcar #'declaration dec-list))
+       ,@(function-body body)) ))
+  ((#?(thread-suspend ,id[identifier] ,@body))
+   ~( (thread-suspend ,id ,@(function-body body)) ) )
+  ((#?(thread-resume ,exp))
+   ~( (thread-resume ,(expression exp))) )
+  )

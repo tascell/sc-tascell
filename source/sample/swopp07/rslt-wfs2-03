@@ -1,0 +1,913 @@
+Script started on Thu Jul 05 15:22:06 2007
+[m[m[m[Jwfs2% [KXCC="/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc" NOWARN="yes" SOLOPT="-mcpu=ultrasparc" OLD_XCC="yes" ./evaluation bintree clean compile 10[K
+*** Sun OS
+no icc in /export/home/lab4/yasugi/bin /usr/ccs/bin /opt/sfw/bin /usr/local/bin /usr/ucb /usr/games /usr/hosts /usr/etc /usr/lang /usr/sbin /usr/bsd /usr/local/X11R6/bin /usr/bin /usr/bin/X11 /bin /export/home/lab4/yasugi/hira/bin
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+*** warning not output
+rm -f ./bintree-c-sol ./bintree-gcc-sol ./bintree-lw-sol ./bintree-clos-sol ./bintree-xcc-sol ./bintree-xcccl-sol ./bintree-icc-c-sol ./bintree-icc-lw-sol ./bintree-icc-clos-sol
+*** Options=-O2  -mcpu=ultrasparc -w
+** GCC=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+Reading specs from /export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/lib/gcc-lib/sparc-sun-solaris2.6/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3 --enable-languages=c sparc-sun-solaris2.6
+Thread model: posix
+gcc version 3.2
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w bintree0.c copygc0.c -DRAWC -o bintree-c-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w bintree0.c copygc0.c -o bintree-gcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w bintree.c nestfunc.c -o bintree-lw-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w bintree-clos.c nestfunc.c -o bintree-clos-sol
+** XC Cube=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+Reading specs from /export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/lib/gcc-lib/sparc-sun-solaris2.6/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3 --enable-languages=c sparc-sun-solaris2.6
+Thread model: posix
+gcc version 3.2
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w bintree0.c copygc0.c -DSUN -DCTOLD=lightweight -o bintree-xcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w bintree0.c copygc0.c -DSUN -DCTOLD=closure -o bintree-xcccl-sol
+** Intel C Compiler=icc
+./evaluation: icc: not found
+icc -O2 -mcpu=ultrasparc -w bintree0.c copygc0.c -DRAWC -o bintree-icc-c-sol
+/export/home/lab4/yasugi/hira/bin/echo-run: icc: not found
+icc -O2 -mcpu=ultrasparc -w bintree.c nestfunc.c -o bintree-icc-lw-sol
+/export/home/lab4/yasugi/hira/bin/echo-run: icc: not found
+icc -O2 -mcpu=ultrasparc -w bintree-clos.c nestfunc.c -o bintree-icc-clos-sol
+/export/home/lab4/yasugi/hira/bin/echo-run: icc: not found
+*** Iteration=10
+*** GC off
+
+./bintree-c-sol 200000 300000 -1 6400000
+total=0.178596 gc=0.000000 other=0.178596
+total=0.179815 gc=0.000000 other=0.179815
+total=0.182811 gc=0.000000 other=0.182811
+total=0.183183 gc=0.000000 other=0.183183
+total=0.184656 gc=0.000000 other=0.184656
+total=0.186651 gc=0.000000 other=0.186651
+total=0.186784 gc=0.000000 other=0.186784
+total=0.187504 gc=0.000000 other=0.187504
+total=0.188479 gc=0.000000 other=0.188479
+total=0.189504 gc=0.000000 other=0.189504
+
+./bintree-gcc-sol 200000 300000 -1 6400000
+total=0.233607 gc=0.000000 other=0.233607
+total=0.233682 gc=0.000000 other=0.233682
+total=0.233729 gc=0.000000 other=0.233729
+total=0.234328 gc=0.000000 other=0.234328
+total=0.234416 gc=0.000000 other=0.234416
+total=0.235861 gc=0.000000 other=0.235861
+total=0.236629 gc=0.000000 other=0.236629
+total=0.237648 gc=0.000000 other=0.237648
+total=0.241142 gc=0.000000 other=0.241142
+total=0.250739 gc=0.000000 other=0.250739
+
+./bintree-lw-sol 200000 300000 -1 6400000
+total=0.200434 gc=0.000000 other=0.200434
+total=0.207153 gc=0.000000 other=0.207153
+total=0.208762 gc=0.000000 other=0.208762
+total=0.209123 gc=0.000000 other=0.209123
+total=0.209127 gc=0.000000 other=0.209127
+total=0.209521 gc=0.000000 other=0.209521
+total=0.210004 gc=0.000000 other=0.210004
+total=0.213979 gc=0.000000 other=0.213979
+total=0.214539 gc=0.000000 other=0.214539
+total=0.217615 gc=0.000000 other=0.217615
+
+./bintree-clos-sol 200000 300000 -1 6400000
+total=0.231025 gc=0.000000 other=0.231025
+total=0.231260 gc=0.000000 other=0.231260
+total=0.231389 gc=0.000000 other=0.231389
+total=0.231432 gc=0.000000 other=0.231432
+total=0.231953 gc=0.000000 other=0.231953
+total=0.232309 gc=0.000000 other=0.232309
+total=0.239081 gc=0.000000 other=0.239081
+total=0.240698 gc=0.000000 other=0.240698
+total=0.243043 gc=0.000000 other=0.243043
+total=0.243442 gc=0.000000 other=0.243442
+
+./bintree-xcc-sol 200000 300000 -1 6400000
+total=0.178676 gc=0.000000 other=0.178676
+total=0.178731 gc=0.000000 other=0.178731
+total=0.178784 gc=0.000000 other=0.178784
+total=0.178790 gc=0.000000 other=0.178790
+total=0.178801 gc=0.000000 other=0.178801
+total=0.178813 gc=0.000000 other=0.178813
+total=0.178918 gc=0.000000 other=0.178918
+total=0.178930 gc=0.000000 other=0.178930
+total=0.180056 gc=0.000000 other=0.180056
+total=0.182264 gc=0.000000 other=0.182264
+
+./bintree-xcccl-sol 200000 300000 -1 6400000
+total=0.232118 gc=0.000000 other=0.232118
+total=0.232173 gc=0.000000 other=0.232173
+total=0.232206 gc=0.000000 other=0.232206
+total=0.232217 gc=0.000000 other=0.232217
+total=0.232239 gc=0.000000 other=0.232239
+total=0.232328 gc=0.000000 other=0.232328
+total=0.232369 gc=0.000000 other=0.232369
+total=0.232463 gc=0.000000 other=0.232463
+total=0.232467 gc=0.000000 other=0.232467
+total=0.236486 gc=0.000000 other=0.236486
+
+*** There is no "./bintree-icc-c-sol" executable!
+
+*** There is no "./bintree-icc-lw-sol" executable!
+
+*** There is no "./bintree-icc-clos-sol" executable!
+
+[m[m[m[Jwfs2% [KXCC="/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc" NOWARN="yes" SOLOPT="-mcpu=ultrasparc" OLD_XCC="yes" ./evaluation bintree clean compile 10[K[P[17C [18D[P[17C [18D[P[17C [18D[P[17C [18D[@2[17C [18D[@l[17C [18D[@i[17C [18D[@s[17C [18D[@t[17C [18D
+*** Sun OS
+no icc in /export/home/lab4/yasugi/bin /usr/ccs/bin /opt/sfw/bin /usr/local/bin /usr/ucb /usr/games /usr/hosts /usr/etc /usr/lang /usr/sbin /usr/bsd /usr/local/X11R6/bin /usr/bin /usr/bin/X11 /bin /export/home/lab4/yasugi/hira/bin
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+*** warning not output
+rm -f ./bin2list-c-sol ./bin2list-gcc-sol ./bin2list-lw-sol ./bin2list-clos-sol ./bin2list-xcc-sol ./bin2list-xcccl-sol ./bin2list-icc-c-sol ./bin2list-icc-lw-sol ./bin2list-icc-clos-sol
+*** Options=-O2  -mcpu=ultrasparc -w
+** GCC=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+Reading specs from /export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/lib/gcc-lib/sparc-sun-solaris2.6/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3 --enable-languages=c sparc-sun-solaris2.6
+Thread model: posix
+gcc version 3.2
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w bin2list0.c copygc0.c -DRAWC -o bin2list-c-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w bin2list0.c copygc0.c -o bin2list-gcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w bin2list.c nestfunc.c -o bin2list-lw-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w bin2list-clos.c nestfunc.c -o bin2list-clos-sol
+** XC Cube=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+Reading specs from /export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/lib/gcc-lib/sparc-sun-solaris2.6/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3 --enable-languages=c sparc-sun-solaris2.6
+Thread model: posix
+gcc version 3.2
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w bin2list0.c copygc0.c -DSUN -DCTOLD=lightweight -o bin2list-xcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w bin2list0.c copygc0.c -DSUN -DCTOLD=closure -o bin2list-xcccl-sol
+** Intel C Compiler=icc
+./evaluation: icc: not found
+icc -O2 -mcpu=ultrasparc -w bin2list0.c copygc0.c -DRAWC -o bin2list-icc-c-sol
+/export/home/lab4/yasugi/hira/bin/echo-run: icc: not found
+icc -O2 -mcpu=ultrasparc -w bin2list.c nestfunc.c -o bin2list-icc-lw-sol
+/export/home/lab4/yasugi/hira/bin/echo-run: icc: not found
+icc -O2 -mcpu=ultrasparc -w bin2list-clos.c nestfunc.c -o bin2list-icc-clos-sol
+/export/home/lab4/yasugi/hira/bin/echo-run: icc: not found
+*** Iteration=10
+*** GC off
+*** Tosize=51200000
+
+./bin2list-c-sol 500000 1 -1 51200000
+total=0.289009 gc=0.000000 other=0.289009
+total=0.289334 gc=0.000000 other=0.289334
+total=0.291583 gc=0.000000 other=0.291583
+total=0.296530 gc=0.000000 other=0.296530
+total=0.298910 gc=0.000000 other=0.298910
+total=0.300811 gc=0.000000 other=0.300811
+total=0.301007 gc=0.000000 other=0.301007
+total=0.301689 gc=0.000000 other=0.301689
+total=0.302918 gc=0.000000 other=0.302918
+total=0.306896 gc=0.000000 other=0.306896
+
+./bin2list-gcc-sol 500000 1 -1 51200000
+total=0.320859 gc=0.000000 other=0.320859
+total=0.322397 gc=0.000000 other=0.322397
+total=0.323335 gc=0.000000 other=0.323335
+total=0.323856 gc=0.000000 other=0.323856
+total=0.327894 gc=0.000000 other=0.327894
+total=0.328079 gc=0.000000 other=0.328079
+total=0.334355 gc=0.000000 other=0.334355
+total=0.337310 gc=0.000000 other=0.337310
+total=0.338193 gc=0.000000 other=0.338193
+total=0.343567 gc=0.000000 other=0.343567
+
+./bin2list-lw-sol 500000 1 -1 51200000
+total=0.296043 gc=0.000000 other=0.296043
+total=0.303518 gc=0.000000 other=0.303518
+total=0.303831 gc=0.000000 other=0.303831
+total=0.303915 gc=0.000000 other=0.303915
+total=0.304221 gc=0.000000 other=0.304221
+total=0.308840 gc=0.000000 other=0.308840
+total=0.311193 gc=0.000000 other=0.311193
+total=0.312872 gc=0.000000 other=0.312872
+total=0.313555 gc=0.000000 other=0.313555
+total=0.313803 gc=0.000000 other=0.313803
+
+./bin2list-clos-sol 500000 1 -1 51200000
+total=0.306803 gc=0.000000 other=0.306803
+total=0.307160 gc=0.000000 other=0.307160
+total=0.308841 gc=0.000000 other=0.308841
+total=0.311929 gc=0.000000 other=0.311929
+total=0.312871 gc=0.000000 other=0.312871
+total=0.317502 gc=0.000000 other=0.317502
+total=0.317957 gc=0.000000 other=0.317957
+total=0.325271 gc=0.000000 other=0.325271
+total=0.327164 gc=0.000000 other=0.327164
+total=0.328695 gc=0.000000 other=0.328695
+
+./bin2list-xcc-sol 500000 1 -1 51200000
+total=0.287240 gc=0.000000 other=0.287240
+total=0.287741 gc=0.000000 other=0.287741
+total=0.287805 gc=0.000000 other=0.287805
+total=0.288296 gc=0.000000 other=0.288296
+total=0.288589 gc=0.000000 other=0.288589
+total=0.288718 gc=0.000000 other=0.288718
+total=0.290193 gc=0.000000 other=0.290193
+total=0.290311 gc=0.000000 other=0.290311
+total=0.290705 gc=0.000000 other=0.290705
+total=0.291569 gc=0.000000 other=0.291569
+
+./bin2list-xcccl-sol 500000 1 -1 51200000
+total=0.294429 gc=0.000000 other=0.294429
+total=0.294493 gc=0.000000 other=0.294493
+total=0.294494 gc=0.000000 other=0.294494
+total=0.294630 gc=0.000000 other=0.294630
+total=0.294631 gc=0.000000 other=0.294631
+total=0.294814 gc=0.000000 other=0.294814
+total=0.294831 gc=0.000000 other=0.294831
+total=0.294839 gc=0.000000 other=0.294839
+total=0.294867 gc=0.000000 other=0.294867
+total=0.295136 gc=0.000000 other=0.295136
+
+*** There is no "./bin2list-icc-c-sol" executable!
+
+*** There is no "./bin2list-icc-lw-sol" executable!
+
+*** There is no "./bin2list-icc-clos-sol" executable!
+
+[m[m[m[Jwfs2% [KXCC="/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc" NOWARN="yes" SOLOPT="-mcpu=ultrasparc" OLD_XCC="yes" ./evaluation bin2list clean compile 10[K[P[17C [18D[P[17C [18D[P[17C [18D[P[17C [18D[P[17C [18D[P[17C [18D[P[17C [18D[P[17C [18D[@c[17C [18D[@p[17C [18D[@f[17C [18D[@i[17C [18D[@b[17C [18D
+*** Sun OS
+no icc in /export/home/lab4/yasugi/bin /usr/ccs/bin /opt/sfw/bin /usr/local/bin /usr/ucb /usr/games /usr/hosts /usr/etc /usr/lang /usr/sbin /usr/bsd /usr/local/X11R6/bin /usr/bin /usr/bin/X11 /bin /export/home/lab4/yasugi/hira/bin
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+*** warning not output
+rm -f ./cpfib-c-sol ./cpfib-gcc-sol ./cpfib-lw-sol ./cpfib-clos-sol ./cpfib-xcc-sol ./cpfib-xcccl-sol ./cpfib-icc-c-sol ./cpfib-icc-lw-sol ./cpfib-icc-clos-sol
+*** Options=-O2  -mcpu=ultrasparc -w
+** GCC=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+Reading specs from /export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/lib/gcc-lib/sparc-sun-solaris2.6/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3 --enable-languages=c sparc-sun-solaris2.6
+Thread model: posix
+gcc version 3.2
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w cpfib0.c -DRAWC -o cpfib-c-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w cpfib0.c -o cpfib-gcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w cpfib.c nestfunc.c -o cpfib-lw-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w cpfib-clos.c -o cpfib-clos-sol
+** XC Cube=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+Reading specs from /export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/lib/gcc-lib/sparc-sun-solaris2.6/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3 --enable-languages=c sparc-sun-solaris2.6
+Thread model: posix
+gcc version 3.2
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w cpfib0.c copygc0.c -DSUN -DCTOLD=lightweight -o cpfib-xcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w cpfib0.c copygc0.c -DSUN -DCTOLD=closure -o cpfib-xcccl-sol
+** Intel C Compiler=icc
+./evaluation: icc: not found
+icc -O2 -mcpu=ultrasparc -w cpfib0.c -DRAWC -o cpfib-icc-c-sol
+/export/home/lab4/yasugi/hira/bin/echo-run: icc: not found
+icc -O2 -mcpu=ultrasparc -w cpfib.c nestfunc.c -o cpfib-icc-lw-sol
+/export/home/lab4/yasugi/hira/bin/echo-run: icc: not found
+icc -O2 -mcpu=ultrasparc -w cpfib-clos.c -o cpfib-icc-clos-sol
+/export/home/lab4/yasugi/hira/bin/echo-run: icc: not found
+*** Iteration=10
+*** N=37
+
+./cpfib-c-sol 37
+0.917401
+0.918044
+0.918516
+0.918868
+0.918870
+0.919015
+0.919026
+0.919673
+0.920316
+0.920588
+
+./cpfib-gcc-sol 37
+3.764791
+3.774953
+3.779503
+3.781929
+3.790321
+3.794345
+3.794922
+3.795389
+3.800168
+3.802014
+
+./cpfib-lw-sol 37
+1.184632
+1.189663
+1.192307
+1.194139
+1.195494
+1.195727
+1.196500
+1.198248
+1.201552
+1.204779
+
+./cpfib-clos-sol 37
+1.545290
+1.545925
+1.545944
+1.547011
+1.547262
+1.547320
+1.547760
+1.547985
+1.550393
+1.555791
+
+./cpfib-xcc-sol 37
+0.952003
+0.952018
+0.952035
+0.952192
+0.952305
+0.952393
+0.952596
+0.952627
+0.952741
+0.952797
+
+./cpfib-xcccl-sol 37
+1.367468
+1.367469
+1.367552
+1.367882
+1.368294
+1.368300
+1.368355
+1.368429
+1.368851
+1.370277
+
+*** There is no "./cpfib-icc-c-sol" executable!
+
+*** There is no "./cpfib-icc-lw-sol" executable!
+
+*** There is no "./cpfib-icc-clos-sol" executable!
+
+[m[m[m[Jwfs2% [KXCC="/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc" NOWARN="yes" SOLOPT="-mcpu=ultrasparc" OLD_XCC="yes" ./evaluation cpfib clean compile 10[K[P[17C [18D[P[17C [18D[P[17C [18D[P[17C [18D[P[17C [18D[@n[17C [18D[@q[17C [18D[@u[17C [18D[@e[17C [18D[@e[17C [18D[@n[17C [18D
+*** Sun OS
+no icc in /export/home/lab4/yasugi/bin /usr/ccs/bin /opt/sfw/bin /usr/local/bin /usr/ucb /usr/games /usr/hosts /usr/etc /usr/lang /usr/sbin /usr/bsd /usr/local/X11R6/bin /usr/bin /usr/bin/X11 /bin /export/home/lab4/yasugi/hira/bin
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+*** warning not output
+rm -f ./nqueen-c-sol ./nqueen-gcc-sol ./nqueen-lw-sol ./nqueen-clos-sol ./nqueen-xcc-sol ./nqueen-xcccl-sol ./nqueen-icc-c-sol ./nqueen-icc-lw-sol ./nqueen-icc-clos-sol
+*** Options=-O2  -mcpu=ultrasparc -w
+** GCC=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+Reading specs from /export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/lib/gcc-lib/sparc-sun-solaris2.6/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3 --enable-languages=c sparc-sun-solaris2.6
+Thread model: posix
+gcc version 3.2
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w nqueen-c.c -lm -DNOXCC -o nqueen-c-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w nqueen-gcc.c -lm -DNOXCC -o nqueen-gcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w nqueen.c nestfunc.c -lm -DNOXCC -o nqueen-lw-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w nqueen-clos.c nestfunc.c -lm -DNOXCC -o nqueen-clos-sol
+** XC Cube=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+Reading specs from /export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/lib/gcc-lib/sparc-sun-solaris2.6/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3 --enable-languages=c sparc-sun-solaris2.6
+Thread model: posix
+gcc version 3.2
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w nqueen-xcc.c -lm systhr-sparc.o -lthread -DCTOLD=lightweight -DNOXCC -o nqueen-xcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w nqueen-xcc.c -lm systhr-sparc.o -lthread -DCTOLD=closure -DNOXCC -o nqueen-xcccl-sol
+** Intel C Compiler=icc
+./evaluation: icc: not found
+icc -O2 -mcpu=ultrasparc -w nqueen-c.c -lm -DNOXCC -o nqueen-icc-c-sol
+/export/home/lab4/yasugi/hira/bin/echo-run: icc: not found
+icc -O2 -mcpu=ultrasparc -w nqueen.c nestfunc.c -lm -DNOXCC -o nqueen-icc-lw-sol
+/export/home/lab4/yasugi/hira/bin/echo-run: icc: not found
+icc -O2 -mcpu=ultrasparc -w nqueen-clos.c nestfunc.c -lm -DNOXCC -o nqueen-icc-clos-sol
+/export/home/lab4/yasugi/hira/bin/echo-run: icc: not found
+*** Iteration=10
+*** N of queens=13
+
+./nqueen-c-sol 1 13
+0.476812
+0.476830
+0.476928
+0.476951
+0.476976
+0.477220
+0.477408
+0.477411
+0.477737
+0.481200
+
+./nqueen-gcc-sol 1 13
+1.004418
+1.004510
+1.004640
+1.004701
+1.004920
+1.004951
+1.004958
+1.005307
+1.005403
+1.005837
+
+./nqueen-lw-sol 1 13
+0.660696
+0.660875
+0.660924
+0.661005
+0.661100
+0.661167
+0.661631
+0.661686
+0.662112
+0.670705
+
+./nqueen-clos-sol 1 13
+1.040241
+1.040335
+1.040348
+1.040375
+1.040513
+1.040570
+1.040955
+1.041335
+1.041383
+1.041757
+
+./nqueen-xcc-sol 1 13
+0.585452
+0.585501
+0.585607
+0.585623
+0.585923
+0.585967
+0.586060
+0.586089
+0.586173
+0.586615
+
+./nqueen-xcccl-sol 1 13
+0.778380
+0.778630
+0.778761
+0.778930
+0.779047
+0.779106
+0.779132
+0.779362
+0.779574
+0.779589
+
+*** There is no "./nqueen-icc-c-sol" executable!
+
+*** There is no "./nqueen-icc-lw-sol" executable!
+
+*** There is no "./nqueen-icc-clos-sol" executable!
+
+[m[m[m[Jwfs2% [KXCC="/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc" NOWARN="yes" SOLOPT="-mcpu=ultrasparc" OLD_XCC="yes" ./evaluation nqueen clean compile 10[K[P[17C [18D[P[17C [18D[P[17C [18D[P[17C [18D[P[17C [18D[P[17C [18D[@q[17C [18D[@s[17C [18D[@o[17C [18D[@r[17C [18D[@t[17C [18D
+*** Sun OS
+no icc in /export/home/lab4/yasugi/bin /usr/ccs/bin /opt/sfw/bin /usr/local/bin /usr/ucb /usr/games /usr/hosts /usr/etc /usr/lang /usr/sbin /usr/bsd /usr/local/X11R6/bin /usr/bin /usr/bin/X11 /bin /export/home/lab4/yasugi/hira/bin
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+*** warning not output
+rm -f ./qsort-c-sol ./qsort-gcc-sol ./qsort-lw-sol ./qsort-clos-sol ./qsort-xcc-sol ./qsort-xcccl-sol ./qsort-icc-c-sol ./qsort-icc-lw-sol ./qsort-icc-clos-sol
+*** Options=-O2  -mcpu=ultrasparc -w
+** GCC=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+Reading specs from /export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/lib/gcc-lib/sparc-sun-solaris2.6/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3 --enable-languages=c sparc-sun-solaris2.6
+Thread model: posix
+gcc version 3.2
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w qsort-c.c -o qsort-c-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w qsort-gcc.c -o qsort-gcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w qsort.c nestfunc.c -o qsort-lw-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w qsort-clos.c nestfunc.c -o qsort-clos-sol
+** XC Cube=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc
+Reading specs from /export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/lib/gcc-lib/sparc-sun-solaris2.6/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3 --enable-languages=c sparc-sun-solaris2.6
+Thread model: posix
+gcc version 3.2
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w qsort-gcc.c -DSOL -DCTOLD=lightweight -o qsort-xcc-sol
+/export/home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -w qsort-gcc.c -DSOL -DCTOLD=closure -o qsort-xcccl-sol
+** Intel C Compiler=icc
+./evaluation: icc: not found
+icc -O2 -mcpu=ultrasparc -w qsort-c.c -o qsort-icc-c-sol
+/export/home/lab4/yasugi/hira/bin/echo-run: icc: not found
+icc -O2 -mcpu=ultrasparc -w qsort.c nestfunc.c -o qsort-icc-lw-sol
+/export/home/lab4/yasugi/hira/bin/echo-run: icc: not found
+icc -O2 -mcpu=ultrasparc -w qsort-clos.c nestfunc.c -o qsort-icc-clos-sol
+/export/home/lab4/yasugi/hira/bin/echo-run: icc: not found
+*** Iteration=10
+*** N=200000
+
+./qsort-c-sol 200000 200000
+0.416348
+0.416414
+0.416510
+0.416545
+0.416961
+0.417229
+0.418827
+0.419177
+0.420146
+0.421854
+
+./qsort-gcc-sol 200000 200000
+0.449273
+0.449344
+0.449346
+0.449448
+0.449712
+0.450505
+0.450554
+0.451088
+0.452099
+0.453658
+
+./qsort-lw-sol 200000 200000
+6.662830
+6.666046
+6.666890
+6.667032
+6.667235
+6.667422
+6.667812
+6.668478
+6.671237
+6.673494
+
+./qsort-clos-sol 200000 200000
+0.545243
+0.545872
+0.545902
+0.546699
+0.547814
+0.548302
+0.549567
+0.551697
+0.553150
+0.553538
+
+./qsort-xcc-sol 200000 200000
+7.616194
+7.616760
+7.616923
+7.617476
+7.617875
+7.618533
+7.618657
+7.618817
+7.618892
+7.619675
+
+./qsort-xcccl-sol 200000 200000
+0.421766
+0.422587
+0.422897
+0.423116
+0.423283
+0.423632
+0.423678
+0.424120
+0.424224
+0.425547
+
+*** There is no "./qsort-icc-c-sol" executable!
+
+*** There is no "./qsort-icc-lw-sol" executable!
+
+*** There is no "./qsort-icc-clos-sol" executable!
+
+===
+././qsort-c-sol 200000 200000 0
+0.417171
+0.416381
+0.416841
+
+././qsort-c-sol 200000 200000 10
+0.418374
+0.416901
+0.416584
+
+././qsort-c-sol 200000 200000 20
+0.416953
+0.417792
+0.416774
+
+././qsort-c-sol 200000 200000 30
+0.416592
+0.418963
+0.427222
+
+././qsort-c-sol 200000 200000 40
+0.416997
+0.417382
+0.417633
+
+././qsort-c-sol 200000 200000 50
+0.416389
+0.417030
+0.416230
+
+././qsort-c-sol 200000 200000 60
+0.419518
+0.417485
+0.417904
+
+././qsort-c-sol 200000 200000 70
+0.416990
+0.417312
+0.416445
+
+././qsort-c-sol 200000 200000 80
+0.416477
+0.418220
+0.417916
+
+././qsort-c-sol 200000 200000 90
+0.419153
+0.416802
+0.416620
+
+././qsort-c-sol 200000 200000 100
+0.416468
+0.418822
+0.419309
+
+
+././qsort-gcc-sol 200000 200000 0
+0.451126
+0.452727
+0.449206
+
+././qsort-gcc-sol 200000 200000 10
+0.450422
+0.449942
+0.449701
+
+././qsort-gcc-sol 200000 200000 20
+0.450580
+0.449223
+0.449858
+
+././qsort-gcc-sol 200000 200000 30
+0.449870
+0.453607
+0.449878
+
+././qsort-gcc-sol 200000 200000 40
+0.449414
+0.449243
+0.449508
+
+././qsort-gcc-sol 200000 200000 50
+0.450380
+0.449424
+0.449754
+
+././qsort-gcc-sol 200000 200000 60
+0.450301
+0.450620
+0.454487
+
+././qsort-gcc-sol 200000 200000 70
+0.452389
+0.449809
+0.451455
+
+././qsort-gcc-sol 200000 200000 80
+0.449300
+0.449812
+0.452034
+
+././qsort-gcc-sol 200000 200000 90
+0.450593
+0.449214
+0.449802
+
+././qsort-gcc-sol 200000 200000 100
+0.449251
+0.449265
+0.449082
+
+
+././qsort-lw-sol 200000 200000 0
+6.813276
+6.811413
+6.806531
+
+././qsort-lw-sol 200000 200000 10
+12.539902
+12.537858
+12.545649
+
+././qsort-lw-sol 200000 200000 20
+18.204756
+18.193843
+18.193714
+
+././qsort-lw-sol 200000 200000 30
+23.843604
+23.834956
+23.835168
+
+././qsort-lw-sol 200000 200000 40
+29.349056
+29.382946
+29.352453
+
+././qsort-lw-sol 200000 200000 50
+34.923013
+34.920423
+34.938438
+
+././qsort-lw-sol 200000 200000 60
+40.472880
+40.470909
+40.476783
+
+././qsort-lw-sol 200000 200000 70
+46.041524
+46.024649
+46.033860
+
+././qsort-lw-sol 200000 200000 80
+51.625291
+51.629898
+51.628498
+
+././qsort-lw-sol 200000 200000 90
+57.185493
+57.177546
+57.198250
+
+././qsort-lw-sol 200000 200000 100
+62.705765
+62.688322
+62.694598
+
+
+././qsort-clos-sol 200000 200000 0
+0.552977
+0.552720
+0.545477
+
+././qsort-clos-sol 200000 200000 10
+0.552448
+0.546386
+0.547085
+
+././qsort-clos-sol 200000 200000 20
+0.548895
+0.550849
+0.553277
+
+././qsort-clos-sol 200000 200000 30
+0.541996
+0.543657
+0.547465
+
+././qsort-clos-sol 200000 200000 40
+0.544022
+0.548728
+0.545328
+
+././qsort-clos-sol 200000 200000 50
+0.545886
+0.549932
+0.547433
+
+././qsort-clos-sol 200000 200000 60
+0.547878
+0.551271
+0.543677
+
+././qsort-clos-sol 200000 200000 70
+0.544883
+0.550848
+0.545179
+
+././qsort-clos-sol 200000 200000 80
+0.558606
+0.546187
+0.546713
+
+././qsort-clos-sol 200000 200000 90
+0.547633
+0.549084
+0.549706
+
+././qsort-clos-sol 200000 200000 100
+0.542797
+0.547945
+0.544088
+
+
+././qsort-xcc-sol 200000 200000 0
+7.615193
+7.618745
+7.614902
+
+././qsort-xcc-sol 200000 200000 10
+7.626404
+7.615424
+7.615875
+
+././qsort-xcc-sol 200000 200000 20
+7.617280
+7.619253
+7.617233
+
+././qsort-xcc-sol 200000 200000 30
+7.618534
+7.615208
+7.613907
+
+././qsort-xcc-sol 200000 200000 40
+7.617486
+7.626984
+7.615500
+
+././qsort-xcc-sol 200000 200000 50
+7.617530
+7.615383
+7.628830
+
+././qsort-xcc-sol 200000 200000 60
+7.614808
+7.617704
+7.615943
+
+././qsort-xcc-sol 200000 200000 70
+7.620313
+7.616431
+7.614579
+
+././qsort-xcc-sol 200000 200000 80
+7.617995
+7.618027
+7.614028
+
+././qsort-xcc-sol 200000 200000 90
+7.620271
+7.615771
+7.616328
+
+././qsort-xcc-sol 200000 200000 100
+7.616172
+7.617964
+7.617083
+
+
+././qsort-xcccl-sol 200000 200000 0
+0.422512
+0.421522
+0.421647
+
+././qsort-xcccl-sol 200000 200000 10
+0.420684
+0.421551
+0.420541
+
+././qsort-xcccl-sol 200000 200000 20
+0.421831
+0.422644
+0.420149
+
+././qsort-xcccl-sol 200000 200000 30
+0.421079
+0.421644
+0.422050
+
+././qsort-xcccl-sol 200000 200000 40
+0.422624
+0.425538
+0.422533
+
+././qsort-xcccl-sol 200000 200000 50
+0.421612
+0.422045
+0.421760
+
+././qsort-xcccl-sol 200000 200000 60
+0.420700
+0.421318
+0.422558
+
+././qsort-xcccl-sol 200000 200000 70
+0.422998
+0.421195
+0.422021
+
+././qsort-xcccl-sol 200000 200000 80
+0.420780
+0.421707
+0.422845
+
+././qsort-xcccl-sol 200000 200000 90
+0.424414
+0.421356
+0.421566
+
+././qsort-xcccl-sol 200000 200000 100
+0.421536
+0.422261
+0.422182
+
+
+*** There is no "./qsort-icc-c-sol" executable!
+
+*** There is no "./qsort-icc-lw-sol" executable!
+
+*** There is no "./qsort-icc-clos-sol" executable!
+
+[m[m[m[Jwfs2% [K
+
+script done on Thu Jul 05 15:58:02 2007

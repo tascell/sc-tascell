@@ -1,0 +1,10 @@
+(decl printf (fn int (const char) va-arg))
+
+((main) (fn int)
+   (for ((def i int 0) (<= i 2) (inc i))
+      (printf "i=%d\\n" i)
+      (for ((def i int 0) (<= i 2) (inc i))
+         (printf "  i=%d\\n" i)
+         (let ((i2 int) (i_init (const int) 0))
+            (for ((= i2 i_init) (<= i2 2) (inc i2))
+               (printf "    i0=%d\\n" i))))))

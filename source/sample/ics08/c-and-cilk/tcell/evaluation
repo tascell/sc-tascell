@@ -1,0 +1,15 @@
+#!/bin/sh
+echo "machine: `hostname`"
+for prog in fib lu pen cmp; do
+    echo "prog: $prog"
+    impls="c gcc lw clos xcc xcccl"
+    if [ `uname` != "SunOS" ]; then
+	impls="$impls icc-c icc-lw icc-clos"
+    fi
+    for impl in $impls
+    do
+	exefile="./${prog}-${impl}"
+	echo "exefile: $exefile"
+	$exefile
+    done
+done

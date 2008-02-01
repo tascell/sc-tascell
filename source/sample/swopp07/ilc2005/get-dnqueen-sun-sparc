@@ -1,0 +1,37 @@
+#!/bin/sh
+CC="$HOME/../yasugi/tmp/sparc-sol2.6/n3/bin/gcc -O2 -mcpu=ultrasparc -lm -lthread systhr-sparc.o"
+
+if [ $# -ge 1 ] && [ `which $1` ]
+then
+LANG=C $CC -v
+LANG=C $CC dnqueen-c.c -o sol-dnqueen-c
+LANG=C $CC dnqueen-gcc.c -o sol-dnqueen-gcc
+LANG=C $CC dnqueen.c nestfunc.c -o sol-dnqueen-lw
+LANG=C $CC dnqueen-gcc.c -DCLT=lightweight -o sol-dnqueen-xcc # XC-cube lightweight
+LANG=C $CC dnqueen-clos.c nestfunc.c -o sol-dnqueen-clos
+fi
+
+if [ $# -le 1 ]; then
+ m=1
+else
+ m=$2
+fi
+
+progs="./sol-dnqueen-c ./sol-dnqueen-gcc ./sol-dnqueen-lw ./sol-dnqueen-xcc ./sol-dnqueen-clos"
+
+if [ $# -le 2 ]; then
+ n=13
+else
+ n=$3
+fi
+
+for prog in $progs; do
+    i=0
+    echo $prog
+    while [ $i -lt $m ]; do
+	$prog $arg1 $n && sleep 1
+	i=`expr $i + 1`
+    done
+    arg1=1
+    echo ""
+done

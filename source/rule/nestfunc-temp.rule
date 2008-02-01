@@ -1,0 +1,5 @@
+(define-ruleset nestfunc-temp (temp))
+
+(extendrule function-tag nestfunc-temp
+  ((#?lightweight) x)
+  )

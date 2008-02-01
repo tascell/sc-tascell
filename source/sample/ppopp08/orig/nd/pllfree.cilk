@@ -1,0 +1,70 @@
+/* Copyright (c) 2002 Massachusetts Institute of Technology
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+static const char *ident __attribute__((__unused__))
+     = "$HeadURL: https://bradley.csail.mit.edu/svn/repos/cilk/5.4.3/examples/nd/pllfree.cilk $ $LastChangedBy: bradley $ $Rev: 73 $ $Date: 2002-12-25 19:09:12 -0500 (Wed, 25 Dec 2002) $";
+
+#include <cilk.h>
+#include <cilk-compat.h>
+#include <stdio.h>
+
+int x, y;
+
+cilk void free_r(int *r)
+{
+  free(r);
+}
+
+cilk void writeq(int *q)
+{
+  *q = 12345;
+}
+
+cilk void reads(int *s)
+{
+  x = *s;
+}
+
+cilk int main()
+{
+  int *p = malloc(sizeof(int));
+  int *q = malloc(sizeof(int));
+  int *r = malloc(sizeof(int));
+  int *s = malloc(sizeof(int));
+  int *t = malloc(sizeof(int));
+
+  free(p);
+  *p = 987;
+
+  spawn writeq(q);
+  free(q);
+  
+  spawn free_r(r);
+  *r = 6;
+
+  *s = 6789;
+  spawn reads(s);
+  free(s);
+
+  spawn free_r(t);
+  y = *t;
+
+  sync;
+  *(t+1) = 1;
+ 
+  return 0;
+}

@@ -1,0 +1,30 @@
+\documentstyle{jarticle}
+\begin{document} \begin{verbatim}
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#include<ctype.h>
+
+
+int 
+main()
+{
+  int             i = 0;
+  const int       i_init = 0;
+  int             i0 = 0;
+  const int       i0_init = 0;
+  int             i00;
+  const int       i_init0 = 0;
+  for ((i = i_init); i <= 2; i++) {
+    printf("i=%d\n", i);
+    for ((i0 = i0_init); i0 <= 2; i0++) {
+      printf("  i=%d\n", i0);
+      {
+        for (i00 = i_init0; i00 <= 2; i00++) {
+          printf("    i0=%d\n", i00);
+        }
+      }
+    }
+  }
+}
+\end{verbatim} \end{document}

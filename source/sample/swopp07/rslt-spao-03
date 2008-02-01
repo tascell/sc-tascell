@@ -1,0 +1,1229 @@
+Script started on 2007Ç¯07·î05Æü 15»þ39Ê¬40ÉÃ
+sh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation bintree clean compile 10
+/opt/intel/cc/10.0.023/bin/icc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+*** warning not output
+rm -f ./bintree-c ./bintree-gcc ./bintree-lw ./bintree-clos ./bintree-xcc ./bintree-xcccl ./bintree-icc-c ./bintree-icc-lw ./bintree-icc-clos
+*** Options=-O2  -march=pentium4 -w
+** GCC=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+Reading specs from /home/lab4/yasugi/tmp/i386-linux2.4.20/n1/lib/gcc-lib/i686-pc-linux-gnu/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1 --enable-languages=c
+Thread model: posix
+gcc version 3.2
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w bintree0.c copygc0.c -DRAWC -o bintree-c
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w bintree0.c copygc0.c -o bintree-gcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w bintree.c nestfunc.c -o bintree-lw
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w bintree-clos.c nestfunc.c -o bintree-clos
+** XC Cube=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+Reading specs from /home/lab4/yasugi/tmp/i386-linux2.4.20/n1/lib/gcc-lib/i686-pc-linux-gnu/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1 --enable-languages=c
+Thread model: posix
+gcc version 3.2
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w bintree0.c copygc0.c -DCTOLD=lightweight -o bintree-xcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w bintree0.c copygc0.c -DCTOLD=closure -o bintree-xcccl
+** Intel C Compiler=icc
+Version 10.0 
+icc -O2 -march=pentium4 -w bintree0.c copygc0.c -DRAWC -o bintree-icc-c
+icc -O2 -march=pentium4 -w bintree.c nestfunc.c -o bintree-icc-lw
+icc -O2 -march=pentium4 -w bintree-clos.c nestfunc.c -o bintree-icc-clos
+*** Iteration=10
+*** GC off
+
+./bintree-c 200000 300000 -1 6400000
+total=0.155569 gc=0.000000 other=0.155569
+total=0.162023 gc=0.000000 other=0.162023
+total=0.169607 gc=0.000000 other=0.169607
+total=0.178002 gc=0.000000 other=0.178002
+total=0.190592 gc=0.000000 other=0.190592
+total=0.190682 gc=0.000000 other=0.190682
+total=0.191153 gc=0.000000 other=0.191153
+total=0.193830 gc=0.000000 other=0.193830
+total=0.203069 gc=0.000000 other=0.203069
+total=0.218717 gc=0.000000 other=0.218717
+
+./bintree-gcc 200000 300000 -1 6400000
+total=0.183506 gc=0.000000 other=0.183506
+total=0.196367 gc=0.000000 other=0.196367
+total=0.212314 gc=0.000000 other=0.212314
+total=0.214876 gc=0.000000 other=0.214876
+total=0.215655 gc=0.000000 other=0.215655
+total=0.218150 gc=0.000000 other=0.218150
+total=0.219397 gc=0.000000 other=0.219397
+total=0.219705 gc=0.000000 other=0.219705
+total=0.220394 gc=0.000000 other=0.220394
+total=0.251494 gc=0.000000 other=0.251494
+
+./bintree-lw 200000 300000 -1 6400000
+total=0.155877 gc=0.000000 other=0.155877
+total=0.162891 gc=0.000000 other=0.162891
+total=0.176328 gc=0.000000 other=0.176328
+total=0.189780 gc=0.000000 other=0.189780
+total=0.190072 gc=0.000000 other=0.190072
+total=0.191231 gc=0.000000 other=0.191231
+total=0.191615 gc=0.000000 other=0.191615
+total=0.193784 gc=0.000000 other=0.193784
+total=0.195055 gc=0.000000 other=0.195055
+total=0.195302 gc=0.000000 other=0.195302
+
+./bintree-clos 200000 300000 -1 6400000
+total=0.176530 gc=0.000000 other=0.176530
+total=0.188509 gc=0.000000 other=0.188509
+total=0.198296 gc=0.000000 other=0.198296
+total=0.207308 gc=0.000000 other=0.207308
+total=0.208557 gc=0.000000 other=0.208557
+total=0.216921 gc=0.000000 other=0.216921
+total=0.217654 gc=0.000000 other=0.217654
+total=0.219938 gc=0.000000 other=0.219938
+total=0.221373 gc=0.000000 other=0.221373
+total=0.258802 gc=0.000000 other=0.258802
+
+./bintree-xcc 200000 300000 -1 6400000
+total=0.157646 gc=0.000000 other=0.157646
+total=0.170981 gc=0.000000 other=0.170981
+total=0.185753 gc=0.000000 other=0.185753
+total=0.188362 gc=0.000000 other=0.188362
+total=0.192682 gc=0.000000 other=0.192682
+total=0.192803 gc=0.000000 other=0.192803
+total=0.193063 gc=0.000000 other=0.193063
+total=0.205601 gc=0.000000 other=0.205601
+total=0.227745 gc=0.000000 other=0.227745
+total=0.236430 gc=0.000000 other=0.236430
+
+./bintree-xcccl 200000 300000 -1 6400000
+total=0.180637 gc=0.000000 other=0.180637
+total=0.193410 gc=0.000000 other=0.193410
+total=0.202890 gc=0.000000 other=0.202890
+total=0.211048 gc=0.000000 other=0.211048
+total=0.215047 gc=0.000000 other=0.215047
+total=0.217320 gc=0.000000 other=0.217320
+total=0.217834 gc=0.000000 other=0.217834
+total=0.230738 gc=0.000000 other=0.230738
+total=0.242172 gc=0.000000 other=0.242172
+total=0.259014 gc=0.000000 other=0.259014
+
+./bintree-icc-c 200000 300000 -1 6400000
+total=0.140037 gc=0.000000 other=0.140037
+total=0.147873 gc=0.000000 other=0.147873
+total=0.153163 gc=0.000000 other=0.153163
+total=0.174569 gc=0.000000 other=0.174569
+total=0.179541 gc=0.000000 other=0.179541
+total=0.179710 gc=0.000000 other=0.179710
+total=0.179796 gc=0.000000 other=0.179796
+total=0.180075 gc=0.000000 other=0.180075
+total=0.182354 gc=0.000000 other=0.182354
+total=0.221511 gc=0.000000 other=0.221511
+
+./bintree-icc-lw 200000 300000 -1 6400000
+total=0.158725 gc=0.000000 other=0.158725
+total=0.166915 gc=0.000000 other=0.166915
+total=0.183393 gc=0.000000 other=0.183393
+total=0.186844 gc=0.000000 other=0.186844
+total=0.189618 gc=0.000000 other=0.189618
+total=0.190104 gc=0.000000 other=0.190104
+total=0.195534 gc=0.000000 other=0.195534
+total=0.213200 gc=0.000000 other=0.213200
+total=0.224978 gc=0.000000 other=0.224978
+total=0.233855 gc=0.000000 other=0.233855
+
+./bintree-icc-clos 200000 300000 -1 6400000
+total=0.154994 gc=0.000000 other=0.154994
+total=0.176061 gc=0.000000 other=0.176061
+total=0.188792 gc=0.000000 other=0.188792
+total=0.189890 gc=0.000000 other=0.189890
+total=0.191214 gc=0.000000 other=0.191214
+total=0.193834 gc=0.000000 other=0.193834
+total=0.196321 gc=0.000000 other=0.196321
+total=0.198513 gc=0.000000 other=0.198513
+total=0.218691 gc=0.000000 other=0.218691
+total=0.230897 gc=0.000000 other=0.230897
+
+sh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation bintree clean compile 10[1P[1P[1P[1P[1@2[1@l[1@i[1@s[1@t
+/opt/intel/cc/10.0.023/bin/icc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+*** warning not output
+rm -f ./bin2list-c ./bin2list-gcc ./bin2list-lw ./bin2list-clos ./bin2list-xcc ./bin2list-xcccl ./bin2list-icc-c ./bin2list-icc-lw ./bin2list-icc-clos
+*** Options=-O2  -march=pentium4 -w
+** GCC=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+Reading specs from /home/lab4/yasugi/tmp/i386-linux2.4.20/n1/lib/gcc-lib/i686-pc-linux-gnu/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1 --enable-languages=c
+Thread model: posix
+gcc version 3.2
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w bin2list0.c copygc0.c -DRAWC -o bin2list-c
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w bin2list0.c copygc0.c -o bin2list-gcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w bin2list.c nestfunc.c -o bin2list-lw
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w bin2list-clos.c nestfunc.c -o bin2list-clos
+** XC Cube=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+Reading specs from /home/lab4/yasugi/tmp/i386-linux2.4.20/n1/lib/gcc-lib/i686-pc-linux-gnu/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1 --enable-languages=c
+Thread model: posix
+gcc version 3.2
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w bin2list0.c copygc0.c -DCTOLD=lightweight -o bin2list-xcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w bin2list0.c copygc0.c -DCTOLD=closure -o bin2list-xcccl
+** Intel C Compiler=icc
+Version 10.0 
+icc -O2 -march=pentium4 -w bin2list0.c copygc0.c -DRAWC -o bin2list-icc-c
+icc -O2 -march=pentium4 -w bin2list.c nestfunc.c -o bin2list-icc-lw
+icc -O2 -march=pentium4 -w bin2list-clos.c nestfunc.c -o bin2list-icc-clos
+*** Iteration=10
+*** GC off
+*** Tosize=51200000
+
+./bin2list-c 500000 1 -1 51200000
+total=0.159050 gc=0.000000 other=0.159050
+total=0.196148 gc=0.000000 other=0.196148
+total=0.196388 gc=0.000000 other=0.196388
+total=0.201391 gc=0.000000 other=0.201391
+total=0.203416 gc=0.000000 other=0.203416
+total=0.208052 gc=0.000000 other=0.208052
+total=0.228633 gc=0.000000 other=0.228633
+total=0.229101 gc=0.000000 other=0.229101
+total=0.231896 gc=0.000000 other=0.231896
+total=0.233095 gc=0.000000 other=0.233095
+
+./bin2list-gcc 500000 1 -1 51200000
+total=0.166228 gc=0.000000 other=0.166228
+total=0.172030 gc=0.000000 other=0.172030
+total=0.173171 gc=0.000000 other=0.173171
+total=0.184369 gc=0.000000 other=0.184369
+total=0.191550 gc=0.000000 other=0.191550
+total=0.198396 gc=0.000000 other=0.198396
+total=0.198668 gc=0.000000 other=0.198668
+total=0.198964 gc=0.000000 other=0.198964
+total=0.242639 gc=0.000000 other=0.242639
+total=0.243812 gc=0.000000 other=0.243812
+
+./bin2list-lw 500000 1 -1 51200000
+total=0.197893 gc=0.000000 other=0.197893
+total=0.202372 gc=0.000000 other=0.202372
+total=0.202417 gc=0.000000 other=0.202417
+total=0.202454 gc=0.000000 other=0.202454
+total=0.202613 gc=0.000000 other=0.202613
+total=0.203987 gc=0.000000 other=0.203987
+total=0.206129 gc=0.000000 other=0.206129
+total=0.242200 gc=0.000000 other=0.242200
+total=0.246115 gc=0.000000 other=0.246115
+total=0.247853 gc=0.000000 other=0.247853
+
+./bin2list-clos 500000 1 -1 51200000
+total=0.193870 gc=0.000000 other=0.193870
+total=0.199082 gc=0.000000 other=0.199082
+total=0.202790 gc=0.000000 other=0.202790
+total=0.208298 gc=0.000000 other=0.208298
+total=0.208440 gc=0.000000 other=0.208440
+total=0.208813 gc=0.000000 other=0.208813
+total=0.209447 gc=0.000000 other=0.209447
+total=0.218561 gc=0.000000 other=0.218561
+total=0.252051 gc=0.000000 other=0.252051
+total=0.252318 gc=0.000000 other=0.252318
+
+./bin2list-xcc 500000 1 -1 51200000
+total=0.197458 gc=0.000000 other=0.197458
+total=0.197551 gc=0.000000 other=0.197551
+total=0.199061 gc=0.000000 other=0.199061
+total=0.199874 gc=0.000000 other=0.199874
+total=0.207801 gc=0.000000 other=0.207801
+total=0.209565 gc=0.000000 other=0.209565
+total=0.226126 gc=0.000000 other=0.226126
+total=0.238973 gc=0.000000 other=0.238973
+total=0.239159 gc=0.000000 other=0.239159
+total=0.239165 gc=0.000000 other=0.239165
+
+./bin2list-xcccl 500000 1 -1 51200000
+total=0.156960 gc=0.000000 other=0.156960
+total=0.159873 gc=0.000000 other=0.159873
+total=0.163821 gc=0.000000 other=0.163821
+total=0.184094 gc=0.000000 other=0.184094
+total=0.198432 gc=0.000000 other=0.198432
+total=0.198633 gc=0.000000 other=0.198633
+total=0.199762 gc=0.000000 other=0.199762
+total=0.199969 gc=0.000000 other=0.199969
+total=0.241392 gc=0.000000 other=0.241392
+total=0.242579 gc=0.000000 other=0.242579
+
+./bin2list-icc-c 500000 1 -1 51200000
+total=0.127978 gc=0.000000 other=0.127978
+total=0.136111 gc=0.000000 other=0.136111
+total=0.145440 gc=0.000000 other=0.145440
+total=0.151352 gc=0.000000 other=0.151352
+total=0.161273 gc=0.000000 other=0.161273
+total=0.163556 gc=0.000000 other=0.163556
+total=0.163645 gc=0.000000 other=0.163645
+total=0.163730 gc=0.000000 other=0.163730
+total=0.164067 gc=0.000000 other=0.164067
+total=0.164993 gc=0.000000 other=0.164993
+
+./bin2list-icc-lw 500000 1 -1 51200000
+total=0.127858 gc=0.000000 other=0.127858
+total=0.132019 gc=0.000000 other=0.132019
+total=0.144161 gc=0.000000 other=0.144161
+total=0.155843 gc=0.000000 other=0.155843
+total=0.157704 gc=0.000000 other=0.157704
+total=0.163429 gc=0.000000 other=0.163429
+total=0.168510 gc=0.000000 other=0.168510
+total=0.168661 gc=0.000000 other=0.168661
+total=0.168721 gc=0.000000 other=0.168721
+total=0.168808 gc=0.000000 other=0.168808
+
+./bin2list-icc-clos 500000 1 -1 51200000
+total=0.144245 gc=0.000000 other=0.144245
+total=0.146177 gc=0.000000 other=0.146177
+total=0.165056 gc=0.000000 other=0.165056
+total=0.166528 gc=0.000000 other=0.166528
+total=0.177949 gc=0.000000 other=0.177949
+total=0.177998 gc=0.000000 other=0.177998
+total=0.178002 gc=0.000000 other=0.178002
+total=0.178233 gc=0.000000 other=0.178233
+total=0.178876 gc=0.000000 other=0.178876
+total=0.179340 gc=0.000000 other=0.179340
+
+sh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation bin2list clean compile 10sh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluatish-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluatiosh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluationsh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation sh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation bsh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation bish-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation binsh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation bin2sh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation bin2lsh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation bin2lish-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation bin2lissh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation bin2listsh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation bin2list sh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation bin2list c[1P[1P[1P[1P[1P[1P[1P[1P[1@c[1@p[1@f[1@b[1P[1@i[1@b
+/opt/intel/cc/10.0.023/bin/icc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+*** warning not output
+rm -f ./cpfib-c ./cpfib-gcc ./cpfib-lw ./cpfib-clos ./cpfib-xcc ./cpfib-xcccl ./cpfib-icc-c ./cpfib-icc-lw ./cpfib-icc-clos
+*** Options=-O2  -march=pentium4 -w
+** GCC=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+Reading specs from /home/lab4/yasugi/tmp/i386-linux2.4.20/n1/lib/gcc-lib/i686-pc-linux-gnu/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1 --enable-languages=c
+Thread model: posix
+gcc version 3.2
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w cpfib0.c -DRAWC -o cpfib-c
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w cpfib0.c -o cpfib-gcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w cpfib.c nestfunc.c -o cpfib-lw
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w cpfib-clos.c -o cpfib-clos
+** XC Cube=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+Reading specs from /home/lab4/yasugi/tmp/i386-linux2.4.20/n1/lib/gcc-lib/i686-pc-linux-gnu/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1 --enable-languages=c
+Thread model: posix
+gcc version 3.2
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w cpfib0.c copygc0.c -DCTOLD=lightweight -o cpfib-xcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w cpfib0.c copygc0.c -DCTOLD=closure -o cpfib-xcccl
+** Intel C Compiler=icc
+Version 10.0 
+icc -O2 -march=pentium4 -w cpfib0.c -DRAWC -o cpfib-icc-c
+icc -O2 -march=pentium4 -w cpfib.c nestfunc.c -o cpfib-icc-lw
+icc -O2 -march=pentium4 -w cpfib-clos.c -o cpfib-icc-clos
+*** Iteration=10
+*** N=37
+
+./cpfib-c 37
+0.335159
+0.337225
+0.337829
+0.340598
+0.340924
+0.341235
+0.341586
+0.341858
+0.342150
+0.342620
+
+./cpfib-gcc 37
+0.701568
+0.702086
+0.702528
+0.702747
+0.703273
+0.703418
+0.703792
+0.703820
+0.704130
+0.706409
+
+./cpfib-lw 37
+0.563533
+0.563595
+0.565778
+0.567984
+0.568102
+0.570520
+0.573465
+0.573933
+0.574192
+0.574567
+
+./cpfib-clos 37
+0.701878
+0.705065
+0.708685
+0.709175
+0.709456
+0.714217
+0.717465
+0.718302
+0.718629
+0.718852
+
+./cpfib-xcc 37
+0.380097
+0.380628
+0.381142
+0.381906
+0.382278
+0.382563
+0.382878
+0.382992
+0.384204
+0.421466
+
+./cpfib-xcccl 37
+0.463613
+0.464618
+0.465105
+0.465417
+0.465665
+0.466369
+0.466421
+0.467118
+0.468075
+0.553981
+
+./cpfib-icc-c 37
+0.297083
+0.304676
+0.304845
+0.307482
+0.310106
+0.312146
+0.313867
+0.318428
+0.323735
+0.330918
+
+./cpfib-icc-lw 37
+0.549646
+0.552654
+0.553399
+0.554264
+0.554375
+0.555878
+0.557086
+0.557594
+0.560988
+0.571248
+
+./cpfib-icc-clos 37
+0.648711
+0.660201
+0.661544
+0.661684
+0.661827
+0.663236
+0.663382
+0.663437
+0.663575
+0.664171
+
+sh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation cpfib clean compile 10sh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./sh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./esh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evsh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evash-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evalsh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evalush-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluash-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluatsh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluatish-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluatiosh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluationsh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation sh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation csh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation cpsh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation cpfsh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation cpfish-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation cpfib[1P[1P[1P[1P[1P[1@n[1@q[1@u[1@e[1@e[1@n
+/opt/intel/cc/10.0.023/bin/icc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+*** warning not output
+rm -f ./nqueen-c ./nqueen-gcc ./nqueen-lw ./nqueen-clos ./nqueen-xcc ./nqueen-xcccl ./nqueen-icc-c ./nqueen-icc-lw ./nqueen-icc-clos
+*** Options=-O2  -march=pentium4 -w
+** GCC=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+Reading specs from /home/lab4/yasugi/tmp/i386-linux2.4.20/n1/lib/gcc-lib/i686-pc-linux-gnu/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1 --enable-languages=c
+Thread model: posix
+gcc version 3.2
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w nqueen-c.c -lm -DNOXCC -o nqueen-c
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w nqueen-gcc.c -lm -DNOXCC -o nqueen-gcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w nqueen.c nestfunc.c -lm -DNOXCC -o nqueen-lw
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w nqueen-clos.c nestfunc.c -lm -DNOXCC -o nqueen-clos
+** XC Cube=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+Reading specs from /home/lab4/yasugi/tmp/i386-linux2.4.20/n1/lib/gcc-lib/i686-pc-linux-gnu/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1 --enable-languages=c
+Thread model: posix
+gcc version 3.2
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w nqueen-xcc.c -lm systhr-i386.o -lpthread -DCTOLD=lightweight -DNOXCC -o nqueen-xcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w nqueen-xcc.c -lm systhr-i386.o -lpthread -DCTOLD=closure -DNOXCC -o nqueen-xcccl
+** Intel C Compiler=icc
+Version 10.0 
+icc -O2 -march=pentium4 -w nqueen-c.c -lm -DNOXCC -o nqueen-icc-c
+nqueen-c.c(58): (col. 3) remark: LOOP WAS VECTORIZED.
+nqueen-c.c(58): (col. 3) remark: LOOP WAS VECTORIZED.
+nqueen-c.c(12): (col. 3) remark: LOOP WAS VECTORIZED.
+nqueen-c.c(13): (col. 3) remark: LOOP WAS VECTORIZED.
+icc -O2 -march=pentium4 -w nqueen.c nestfunc.c -lm -DNOXCC -o nqueen-icc-lw
+nqueen.c(681): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(691): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(701): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(713): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(723): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(733): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(781): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(791): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(801): (col. 19) remark: LOOP WAS VECTORIZED.
+nqueen.c(258): (col. 18) remark: LOOP WAS VECTORIZED.
+icc -O2 -march=pentium4 -w nqueen-clos.c nestfunc.c -lm -DNOXCC -o nqueen-icc-clos
+nqueen-clos.c(284): (col. 18) remark: LOOP WAS VECTORIZED.
+*** Iteration=10
+*** N of queens=13
+
+./nqueen-c 1 13
+0.223749
+0.223825
+0.223981
+0.224104
+0.224226
+0.224242
+0.224500
+0.224587
+0.225752
+0.225816
+
+./nqueen-gcc 1 13
+0.354839
+0.355139
+0.355329
+0.355694
+0.356357
+0.356969
+0.357155
+0.357394
+0.357765
+0.357949
+
+./nqueen-lw 1 13
+0.359333
+0.359563
+0.359907
+0.360072
+0.360361
+0.361653
+0.362045
+0.362878
+0.363207
+0.365164
+
+./nqueen-clos 1 13
+0.435167
+0.435720
+0.436298
+0.436306
+0.437158
+0.437656
+0.437814
+0.438191
+0.438213
+0.438811
+
+./nqueen-xcc 1 13
+0.322740
+0.324058
+0.325349
+0.325431
+0.325751
+0.326942
+0.327119
+0.327858
+0.328566
+0.330113
+
+./nqueen-xcccl 1 13
+0.348965
+0.349278
+0.349519
+0.349676
+0.349691
+0.349752
+0.349925
+0.350111
+0.350653
+0.350751
+
+./nqueen-icc-c 1 13
+0.252337
+0.252349
+0.252800
+0.253010
+0.253184
+0.253205
+0.253221
+0.254070
+0.254549
+0.256648
+
+./nqueen-icc-lw 1 13
+0.385553
+0.386126
+0.387010
+0.387678
+0.387714
+0.387774
+0.387795
+0.388022
+0.389350
+0.390514
+
+./nqueen-icc-clos 1 13
+0.458362
+0.458653
+0.459699
+0.459906
+0.460374
+0.461204
+0.461295
+0.461398
+0.461694
+0.461919
+
+sh-2.05b$ NOWARN=yes INTELOPT="-march=pentium4" LANG=C XCC="/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc" OLD_XCC=yes ./evaluation nqueen clean compile 10[1P[1P[1P[1P[1P[1P[1@q[1@s[1@o[1@r[1@t
+/opt/intel/cc/10.0.023/bin/icc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+*** warning not output
+rm -f ./qsort-c ./qsort-gcc ./qsort-lw ./qsort-clos ./qsort-xcc ./qsort-xcccl ./qsort-icc-c ./qsort-icc-lw ./qsort-icc-clos
+*** Options=-O2  -march=pentium4 -w
+** GCC=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+Reading specs from /home/lab4/yasugi/tmp/i386-linux2.4.20/n1/lib/gcc-lib/i686-pc-linux-gnu/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1 --enable-languages=c
+Thread model: posix
+gcc version 3.2
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w qsort-c.c -o qsort-c
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w qsort-gcc.c -o qsort-gcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w qsort.c nestfunc.c -o qsort-lw
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w qsort-clos.c nestfunc.c -o qsort-clos
+** XC Cube=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc
+Reading specs from /home/lab4/yasugi/tmp/i386-linux2.4.20/n1/lib/gcc-lib/i686-pc-linux-gnu/3.2/specs
+Configured with: ../gcc-3.2/configure --prefix=/home/lab4/yasugi/tmp/i386-linux2.4.20/n1 --enable-languages=c
+Thread model: posix
+gcc version 3.2
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w qsort-gcc.c -DCTOLD=lightweight -o qsort-xcc
+/home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -march=pentium4 -w qsort-gcc.c -DCTOLD=closure -o qsort-xcccl
+** Intel C Compiler=icc
+Version 10.0 
+icc -O2 -march=pentium4 -w qsort-c.c -o qsort-icc-c
+qsort-c.c(286): (col. 23) remark: LOOP WAS VECTORIZED.
+qsort-c.c(162): (col. 23) remark: LOOP WAS VECTORIZED.
+qsort-c.c(183): (col. 19) remark: LOOP WAS VECTORIZED.
+qsort-c.c(195): (col. 19) remark: LOOP WAS VECTORIZED.
+qsort-c.c(204): (col. 23) remark: LOOP WAS VECTORIZED.
+qsort-c.c(217): (col. 5) remark: LOOP WAS VECTORIZED.
+qsort-c.c(124): (col. 25) remark: LOOP WAS VECTORIZED.
+icc -O2 -march=pentium4 -w qsort.c nestfunc.c -o qsort-icc-lw
+qsort.c(2265): (col. 18) remark: LOOP WAS VECTORIZED.
+qsort.c(88): (col. 16) remark: LOOP WAS VECTORIZED.
+icc -O2 -march=pentium4 -w qsort-clos.c nestfunc.c -o qsort-icc-clos
+*** Iteration=10
+*** N=200000
+
+./qsort-c 200000 200000
+0.124239
+0.124415
+0.124483
+0.124486
+0.124839
+0.124874
+0.124887
+0.124914
+0.125417
+0.125510
+
+./qsort-gcc 200000 200000
+0.570056
+0.570122
+0.570423
+0.571059
+0.571863
+0.572364
+0.572625
+0.572721
+0.574264
+0.575010
+
+./qsort-lw 200000 200000
+1.849875
+1.849962
+1.850157
+1.850636
+1.850903
+1.851161
+1.851239
+1.853532
+1.946585
+2.012146
+
+./qsort-clos 200000 200000
+0.171843
+0.171889
+0.172014
+0.172156
+0.172173
+0.172511
+0.173459
+0.173773
+0.174727
+0.174874
+
+./qsort-xcc 200000 200000
+1.618219
+1.658628
+1.664880
+1.688372
+1.697430
+1.705061
+1.712530
+1.743041
+1.759996
+1.769930
+
+./qsort-xcccl 200000 200000
+0.122578
+0.122598
+0.122803
+0.122839
+0.122845
+0.123430
+0.123560
+0.124255
+0.124345
+0.124380
+
+./qsort-icc-c 200000 200000
+0.116330
+0.116517
+0.116534
+0.116708
+0.116756
+0.116796
+0.116817
+0.116903
+0.117477
+0.118165
+
+./qsort-icc-lw 200000 200000
+1.910423
+1.910883
+1.910919
+1.910935
+1.911432
+1.911541
+1.912165
+1.912808
+1.914281
+1.915724
+
+./qsort-icc-clos 200000 200000
+0.146255
+0.147578
+0.147663
+0.148489
+0.149028
+0.149184
+0.149284
+0.149316
+0.149931
+0.150440
+
+===
+././qsort-c 200000 200000 0
+0.124411
+0.124388
+0.124422
+
+././qsort-c 200000 200000 10
+0.124180
+0.126658
+0.124364
+
+././qsort-c 200000 200000 20
+0.124481
+0.124572
+0.124574
+
+././qsort-c 200000 200000 30
+0.124211
+0.125180
+0.124381
+
+././qsort-c 200000 200000 40
+0.125991
+0.124512
+0.124820
+
+././qsort-c 200000 200000 50
+0.125923
+0.864248
+0.124417
+
+././qsort-c 200000 200000 60
+0.124495
+0.124615
+0.125195
+
+././qsort-c 200000 200000 70
+0.125527
+0.124588
+0.124377
+
+././qsort-c 200000 200000 80
+0.124099
+0.124285
+0.124224
+
+././qsort-c 200000 200000 90
+0.124295
+0.124229
+0.125647
+
+././qsort-c 200000 200000 100
+0.124450
+0.124510
+0.124135
+
+
+././qsort-gcc 200000 200000 0
+0.581390
+0.577064
+0.580990
+
+././qsort-gcc 200000 200000 10
+0.518531
+0.520559
+0.517860
+
+././qsort-gcc 200000 200000 20
+0.519788
+0.518596
+0.519199
+
+././qsort-gcc 200000 200000 30
+0.518239
+0.519229
+0.518589
+
+././qsort-gcc 200000 200000 40
+0.520015
+0.518986
+0.519340
+
+././qsort-gcc 200000 200000 50
+0.519857
+0.518078
+0.519222
+
+././qsort-gcc 200000 200000 60
+0.518019
+0.519890
+0.517956
+
+././qsort-gcc 200000 200000 70
+0.519314
+0.518883
+0.519896
+
+././qsort-gcc 200000 200000 80
+0.517989
+0.519700
+0.518029
+
+././qsort-gcc 200000 200000 90
+0.520110
+0.518478
+0.519068
+
+././qsort-gcc 200000 200000 100
+0.518798
+0.519353
+0.518755
+
+
+././qsort-lw 200000 200000 0
+1.785351
+1.791029
+1.788688
+
+././qsort-lw 200000 200000 10
+2.331475
+2.329715
+2.328999
+
+././qsort-lw 200000 200000 20
+2.889114
+2.888292
+2.888880
+
+././qsort-lw 200000 200000 30
+3.430762
+3.436577
+3.441067
+
+././qsort-lw 200000 200000 40
+3.892966
+3.902046
+3.890418
+
+././qsort-lw 200000 200000 50
+4.431864
+4.433448
+4.435818
+
+././qsort-lw 200000 200000 60
+4.929926
+4.925114
+4.940145
+
+././qsort-lw 200000 200000 70
+5.450918
+5.454250
+5.448726
+
+././qsort-lw 200000 200000 80
+6.103898
+6.116666
+6.111723
+
+././qsort-lw 200000 200000 90
+6.670632
+6.671636
+6.676069
+
+././qsort-lw 200000 200000 100
+7.354262
+7.363315
+8.054571
+
+
+././qsort-clos 200000 200000 0
+0.173656
+0.173337
+0.174348
+
+././qsort-clos 200000 200000 10
+0.172848
+0.174316
+0.173158
+
+././qsort-clos 200000 200000 20
+0.172577
+0.173000
+0.173597
+
+././qsort-clos 200000 200000 30
+0.172542
+0.172756
+0.173255
+
+././qsort-clos 200000 200000 40
+0.172098
+0.174345
+0.173437
+
+././qsort-clos 200000 200000 50
+0.178256
+0.177848
+0.178166
+
+././qsort-clos 200000 200000 60
+0.175099
+0.175578
+0.174907
+
+././qsort-clos 200000 200000 70
+0.172753
+0.172538
+0.173173
+
+././qsort-clos 200000 200000 80
+0.174133
+0.172220
+0.172202
+
+././qsort-clos 200000 200000 90
+0.172520
+0.172825
+0.172973
+
+././qsort-clos 200000 200000 100
+0.175198
+0.174443
+0.174310
+
+
+././qsort-xcc 200000 200000 0
+1.781223
+1.676143
+1.768672
+
+././qsort-xcc 200000 200000 10
+1.737146
+1.690107
+1.812171
+
+././qsort-xcc 200000 200000 20
+1.673803
+1.810536
+1.747004
+
+././qsort-xcc 200000 200000 30
+1.792409
+1.677389
+1.696357
+
+././qsort-xcc 200000 200000 40
+1.628072
+1.681685
+1.782746
+
+././qsort-xcc 200000 200000 50
+1.704173
+1.629336
+1.647387
+
+././qsort-xcc 200000 200000 60
+1.700957
+1.645843
+1.778917
+
+././qsort-xcc 200000 200000 70
+1.743205
+1.666406
+1.664768
+
+././qsort-xcc 200000 200000 80
+1.714118
+1.719272
+1.704904
+
+././qsort-xcc 200000 200000 90
+1.686952
+1.630208
+1.654633
+
+././qsort-xcc 200000 200000 100
+1.674729
+1.637091
+1.624015
+
+
+././qsort-xcccl 200000 200000 0
+0.122470
+0.124065
+0.123745
+
+././qsort-xcccl 200000 200000 10
+0.123212
+0.122514
+0.122524
+
+././qsort-xcccl 200000 200000 20
+0.123432
+0.122869
+0.122703
+
+././qsort-xcccl 200000 200000 30
+0.123908
+0.122615
+0.123024
+
+././qsort-xcccl 200000 200000 40
+0.122709
+0.123231
+0.125150
+
+././qsort-xcccl 200000 200000 50
+0.124131
+0.125404
+0.123351
+
+././qsort-xcccl 200000 200000 60
+0.124171
+0.123384
+0.123814
+
+././qsort-xcccl 200000 200000 70
+0.123900
+0.122633
+0.122582
+
+././qsort-xcccl 200000 200000 80
+0.124431
+0.122678
+0.123725
+
+././qsort-xcccl 200000 200000 90
+0.123418
+0.122440
+0.123411
+
+././qsort-xcccl 200000 200000 100
+0.123197
+0.123081
+0.125041
+
+
+././qsort-icc-c 200000 200000 0
+0.116247
+0.116155
+0.116125
+
+././qsort-icc-c 200000 200000 10
+0.115945
+0.115800
+0.116443
+
+././qsort-icc-c 200000 200000 20
+0.116447
+0.117740
+0.118258
+
+././qsort-icc-c 200000 200000 30
+0.115902
+0.116600
+0.116593
+
+././qsort-icc-c 200000 200000 40
+0.116790
+0.116722
+0.116948
+
+././qsort-icc-c 200000 200000 50
+0.117587
+0.119111
+0.116741
+
+././qsort-icc-c 200000 200000 60
+0.115929
+0.115663
+0.116981
+
+././qsort-icc-c 200000 200000 70
+0.117109
+0.116510
+0.117655
+
+././qsort-icc-c 200000 200000 80
+0.116379
+0.116961
+0.115873
+
+././qsort-icc-c 200000 200000 90
+0.116247
+0.117267
+0.116460
+
+././qsort-icc-c 200000 200000 100
+0.115979
+0.118260
+0.116495
+
+
+././qsort-icc-lw 200000 200000 0
+1.911861
+1.906978
+1.912509
+
+././qsort-icc-lw 200000 200000 10
+2.306393
+2.313158
+2.309295
+
+././qsort-icc-lw 200000 200000 20
+2.820593
+2.988245
+2.895727
+
+././qsort-icc-lw 200000 200000 30
+3.290584
+3.289951
+3.289446
+
+././qsort-icc-lw 200000 200000 40
+3.793684
+3.883985
+3.801523
+
+././qsort-icc-lw 200000 200000 50
+4.365089
+4.358121
+4.355435
+
+././qsort-icc-lw 200000 200000 60
+4.885915
+4.888722
+4.890798
+
+././qsort-icc-lw 200000 200000 70
+5.420809
+5.417274
+5.418611
+
+././qsort-icc-lw 200000 200000 80
+6.300369
+6.039907
+6.032385
+
+././qsort-icc-lw 200000 200000 90
+6.581663
+6.541553
+6.525444
+
+././qsort-icc-lw 200000 200000 100
+7.134106
+10.847126
+8.876249
+
+
+././qsort-icc-clos 200000 200000 0
+0.161425
+0.225848
+0.191526
+
+././qsort-icc-clos 200000 200000 10
+0.236835
+0.193597
+0.212043
+
+././qsort-icc-clos 200000 200000 20
+0.219421
+0.196290
+0.195223
+
+././qsort-icc-clos 200000 200000 30
+0.192396
+0.167334
+0.172023
+
+././qsort-icc-clos 200000 200000 40
+0.195770
+0.152377
+0.235109
+
+././qsort-icc-clos 200000 200000 50
+0.162272
+0.221739
+0.193634
+
+././qsort-icc-clos 200000 200000 60
+0.192038
+0.200670
+0.229739
+
+././qsort-icc-clos 200000 200000 70
+0.197457
+0.240754
+0.196820
+
+././qsort-icc-clos 200000 200000 80
+0.208265
+0.225044
+0.149416
+
+././qsort-icc-clos 200000 200000 90
+0.239009
+0.185991
+0.218716
+
+././qsort-icc-clos 200000 200000 100
+0.179261
+0.193297
+0.195531
+
+
+sh-2.05b$ exit
+
+Script done on 2007Ç¯07·î05Æü 18»þ21Ê¬06ÉÃ

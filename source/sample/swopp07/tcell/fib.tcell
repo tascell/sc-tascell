@@ -1,0 +1,43 @@
+(c-exp "#include<sys/time.h>")
+
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
+(%include "nf-select.sh")
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(decl (fib n) (wfn int int))
+
+(def (task fib)
+  (def n int :in)
+  (def r int :out))
+
+(def (task-body fib)
+  (csym::fprintf stderr "start fib(%d)~%" (fref this n))
+  (= (fref this r)
+     (fib (fref this n))))
+
+(def (task-receiver fib)
+  (csym::fprintf stderr "receive %d~%" (fref this n)))
+
+(def (task-sender fib)
+  (csym::fprintf stderr "send %d~%" (fref this n)))
+
+(def (rslt-sender fib)
+  (csym::fprintf stderr "send fib(%d)=%d~%" (fref this n) (fref this r)))
+
+(def (rslt-receiver fib)
+  (csym::fprintf stderr "receive fib(%d)=%d~%" (fref this n) (fref this r)))
+
+(def (fib n) (wfn int int)
+  (if (<= n 2)
+      (return 1)
+    (begin
+      (def s1 int)
+      (def s2 int)
+      (do-two
+	  (= s1 (fib (- n 1)))
+	  (= s2 (fib (- n 2)))
+	(fib
+	 (:put (= (fref this n)  (- n 2)))
+	 (:get (= s2 (fref this r)))))
+      (return (+ s1 s2)))))

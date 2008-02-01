@@ -1,0 +1,288 @@
+;; MT-SC(with type information) -> SC-0 (with nested-functions)
+;;
+;; Written by Xiaolu Li (Feb, 2004)
+;; Refined by Tassuku Hiraishi (May, 2004)
+
+;; 2004/06/14 c-expressionに対応
+
+;; ＊cont の扱い
+;; 田畑さんの論文のコード例では，
+;; 高水準言語の cont は ( 継続＋スレッドの状態 ) の組
+;; C レベルでの cont は 継続
+;;              thst-ptr は( 継続＋スレッドの状態 ) の組
+;; 紛らわしいので C の cont を cont-f に変え，
+;; MT-SCで cont 用に (deftype cont thst-ptr)としてしまうことにした
+;; cont -> thread としたほうが意味的にわかりやすい気もする．
+
+(define-ruleset multithread (sc2c)
+  (initiator 'sc-program)
+  (nthr-id ~nthr)
+  (nestfunc-tag ~fn))
+
+(scr:require "MULTITHREAD-DEFS")
+
+(defrule sc-program multithread
+  ((#?(,@declaration-list))
+   (list* ~(%defconstant @nestfunc-tag ,(ruleset-param 'nestfunc-tag))
+	  ~(%include "rule/multithread.sh")
+	  (mappend (compose #'second #'declaration) x)))
+  )
+
+;;;;;; declaration ;;;;;;
+
+;; declaration, block-item, expression の返り値は
+;;(<入れ子関数のitem-list> <元の関数のitem-list>)
+
+(defrule declaration multithread
+  ;; variable
+  ((#?(,scs[storage-class-specifier] ,id[identifier] ,texp ,@init))
+   (list nil (list x)))
+  ;; function
+  ((#?(,scs[storage-class-specifier] (,func-id ,@arg-id[identifier]) (fn ,func-texp ,@arg-texp) ,@body))
+   (let ((mt:*current-func*
+	  (mt:make-finfo
+	   :id func-id
+	   :rettype func-texp
+	   :nfunc-id (mt:make-nestfunc-id func-id))))
+     (push ~(def ln int 0) (mt:finfo-decl mt:*current-func*))
+     (let* ((fb-body (function-body body))
+	    (def-nfunc (mt:make-nestfunc (first fb-body)))
+	    (sep-body (mt:separate-decl (second fb-body)))
+	    (new-decl (first sep-body))
+	    (new-body (second sep-body))
+	    (add-decl (mt:finfo-decl mt:*current-func*)))
+       (list nil 
+	     ~((,scs (,func-id c_p ,@arg-id)
+		(fn ,func-texp cont-f ,@arg-texp)
+		,@new-decl ,@add-decl ,def-nfunc ,@new-body)
+	       ;;msc-main関数なら、main関数の定義を追加
+	       ,@(when (eq ~msc-main func-id) 
+		       ~((%include "rule/multithread-main.sc"))))))) )
+  ;; struct, union
+  ((#?(,dd[def-or-decl] (,soru[struct-or-union] ,id[identifier]) ,@sdeclist))
+   (list nil (list x)) )
+  ;; enum
+  ((#?(def (enum ,id[identifier]) ,@enum-list))
+   (list nil ~((def (enum ,id) ,@enum-list))) )
+  ;; deftype (struct)
+  ((#?(deftype ,id[identifier] struclt ,@sdecllist))
+   (list nil (list x)) )
+  ;; deftype (enum)
+  ((#?(deftype ,id[identifier] enum ,@enum-list))
+   (list nil ~((deftype ,id enum ,@enum-list))) )
+  ;; deftype
+  ((#?(deftype ,id[identifier] ,texp))
+   (list nil ~((deftype ,id ,texp))) )
+  ;; otherwise
+  (otherwise
+   (list nil (list x)) )
+  )
+
+;;;;;;;;;;;
+
+(defrule function-body multithread
+  ;; function-attribute & register-decl
+  ((#?(:attr ,atr ,@body))
+   (let ((newbody (function-body body)))
+     (list (first newbody)
+	   ~(:attr ,atr ,@(second newbody)))) )
+  ((#?((register ,@regarg) ,@body))
+   (let ((newbody (function-body body)))
+     (list (first newbody)
+	   ~((register ,@regarg) ,@(second newbody)))) )
+  ((#?(,@item-list))
+   (let* ((function-body-ilist (mapcar #'block-item item-list))
+	  (cen-function-body-ilist (combine-each-nth function-body-ilist))
+	  (nest-list (apply #'append (first cen-function-body-ilist)))
+	  (ori-list  (apply #'append (second cen-function-body-ilist))))
+     (list nest-list ori-list)) )
+  )
+  
+(defrule block-item multithread
+  ;; begin
+  ((#?(begin ,@body))
+   (let* ((fb-body (function-body body)))
+     (list ~( (begin ,@(first fb-body)) )
+	   ~( (begin ,@(second fb-body)) ))) )
+  ;; label
+  ((#?(label ,id ,stat))
+   (let* ((block-item-stat (block-item stat))
+	  (stat-n (first block-item-stat))
+	  (stat-p (second block-item-stat)))
+     (list ~( (label ,id ,(car stat-n)) ,@(cdr stat-n) )
+	   ~( (label ,id ,(car stat-p)) ,@(cdr stat-p) ))) )
+  ;; case
+  ((#?(case ,exp))
+   (let ((me-exp (expression exp)))
+     (list ~( (case ,(car (first me-exp))) )
+	   ~( (case ,(car (second me-exp))) ))) )
+  ;; default
+  ((#?(default))
+   (list ~( (default) )
+	 ~( (default) )) )
+  ;;; if文中などに現れるexpは，
+  ;;; tmp.ruleの変形により，関数呼び出しを含まないようになっている．
+  ;; if
+  ((#?(if ,exp ,stat1))
+   (block-item ~(if ,exp ,stat1 () )) )
+  ((#?(if ,exp ,stat1 ,stat2))
+   (let* ((me-exp (expression exp))
+	  (block-item-stat1 (block-item stat1))
+	  (block-item-stat2 (block-item stat2)))
+     (list ~( (if ,(car (first me-exp))
+		  (begin ,@(first block-item-stat1))
+		(begin ,@(first block-item-stat2))) )
+	   ~( (if ,(car (second me-exp))
+		  (begin ,@(second block-item-stat1))
+		(begin ,@(second block-item-stat2))) ))) )
+  ;; switch
+  ((#?(switch ,exp ,@body))
+   (let* ((fb-body (function-body body)))
+     (list ~( (switch ,exp ,@(first fb-body)) )
+	   ~( (switch ,exp ,@(first fb-body)) ))) )
+  ;; do-while
+  ((#?(do-while ,exp ,@body))
+   (let ((fb-body (function-body body)))
+     (list ~( (do-while ,exp ,@(first fb-body)) )
+	   ~( (do-while ,exp ,@(second fb-body)) ))) )
+  ;; goto, continue, break
+  ((#?(goto ,id) #?(continue) #?(break))
+   (list (list x) (list x)) )
+  ;; return
+  ((#?(return ,@exp))
+   (let ((caller-resume
+	  ~((= (fref cp -> c) c-p)
+	    (= (fref cp -> stat) thr-runnable))))
+     (if (null exp)
+	 (list ~(,@caller-resume (return))
+	       ~((return)))
+       (let ((return-exp (car (first (expression (car exp))))))
+	 (list ~((= (mref (cast (ptr ,(mt:finfo-rettype mt:*current-func*))
+				(c_p cp rsn_retval)))
+		    ,return-exp)
+		 ,@caller-resume
+		 (return))
+	       ~((return ,return-exp)))))) )
+  ;;; <--- マルチスレッド用プリミティブ
+  ((#?(thread-create (,@decl-list) ,@body))
+   (let* ((thrc-decl (mapcar #'mtcreate-decl decl-list))
+	 (ln (1+ (length (mt:finfo-label mt:*current-func*))))
+	 (label-l (generate-id (string+ "L" (write-to-string ln))))
+	 (nfunc-id (mt:make-nestfunc-id (ruleset-param 'nthr-id))))
+    (push (list label-l nil)
+	  (mt:finfo-label mt:*current-func*))
+     (let* ((prev-tcreate 
+	     ~(begin 
+	       (= ln ,ln)
+	       (= (fref thst_top -> c) ,(mt:finfo-nfunc-id mt:*current-func*))
+	       (= (fref thst_top -> stat) thr_new_runnable)
+	       (inc thst_top)))
+	    (post-tcreate 
+	     ~(if (!= (fref (- thst_top 1) -> stat) thr_new_runnable)
+		  (scheduling)
+		(dec thst_top)))
+	    (rettype (mt:finfo-rettype mt:*current-func*))
+	    (mt:*current-func* (mt:make-finfo
+			     :id nil
+			     :rettype rettype
+			     :nfunc-id nfunc-id)))
+       (push ~(def ln int 0) (mt:finfo-decl mt:*current-func*))
+       (let* ((fb-body (function-body body))
+	      (tcre-body ~(,@thrc-decl
+			   ,@(mt:finfo-decl mt:*current-func*)
+			   ,(mt:make-nestfunc (first fb-body))
+			   ,@(second fb-body))))
+	 (list ~(,prev-tcreate
+		 (begin ,@tcre-body)
+		 ,post-tcreate
+		 (label ,label-l nil))
+	       ~(,prev-tcreate
+		 (begin ,@tcre-body)
+		 ,post-tcreate))))) )
+  ;;
+  ((#?(thread-suspend ,id[identifier] ,@body))
+   (let* ((ln (1+ (length (mt:finfo-label mt:*current-func*))))
+	  (nfunc-id (mt:finfo-nfunc-id mt:*current-func*))
+	  (fb-body (function-body body))
+	  (label-l (generate-id (string+ "L" (write-to-string ln)))) )
+    ;; (print var-c)(print ~ccc)  
+    (push (list label-l nil) (mt:finfo-label mt:*current-func*))
+    #| (setf (mt:finfo-id mt:*current-func*) thr_s) |#
+    (push ~(def ,id thst-ptr) (mt:finfo-decl mt:*current-func*))
+    (list ~((begin 
+	     (= ,id cp)
+	     (= (fref ,id -> c) ,nfunc-id)
+	     (= (fref ,id -> stat) thr_suspended)
+	     ,@(first fb-body)
+	     (= ln ,ln)
+	     (return))
+	    (label ,label-l nil))      
+	  ~((begin 
+	     (= ,id (inc thst_top))
+	     (= (fref ,id -> c) ,nfunc-id)
+	     (= (fref ,id -> stat) thr_new_suspended)
+	     ,@(second fb-body)
+	     (= ln ,ln)
+	     (scheduling))))) )
+  ((#?(thread-resume ,exp))
+   (list ~((thr_resume ,exp))
+	 ~((thr_resume ,exp))) )
+  ;;; マルチスレッド用プリミティブ --->
+  ;; null statement
+  ((#?() )
+   (list ~() ~()) )
+  ;; expression-statement or declaration
+  (otherwise
+   (let ((me-x (expression x)))
+     (if (eq '$not-expression me-x)
+	 (declaration x)
+	 me-x)) )
+  )
+
+;;; thread-createの最初の宣言用
+(defrule mtcreate-decl multithread
+  ((#?(,id[identifier] ,texp ,@init))
+   (mtcreate-decl (cons ~def x)))
+  ((#?(,scs[storage-class-specifier] ,id[identifier] ,texp ,@init))
+   x)
+  )
+
+;;;;;;;;;;;
+;;; expression
+;;; tmp.ruleの変換結果により、callは
+;;; (the void (call (the ,texp ,exp) ,@exp-list))
+;;; か、
+;;; (the ,texp (= (the ,texp ,id) (the ,texp (call (the ,texp ,exp) ,@exp-list)))
+;;; のどちらかの形で現れるようになっている。
+
+(defrule expression multithread
+  ;; function-call
+  ;; ・引数の値を保存
+  ;; ・呼び出す関数のポインタも保存
+  ((#?(the ,texp (call (the (fn ,fexp1 ,@fexp) ,exp-f) ,@arg-list))
+    #?(the ,texp0
+	(= (the ,texp1 ,id)
+	   (the ,texp (call (the (fn ,fexp1 ,@fexp) ,exp-f) ,@arg-list)))) )
+   (let* ((assign-p (pattern-variable-p 'id))
+	 (nfunc-id (mt:finfo-nfunc-id mt:*current-func*))
+	 (ln (1+ (length (mt:finfo-label mt:*current-func*))))	 
+	 (label-l (generate-id (string+ "L" (write-to-string ln))))
+	 (renew-ln ~(= ln ,ln))
+	 (label-stat ~(label ,label-l nil))
+	 (tmp-id (if assign-p id nil))
+	 ;; 第1引数に入れ子関数へのポインタを追加
+	 (call-exp ~(,exp-f ,nfunc-id ,@arg-list))
+	 (new-exp (if assign-p ~(= ,id ,call-exp) call-exp)))
+    (push (list label-l tmp-id)
+	  (mt:finfo-label mt:*current-func*))
+    (list ~(,renew-ln ,new-exp ,label-stat)
+	  ~(,renew-ln ,new-exp ))) )
+  ;; その他の式，c-exp
+  ((#?(the ,@rem))
+   (list (list x) (list x)) )
+  ((#?(c-exp ,@rem))
+   (list (list x) (list x)) )
+  ;; 式ではない．
+  (otherwise
+   '$not-expression)
+  )

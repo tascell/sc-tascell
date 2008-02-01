@@ -1,0 +1,96 @@
+(defvar *nestfn-tag* 'lightweight)
+
+(defconstant **wdef-nf-id**   '_bk)
+(defconstant **wdef-nf-type** '(ptr (,*nestfn-tag* int)) )
+(defconstant **wdef-thread-id**   '_thr)
+(defconstant **wdef-thread-type** '(ptr (struct thread-data)))
+
+(defconstant **additional-defs**
+  `(
+    ;; (%cinclude "lbalance.h")
+    (def (enum task-stat)
+        TASK-ALLOCATED TASK-INITIALIZED TASK-STARTED
+        TASK-DONE TASK-NONE)
+    
+    (def (enum task-home-stat)
+        TASK-HOME-ALLOCATED TASK-HOME-INITIALIZED)
+
+    (def (struct task)
+      (def stat (enum task-stat))
+      (def next (ptr (struct task)))
+      (def prev (ptr (struct task)))
+      (def body (ptr void))
+      (def ndiv int)
+      (def reslt-head (array char 256)))
+
+    (def (struct task-home)
+      (def stat (enum task-home-stat))
+      (def id int)
+      (def next (ptr (struct task-home)))
+      (def body (ptr void))
+      (def task-head (array char 256)))
+    
+    (def ,(cdr **wdef-thread-type**) ;(struct thread-data)
+      (def req (struct task-home))
+      (def id int)
+      (def w-rack int)
+      (def ndiv int)
+      (def task-free (ptr (struct task)))
+      (def task-treq-top (ptr (struct task)))
+      (def treq-free (ptr (struct task-home)))
+      (def treq-top (ptr (struct task-home)))
+      (def sub (ptr (struct task-home)))
+      (def mut pthread-mutex-t)
+      (def cond pthread-cond-t)
+      (def id-str (array char 32))
+      (def buf (array char BUFSIZE)))
+    ))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; generate 
+;;; * struct definition (struct task_fib)
+;;; * send_task_body
+;;; * recv_task_body
+;;; * send_rslt_body
+;;; * recv_rslt_body
+(LB1 (def (,id[ID] ,@arg-ids[ID]) (w-fn ,ret-type ,@arg-types) ,@body) )
+-> (let ()
+     `(def 
+       (,id ,**wdef-nf-id** ,**wdef-thread-id** ,@arg-ids)
+       (fn ,ret-type ,**wdef-nf-type** ,**wdef-task-type** ,@arg-types)
+       (mappend #'LB-STAT body)))
+
+
+;; 
+(LB1 (def (task ,id[ID]) ,@data-defs[LB-TASK-DATA]) )
+-> `(,**task-common** 
+     )     
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(LB-TASK-DATA (def ,id[ID] ,type :in) )
+-> (
+    )
+
+(LB-TASK-DATA (def ,id[ID] ,type :out) )
+-> (
+    )
+    
+;;;
+(defconstant **dotwo-nf-id** '_bk2)
+
+(LB-STAT (DO-TWO (,task-type[id] ,task-id[id])
+           ,work1
+           ,work2
+           ,output-work2
+           ,input-work2) )
+-> `(begin
+     (def ,**dotwo-nf-id** ,**wdef-nf-id**)
+     (def spawned int 0)
+     (def (,**dotwo-nf-id**) (,*nestfn-tag* int)
+       (if spawned
+           (return 0))
+       (,**dotwo-nf-id**)
+       (if (fref (mref ,**wdef-thread-id**) treq-top)

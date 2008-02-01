@@ -1,0 +1,37 @@
+#!/bin/sh
+CC="$HOME/../yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -O2 -lm -pthread systhr-i386.o"
+
+if [ $# -ge 1 ] && [ `which $1` ]
+then
+LANG=C $CC -v
+LANG=C $CC dnqueen-c.c -o dnqueen-c
+LANG=C $CC dnqueen-gcc.c -o dnqueen-gcc
+LANG=C $CC dnqueen.c nestfunc.c -o dnqueen-lw
+LANG=C $CC dnqueen-gcc.c -DCLT=lightweight -o dnqueen-xcc # XC-cube lightweight
+LANG=C $CC dnqueen-clos.c nestfunc.c -o dnqueen-clos
+fi
+
+if [ $# -le 1 ]; then
+ m=1
+else
+ m=$2
+fi
+
+progs="./dnqueen-c ./dnqueen-gcc ./dnqueen-lw ./dnqueen-xcc ./dnqueen-clos"
+
+if [ $# -le 2 ]; then
+ n=13
+else
+ n=$3
+fi
+
+for prog in $progs; do
+    i=0
+    echo $prog
+    while [ $i -lt $m ]; do
+	$prog $arg1 $n && sleep 0.3
+	i=`expr $i + 1`
+    done
+    arg1=1
+    echo ""
+done

@@ -1,0 +1,21 @@
+#!/bin/sh -x
+#
+NPROC=$1
+KAISUU=5
+FIB=40
+NQ=15
+PEN=12
+LU=2000
+CMP=30000
+GRAV="-200 -200 -200 200 200 200 25 25 25"
+
+# ../ntimes $KAISUU c-and-cilk/fib --nproc $NPROC $FIB
+# ../ntimes $KAISUU c-and-cilk/nqueen-ac --nproc $NPROC $NQ
+# ../ntimes $KAISUU c-and-cilk/nqueen --nproc $NPROC $NQ
+# ../ntimes $KAISUU c-and-cilk/nqueen-bt --nproc $NPROC $NQ
+# ../ntimes $KAISUU c-and-cilk/pentomino-ac --nproc $NPROC $PEN
+# ../ntimes $KAISUU c-and-cilk/pentomino --nproc $NPROC $PEN
+# ../ntimes $KAISUU c-and-cilk/pentomino-bt --nproc $NPROC $PEN
+# ../ntimes $KAISUU c-and-cilk/lu002 --nproc $NPROC $LU 2
+../ntimes $KAISUU c-and-cilk/cmp --nproc $NPROC $CMP
+# ../ntimes $KAISUU c-and-cilk/grav --nproc $NPROC $GRAV

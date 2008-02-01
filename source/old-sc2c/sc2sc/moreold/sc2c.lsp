@@ -1,0 +1,8 @@
+(load "sc2c-general.lsp")
+(load "sc2c-table.lsp")
+(load "sc2c-atom.lsp")
+(load "sc2c-expression.lsp")
+(load "sc2c-statement.lsp")
+(load "sc2c-typeexp.lsp")
+(load "sc2c-declaration.lsp")
+(load "sc2c-external.lsp")

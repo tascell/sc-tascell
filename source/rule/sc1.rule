@@ -1,0 +1,138 @@
+;;; sc1=>sc0 
+;;; multithread 用プリミティブにも対応(2003/12/26)
+;;; lightweight 入れ子関数に対応(2003/12/28)
+(defpackage "SC1"
+  (:nicknames "BASIC")
+  (:use "RULE" "CL" "SC-MISC")
+  (:shadow cl:declaration))
+
+(in-package "SC1")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(in-package "RULE")
+
+(define-ruleset sc1 (sc2c)
+  (initiator 'sc-program))
+
+(defrule sc-program sc1
+  ((#?(,@decl-list) )
+   (apply #'append (mapcar #'declaration decl-list)))
+  )
+
+;;; declaration
+(defrule declaration sc1
+  ((#?(c-exp ,str ,@exp-list))
+   ~((c-exp ,str ,@(mapcar #'expression exp-list))))
+  ((#?(,id[identifier] ,@rem)
+    #?((,@id-list[identifier]) ,@rem)
+    #?((,soru[struct-or-union] ,id[identifier]) ,@rem)
+    #?((enum ,id[identifier]) ,@rem) )
+   (inlined-declaration ~(def ,@x)) )
+  (otherwise
+   (inlined-declaration x))
+  )
+
+;;; inlined-declaration
+(defrule inlined-declaration sc1
+  ((#?(,scs[storage-class-specifier]
+           ,id[identifier] (,fn-tag[function-tag] ,@tlist) ,@body))
+   ~( (,scs (,id) ,(third x) ,@(function-body body)) ))
+  ((#?(,scs[storage-class-specifier]
+           (,@id-list[identifier]) (,fn-tag[function-tag] ,@tlist) ,@body))
+   ~( (,scs (,@id-list) ,(third x) ,@(function-body body)) ) )
+  ((#?(,scs[storage-class-specifier] ,id[identifier] ,texp ,init) )
+   ~( (,scs ,id ,texp ,(expression init)) ) )
+  ((#?(,scs[storage-class-specifier] (,soru[struct-or-union] ,id[identifier]) ,@rem) )
+   ~( (,scs (,soru ,id) ,@(sc-program rem)) ) )
+  ((#?(,cscs[compound-storage-class-specifier] ,texp ,@list) )
+   (let ((scs (get-retval 'cscs)))
+     (loop 
+         for id-init0 in list
+         as id-init = (mklist id-init0)
+         as id = (car id-init)
+         as init = (second id-init)
+         collect (if init
+                     ~(,scs ,id ,texp ,init)
+                   ~(,scs ,id ,texp)))))
+  ((#?(deftype ,id[identifier] (,soru[struct-or-union] ,sid[identifier]) ,@rem) )
+   ~( (deftype ,id (,soru ,sid) ,@(sc-program rem)) ) )
+  (otherwise
+   (list x))
+  )
+
+(defrule function-body sc1
+  ((#?(,@item-list))
+   (apply #'append (mapcar #'statement item-list)) )
+  )
+
+;;; statement
+(defrule statement sc1
+  ((#?(begin ,@rem))
+   ~( (begin ,@(function-body rem)) ))
+  ((#?(label ,id[identifier] ,@rem) )
+   ~( (label ,id ,@(function-body rem)) ))
+  ((#?(case ,exp) )
+   ~( (case ,(expression exp)) ))
+  ((#?(default))
+   ~( (default) ))
+  ((#?(when ,exp ,@rem))
+   (statement ~(if ,exp (begin ,@rem))))
+  ((#?(if ,exp ,@rem))
+   ~( (if ,(expression exp) 
+	      ,@(mapcar #'(lambda (st) (car (statement st))) rem)) ))
+  ((#?(switch ,exp ,@rem) )
+   ~( (switch ,(expression exp) ,@(function-body rem)) ))
+  ((#?(let (,@decl-list) ,@rem) )
+   ~( (begin ,@(sc-program decl-list) ,@(function-body rem)) ))
+  ((#?(do-while ,exp ,@rem) )
+   ~( (do-while ,(expression exp) ,@(function-body rem)) ))
+  ((#?(while ,exp ,@rem) )
+   (let ((cdt (expression exp)))
+     ~( (if ,cdt
+            (do-while ,cdt ,@(function-body rem))) )))
+  ((#?(for (,@list ,exp2 ,exp3) ,@rem) )
+   (let ((e1-list (function-body list))
+         (e2 (expression exp2))
+         (e3 (expression exp3))
+         (new-body (function-body rem)))
+     (list ~(begin
+             ,@e1-list
+             (if ,e2
+                 (do-while (exps ,e3 ,e2)
+                   ,@new-body))))
+     ) )
+  ((#?(loop ,@rem) )
+   ~( (do-while 1 ,@(function-body rem)) ))
+  ((#?(goto ,id[identifier])
+    #?(continue)
+    #?(break))
+   ~( ,x ) )
+  ((#?(return ,@rem))
+   ~( (return ,@(mapcar #'expression rem)) ))
+  ((#?(,scs[storage-class-specifier] ,@rem)
+    #?(,cscs[compound-storage-class-specifier] ,@rem)
+    #?(deftype ,@rem))
+   (inlined-declaration x) )
+  (otherwise
+   ~( ,(expression x) ))
+  )
+
+;;; expression
+(defrule expression sc1
+  ((#?(fref ,exp))
+   exp)
+  ((#?(fref ,@list))
+   (let* ((ar2 (member ~-> x)))
+     (if ar2
+         (let ((ar1 (ldiff x ar2)))
+           (unless (cddr ar1)
+             (setq ar1 (second ar1)))
+           (expression
+            ~(fref (mref ,ar1)
+                   ,@(cdr ar2))) )
+       x)))
+  ((#?(,@list))
+   (mapcar #'expression list))
+  (otherwise
+   x)
+  )

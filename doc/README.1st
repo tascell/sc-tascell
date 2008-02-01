@@ -1,0 +1,57 @@
+=== SC処理系 README === (2005/02/25, 平石)
+
+1.ディレクトリ構成
+
+sc/
+ bnf/  SC-0, SC-1の文法
+ doc/  このディレクトリ。ドキュメント群
+ memo/ いろんな覚え書き
+ source/  SC処理系本体のソース
+   old-sc2c/ 名前のとおり
+   rule/     変形規則ファイル
+   sample/   SCプログラムのサンプル
+   csample/  CtoSC用サンプル
+
+2.使い方
+
+sc/source に移動して、Common Lisp処理系を実行。
+（clisp, cmucl, allegro など．KCl不可）
+"init.lsp"をロードする。
+(load "init.lsp")
+
+# あと，このディレクトリにある "C2SC" に従って，
+# CtoSC変換器 を使えるようにしておいてください．
+
+----
+
+SC-0のプログラムなら
+(sc-main:sc2c <sc-file>)
+だけでCが生成される。
+
+SC-1なら
+(sc-main:sc2c <sc-file> :rule :basic)
+
+このように :rule に 適用する規則名のリストを書くことで、
+それらの規則を適用してから、Cへの変換を行うようになる。
+対応するruleファイルが存在すれば、勝手にコンパイル、ロードを実行してくれる。
+
+MT-SC (sample/{fib.sc, multithread-orig.sc})
+(sc-main:sc2c <sc-file> :rule *mt-sc*)
+<<注：*mt-sc*は init.lsp で定義>>
+
+LW-SC (sample/{nonlocalexit*.sc, l-closure.sc})
+(sc-main:sc2c <sc-file> :rule *lw-sc*)
+Cのコンパイル時に rule/nestfunc.c とリンク
+
+LW-MT-SC (sample/{fib.sc, multithread-orig.sc})
+rule/multithread-defs.lsp の *nestfunc-tag* を 'lightweight にしてから
+(sc-main:sc2c <sc-file> :rule *lw-mt-sc*)
+
+----
+
+3.SC文法の補足事項
+
+(c-exp "文字列" arg ...)
+でCのコードを埋め込むことができます．
+例:(c-exp "printf(~a,~a);" "%d~%" x)
+   ==> printf( "%d\n", x );

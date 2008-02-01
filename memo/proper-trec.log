@@ -1,0 +1,79 @@
+This is pTeX, Version 3.141592-p3.1.8 (sjis) (Web2C 7.5.3) (format=platex 2004.12.15)  16 JUN 2006 15:02
+**proper-trec.tex
+(./proper-trec.tex
+pLaTeX2e <2004/08/10>+0 (based on LaTeX2e <2003/12/01> patch level 0)
+(c:/usr/local/share/texmf/ptex/platex/base/jarticle.cls
+Document Class: jarticle 2002/04/09 v1.4 Standard pLaTeX class
+\c@@paper=\count81
+(c:/usr/local/share/texmf/ptex/platex/base/jsize10.clo
+File: jsize10.clo 2002/04/09 v1.4 Standard pLaTeX file (size option)
+)
+\c@part=\count82
+\c@section=\count83
+\c@subsection=\count84
+\c@subsubsection=\count85
+\c@paragraph=\count86
+\c@subparagraph=\count87
+\c@figure=\count88
+\c@table=\count89
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\symmincho=\mathgroup4
+LaTeX Font Info:    Overwriting symbol font `mincho' in version `bold'
+(Font)                  JY1/mc/m/n --> JY1/gt/m/n on input line 597.
+LaTeX Info: Redefining \mathrm on input line 599.
+LaTeX Info: Redefining \mathbf on input line 600.
+\toclineskip=\dimen118
+\@lnumwidth=\dimen119
+\bibindent=\dimen120
+\heisei=\count90
+)
+(c:/usr/local/share/texmf/tex/latex/base/alltt.sty
+Package: alltt 1997/06/16 v2.0g defines alltt environment
+) (./proper-trec.aux)
+\openout1 = `proper-trec.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for JY1/mc/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for JT1/mc/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Font shape `JT1/mc/bx/n' in size <14.4> not available
+(Font)              Font shape `JT1/gt/m/n' tried instead on input line 9.
+LaTeX Font Info:    Font shape `JY1/mc/bx/n' in size <14.4> not available
+(Font)              Font shape `JY1/gt/m/n' tried instead on input line 9.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 11.
+
+(c:/usr/local/share/texmf/tex/latex/base/omscmr.fd
+File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 11.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 32.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 32.
+ [1
+
+] [2] (./proper-trec.aux) ) 
+Here is how much of TeX's memory you used:
+ 291 strings out of 95549
+ 3168 string characters out of 1191182
+ 51908 words of memory out of 1500000
+ 3507 multiletter control sequences out of 10000+50000
+ 9210 words of font info for 38 fonts, out of 600000 for 2000
+ 14 hyphenation exceptions out of 2000
+ 22i,4n,19p,140b,242s stack positions out of 1500i,500n,5000p,200000b,5000s
+
+Output written on proper-trec.dvi (2 pages, 3484 bytes).

@@ -1,0 +1,152 @@
+;;; sc1=>sc0 
+;;; multithread 用プリミティブにも対応(2003/12/26)
+;;; lightweight 入れ子関数に対応(2003/12/28)
+:lisp-begin
+(defpackage "SC1"
+  (:nicknames "BASIC")
+  (:use "SCT-USER" "CL"))
+(in-package "SC1")
+
+(set-rule-environment
+ (:package-sensitive nil))
+
+(defparameter *defs-to-def*
+  '((defs . def) (extern-defs . def)
+    (static-defs . static)
+    (auto-defs . auto) (register-defs . register)))
+
+(defun defs-to-def (defs-spec)
+  (cdr (assoc defs-spec *defs-to-def*)))
+
+:lisp-end
+
+(B1 (,@decl-list) )
+-> (apply #'append (mapcar #'B2 decl-list))
+
+;;; declaration
+(B2 (c-exp ,str ,@exp-list))
+-> `((c-exp ,str ,@(mapcar #'B6 exp-list)))
+(B2 (,id[ID] ,@rem) )
+(B2 ((,@id-list[ID]) ,@rem))
+(B2 ((,soru[S-OR-U] ,id[ID]) ,@rem) )
+(B2 ((enum ,id[ID]) ,@rem) )
+ -> (B3 `(def ,@x))
+(B2 ,otherwise)
+ -> (B3 x)
+
+;;; inlined-declaration
+(B3 (,scs[SCS] ,id[ID] (fn ,@tlist) ,@body) )
+(B3 (,scs[SCS] ,id[ID] (lightweight ,@tlist) ,@body) )  ;lw
+-> `( (,scs (,id) ,(third x) ,@(B4 body)) )
+(B3 (,scs[SCS] (,@id-list[ID]) (fn ,@tlist) ,@body) )
+(B3 (,scs[SCS] (,@id-list[ID]) (lightweight ,@tlist) ,@body) )  ;lw
+-> `( (,scs (,@id-list) ,(third x) ,@(B4 body)) )
+(B3 (,scs[SCS] ,id[ID] ,texp ,init) )
+ -> `( (,scs ,id ,texp ,(B6 init)) )
+(B3 (,scs[SCS] (,soru[S-OR-U] ,id[ID]) ,@rem) )
+ -> `( (,scs (,soru ,id) ,@(B1 rem)) )
+(B3 (,cscs[CSCS] ,texp ,@list) )
+ -> (let ((scs (defs-to-def cscs)))
+     (mapcar
+      #'(lambda (ind &aux id init)
+         (if (not (listp ind))
+          (setq id ind init nil)
+          (setq id (car ind) init (cdr ind)))
+         `(,scs ,id ,texp ,@init))
+      list))
+(B3 (deftype ,id[ID] (,soru[S-OR-U] ,sid[ID]) ,@rem) )
+ -> `( (deftype ,id (,soru ,sid) ,@(B1 rem)) )
+(B3 ,otherwise)
+ -> `( ,otherwise )
+
+(B4 (,@item-list))
+ -> (apply #'append (mapcar #'B5 item-list))
+
+;;; statement
+(B5 (begin ,@rem))
+ -> `( (begin ,@(B4 rem)) )
+(B5 (label ,id[ID] ,@rem) )
+ -> `( (label ,id ,@(B4 rem)) )
+(B5 (case ,exp) )
+ -> `( (case ,(B6 exp)) )
+(B5 (default))
+ -> '( (default) )
+(B5 (if ,exp ,@rem))
+ -> `( (if ,(B6 exp) ,@(mapcar #'(lambda (st) (car (B5 st))) rem)) )
+(B5 (switch ,exp ,@rem) )
+ -> `( (switch ,(B6 exp) ,@(B4 rem)) )
+(B5 (let (,@decl-list) ,@rem) )
+ -> `( (begin ,@(B1 decl-list) ,@(B4 rem)) )
+(B5 (do-while ,exp ,@rem) )
+ -> `( (do-while ,(B6 exp) ,@(B4 rem)) )
+(B5 (while ,exp ,@rem) )
+ -> (let ((cdt (B6 exp)))
+        `( (if ,cdt
+            (do-while ,cdt ,@(B4 rem))) ))
+(B5 (for (,@list ,exp2 ,exp3) ,@rem) )
+ -> (let ((e1-list (B4 list))
+          (e2 (B6 exp2))
+          (e3 (B6 exp3))
+          (new-body (B4 rem)))
+      ;;(sc-misc:dprint e1-list)
+      ;;(sc-misc:dprint e2)
+      ;;(sc-misc:dprint e3)
+;;       (list (cons 'begin
+;;                   (append e1-list
+;;                           (list
+;;                            (list 'if e2
+;;                                  (cons 'do-while
+;;                                        (cons (list 'exps exp3 exp2)
+;;                                              new-body)))))))
+      (list `(begin
+             ,@e1-list
+             (if ,e2
+                 (do-while (exps ,e3 ,e2)
+                   ,@new-body))))
+      )
+(B5 (loop ,@rem) )
+ -> `( (do-while 1 ,@(B4 rem)) )
+(B5 (goto ,id[ID]))
+(B5 (continue))
+(B5 (break))
+ -> `( ,x )
+(B5 (return ,@rem))
+ -> `( (return ,@(mapcar #'B6 rem)) )
+(B5 (,scs[SCS] ,@rem))
+(B5 (,cscs[CSCS] ,@rem))
+(B5 (deftype ,@rem))
+ -> (B3 x)
+; <- マルチスレッド用プリミティブ
+(B5 (thread-create ,dec-list ,@body))
+;-> `( (thread-create ,@(B5 `(let ,dec-list ,@body))) )
+; ↑余計にブロックを作るので修正したほうがいいかも
+-> `( (thread-create
+       ,(apply #'append (mapcar #'B2 dec-list))
+       ,@(B4 body)) )
+;; ↑修正(2004/1/10)
+(B5 (thread-suspend ,id[ID] ,@body))
+-> `( (thread-suspend ,id ,@(B4 body)) )
+(B5 (thread-resume ,exp))
+-> `( (thread-resume ,(B6 exp)))
+; マルチスレッド用プリミティブ ->
+(B5 ,otherwise)
+ -> `( ,(B6 x) )
+
+;;; expression
+(B6 (fref ,exp))
+ -> exp
+(B6 (fref ,@list))
+ -> (let* ((y (copy-list x))
+	   (ar1 (member '-> y)) ar2)
+       (setf (cadr y) (B6 (cadr y)))
+       (if ar1
+           (progn
+             (setq ar2 (cdr ar1))
+             (rplacd ar1 nil)
+             (setq y (butlast y))
+             (B6 `(fref (mref ,y) ,@ar2)))
+           y))
+(B6 (,@list))
+ -> (mapcar #'B6 list)
+(B6 ,otherwise)
+ -> x

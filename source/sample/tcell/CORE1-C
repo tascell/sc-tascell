@@ -1,0 +1,68 @@
+Script started on Sun 30 Dec 2007 10:42:01 AM JST
+[hiraisi@gero11]/work/hiraisi/tcell% [K../fib-c
+treq 0 any
+task 0 0 0 1
+40
+start fib(40)
+time: 0.921520
+time: 0.921447
+time: 0.926076
+time: 0.926076
+time: 0.926057
+rslt 0
+102334155
+
+ppopp08/nqueen-seq 15
+running queens 15
+time: 10.282529
+time: 10.259220
+time: 10.251715
+time: 10.244386
+time: 10.262143
+2279184 possible result!
+
+ppopp08/pentomino-seq 12
+maxp: 12, maxk: 70
+2339 possible result!
+time: 1.684458
+time: 1.679126
+time: 1.675805
+time: 1.676666
+time: 1.677394
+
+./lu-c
+task 0 0 0 0
+0
+2000
+2
+0
+time: 8.657119
+time: 8.660536
+time: 8.662651
+time: 8.697458
+time: 8.658471
+
+ppopp08/cmp-seq 30000
+4.331433 29999
+4.310627 29999
+4.310535 29999
+4.307709 29999
+4.313206 29999
+
+/work/hiraisi/tcell% ./tcpcon-gero ./grav-c -n 1
+start (-100, -100, -100)--(100, 100, 100): (0.250000, 0.250000, 0.250000)
+f=(-3.405840, -3.405840, -3.405840)
+Time: 0.423
+Time: 0.423
+Time: 0.423
+Time: 0.424
+Time: 0.424
+
+grav 200
+Time: 3.345
+Time: 3.348
+Time: 3.353
+Time: 3.36
+Time: 3.375
+
+Script done on Sun 30 Dec 2007 10:50:52 AM JST

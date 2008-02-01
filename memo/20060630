@@ -1,0 +1,75 @@
+* hook関数
+* classの継承
+* 変形規則を生成する変形規則
+
+
+
+;;
+(defclass type
+...
+	  )
+
+(defmethod (type expression))
+
+(defclass (new-type type)
+	  )
+
+(defmethod (new-type expression)
+   (tuika)
+   (parent))
+
+((siki . <type:expression>) ...)
+((siki . <newtype:expression>) ...)
+
+;; 構文を追加したひとが書く
+(defun new-expression
+ (case...
+   ((#?(new ,texp ,exp))
+    <texpやexpをチェック>
+    `(the (ptr ,texp) (new ,texp ,(expression exp))))
+  (otherwise (type:expression x))))
+
+
+
+(defgeneric (s)
+
+(add-rule type:expression
+  ((#?(new ,texp[#'type-expression] ,exp[expression]))))
+ 
+(new (array int 10) (array 0 1 2 3 4))
+
+(push #'new-expression type:expression-hook)
+expression-hook == #'new-expression
+
+lisp-mode-hook
+
+;;
+(in-package "TYPE")
+
+
+(defun statement (x)
+  (case-match x
+   (() (expression x))))
+
+(defun expression (x)
+  hook
+  (case-match x
+   (() ...)
+   (() ...)
+   
+   (() ...)
+   (() ...)
+   (() ...)
+   ))
+
+(rule expression
+   (() )
+   (() )
+   (() )
+   (() )
+ )
+
+(addrule expression
+   (() )
+   (() )
+ )  

@@ -1,0 +1,30 @@
+[使えるプログラム]
+bucket
+cholesky
+cilksort
+ck (スケールしない？)
+fft
+fib (統計情報が標準ではでない．-stats 2とか)
+game (問題サイズの変更不可？)
+heat
+kalah (インタラクティブなゲーム？測定にはたぶん向かない)
+knapsack (sample inputが3種類)
+lu
+magic (-n 5で反応がかえってこない)
+matmul
+fib (統計情報が標準ではでない．-stats 2とか)
+paraffins
+plu
+queens (統計情報が標準ではでない．-stats 2とか)
+rectmul (-x 1024 -y 1024 -z 1024)
+spacemul
+strassen
+
+[ささいなプログラム]
+hello
+pragma (fibを使った #pragma テスト)
+velin
+test-errno
+test-locks
+test-void-func
+testall

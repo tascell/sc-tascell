@@ -1,0 +1,51 @@
+#! /bin/sh
+#XCC="$HOME/../yasugi/tmp/sparc-sol2.6/n3/bin/gcc -DSUN -DCT=lightweight"
+XCC="/tmp/local/bin/gcc -DCT=lightweight"
+COPT="-O2 $COPT"
+
+if [ $# -ge 1 ] && [ `which $1` ]
+then
+echo "option=$COPT"
+$1 -v
+$1 $COPT bin2list0.c copygc0.c -DRAWC -o sol-bin2list-c
+$1 $COPT bin2list0.c copygc0.c -o sol-bin2list-gcc
+$1 $COPT bin2list.c nestfunc.c -o sol-bin2list-lw
+LANG=C $XCC -v
+LANG=C $XCC $COPT bin2list0.c copygc0.c -o sol-bin2list-xcc # XC-cube lightweight
+$1 $COPT bin2list-clos.c nestfunc.c -o sol-bin2list-clos
+fi
+
+if [ $# -le 1 ]; then
+ m=1
+else
+ m=$2
+fi
+
+if [ $# -le 2 ]; then
+ gc=-1   # off
+ tosize=51200000
+else
+ gc=0    # on
+ tosize=10000000
+fi
+
+if [ $gc = 0 ]; then
+    progs="./sol-bin2list-gcc ./sol-bin2list-lw ./sol-bin2list-xcc ./sol-bin2list-clos"
+else
+    progs="./sol-bin2list-c ./sol-bin2list-gcc ./sol-bin2list-lw ./sol-bin2list-xcc ./sol-bin2list-clos"
+fi
+
+arg1=500000    # maxins
+arg2=1         # maxsearch
+arg3=$gc      
+arg4=$tosize   # tosize
+
+for prog in $progs; do
+    i=0
+    echo $prog
+    while [ $i -lt $m ]; do
+	$prog $arg1 $arg2 $arg3 $arg4
+	i=`expr $i + 1`
+    done
+    echo ""
+done

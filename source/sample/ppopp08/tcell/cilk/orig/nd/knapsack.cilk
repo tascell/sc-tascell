@@ -1,0 +1,138 @@
+/*
+ * Cilk program to solve the 0-1 knapsack problem using a branch-and-bound
+ * technique. 
+ */
+
+/* Copyright (c) 2002 Massachusetts Institute of Technology
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+static const char *ident __attribute__((__unused__))
+     = "$HeadURL: https://bradley.csail.mit.edu/svn/repos/cilk/5.4.3/examples/nd/knapsack.cilk $ $LastChangedBy: bradley $ $Rev: 79 $ $Date: 2002-12-26 01:43:37 -0500 (Thu, 26 Dec 2002) $";
+
+#include <cilk.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+
+/* every item in the knapsack has a weight and a value */
+#define MAX_ITEMS 256
+
+struct item {
+     int value;
+     int weight;
+};
+
+struct item items[MAX_ITEMS];	/* array of items */
+
+int capacity;
+int nitems;
+int best_so_far __attribute__ ((nocheck)) = INT_MIN;
+
+int compare(struct item *a, struct item *b)
+{
+     double c = ((double) a->value / a->weight) -
+     ((double) b->value / b->weight);
+
+     if (c > 0)
+	  return -1;
+     if (c < 0)
+	  return 1;
+     return 0;
+}
+
+void read_input(void)
+{
+     int i;
+
+     /* format of the input: #items capacity value1 weight1 ... */
+     #pragma ndwarn -
+     scanf("%d", &nitems);
+     scanf("%d", &capacity);
+
+     for (i = 0; i < nitems; ++i)
+	  scanf("%d %d", &items[i].value, &items[i].weight);
+
+     /* sort the items on decreasing order of value/weight */
+     /* cilk2c is fascist in treting pointers, whence the ugly cast */
+     qsort(items, nitems, sizeof(struct item),
+	    (int (*)(const void *, const void *)) compare);
+     #pragma ndwarn +
+}
+
+/* 
+ * return the optimal solution for n items (first is e) and
+ * capacity c. Value so far is v.
+ */
+cilk int knapsack(struct item *e, int c, int n, int v)
+{
+     int with, without, best;
+     double ub;
+
+     /* base case: full knapsack or no items */
+     if (c <= 0)
+	  return INT_MIN;	/* infeasible solution */
+
+     if (n == 0)
+	  return v;		/* feasible solution, with value v */
+
+     ub = (double) v + c * e->value / e->weight;
+
+     if (ub < best_so_far) {
+	  /* prune ! */
+	  return INT_MIN;
+     }
+     /* compute the best solution with the current item in the knapsack */
+     with = spawn knapsack(e + 1, c - e->weight, n - 1, v + e->value);
+
+     /* compute the best solution without the current item in the knapsack 
+      * 
+      */
+     without = spawn knapsack(e + 1, c, n - 1, v);
+
+     sync;
+
+     if (with > without)
+	  best = with;
+     else
+	  best = without;
+
+     /* 
+      * notice the right condition here. The program is still
+      * correct, in the sense that the best solution so far
+      * is at least best_so_far. Moreover best_so_far gets updated
+      * when returning, so eventually it should get the right
+      * value. The program is highly non-deterministic.
+      */
+     if (best > best_so_far)
+	  best_so_far = best;
+
+     return best;
+}
+
+cilk int cilk_main(int argc, char *argv[])
+{
+     int sol;
+
+     read_input();
+     sol = spawn knapsack(items, capacity, nitems, 0);
+
+     sync;
+
+     printf("Best value is %d\n", sol);
+
+     return 0;
+}
