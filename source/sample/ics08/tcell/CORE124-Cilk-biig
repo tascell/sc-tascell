@@ -1,0 +1,96 @@
+Script started on Sat 05 Jan 2008 10:27:18 PM JST
+> sh do-cilktest-biig
+ppopp08/fib --nproc 1 46
+Result: 1836311903
+time: 130.789300
+time: 130.795542
+time: 130.796636
+time: 130.810312
+time: 130.813606
+
+ppopp08/fib --nproc 2 46
+Result: 1836311903
+time: 63.106624
+time: 64.031092
+time: 64.034072
+time: 64.034859
+time: 64.037871
+
+ppopp08/fib --nproc 4 46
+Result: 1836311903
+time: 31.679930
+time: 31.699688
+time: 31.734871
+time: 31.818555
+time: 31.872905
+
+ppopp08/nqueen --nproc 1 17
+95815104 possible result!
+Running time  = 1410.679396 s
+Running time  = 1410.683622 s
+Running time  = 1410.802306 s
+Running time  = 1410.849302 s
+Running time  = 1410.875662 s
+
+ppopp08/nqueen --nproc 2 17
+95815104 possible result!
+Running time  = 704.444811 s
+Running time  = 705.306331 s
+Running time  = 705.539423 s
+Running time  = 705.950284 s
+Running time  = 706.052985 s
+
+ppopp08/nqueen --nproc 4 17
+95815104 possible result!
+Running time  = 352.971372 s
+Running time  = 353.022531 s
+Running time  = 353.045663 s
+Running time  = 353.378631 s
+Running time  = 353.452620 s
+
+ppopp08/pentomino-bt --nproc 1 14
+125298 possible result!
+Running time  = 160.225501 s
+Running time  = 160.226951 s
+Running time  = 160.228721 s
+Running time  = 160.234392 s
+Running time  = 160.236731 s
+
+ppopp08/pentomino-bt --nproc 2 14
+125298 possible result!
+Running time  = 80.081351 s
+Running time  = 80.122170 s
+Running time  = 80.123838 s
+Running time  = 80.184309 s
+Running time  = 80.206016 s
+
+ppopp08/pentomino-bt --nproc 4 14
+125298 possible result!
+Running time  = 40.071829 s
+Running time  = 40.094138 s
+Running time  = 40.122067 s
+Running time  = 40.144751 s
+Running time  = 40.155896 s
+
+ppopp08/cmp --nproc 1 120000
+132.622441 119999
+132.843590 119999
+132.921451 119999
+133.113955 119999
+133.664744 119999
+
+ppopp08/cmp --nproc 2 120000
+60.188799 119999
+60.816410 119999
+61.108054 119999
+62.207519 119999
+63.947029 119999
+
+ppopp08/cmp --nproc 4 120000
+31.124689 119999
+31.460703 119999
+31.468669 119999
+31.584413 119999
+31.760143 119999
+
+Script done on Sun 06 Jan 2008 08:21:43 AM JST

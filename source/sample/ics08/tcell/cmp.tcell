@@ -1,0 +1,139 @@
+(c-exp "#include<sys/time.h>")
+(c-exp "#include<stdint.h>")
+
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
+(%include "rule/tcell-setrule.sh")
+
+(%include "clib.sh")
+(%cinclude "sendrecv.h" (:macro))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (csym::elapsed-time tp) 
+    (fn double (array (struct timeval) 2))
+  (return (+ (- (fref (aref tp 1) tv-sec)
+                (fref (aref tp 0) tv-sec))
+             (* 0.000001
+                (- (fref (aref tp 1) tv-usec)
+                   (fref (aref tp 0) tv-usec))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(%ifndef* INT32
+ (%defconstant INT32 int))
+
+(def (task cmp)
+  (def r int :out)
+  (def n1 int :in)
+  (def n2 int :in)
+  (def d1 (ptr INT32))
+  (def d2 (ptr INT32)))
+
+(def (task-sender cmp)
+  ;;   (def i int)
+  (if (> 0 this.n2) (return)) 
+  (csym::send-int32s this.d1 this.n1)
+  ;;   (for ((= i 0) (< i (fref this n1)) (inc i))
+  ;;     (csym::send-int (aref (fref this d1) i)))
+  (csym::send-int32s this.d2 this.n2)
+  ;;   (for ((= i 0) (< i (fref this n2)) (inc i))
+  ;;     (csym::send-int (aref (fref this d2) i)))
+  )
+
+(def (task-receiver cmp)
+  (def i int)
+  (if (not (> 0 this.n2))
+      (begin
+       (= (fref this d1)
+          (cast (ptr INT32)
+            (csym::malloc (* (sizeof INT32) (fref this n1)))))
+       (= (fref this d2)
+          (cast (ptr INT32)
+            (csym::malloc (* (sizeof INT32) (fref this n2)))))
+       (csym::recv-int32s this.d1 this.n1)
+       ;;        (for ((= i 0) (< i (fref this n1)) (inc i))
+       ;;          (= (aref (fref this d1) i) (csym::recv-int)))
+       (csym::recv-int32s this.d2 this.n2)
+       ;;        (for ((= i 0) (< i (fref this n2)) (inc i))
+       ;;          (= (aref (fref this d2) i) (csym::recv-int)))
+       ))
+  )
+
+(def (rslt-sender cmp)
+  (csym::free (fref this d1))
+  (csym::free (fref this d2)))
+
+;;; (rslt-receiver cmp) = default
+
+(decl (cmp-1 n1 n2 d1 d2) (wfn int int int (ptr INT32) (ptr INT32)))
+
+(def (task-body cmp)
+  (decl tp (array (struct timeval) 2))
+  (def i int) (def j int)
+  (csym::fprintf stderr "start %d %d~%"
+                 (fref this n1) (fref this n2))
+  (if (> 0 (fref this n2))              ; n2<0 のときは，新しい問題を作って解く
+      (begin
+       (= (fref this d1)
+          (cast (ptr INT32)
+            (csym::malloc (* (sizeof INT32) (fref this n1)))))
+       (= (fref this n2) (fref this n1))
+       (= (fref this d2)
+          (cast (ptr INT32)
+            (csym::malloc (* (sizeof INT32) (fref this n2)))))
+       (for ((= i 0) (< i (fref this n1)) (inc i))
+         (= (aref (fref this d1) i) i))
+       (for ((= i 0) (< i (fref this n2)) (inc i))
+         (= (aref (fref this d2) i) (- i)))
+       (csym::gettimeofday tp 0)
+       (= (fref this r)
+          (cmp-1 (fref this n1) (fref this n2)
+                 (fref this d1) (fref this d2)))
+       (csym::gettimeofday (+ tp 1) 0)
+       (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp))
+       )
+    (= (fref this r)
+       (cmp-1 (fref this n1) (fref this n2)
+              (fref this d1) (fref this d2)))))
+
+(def (csym::cmp-2 n1 n2 d1 d2)
+    (csym::fn int int int (ptr INT32) (ptr INT32))
+  (decl i int) (decl j int)
+  (def s int 0)
+  (for ((= i 0) (< i n1) (inc i))
+    (for ((= j 0) (< j n2) (inc j))
+      (if (== (bit-xor (aref d1 i) (aref d2 j)) (- 1)) (inc s))))
+  (return s))
+
+(def (cmp-1 n1 n2 d1 d2) (wfn int int int (ptr INT32) (ptr INT32))
+  (decl s1 int) (decl s2 int)
+  (if (< n1 5) (return (csym::cmp-2 n1 n2 d1 d2)))
+  (if (> n1 n2)
+      (begin 
+       (def n1-1 int (/ n1 2))
+       (def n1-2 int (- n1 n1-1))
+       (do-two
+           (= s1 (cmp-1 n1-1 n2 d1 d2))
+         (= s2 (cmp-1 n1-2 n2 (+ d1 n1-1) d2))
+         (cmp
+          (:put 
+           (= (fref this n1) n1-2)
+           (= (fref this n2) n2)
+           (= (fref this d1) (+ d1 n1-1) )
+           (= (fref this d2) d2))
+          (:get
+           (= s2 (fref this r))))))
+    (begin
+     (def n2-1 int (/ n2 2))
+     (def n2-2 int (- n2 n2-1))
+     (do-two
+         (= s1 (cmp-1 n1 n2-1 d1 d2))
+       (= s2 (cmp-1 n1 n2-2 d1 (+ d2 n2-1)))
+       (cmp
+        (:put
+         (= (fref this n1) n1)
+         (= (fref this n2) n2-2)
+         (= (fref this d1) d1)
+         (= (fref this d2) (+ d2 n2-1)))
+        (:get
+         (= s2 (fref this r)))))))
+  (return (+ s1 s2)))

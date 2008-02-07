@@ -1,0 +1,96 @@
+CL-USER(3): (gs)
+102334155
+40
+Time: 1.241
+Time: 1.244
+Time: 1.303
+Time: 1.332
+Time: 1.347
+
+267914296
+42
+Time: 3.237
+Time: 3.346
+Time: 3.361
+Time: 3.413
+Time: 3.453
+
+44
+701408733
+Time: 8.463
+Time: 8.543
+Time: 8.576
+Time: 8.616
+Time: 8.618
+
+CL-USER(4): (gs)
+15
+2279184
+Time: 7.913
+Time: 7.966
+Time: 7.985
+Time: 7.986
+Time: 8.006
+
+14772512
+16
+Time: 53.544
+Time: 53.618
+Time: 53.724
+Time: 53.745
+Time: 53.817
+
+NIL
+CL-USER(5): (gs)
+12
+2339
+Time: 1.167
+Time: 1.188
+Time: 1.189
+Time: 1.19
+Time: 1.192
+
+13
+18382
+Time: 8.858
+Time: 8.867
+Time: 8.869
+Time: 8.881
+Time: 8.909
+
+CL-USER(6): (gs)
+2000
+Time: 44.497
+Time: 46.174
+Time: 46.184
+Time: 49.102
+Time: 49.435
+
+CL-USER(7): (gs)
+30000
+Time: 2.468
+Time: 2.506
+Time: 2.574
+Time: 2.62
+Time: 2.739
+
+60000
+Time: 9.72
+Time: 9.969
+Time: 9.998
+Time: 10.14
+Time: 10.481
+
+grav 100
+time: 0.292707
+time: 0.292743
+time: 0.292849
+time: 0.292867
+time: 0.292930
+
+grav 200
+time: 2.311185
+time: 2.311270
+time: 2.311284
+time: 2.311949
+time: 2.312257

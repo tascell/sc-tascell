@@ -1,0 +1,89 @@
+07/01/07 18:12
+
+102334155
+40
+Time: 0.173
+Time: 0.188
+Time: 0.202
+Time: 0.204
+Time: 0.259
+
+267914296
+42
+Time: 0.324
+Time: 0.325
+Time: 0.328
+Time: 0.358
+Time: 0.42
+
+44
+701408733
+Time: 0.699
+Time: 0.761
+Time: 0.769
+Time: 0.832
+Time: 0.853
+
+CL-USER(4): (gs)
+15
+2279184
+Time: 0.641
+Time: 0.869
+Time: 0.896
+Time: 0.903
+Time: 0.932
+
+14772512
+16
+Time: 3.285
+Time: 3.298
+Time: 3.329
+Time: 3.404
+Time: 3.42
+
+17
+Time: 18.008
+Time: 18.416
+Time: 18.872
+Time: 18.945
+Time: 20.051
+
+CL-USER(8): (gs)
+12
+2339
+Time: 0.259
+Time: 0.281
+Time: 0.302
+Time: 0.32
+Time: 0.338
+
+13
+18382
+Time: 0.954
+Time: 0.959
+Time: 1.196
+Time: 1.308
+Time: 1.353
+
+CL-USER(10): (gs)
+2000
+Time: 34.537
+Time: 35.661
+Time: 36.979
+Time: 38.514
+Time: 44.533
+
+CL-USER(11): (gs)
+30000
+Time: 0.707
+Time: 0.773
+Time: 0.815
+Time: 0.951
+Time: 0.952
+
+60000
+Time: 1.67
+Time: 1.793
+Time: 1.796
+Time: 2.083
+Time: 2.094

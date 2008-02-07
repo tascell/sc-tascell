@@ -1,0 +1,80 @@
+102334155
+40
+Time: 0.57
+Time: 0.574
+Time: 0.587
+Time: 0.588
+Time: 0.598
+
+267914296
+42
+Time: 1.275
+Time: 1.302
+Time: 1.308
+Time: 1.308
+Time: 1.351
+
+44
+701408733
+Time: 3.008
+Time: 3.18
+Time: 3.216
+Time: 3.291
+Time: 3.337
+
+CL-USER(4): (gs)
+15
+2279184
+Time: 2.879
+Time: 2.92
+Time: 2.923
+Time: 3.005
+Time: 3.043
+
+14772512
+16
+Time: 18.097
+Time: 18.153
+Time: 18.208
+Time: 18.218
+Time: 18.254
+
+CL-USER(7): (gs)
+12
+2339
+Time: 0.6
+Time: 0.637
+Time: 0.637
+Time: 0.653
+Time: 0.804
+
+13
+18382
+Time: 3.504
+Time: 3.736
+Time: 3.757
+Time: 3.76
+Time: 3.895
+
+CL-USER(8): (gs)
+2000
+Time: 26.913
+Time: 28.513
+Time: 29.707
+Time: 31.823
+Time: 35.444
+
+CL-USER(9): (gs)
+30000
+Time: 1.245
+Time: 1.246
+Time: 1.398
+Time: 1.435
+Time: 1.558
+
+60000
+Time: 4.127
+Time: 4.158
+Time: 4.207
+Time: 4.233
+Time: 4.327

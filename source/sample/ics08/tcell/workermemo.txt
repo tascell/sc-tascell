@@ -1,0 +1,68 @@
+*divisibility-flagをonにしているタイミング
+noneを送るとき (send-none-rack, flush-treq-with-none)
+treqを送るとき (recv-exec-send)
+
+*divisibility-flagをoffにしているタイミング
+dvblを送るとき (send-divisible)
+
+* thr->cond, thr->mut でcond_wait
+none待ち（rsltにも対処） (recv-exec-send)
+task待ち(rsltにも対処) (recv-exec-send)
+
+* thr->cond のbroadcast
+taskを受け取った後 (recv-task)
+noneを受け取った後 (recv-none)
+今待っているサブタスクのrsltを受け取った後 (recv-rslt) ※2
+
+* thr->cond-r, thr->mut でcond_wait
+noneを受け取ったとき（treqで仕事がもらえなかった）(recv-exec-send) （※timedwait）
+サブタスクの結果待ち時 (wait-rslt) （※timedwait）
+
+* thr->cond-r のbroadcast
+※2のタイミング
+
+* thr->mut のロック
+recv-exec-send呼び出し時 (worker関数)
+  recv-exec-sendでtreqを送るときに一時的に解除
+  recv-exec-sendからタスク実行するときに一時的に解除（※1）
+  recv-exec-sendでrsltを送るときに一時的に解除
+thr->task-top の初期化時 (recv-task)
+thr->w-none を減らすとき (recv-none)
+rslt受け取り時 (recv-rslt)
+treqできるか判定→ALLOCATE時 (try-treq)
+（※1の解除中）
+ バックトラック時 (handle-req)
+   task送信時に一時的に解除 (make-and-send-task)
+ 外に投げたタスクの結果待ち時 (wait-rslt) （※ここからまたrecv-exec-send）
+
+* queue-mut のロック
+ノード内メッセージ取り出し時 (exec-queue-cmd)
+none内部送信時 (flush-treq-with-none)
+treq内部送信時 (recv-exec-send)
+rslt内部送信時 (recv-exec-send)
+rack内部送信時 (recv-rslt)
+none内部送信時 (recv-treq)
+task内部送信時 (make-and-send-task)
+
+* cond-q, queue-mut でcondwait
+ノード内メッセージキューのメッセージ待ち (exec-queue-cmd)
+
+* cond-q の cond-signal
+各enqueue-command（内部コマンド送信）の後
+
+* send-mut のロック
+none, rack外部送信時 (send-none-rack)
+none外部送信時 (flush-treq-with-none)
+treq外部送信時 (recv-exec-send)
+rslt外部送信時 (recv-exec-send)
+treq外部送信時 (recv-treq)
+dvbl外部送信時 (send-divisibile) ※dvblは外部にのみしか送らない
+task外部送信時 (make-and-send-task)
+
+* snr-mut のロック
+キューの削除 (send-none-rack)
+rack外部送信 (recv-rslt)
+none外部送信 (recv-treq)
+
+* cond-snr snr-mutでcondwait
+send,none送信キューへの登録待ち (send-none-rack)

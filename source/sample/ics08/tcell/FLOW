@@ -1,0 +1,471 @@
+1	__asm {}
+2		__bswap16 {/usr/include/machine/endian.h 151}
+3		__bswap32 {/usr/include/machine/endian.h 144}
+4	__bswap16 {/usr/include/machine/endian.h 151}
+5	__bswap32 {/usr/include/machine/endian.h 144}
+6	__bswap64 {/usr/include/machine/endian.h 134}
+7	__extension__ {}
+8		__bswap16 {/usr/include/machine/endian.h 151}
+9		__bswap32 {/usr/include/machine/endian.h 144}
+10	__sputc {/usr/include/stdio.h 390}
+11		write_eol {worker2.c 287}
+12	__srget {}
+13		read_to_eol {worker2.c 273}
+14	__swbuf {}
+15		__sputc {/usr/include/stdio.h 390}
+16	_bk {}
+17		handle_req {worker2.c 841}
+18	_bk2 {}
+19		fib {../../obayashi/fib.c 86}
+20	atoi {}
+21		main {worker2.c 932}
+22		recv_none {worker2.c 602}
+23		recv_rack {worker2.c 807}
+24		recv_rslt {worker2.c 624}
+25		recv_task {worker2.c 562}
+26		recv_treq {worker2.c 733}
+27	bintime2timespec {/usr/include/sys/time.h 109}
+28	bintime2timeval {/usr/include/sys/time.h 126}
+29	bintime_add {/usr/include/sys/time.h 71}
+30	bintime_addx {/usr/include/sys/time.h 60}
+31	bintime_sub {/usr/include/sys/time.h 83}
+32	do_task_body {../../obayashi/fib.c 149}
+33		recv_exec_send {worker2.c 415}
+34	enqueue_command {worker2.c 204}
+35		flush_treq_with_none_1 {worker2.c 365}
+36		make_and_send_task {worker2.c 853}
+37		recv_exec_send {worker2.c 415}
+38		recv_rslt {worker2.c 624}
+39		recv_treq {worker2.c 733}
+40	enqueue_snr {worker2.c 306}
+41		recv_rslt {worker2.c 624}
+42		recv_treq {worker2.c 733}
+43	exec_queue_cmd {worker2.c 235}
+44	exit {}
+45		enqueue_command {worker2.c 204}
+46		enqueue_snr {worker2.c 306}
+47		exec_queue_cmd {worker2.c 235}
+48		flush_treq_with_none_1 {worker2.c 365}
+49		main {worker2.c 932}
+50		make_and_send_task {worker2.c 853}
+51		recv_exec_send {worker2.c 415}
+52		recv_rslt {worker2.c 624}
+53		recv_task {worker2.c 562}
+54		recv_treq {worker2.c 733}
+55	fflush {}
+56		flush_send {worker2.c 293}
+57	fgets {}
+58		recv_command {worker2.c 125}
+59	fib {../../obayashi/fib.c 86}
+60		do_task_body {../../obayashi/fib.c 149}
+61		... fib ... {19}
+62	flush_send {worker2.c 293}
+63		flush_treq_with_none {worker2.c 403}
+64		make_and_send_task {worker2.c 853}
+65		recv_exec_send {worker2.c 415}
+66		recv_treq {worker2.c 733}
+67		send_divisible {worker2.c 826}
+68		send_none_rack {worker2.c 336}
+69	flush_treq_with_none {worker2.c 403}
+70		recv_exec_send {worker2.c 415}
+71	flush_treq_with_none_1 {worker2.c 365}
+72		flush_treq_with_none {worker2.c 403}
+73		recv_exec_send {worker2.c 415}
+74	fprintf {}
+75		do_task_body {../../obayashi/fib.c 149}
+76		flush_treq_with_none_1 {worker2.c 365}
+77		make_and_send_task {worker2.c 853}
+78		recv_exec_send {worker2.c 415}
+79		recv_rslt {worker2.c 624}
+80		recv_task {worker2.c 562}
+81		recv_treq {worker2.c 733}
+82		send_int {../../obayashi/fib.c 2}
+83	fputc {}
+84		mem_error {worker2.c 112}
+85		proto_error {worker2.c 180}
+86		send_command {worker2.c 158}
+87	fputs {}
+88		mem_error {worker2.c 112}
+89		proto_error {worker2.c 180}
+90		send_command {worker2.c 158}
+91	free {}
+92		send_rslt_body {../../obayashi/fib.c 38}
+93	fscanf {}
+94		recv_int {../../obayashi/fib.c 3}
+95	gettimeofday {}
+96		recv_exec_send {worker2.c 415}
+97		wait_rslt {worker2.c 899}
+98	handle_req {worker2.c 841}
+99		fib {../../obayashi/fib.c 86}
+100	main {worker2.c 932}
+101	make_and_send_task {worker2.c 853}
+102		fib {../../obayashi/fib.c 86}
+103	malloc {}
+104		main {worker2.c 932}
+105		recv_task_body {../../obayashi/fib.c 29}
+106	mem_error {worker2.c 112}
+107		recv_exec_send {worker2.c 415}
+108		try_treq {worker2.c 695}
+109	perror {}
+110		enqueue_command {worker2.c 204}
+111		enqueue_snr {worker2.c 306}
+112		flush_treq_with_none_1 {worker2.c 365}
+113		make_and_send_task {worker2.c 853}
+114		recv_exec_send {worker2.c 415}
+115		recv_rslt {worker2.c 624}
+116		recv_task {worker2.c 562}
+117		recv_treq {worker2.c 733}
+118	proto_error {worker2.c 180}
+119		enqueue_command {worker2.c 204}
+120		enqueue_snr {worker2.c 306}
+121		exec_queue_cmd {worker2.c 235}
+122		main {worker2.c 932}
+123		recv_none {worker2.c 602}
+124		recv_rack {worker2.c 807}
+125		recv_rslt {worker2.c 624}
+126		recv_task {worker2.c 562}
+127		recv_treq {worker2.c 733}
+128		try_treq {worker2.c 695}
+129	pthread_attr_init {}
+130		systhr_create {worker2.c 96}
+131	pthread_attr_setscope {}
+132		systhr_create {worker2.c 96}
+133	pthread_cond_broadcast {}
+134		recv_none {worker2.c 602}
+135		recv_rslt {worker2.c 624}
+136		recv_task {worker2.c 562}
+137	pthread_cond_init {}
+138		main {worker2.c 932}
+139	pthread_cond_signal {}
+140		flush_treq_with_none_1 {worker2.c 365}
+141		make_and_send_task {worker2.c 853}
+142		recv_exec_send {worker2.c 415}
+143		recv_rslt {worker2.c 624}
+144		recv_treq {worker2.c 733}
+145	pthread_cond_timedwait {}
+146		recv_exec_send {worker2.c 415}
+147		wait_rslt {worker2.c 899}
+148	pthread_cond_wait {}
+149		exec_queue_cmd {worker2.c 235}
+150		recv_exec_send {worker2.c 415}
+151		send_none_rack {worker2.c 336}
+152	pthread_create {}
+153		systhr_create {worker2.c 96}
+154	pthread_mutex_init {}
+155		main {worker2.c 932}
+156	pthread_mutex_lock {}
+157		exec_queue_cmd {worker2.c 235}
+158		flush_treq_with_none {worker2.c 403}
+159		flush_treq_with_none_1 {worker2.c 365}
+160		handle_req {worker2.c 841}
+161		make_and_send_task {worker2.c 853}
+162		recv_exec_send {worker2.c 415}
+163		recv_none {worker2.c 602}
+164		recv_rack {worker2.c 807}
+165		recv_rslt {worker2.c 624}
+166		recv_task {worker2.c 562}
+167		recv_treq {worker2.c 733}
+168		send_none_rack {worker2.c 336}
+169		try_treq {worker2.c 695}
+170		wait_rslt {worker2.c 899}
+171		worker {worker2.c 548}
+172	pthread_mutex_trylock {}
+173		send_divisible {worker2.c 826}
+174	pthread_mutex_unlock {}
+175		exec_queue_cmd {worker2.c 235}
+176		flush_treq_with_none {worker2.c 403}
+177		flush_treq_with_none_1 {worker2.c 365}
+178		handle_req {worker2.c 841}
+179		make_and_send_task {worker2.c 853}
+180		recv_exec_send {worker2.c 415}
+181		recv_none {worker2.c 602}
+182		recv_rack {worker2.c 807}
+183		recv_rslt {worker2.c 624}
+184		recv_task {worker2.c 562}
+185		recv_treq {worker2.c 733}
+186		send_divisible {worker2.c 826}
+187		send_none_rack {worker2.c 336}
+188		try_treq {worker2.c 695}
+189		wait_rslt {worker2.c 899}
+190		worker {worker2.c 548}
+191	read_to_eol {worker2.c 273}
+192		recv_rslt {worker2.c 624}
+193		recv_task {worker2.c 562}
+194	recv_command {worker2.c 125}
+195		main {worker2.c 932}
+196	recv_exec_send {worker2.c 415}
+197		wait_rslt {worker2.c 899}
+198		worker {worker2.c 548}
+199	recv_int {../../obayashi/fib.c 3}
+200		recv_rslt_body {../../obayashi/fib.c 47}
+201		recv_task_body {../../obayashi/fib.c 29}
+202	recv_none {worker2.c 602}
+203		exec_queue_cmd {worker2.c 235}
+204		main {worker2.c 932}
+205	recv_rack {worker2.c 807}
+206		exec_queue_cmd {worker2.c 235}
+207		main {worker2.c 932}
+208	recv_rslt {worker2.c 624}
+209		exec_queue_cmd {worker2.c 235}
+210		main {worker2.c 932}
+211	recv_rslt_body {../../obayashi/fib.c 47}
+212		recv_rslt {worker2.c 624}
+213	recv_task {worker2.c 562}
+214		exec_queue_cmd {worker2.c 235}
+215		main {worker2.c 932}
+216	recv_task_body {../../obayashi/fib.c 29}
+217		recv_task {worker2.c 562}
+218	recv_treq {worker2.c 733}
+219		exec_queue_cmd {worker2.c 235}
+220		main {worker2.c 932}
+221	send_command {worker2.c 158}
+222		flush_treq_with_none_1 {worker2.c 365}
+223		make_and_send_task {worker2.c 853}
+224		recv_exec_send {worker2.c 415}
+225		recv_treq {worker2.c 733}
+226		send_divisible {worker2.c 826}
+227		send_none_rack {worker2.c 336}
+228	send_divisible {worker2.c 826}
+229		fib {../../obayashi/fib.c 86}
+230	send_int {../../obayashi/fib.c 2}
+231		send_rslt_body {../../obayashi/fib.c 38}
+232		send_task_body {../../obayashi/fib.c 24}
+233	send_none_rack {worker2.c 336}
+234	send_rslt_body {../../obayashi/fib.c 38}
+235		recv_exec_send {worker2.c 415}
+236	send_task_body {../../obayashi/fib.c 24}
+237		make_and_send_task {worker2.c 853}
+238	sprintf {}
+239		main {worker2.c 932}
+240		make_and_send_task {worker2.c 853}
+241	strchr {}
+242		recv_rslt {worker2.c 624}
+243	strcmp {}
+244		exec_queue_cmd {worker2.c 235}
+245		main {worker2.c 932}
+246		recv_treq {worker2.c 733}
+247		send_none_rack {worker2.c 336}
+248	strlen {}
+249		enqueue_command {worker2.c 204}
+250		enqueue_snr {worker2.c 306}
+251		recv_rslt {worker2.c 624}
+252		recv_task {worker2.c 562}
+253		try_treq {worker2.c 695}
+254	strncpy {}
+255		enqueue_command {worker2.c 204}
+256		enqueue_snr {worker2.c 306}
+257		recv_rslt {worker2.c 624}
+258		recv_task {worker2.c 562}
+259		try_treq {worker2.c 695}
+260	systhr_create {worker2.c 96}
+261		main {worker2.c 932}
+262	timespec2bintime {/usr/include/sys/time.h 117}
+263	timeval2bintime {/usr/include/sys/time.h 134}
+264	try_treq {worker2.c 695}
+265		recv_treq {worker2.c 733}
+266	wait_rslt {worker2.c 899}
+267		fib {../../obayashi/fib.c 86}
+268	worker {worker2.c 548}
+269	write_eol {worker2.c 287}
+270		make_and_send_task {worker2.c 853}
+271		recv_exec_send {worker2.c 415}
+
+In function csym::systhr-create:
+  -> csym::pthread-attr-init
+  -> csym::pthread-attr-setscope
+  -> csym::pthread-create
+In function csym::mem-error:
+  -> csym::fputs
+  -> csym::fputc
+In function csym::recv-command:
+  -> csym::fgets
+In function csym::send-command:
+  -> csym::fputs
+  -> csym::fputc
+In function csym::proto-error:
+  -> csym::fputs
+  -> csym::fputc
+In function csym::enqueue-command:
+  -> csym::perror
+  -> csym::exit
+  -> csym::strlen
+  -> csym::proto-error
+  -> csym::strncpy
+In function csym::exec-queue-cmd:
+  -> csym::pthread-mutex-lock
+  -> csym::pthread-cond-wait
+  -> csym::pthread-mutex-unlock
+  -> csym::strcmp
+  -> csym::recv-task
+  -> csym::recv-rslt
+  -> csym::recv-treq
+  -> csym::recv-none
+  -> csym::recv-rack
+  -> csym::proto-error
+  -> csym::exit
+In function csym::read-to-eol:
+  -> csym::getc
+In function csym::write-eol:
+  -> csym::putc
+In function csym::flush-send:
+  -> csym::fflush
+In function csym::enqueue-snr:
+  -> csym::perror
+  -> csym::exit
+  -> csym::strlen
+  -> csym::proto-error
+  -> csym::strncpy
+In function csym::send-none-rack:
+  -> csym::pthread-mutex-lock
+  -> csym::pthread-cond-wait
+  -> csym::pthread-mutex-unlock
+  -> csym::send-command
+  -> csym::flush-send
+  -> csym::strcmp
+In function csym::flush-treq-with-none-1:
+  -> csym::pthread-mutex-lock
+  -> csym::enqueue-command
+  -> csym::pthread-cond-signal
+  -> csym::pthread-mutex-unlock
+  -> csym::send-command
+  -> csym::perror
+  -> csym::fprintf
+  -> csym::exit
+In function csym::flush-treq-with-none:
+  -> csym::pthread-mutex-lock
+  -> csym::flush-treq-with-none-1
+  -> csym::flush-send
+  -> csym::pthread-mutex-unlock
+In function sc::recv-exec-send:
+  -> csym::pthread-cond-wait
+  -> csym::mem-error
+  -> csym::flush-treq-with-none
+  -> csym::pthread-mutex-unlock
+  -> csym::pthread-mutex-lock
+  -> csym::enqueue-command
+  -> csym::pthread-cond-signal
+  -> csym::send-command
+  -> csym::flush-send
+  -> csym::gettimeofday
+  -> csym::pthread-cond-timedwait
+  -> (sc::aref sc::task-doers (sc::fref (sc::mref sc::tx) sc::task-no))
+  -> (sc::aref sc::rslt-senders
+               (sc::fref (sc::mref sc::tx) sc::task-no))
+  -> csym::write-eol
+  -> csym::perror
+  -> csym::fprintf
+  -> csym::exit
+  -> csym::flush-treq-with-none-1
+In function sc::worker:
+  -> csym::pthread-mutex-lock
+  -> sc::recv-exec-send
+  -> csym::pthread-mutex-unlock
+In function csym::recv-task:
+  -> csym::proto-error
+  -> csym::atoi
+  -> csym::pthread-mutex-lock
+  -> csym::strlen
+  -> csym::strncpy
+  -> (sc::aref sc::task-receivers
+               (sc::fref (sc::mref sc::tx) sc::task-no))
+  -> csym::read-to-eol
+  -> csym::perror
+  -> csym::fprintf
+  -> csym::exit
+  -> csym::pthread-cond-broadcast
+  -> csym::pthread-mutex-unlock
+In function csym::recv-none:
+  -> csym::proto-error
+  -> csym::atoi
+  -> csym::pthread-mutex-lock
+  -> csym::pthread-cond-broadcast
+  -> csym::pthread-mutex-unlock
+In function csym::recv-rslt:
+  -> csym::proto-error
+  -> csym::atoi
+  -> csym::strchr
+  -> csym::pthread-mutex-lock
+  -> (sc::aref sc::rslt-receivers
+               (sc::fref (sc::mref sc::hx) sc::task-no))
+  -> csym::read-to-eol
+  -> csym::perror
+  -> csym::fprintf
+  -> csym::exit
+  -> csym::strncpy
+  -> csym::strlen
+  -> csym::pthread-cond-broadcast
+  -> csym::pthread-mutex-unlock
+  -> csym::enqueue-command
+  -> csym::pthread-cond-signal
+  -> csym::enqueue-snr
+In function csym::try-treq:
+  -> csym::pthread-mutex-lock
+  -> csym::pthread-mutex-unlock
+  -> csym::mem-error
+  -> csym::strlen
+  -> csym::proto-error
+  -> csym::strncpy
+In function csym::recv-treq:
+  -> csym::proto-error
+  -> csym::strcmp
+  -> csym::atoi
+  -> csym::try-treq
+  -> csym::pthread-mutex-lock
+  -> csym::send-command
+  -> csym::flush-send
+  -> csym::pthread-mutex-unlock
+  -> csym::enqueue-command
+  -> csym::pthread-cond-signal
+  -> csym::enqueue-snr
+  -> csym::perror
+  -> csym::fprintf
+  -> csym::exit
+In function csym::recv-rack:
+  -> csym::proto-error
+  -> csym::atoi
+  -> csym::pthread-mutex-lock
+  -> csym::pthread-mutex-unlock
+In function csym::send-divisible:
+  -> csym::pthread-mutex-trylock
+  -> csym::send-command
+  -> csym::flush-send
+  -> csym::pthread-mutex-unlock
+In function sc::handle-req:
+  -> csym::pthread-mutex-lock
+  -> sc::-bk
+  -> csym::pthread-mutex-unlock
+In function csym::make-and-send-task:
+  -> csym::sprintf
+  -> csym::pthread-mutex-lock
+  -> csym::enqueue-command
+  -> csym::pthread-cond-signal
+  -> csym::pthread-mutex-unlock
+  -> csym::send-command
+  -> (sc::aref sc::task-senders sc::task-no)
+  -> csym::write-eol
+  -> csym::flush-send
+  -> csym::perror
+  -> csym::fprintf
+  -> csym::exit
+In function sc::wait-rslt:
+  -> csym::pthread-mutex-lock
+  -> csym::gettimeofday
+  -> csym::pthread-cond-timedwait
+  -> sc::recv-exec-send
+  -> csym::pthread-mutex-unlock
+In function sc::main:
+  -> csym::systhr-create
+  -> csym::atoi
+  -> csym::pthread-mutex-init
+  -> csym::pthread-cond-init
+  -> csym::sprintf
+  -> csym::malloc
+  -> csym::recv-command
+  -> csym::strcmp
+  -> csym::recv-task
+  -> csym::recv-rslt
+  -> csym::recv-treq
+  -> csym::recv-none
+  -> csym::recv-rack
+  -> csym::proto-error
+  -> csym::exit
