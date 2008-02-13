@@ -4,7 +4,6 @@ typedef struct
   nestfn_t fun;
   void *fr;
 } closure_t;
-//typedef unsigned int size_t;
 typedef double Align_t;
 
 char *lw_call (char *esp);

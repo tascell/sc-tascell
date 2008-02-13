@@ -21,13 +21,19 @@ char *receive_line (char *buf, int maxlen, int socket);
 int receive_binary (void *dst, unsigned long elm_size, unsigned long n_elm,
                     int socket);
 enum node
-{ OUTSIDE, INSIDE, ANY };
+{ OUTSIDE = -1, INSIDE = -2, ANY = -3, PARENT = -4, TERM = -5 };
+enum command
+{ TASK, RSLT, TREQ, NONE, RACK, EXIT, WRNG };
+extern char *cmd_strings[];
+enum choose
+{ CHS_RANDOM, CHS_ORDER };
 
 struct cmd
 {
+  enum command w;
   int c;
   enum node node;
-  char *v[5];
+  enum node v[4][16];
 };
 
 struct cmd_list
@@ -37,6 +43,8 @@ struct cmd_list
   int task_no;
   struct cmd_list *next;
 };
+
+void proto_error (char const *str, struct cmd *pcmd);
 
 void read_to_eol (void);
 
@@ -71,7 +79,7 @@ struct task
   void *body;
   int ndiv;
   enum node rslt_to;
-  char rslt_head[256];
+  enum node rslt_head[16];
 };
 
 struct task_home
@@ -82,7 +90,7 @@ struct task_home
   enum node req_from;
   struct task_home *next;
   void *body;
-  char task_head[256];
+  enum node task_head[16];
 };
 
 struct thread_data
@@ -92,6 +100,10 @@ struct thread_data
   int w_rack;
   int w_none;
   int ndiv;
+  int last_treq;
+  enum choose last_choose;
+  double random_seed1;
+  double random_seed2;
   struct task *task_free;
   struct task *task_top;
   struct task_home *treq_free;
@@ -101,22 +113,27 @@ struct thread_data
   pthread_mutex_t rack_mut;
   pthread_cond_t cond;
   pthread_cond_t cond_r;
-  char ndiv_buf[32];
-  char tno_buf[8];
-  char id_str[32];
-  char buf[256];
 };
-extern int divisibility_flag;
-
-void send_divisible (void);
 
 void make_and_send_task (struct thread_data *thr, int task_no, void *body);
 
 void *wait_rslt (struct thread_data *thr);
 
-void send_int (int n);
+int serialize_cmdname (char *buf, enum command w);
 
-int recv_int (void);
+int deserialize_cmdname (enum command *buf, char *str);
+
+int serialize_arg (char *buf, enum node *arg);
+
+enum node deserialize_node (char *str);
+
+int deserialize_arg (enum node *buf, char *str);
+
+int serialize_cmd (char *buf, struct cmd *pcmd);
+
+int deserialize_cmd (struct cmd *pcmd, char *str);
+
+int copy_address (enum node *dst, enum node *src);
 
 void handle_req (int (*)(void), struct thread_data *);
 #include<sys/time.h>
@@ -128,6 +145,10 @@ int fprintf (FILE *, char const *, ...);
 void *malloc (size_t);
 
 void free (void *);
+
+double sqrt (double);
+
+double fabs (double);
 
 double
 elapsed_time (struct timeval tp[2])

@@ -112,31 +112,23 @@
   (cond ((= n 0) form)
         ((= n 1) `(butlast ,form))
         (t `(butlast ,form ,n))))
-
-(defun match-make-make-array (n)
-  (if (<= n 0) '#()
-    `(make-array ,n)))
-
 ;;; 補助関数 -->
 
 
 ;; form-varの変数の値が patternsのいずれかにマッチすれば，then-form 
 ;; しなければ else-form を実行
-(defmacro matching-exp (patterns-opt then-form else-form form-var
-                        &optional (retvals-array-form nil))
+(defmacro matching-exp (patterns-opt then-form else-form form-var)
   (let* ((patterns (mapcan #'extract-optional patterns-opt))
          (pv-list (mapcar #'get-pattern-variables patterns)) ; pat-vars for each pattern
          (all-pv (delete-duplicates (apply #'append pv-list) :test #'eq)) ; merged pv-list
-         (retvals-array-form (aif retvals-array-form it
-                               (match-make-make-array (length all-pv))))
-         (retvals-var (gensym "RETVALS")) ; binds array of (or <retvals> 'sct::unused)
+         (retvals-vars (loop repeat (length all-pv) collect (gensym "RETVALS")))
+                                        ; each binds (or <retvals> 'sct::unused)
+                                        ; of the n-th pattern variable
          (block-tag (gensym "MATCH-BLOCK"))
          (set-retval-fvar (gensym "SET-RETVAL")))
     `(block ,block-tag
-       (let (,@all-pv 
-             ;; (aref ,retvals-var (position <sym> all-pv)) に <retvals> または 'sct::unused
-             (,retvals-var ,retvals-array-form))
-         (declare (ignorable ,@all-pv ,retvals-var))
+       (let (,@all-pv ,@retvals-vars)
+         (declare (ignorable ,@all-pv ,@retvals-vars))
          (macrolet ((sct-user:pattern-variable-p (sym)
                       (if (quoted-p sym)
                           `(sct-user:pattern-variable-p ,(second sym))
@@ -148,15 +140,13 @@
                           `(sct-user:get-retval ,(second sym))
                         (progn
                           (assert (symbolp sym))
-                          `(values-list (aref ,',retvals-var
-                                              ,(position sym ',all-pv))))))
+                          `(values-list ,(nth (position sym ',all-pv) ',retvals-vars)))))
                     (,set-retval-fvar (sym val)
                       (if (quoted-p sym) ; only for compatibility
                           `(,',set-retval-fvar ,(second sym) ,val)
                         (progn
                           (assert (symbolp sym))
-                          `(setf (aref ,',retvals-var
-                                       ,(position sym ',all-pv))
+                          `(setq ,(nth (position sym ',all-pv) ',retvals-vars)
                              ,val))))
                     )
            (declare (ignorable (function sct-user:pattern-variable-p)
@@ -324,7 +314,6 @@
 (defmacro sct-user:cond-match (keyform &body normal-clauses)
   (let ((form-var (gensym "FM"))
         (block-var (gensym "BL"))
-        (shared-retvals-var (gensym "SHARED-RETVALS"))
         (n-of-pv-max 0))
     (let ((converted-nclauses
            (mapcar
@@ -343,12 +332,10 @@
                       (return-from ,block-var
                         (progn ,@(remove--> (cdr clause))))
                       nil
-                      ,form-var
-                      ,shared-retvals-var)))))
+                      ,form-var)))))
             normal-clauses)))
-      `(let ((,form-var ,keyform)
-             (,shared-retvals-var ,(match-make-make-array n-of-pv-max)))
-         (declare (ignorable ,form-var ,shared-retvals-var))
+      `(let ((,form-var ,keyform))
+         (declare (ignorable ,form-var))
          (block ,block-var              ; どこかでマッチ成立ならreturn-from
            ,.converted-nclauses
            nil                          ; 多分不必要だが一応
