@@ -123,18 +123,18 @@
 ;; form-varの変数の値が patternsのいずれかにマッチすれば，then-form 
 ;; しなければ else-form を実行
 (defmacro matching-exp (patterns-opt then-form else-form form-var
-			&optional (retvals-array-form nil))
+                        &optional (retvals-array-form nil))
   (let* ((patterns (mapcan #'extract-optional patterns-opt))
          (pv-list (mapcar #'get-pattern-variables patterns)) ; pat-vars for each pattern
          (all-pv (delete-duplicates (apply #'append pv-list) :test #'eq)) ; merged pv-list
-	 (retvals-array-form (aif retvals-array-form it
-				  (match-make-make-array (length all-pv))))
+         (retvals-array-form (aif retvals-array-form it
+                               (match-make-make-array (length all-pv))))
          (retvals-var (gensym "RETVALS")) ; binds array of (or <retvals> 'sct::unused)
          (block-tag (gensym "MATCH-BLOCK"))
          (set-retval-fvar (gensym "SET-RETVAL")))
     `(block ,block-tag
        (let (,@all-pv 
-             ;; (position <sym> all-pv) に <retvals> または 'sct::unused
+             ;; (aref ,retvals-var (position <sym> all-pv)) に <retvals> または 'sct::unused
              (,retvals-var ,retvals-array-form))
          (declare (ignorable ,@all-pv ,retvals-var))
          (macrolet ((sct-user:pattern-variable-p (sym)
@@ -175,57 +175,6 @@
                   )
               patterns pv-list)
            (return-from ,block-tag ,else-form))))
-    ))
-
-#+obsolete ; too inefficient...
-(defmacro matching-exp (patterns-opt then-form else-form form-var)
-  (let* ((patterns (mapcan #'extract-optional patterns-opt))
-         (pv-list (mapcar #'get-pattern-variables patterns)) ; pat-vars for each pattern
-         (all-pv (remove-duplicates (apply #'append pv-list) :test #'eq)) ; merged pv-list
-         (patvars-var (gensym "PATVARS")) ; binds list-of (<sym> . <get-retval-values>)
-         (block-tag (gensym "MATCH-BLOCK"))
-         (reset-pv-fvar (gensym "RESET-PV"))
-         (set-retval-fvar (gensym "SET-RETVAL"))
-         (do-then-fvar (gensym "DO-THEN"))
-         (do-else-fvar (gensym "DO-ELSE")))
-    `(block ,block-tag
-       (let (,@all-pv ,patvars-var)
-         (declare (ignorable ,@all-pv ,patvars-var))
-         (labels ((,do-then-fvar ()
-                    (return-from ,block-tag ,then-form))
-                     (,do-else-fvar ()
-                       (return-from ,block-tag ,else-form))
-                   (,reset-pv-fvar ()
-                     (setq all-pv ,@(mappend (tail-tagger 'nil))))
-                   (sct-user:pattern-variable-p (sym)
-                     (assoc sym ,patvars-var :test #'eq))
-                   (sct-user:get-retval (sym)
-                     (let ((hit (sct-user:pattern-variable-p sym)))
-                       (if hit
-                           (values-list (cdr hit))
-                         (error "~S is not a pattern-variable." sym))))
-                   (,set-retval-fvar (sym val)
-                     (setf (cdr (sct-user:pattern-variable-p sym)) val)))
-           (declare (ignorable (function sct-user:pattern-variable-p)
-                               (function sct-user:get-retval)
-                               (function ,set-retval-fvar)))
-           ,@(mapcan
-              #'(lambda (pattern pv)
-                  (assert (pattern-p pattern))
-                  (list
-                   ;; patvars <== ((a . nil) (b . nil) ...)
-                   `(setq ,patvars-var
-                      (list ,@(mapcar (tagger 'list)
-                                      (mapcar (tagger 'quote) pv))))
-                   ;; reset pattern variables
-                   `(,reset-pv-fvar)
-                   ;; マッチング
-                   `(when ,(match-check-form (pattern-body pattern) form-var set-retval-fvar)
-                      (,do-then-fvar))
-                   )
-                  )
-              patterns pv-list)
-           (,do-else-fvar))))
     ))
 
 ;; 変数form-var がpatternにマッチするための条件式を作る
@@ -375,32 +324,32 @@
 (defmacro sct-user:cond-match (keyform &body normal-clauses)
   (let ((form-var (gensym "FM"))
         (block-var (gensym "BL"))
-	(shared-retvals-var (gensym "SHARED-RETVALS"))
-	(n-of-pv-max 0))
+        (shared-retvals-var (gensym "SHARED-RETVALS"))
+        (n-of-pv-max 0))
     (let ((converted-nclauses
-	   (mapcar
+           (mapcar
             #'(lambda (clause)
                 (cond
                  ((symbol= 'otherwise (car clause))
                   `(return-from ,block-var 
                      (progn ,@(remove--> (cdr clause)))))
                  (t
-		  (let ((patterns (mklist-pattern (car clause))))
-		    (dolist (pat patterns)
-		      (let ((c (count-pattern-variables pat)))
-			(when (> c n-of-pv-max) (setq n-of-pv-max c))))
-		    `(matching-exp
-		      ,patterns
-		      (return-from ,block-var
-			(progn ,@(remove--> (cdr clause))))
-		      nil
-		      ,form-var
-		      ,shared-retvals-var)))))
+                  (let ((patterns (mklist-pattern (car clause))))
+                    (dolist (pat patterns)
+                      (let ((c (count-pattern-variables pat)))
+                        (when (> c n-of-pv-max) (setq n-of-pv-max c))))
+                    `(matching-exp
+                      ,patterns
+                      (return-from ,block-var
+                        (progn ,@(remove--> (cdr clause))))
+                      nil
+                      ,form-var
+                      ,shared-retvals-var)))))
             normal-clauses)))
       `(let ((,form-var ,keyform)
-	     (,shared-retvals-var ,(match-make-make-array n-of-pv-max)))
-	 (declare (ignorable ,form-var ,shared-retvals-var))
-	 (block ,block-var		; どこかでマッチ成立ならreturn-from
-	   ,.converted-nclauses
-	   nil				; 多分不必要だが一応
-	   )))))
+             (,shared-retvals-var ,(match-make-make-array n-of-pv-max)))
+         (declare (ignorable ,form-var ,shared-retvals-var))
+         (block ,block-var              ; どこかでマッチ成立ならreturn-from
+           ,.converted-nclauses
+           nil                          ; 多分不必要だが一応
+           )))))

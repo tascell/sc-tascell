@@ -171,7 +171,6 @@
              ,@pats-act-list
              (otherwise
               (do-otherwise ,(x-var) ',ruleset))))))
-
      ))
 
 
