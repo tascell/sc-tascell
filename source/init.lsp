@@ -1,6 +1,6 @@
 (setq *print-case* :downcase)
 (setq *print-circle* nil)
-(setq *print-right-margin* 72)
+(setq *print-right-margin* 120)
 ;; (setq *compile-print* t)
 ;; (setq *load-print* t)
 
@@ -13,9 +13,9 @@
 ;; #+(and composer allegro) (wt:start-composer)
 
 ;;; The most debuggable (and yet reasonably fast) code, use
-;; (proclaim '(optimize (speed 2) (safety 1) (space 1) (debug 3)))
+(proclaim '(optimize (speed 2) (safety 1) (space 1) (debug 3)))
 ;;; The fastest and least safe code
-(proclaim '(optimize (speed 3) (safety 0) (space 1) (debug 3)))
+;; (proclaim '(optimize (speed 3) (safety 0) (space 1) (debug 3)))
 
 (with-compilation-unit ()
   (load "sc.lsp"))
@@ -64,3 +64,9 @@
 
 (sc-misc:recexpand 'sct::matching-exp 'sct::matching-exp-for-list 'sct::matching-exp-for-commaat 'rule::if-match
                    'rule::cond-match)
+(sc-misc:recexpand-abbrev 'macrolet)
+
+#+allegro
+(progn
+  (setq top-level:*print-level* nil)
+  (setq top-level:*print-length* nil))

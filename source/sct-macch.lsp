@@ -191,7 +191,14 @@
 ;;;; パターンを扱う関数・マクロ
 
 (defstruct (:pattern (:print-function pattern-print))
-  body)
+  body
+  (_matching-list :uninitialized))
+
+(defun pattern-matching-list (x)
+  (if (eq :uninitialized (pattern-_matching-list x))
+      (setf (pattern-_matching-list x)
+        (match-check-list x))
+    (pattern-_matching-list X)))
 
 ;; パターン判定述語
 #+obsolete

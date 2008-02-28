@@ -73,7 +73,7 @@
    x)
   ;; variable (array)
   (#?(,scs[storage-class-specifier] ,id (array ,texp ,@rem) {,init})
-   (when (pattern-variable-p 'init)
+   (when (pattern-variable-p init)
      (warn "Array initializer ~S is ignored." init))
    (let ((texp-ret (type-expression ~(array ,texp ,@rem))))
      (hsc:add-local-variable id texp-ret)
@@ -83,7 +83,7 @@
    ;;ptrならmove対象としてリストに加える。csym::がついていたらmove対象から外す。
    (if (cid-p id) x
      (let* ((texp-ret (type-expression texp))
-	    (init-ret (cond ((pattern-variable-p 'init) (list (initializer init)))
+	    (init-ret (cond ((pattern-variable-p init) (list (initializer init)))
 			    ((ref-type-p texp-ret) (list ~0))
 			    (t '()))))
        (hsc:add-local-variable id texp-ret)
@@ -132,10 +132,10 @@
 (defrule function-body hsc
   (#?({:attr ,f-attr} { ,r-decl[register-declarator] }
                       ,@bi-list)
-     (let* ((pre (nconc (when (pattern-variable-p 'f-attr)
+     (let* ((pre (nconc (when (pattern-variable-p f-attr)
                           (list ~(:attr ,(function-attribute f-attr))))
-                        (when (pattern-variable-p 'r-decl)
-                          (list (get-retval 'r-decl)))))
+                        (when (pattern-variable-p r-decl)
+                          (list (get-retval r-decl)))))
             (fhead (hsc:function-head-p))
             (rembody bi-list)
             (decls (loop for bi in bi-list ; body先頭の宣言部
@@ -200,7 +200,7 @@
   ;; init (struct)
   (#?(the ,texp (init (struct ,sid[#'hsc:find-sinfo]) ,cmp-init))
    (let* ((init-ret (compound-initializer! cmp-init))
-          (sinfo (get-retval 'sid))
+          (sinfo (get-retval sid))
           (hsc-sid (hsc:sinfo-hsc-sid sinfo)))
      ~(the ,texp (init (struct ,hsc-sid)
                        (struct (cast desc-t

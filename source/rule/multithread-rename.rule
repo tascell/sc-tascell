@@ -1,0 +1,17 @@
+(define-ruleset multithread-rename (rename))
+
+;; マルチスレッド用プリミティブ
+(extendrule block-item multithread-rename
+  ((#?(thread-create ,decl-list ,@body) )
+   (ren:inc-block-level
+    (let* ((new-decl-list (mapcar #'declaration decl-list))
+           (new-body (function-body body)))
+      ~(thread-create ,new-decl-list ,@new-body) )))
+  ((#?(thread-suspend ,id[identifier] ,@body) )
+   (ren:inc-block-level
+    (let* ((ren:repl-id (ren:bind-id id))
+           (new-body (function-body body)))
+      ~(thread-suspend ,ren:repl-id ,@new-body) )))
+  ((#?(thread-resume ,exp) )
+   ~(thread-resume ,(ren:repl-id exp)) )
+  )

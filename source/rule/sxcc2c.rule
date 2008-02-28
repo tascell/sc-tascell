@@ -13,22 +13,22 @@
                  { :attr ,f-attr[function-attribute] }
                  { ,r-decl[register-declarator] }
                  ,@bi-list[block-item]))
-             (let ((scs-retval (multiple-value-list (get-retval 'scs)))
-                   (fid-str (car (get-retval 'func-id)))
-                   (texp-fun (get-retval 'texp))
+             (let ((scs-retval (multiple-value-list (get-retval scs)))
+                   (fid-str (car (get-retval func-id)))
+                   (texp-fun (get-retval texp))
                    (arg-list (combine-each-nth ; list of (<texp> "<id>")
                               (list 
-                               (get-retval 'texp-list)
-                               (cdr (get-retval 'func-id)))
+                               (get-retval texp-list)
+                               (cdr (get-retval func-id)))
                               :n (max (length texp-list) 
-                                      (length (cdr (get-retval 'func-id))))))
-                   (inline-str  (if (pattern-variable-p 'f-attr)
-                                    (list (get-retval 'f-attr) " ")
+                                      (length (cdr (get-retval func-id))))))
+                   (inline-str  (if (pattern-variable-p f-attr)
+                                    (list (get-retval f-attr) " ")
                                   ""))
-                   (register-list (if (pattern-variable-p 'r-decl)
-                                      (get-retval 'r-decl)
+                   (register-list (if (pattern-variable-p r-decl)
+                                      (get-retval r-decl)
                                     nil))
-                   (vaarg-str (if (pattern-variable-p 'va-arg)
+                   (vaarg-str (if (pattern-variable-p va-arg)
                                   ", ..."
                                 "")))
                (let ((scs-str (first scs-retval))
@@ -52,7 +52,7 @@
                                         (null bi-list))
                                    ";"
                                  (list #\Newline "{" #\Newline 
-                                       (get-retval 'bi-list)
+                                       (get-retval bi-list)
                                        "}"))))
                  (list #\Newline
                        inline-str scs-str " "
@@ -69,7 +69,7 @@
             ;; almost copy from sc2c.rule
             (#?(lightweight ,texp1[type-expression] ,@texp-list[type-expression]
                             {,va-arg[vaarg-tag]})
-               (let ((retval-texp1 (multiple-value-list (get-retval 'texp1)))
+               (let ((retval-texp1 (multiple-value-list (get-retval texp1)))
                      (assoc 1))
                  (values
                   #'(lambda (cid)
@@ -81,11 +81,11 @@
                                                   ;; 引数リスト
                                                   (separate-list (mapcar #'(lambda (xx)
                                                                              (funcall xx ""))
-                                                                         (get-retval 'texp-list))
+                                                                         (get-retval texp-list))
                                                                  ", ")
                                                   ;; "..."
-                                                  (if (pattern-variable-p 'va-arg)
-                                                      (list ", " (get-retval 'va-arg))
+                                                  (if (pattern-variable-p va-arg)
+                                                      (list ", " (get-retval va-arg))
                                                     "")
                                                   " )")
                                             (second retval-texp1)

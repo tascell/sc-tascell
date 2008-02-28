@@ -115,183 +115,418 @@
 ;;; 補助関数 -->
 
 
-;; form-varの変数の値が patternsのいずれかにマッチすれば，then-form 
-;; しなければ else-form を実行
-(defmacro matching-exp (patterns-opt then-form else-form form-var)
-  (let* ((patterns (mapcan #'extract-optional patterns-opt))
-         (pv-list (mapcar #'get-pattern-variables patterns)) ; pat-vars for each pattern
-         (all-pv (delete-duplicates (apply #'append pv-list) :test #'eq)) ; merged pv-list
-         (retvals-vars (loop repeat (length all-pv) collect (gensym "RETVALS")))
-                                        ; each binds (or <retvals> 'sct::unused)
-                                        ; of the n-th pattern variable
-         (block-tag (gensym "MATCH-BLOCK"))
-         (set-retval-fvar (gensym "SET-RETVAL")))
-    `(block ,block-tag
-       (let (,@all-pv ,@retvals-vars)
-         (declare (ignorable ,@all-pv ,@retvals-vars))
-         (macrolet ((sct-user:pattern-variable-p (sym)
-                      (if (quoted-p sym)
-                          `(sct-user:pattern-variable-p ,(second sym))
-                        (progn
-                          (assert (symbolp sym))
-                          `(not (eq 'sct::unused ,sym)))))
-                    (sct-user:get-retval (sym)
-                      (if (quoted-p sym) ; only for compatibility
-                          `(sct-user:get-retval ,(second sym))
-                        (progn
-                          (assert (symbolp sym))
-                          `(values-list ,(nth (position sym ',all-pv) ',retvals-vars)))))
-                    (,set-retval-fvar (sym val)
-                      (if (quoted-p sym) ; only for compatibility
-                          `(,',set-retval-fvar ,(second sym) ,val)
-                        (progn
-                          (assert (symbolp sym))
-                          `(setq ,(nth (position sym ',all-pv) ',retvals-vars)
-                             ,val))))
-                    )
-           (declare (ignorable (function sct-user:pattern-variable-p)
-                               (function sct-user:get-retval)
-                               (function ,set-retval-fvar)))
-           ,.(mapcan
-              #'(lambda (pattern pv)
-                  (assert (pattern-p pattern))
-                  (list
-                   ;; マッチング
-                   `(when ,(match-check-form (pattern-body pattern) form-var set-retval-fvar)
-                      ,.(loop for unused-var in (set-difference all-pv pv)
-                            collect `(setq ,unused-var 'sct::unused))
-                      (return-from ,block-tag ,then-form))
-                   )
-                  )
-              patterns pv-list)
-           (return-from ,block-tag ,else-form))))
+;; (<pattern> . <action>) のリストとform-varを受けとって
+;; form-varの値が<pattern>にマッチすれば
+;; <action>を実行するようなフォームを生成
+;; 先頭の共通する部分の処理を一回ですませるようにしている
+(defun match-action-form (pats-act-list form-var &optional otherwise-action)
+  (match-check-to-form
+   (integrate-ml-actions
+    (mapcar #'(lambda (x) (cons (pattern-matching-list (car x)) (cdr x)))
+            (extract-pats-act pats-act-list)))
+   (list form-var)
+   otherwise-action)
+  )
+
+(defun extract-pats-act (pats-act-list)
+  (loop for (pats . act) in pats-act-list
+      nconc (loop for pat in (mapcan #'extract-optional pats)
+                collect (cons pat act))))
+
+
+;;;;;;;;;;;;
+
+;; match-check-to-formの変換関数で利用する
+;; (<pattern-variable> . <return-value-varialble>) のリスト
+(defvar *pv-list*)
+;; マッチング処理全体を包むブロック名．action終了後脱出するために使う
+(defvar *match-block*)
+
+(defun get-pv-ret (pv &optional (pv-list *pv-list*))
+  (let ((pv-ret (cdr (assoc pv pv-list))))
+    (assert (and pv-ret (symbolp pv-ret)))
+    pv-ret))
+
+(defun get-focus-var (focus-stk)
+  (let ((var (car focus-stk)))
+    (assert (and var (symbolp var)))
+    var))
+
+(defun get-tmp-var (rsvars)
+  (get-focus-var rsvars))
+
+(defun get-escape-var (escape-stk)
+  (let ((var (car escape-stk)))
+    (assert (and var (symbolp var)))
+    var))
+
+(defun flatten-block (form)
+  (if (and (consp form)
+           (eq 'progn (car form)))
+      (cdr form)
+    (list form)))
+
+;;;
+(defun match-check-to-form (mc focus-stk &optional otherwise-action)
+  (let ((*pv-list* ())
+        (*match-block* (gensym "MBLOCK"))
+        (tag-otherwise (gensym "OTW")))
+    `(block ,*match-block*
+       (tagbody
+         ,@(flatten-block (match-check-list-to-form (list mc) focus-stk (list tag-otherwise) ()))
+         ;;どれかにマッチしたならここまでにreturn-fromしているので
+         ;;go以外ではここにはこない
+         ,tag-otherwise
+         ,@(when otherwise-action
+             (list `(return-from ,*match-block* ,otherwise-action)))))
     ))
 
-;; 変数form-var がpatternにマッチするための条件式を作る
-(defun match-check-form (pbody form-var set-retval-fvar) 
-  `(and ,@(sort-check-list
-           (match-check-list-for-exp pbody form-var set-retval-fvar))) )
+(defun match-check-list-to-form (mc-list focus-stk escape-stk rsvars
+                                 &aux (mc0 (car mc-list)) (mc-rest (cdr mc-list)))
+  (cond
+   ((endp mc-list) nil)
+   ((atom mc0)
+    (case mc0
+      ((nil)      nil)
+      ((:nil)     (match-check-list-to-form-judge (tagger 'null) mc-rest focus-stk escape-stk rsvars))
+      ((:non-nil) (match-check-list-to-form-judge #'identity mc-rest focus-stk escape-stk rsvars))
+      ((:listp)
+       (cond 
+        ((eq :non-nil (car mc-rest))
+         (match-check-list-to-form-judge (tagger 'consp) (cdr mc-rest) focus-stk escape-stk rsvars))
+        ((eq :nil (car mc-rest))
+         (match-check-list-to-form mc-rest focus-stk escape-stk rsvars))
+        (t
+         (match-check-list-to-form-judge (tagger 'listp) mc-rest focus-stk escape-stk rsvars))))
+      ((:car) (match-check-list-to-form-move (tagger 'car) mc-rest focus-stk escape-stk rsvars))
+      ((:cdr) (match-check-list-to-form-move (tagger 'cdr) mc-rest focus-stk escape-stk rsvars))
+      ((:push-focus) (match-check-list-to-form-push-focus mc-rest focus-stk escape-stk rsvars))
+      ((:pop-focus)  (match-check-list-to-form-pop-focus  mc-rest focus-stk escape-stk rsvars))
+      (otherwise
+       (error "unknown check tag: ~S" mc0))))
+   (t
+    (case (car mc0)
+      ((:br)     (assert (endp mc-rest)) (match-check-to-form-br mc0 focus-stk escape-stk rsvars))
+      ((:action) (assert (endp mc-rest)) (match-check-to-form-action mc0 focus-stk escape-stk rsvars))
+      ((:eq)    (match-check-list-to-form-judge
+                 #'(lambda (x) `(eq ,x ',(second mc0))) mc-rest focus-stk escape-stk rsvars))
+      ((:equal) (match-check-list-to-form-judge
+                 #'(lambda (x) `(equal ,x ',(second mc0))) mc-rest focus-stk escape-stk rsvars))
+      ((:type)
+       (cond
+        ((and (consp (car mc-rest))
+              (member (caar mc-rest) '(:eq :equal)))
+         (match-check-list-to-form mc-rest focus-stk escape-stk rsvars))
+        (t
+         (match-check-list-to-form-judge
+          #'(lambda (x) `(typep ,x ',(second mc0))) mc-rest focus-stk escape-stk rsvars))))
+      ((:new-pv)  (match-check-list-to-form-new-pv (second mc0) mc-rest focus-stk escape-stk rsvars))
+      ((:pv)      (match-check-list-to-form-pv      mc0 mc-rest focus-stk escape-stk rsvars))
+      ((:pv-rest) (match-check-list-to-form-pv-rest mc0 mc-rest focus-stk escape-stk rsvars))
+      ((:pv-*)     (match-check-list-to-form-pv-*     mc0 mc-rest focus-stk escape-stk rsvars))
+      ((:postpv-*) (match-check-list-to-form-postpv-* mc0 mc-rest focus-stk escape-stk rsvars))
+      (otherwise
+       (error "unknown check tag: ~S" mc0))))
+   ))
 
-;; check-list を判定が楽（と思われる）
-;; かつ必要順（listpが (<= (length ...)) より先など）に並びかえ
-(defun sort-check-list (check-list)
-  (stable-sort 
-   check-list #'<
-   :key #'(lambda (check-form)
-            (or (and (atom check-form) 0)
-                (and (position (car check-form) '(listp eq list-length>= list-length= equal))
-                     1)
-                (aand (position (car check-form) '(let loop))
-                      (+ it 1000))
-                (progn 
-                  (warn "Unexpected check-form is created: ~S" check-form)
-                  500)))))
+(defun match-check-list-to-form-judge (focus2testform mc-rest focus-stk escape-stk rsvars)
+  (let ((focus-var (get-focus-var focus-stk))
+        (escape-var (get-escape-var escape-stk)))
+    `(if ,(funcall focus2testform focus-var)
+         ,(match-check-list-to-form mc-rest focus-stk escape-stk rsvars)
+       (go ,escape-var))
+    ))
 
-(defun match-check-list-for-exp (pbody form-var set-retval-fvar) 
+(defun match-check-list-to-form-move (focus2move mc-rest focus-stk escape-stk rsvars)
+  (let ((focus-var (get-focus-var focus-stk)))
+    `(progn (setq ,focus-var ,(funcall focus2move focus-var))
+            ,@(flatten-block (match-check-list-to-form mc-rest focus-stk escape-stk rsvars)))
+    ))
+
+(defun match-check-list-to-form-push-focus (mc-rest focus-stk escape-stk rsvars)
+  (let ((focus-var (get-focus-var focus-stk)))
+    (if rsvars
+        (let ((tmp-var (get-tmp-var rsvars)))
+          `(progn
+             (setq ,tmp-var ,focus-var)
+             ,@(flatten-block (match-check-list-to-form mc-rest (cons tmp-var focus-stk) escape-stk
+                                                        (cdr rsvars))))
+          )
+      (let* ((new-tmp-var (gensym "TMP")))
+        `(let ((,new-tmp-var ,focus-var))
+           ,@(flatten-block (match-check-list-to-form mc-rest (cons new-tmp-var focus-stk) escape-stk
+                                                      rsvars)))
+        ))))
+
+(defun match-check-list-to-form-pop-focus (mc-rest focus-stk escape-stk rsvars)
+  (let ((focus-var (get-focus-var focus-stk)))
+    (match-check-list-to-form mc-rest (cdr focus-stk) escape-stk
+                              (cons focus-var rsvars))))
+
+;; branch
+(defun match-check-to-form-br (mc focus-stk escape-stk rsvars)
+  ;; (:br <path1> <path2>)
+  (destructuring-bind (tag path1 path2) mc
+    (assert (eq :br tag))
+    (let ((fcbak-vars (mapcar #'(lambda (x) (gensym (string+ (symbol-name x) "BAK")))
+                              focus-stk))
+          (else-tag (gensym "ELSE")))
+      (if path2
+          `(let (,.(loop for fv in focus-stk as bk in fcbak-vars
+                       collect (list bk fv)))
+             (tagbody
+               ,@(let ((*pv-list* *pv-list*))
+                   (flatten-block
+                    (match-check-list-to-form path1 focus-stk (cons else-tag escape-stk) rsvars)))
+               (error "Unexpected control flow: probably bugs in match-check-to-form.")
+               ,else-tag
+               ,.(loop for fv in focus-stk as bk in fcbak-vars
+                     collect `(setq ,fv ,bk))
+               ,@(flatten-block (match-check-to-form-br path2 focus-stk escape-stk rsvars))))
+        (match-check-list-to-form path1 focus-stk escape-stk rsvars))
+      )))
+
+(defun match-check-to-form-action (mc focus-stk escape-stk rsvars)
+  (declare (ignore focus-stk escape-stk rsvars))
+  (destructuring-bind (tag form) mc
+    (assert (eq :action tag))
+    `(macrolet ((sct-user:pattern-variable-p (sym)
+                  ;; (if (quoted-p sym)    ; only for compatibility
+                  ;;     `(sct-user:pattern-variable-p ,(second sym))
+                  ;;   (progn
+                  (assert (symbolp sym))
+                  (when (assoc sym ',*pv-list*) t))
+                (sct-user:get-retval (sym)
+                  ;; (if (quoted-p sym)    ; only for compatibility
+                  ;;     `(sct-user:get-retval ,(second sym))
+                  ;;   (progn
+                  (assert (symbolp sym))
+                  `(values-list ,(cdr (assoc sym ',*pv-list*))))
+                )
+       (declare (ignorable (function sct-user:pattern-variable-p)
+                           (function sct-user:get-retval)))
+       (return-from ,*match-block* ,form))))
+
+(defun match-check-list-to-form-new-pv (pv mc-rest focus-stk escape-stk rsvars)
+  (let ((pv-ret (gensym (symbol-name pv))))
+    (push (cons pv pv-ret) *pv-list*)
+    `(let (,pv ,pv-ret)
+       (declare (ignorable ,pv ,pv-ret))
+       ,@(flatten-block
+          (match-check-list-to-form mc-rest focus-stk escape-stk rsvars)))
+    ))
+
+(defun match-check-list-to-form-pv (mc0 mc-rest focus-stk escape-stk rsvars)
+  (destructuring-bind (tag pv in-bracket) mc0
+    (assert (eq :pv tag))
+    (let ((pv-ret (get-pv-ret pv))
+          (focus-var (get-focus-var focus-stk))
+          (escape-var (get-escape-var escape-stk)))
+      `(progn
+         (setq ,pv ,focus-var)
+         ,@(if in-bracket
+               (list `(if ,([]-to-testform in-bracket pv pv-ret)
+                          ,(match-check-list-to-form mc-rest focus-stk escape-stk rsvars)
+                        (go ,escape-var)))
+             (flatten-block (match-check-list-to-form mc-rest focus-stk escape-stk rsvars))))
+      )))
+
+(defun match-check-list-to-form-pv-rest (mc0 mc-rest focus-stk escape-stk rsvars)
+  (destructuring-bind (tag pv rest-len in-bracket) mc0
+    (assert (eq :pv-rest tag))
+    (let ((pv-ret (get-pv-ret pv))
+          (focus-var (get-focus-var focus-stk))
+          (escape-var (get-escape-var escape-stk))
+          (pred-var (gensym "PRED"))
+          (head-var (gensym "HD"))
+          (succ-var (gensym "SUCC"))
+          (clct-var (gensym "CLCT"))
+          (rclct-var (gensym "RCLCT"))
+          (rtmp-var (gensym "RTMP"))
+          (maxvals-var (gensym "MAXV")))
+      `(let ((,succ-var ,focus-var)
+             ,.(when in-bracket (list rtmp-var)))
+         ,.(loop for i from 1 upto rest-len
+               if (= i rest-len)
+               nconc (list `(when (endp ,succ-var) (go ,escape-var))
+                           `(setq ,succ-var (cdr ,succ-var)))
+               else
+               nconc (list `(setq ,succ-var (cdr ,succ-var))))
+         (loop :for ,pred-var :on ,focus-var
+           :as ,head-var := (car ,pred-var)
+           :until (endp ,succ-var)
+           :collecting ,head-var :into ,clct-var
+           ,.(when in-bracket
+               (list :do `(unless ,([]-to-testform in-bracket head-var rtmp-var)
+                            (go ,escape-var))
+                     :collecting rtmp-var :into rclct-var
+                     :maximizing `(length ,rtmp-var) :into maxvals-var))
+           :do (setq ,succ-var (cdr ,succ-var))
+           :finally
+           (setq ,pv ,clct-var)
+           (setq ,focus-var ,pred-var)
+           ,.(when in-bracket
+               (list `(setq ,pv-ret (combine-each-nth ,rclct-var :n ,maxvals-var)))))
+         ,@(flatten-block (match-check-list-to-form mc-rest focus-stk escape-stk rsvars))))))
+
+(defun match-check-list-to-form-pv-* (mc0 mc-rest focus-stk escape-stk rsvars)
+  (destructuring-bind (tag pv in-bracket mc-list) mc0
+    (assert (eq :pv-* tag))
+    (let ((pv-ret (get-pv-ret pv))
+          (focus-var (get-focus-var focus-stk))
+          (escape-var (get-escape-var escape-stk))
+          (retry-tag (gensym "RETRY"))
+          (skip-tag (gensym "SKIP"))
+          (cur-var (gensym "CUR"))
+          (head-var (gensym "HD"))
+          (rtmp-var (gensym "RTMP"))
+          (nvals-var (gensym "NVAL"))
+          (maxvals-var (gensym "MAXV")))
+      `(let ((,cur-var ,focus-var) ,head-var
+             ,.(when in-bracket (list rtmp-var `(,maxvals-var 0))))
+         (tagbody
+           (go ,skip-tag)
+           ,retry-tag
+           (when (endp ,cur-var) (go ,escape-var))
+           (setq ,head-var (car ,cur-var))
+           ,.(when in-bracket
+               (list `(unless ,([]-to-testform in-bracket head-var rtmp-var)
+                        (go ,escape-var))
+                     `(let ((,nvals-var (length ,rtmp-var)))
+                        (when (> ,nvals-var ,maxvals-var)
+                          (setq ,maxvals-var ,nvals-var)))
+                     `(push ,rtmp-var ,pv-ret)))
+           (push ,head-var ,pv)
+           (setq ,cur-var (cdr ,cur-var))
+           (setq ,focus-var ,cur-var)
+           ,skip-tag
+           ,@(flatten-block (match-check-list-to-form
+                             (append mc-list
+                                     `((:postpv-* ,pv ,.(when in-bracket (list pv-ret maxvals-var))))
+                                     mc-rest)
+                             focus-stk (cons retry-tag escape-stk) rsvars))))
+      )))
+
+(defun match-check-list-to-form-postpv-* (mc0 mc-rest focus-stk escape-stk rsvars)
+  (destructuring-bind (tag pv &optional pv-ret maxvals-var) mc0
+    (assert (eq :postpv-* tag))
+    `(progn
+       (setq ,pv (nreverse ,pv))
+       ,.(when pv-ret
+           (assert (symbolp pv-ret))
+           (assert (and maxvals-var (symbolp maxvals-var)))
+           (list `(setq ,pv-ret (nreverse ,pv-ret))
+                 `(setq ,pv-ret (combine-each-nth ,pv-ret :n ,maxvals-var))))
+       ,@(flatten-block (match-check-list-to-form mc-rest focus-stk (cdr escape-stk) rsvars)))
+    ))
+
+;;;;;;;;;;;;
+
+
+;; (<matching-list> . <action>) のリストを受けとり
+;; <matching-list> の 先頭共通部分を統合することで木構造にする
+(defun integrate-ml-actions (ml-action-list)
+  (cond
+   ((endp ml-action-list) nil)
+   ((endp (caar ml-action-list))
+    `(:action ,(cdar ml-action-list)))
+   (t
+    ;; 先頭共通部分が1つでもある部分(succ)と，それ以降(rest)を分ける
+    (multiple-value-bind (succ rest)
+        (let ((ml0-head (caaar ml-action-list)))
+          (list-until-if #'(lambda (x) (not (equal x ml0-head)))
+                         ml-action-list :key #'caaar))
+      ;; succのmatching-listの最長の先頭共通部分headを抜き出して，
+      ;; 残った部分をrest2に
+      (multiple-value-bind (head rest-mls)
+          (apply #'head-intersection #'equal (mapcar #'car succ))
+        (let ((rest2 (loop for ml in rest-mls
+                         as ml-act in succ
+                         collect (cons ml (cdr ml-act)))))
+          `(:br (,@head ,@(flatten-branch (integrate-ml-actions rest2)))
+                ,(integrate-ml-actions rest))
+          ))))))
+
+(defun flatten-branch (br)
+  (if (and (consp br)
+           (eq :br (car br))
+           (null (third br)))
+      (second br)
+    (list br)))
+
+;; patternにマッチするために必要な条件のリストを返す
+(defun match-check-list (pattern)
+  (match-check-list-for-exp (pattern-body pattern)))
+
+(defun match-check-list-for-exp (pbody) 
   ;; リストの要素に対して
   (cond
-   ((symbolp pbody) (list `(eq ',pbody ,form-var)) )
-   ((atom pbody)    (list `(equal ',pbody ,form-var)) )
+   ((symbolp pbody) (list `(:type ,(type-of pbody)) `(:eq ,pbody)))
+   ((atom pbody)    (list `(:type ,(type-of pbody)) `(:equal pbody)))
    ((pat-comma-p pbody)
     (let ((pv (second pbody))
-          (in-[] (cddr pbody))
-          (retval-var (gensym "RETVAL")))
-      (list
-       `(let (,retval-var)
-          (setq ,pv ,form-var)
-          (and ,([]-to-testform in-[] pv retval-var)
-               (,set-retval-fvar ',pv ,retval-var)))) ))
+          (in-bracket (cddr pbody)))    ; [...]
+      (list 
+       `(:new-pv ,pv)
+       `(:pv ,pv ,in-bracket))))
    ((pat-commaat-p pbody)
     (error "Pattern consists of only ,@<symbol>: ~A" 
            (make-pattern :body pbody)))
    (t
-    (match-check-list-for-list pbody form-var set-retval-fvar))))
+    (match-check-list-for-list pbody))))
 
-(defun match-check-list-for-list (pbody form-var set-retval-fvar) 
+(defun match-check-list-for-list (pbody)
   ;; リストに対して
-  (multiple-value-bind (until-commaat from-commaat)
+  (multiple-value-bind (until-commaat from-commaat) ; パターンを,@前後で分割
       (split-at-commaat pbody)
-    (let ((len-until (length until-commaat)))
-      (list*
-       ;; リストの長さがパターンと同じ（,@が残っている場合はパターン以上）
-       `(listp ,form-var)
-       `(,(if from-commaat 'list-length>= 'list-length=) ,form-var ,len-until)
-       (append
-        ;; ,@以前の各要素をチェック
-        (loop
-          :for i :upfrom 0
-          :as x :in until-commaat
-          :nconc (match-check-list-for-exp x `(nth ,i ,form-var) set-retval-fvar))
-        ;; ,@以降をチェック
-        (when from-commaat
-          (match-check-list-for-commaat 
-           from-commaat `(nthcdr ,len-until ,form-var) set-retval-fvar))))
-      )))
+    (list*
+     :listp
+     (nconc
+      ;; ,@以前の各要素をチェック
+      (loop :as x :in until-commaat
+        :nconc (nconc (list :non-nil :push-focus :car)
+                      (match-check-list-for-exp x)
+                      (list :pop-focus :cdr)))
+      ;; ,@以降をチェック
+      (if from-commaat
+          (match-check-list-for-commaat from-commaat)
+        (list :nil))))
+    ))
 
-(defun match-check-list-for-commaat (pbody form-var set-retval-fvar)
+(defun match-check-list-for-commaat (pbody)
   (assert (pat-commaat-p (car pbody)))
   ;; ,@から始まるリストに対して
   (cond
    ((not (search-commaat (cdr pbody)))  ;,@がもうないときは高速化
     (let ((rest-len (length (cdr pbody))) ; ,@を除いたパターンの長さ
           (pv (second (car pbody)))
-          (in-[] (cddr (car pbody)))
-          (test-var (gensym "TEST"))
-          (i-var (gensym "I")) (x-var (gensym "X")) (r-var (gensym "R"))
-          (valslist-var (gensym "VALSLIST"))
-          (maxvals-var (gensym "MAXVALS")))
-      `( ;; ,@より後のパターンをチェック
-        ,@(match-check-list-for-list
-           (cdr pbody) (match-make-last form-var rest-len) set-retval-fvar)
-          ;; ,@部分をチェック（要素数確定）
-          (loop
-            :with ,r-var
-            :with ,test-var := ,(match-make-butlast form-var rest-len)
-            :for ,i-var :of-type fixnum :from 1 :to (length ,test-var)
-            :as ,x-var :in ,test-var
-            :always ,([]-to-testform in-[] x-var r-var) ; 全ての返り値が非nilかチェック
-            :collecting ,r-var :into ,valslist-var
-            :maximizing (length ,r-var) :into ,maxvals-var ; []が返すvaluesの最大数
-            :finally
-            (setq ,pv ,test-var)
-            (,set-retval-fvar           ; 返り値をpatvarsに記憶
-             ',pv (combine-each-nth ,valslist-var :n ,maxvals-var))) )
+          (in-bracket (cddr (car pbody))))
+      (list*
+       ;; ,@部分をチェック（要素数確定）
+       `(:new-pv ,pv)
+       `(:pv-rest ,pv ,rest-len ,in-bracket)
+       ;; ,@より後のパターンをチェック
+       (match-check-list-for-list (cdr pbody)) )
       ))
-
    (t                                   ; ,@がまだある場合=>しらみつぶし
     (let ((pv (second (car pbody)))
-          (in-[] (cddr (car pbody)))
-          (rest-var (gensym "REST"))
-          (r-var (gensym "R")) (valslist-var (gensym "VALSLIST"))
-          (maxvals-var (gensym "MAXVALS")))
+          (in-bracket (cddr (car pbody))))
       (list
-       `(loop
-          :initially (when (endp ,form-var)
-                       (return ,(matches-to-nil-p (cdr pbody))))
-          :with ,r-var
-          :for ,rest-var :on ,form-var  ; rest-varより前を先頭の,@部分だと思う
-          :until ,(match-check-form (cdr pbody) rest-var set-retval-fvar)
-          :always (and
-                   ,@(unless (matches-to-nil-p (cdr pbody)) 
-                       `((cdr ,rest-var)) ) ; formを使い切ったときは特別扱い
-                   ,([]-to-testform in-[] `(car ,rest-var) r-var) ; []内の関数をチェック
-                   )
-          :collecting ,r-var :into ,valslist-var
-          :maximizing (length ,r-var) :into ,maxvals-var
-          :finally                      ; always, neverのチェックに引っかかったら無視される
-          (setq ,pv (ldiff ,form-var ,rest-var))
-          (,set-retval-fvar 
-           ',pv (combine-each-nth ,valslist-var :n ,maxvals-var))))
-      ))))
+       `(:new-pv ,pv)
+       `(:pv-* ,pv ,in-bracket
+               ,(match-check-list-for-list (cdr pbody))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; パターンマッチを利用するユーザ用マクロ
 
 ;;; ユーザ用マクロ if-match
 (defmacro sct-user:if-match (pattern form then-form &optional else-form)
-  (let ((form-var (gensym)))
+  (let ((form-var (gensym "FM")))
     `(let ((,form-var ,form))
-       (matching-exp (,pattern) ,then-form ,else-form ,form-var))))
+       ,(match-action-form
+         `((,(list pattern) . ,then-form))
+         form-var
+         else-form))))
 
 ;;; ユーザ用マクロ when-match
 (defmacro sct-user:when-match (pattern form &body body)
@@ -313,30 +548,21 @@
 
 (defmacro sct-user:cond-match (keyform &body normal-clauses)
   (let ((form-var (gensym "FM"))
-        (block-var (gensym "BL"))
-        (n-of-pv-max 0))
-    (let ((converted-nclauses
-           (mapcar
-            #'(lambda (clause)
-                (cond
-                 ((symbol= 'otherwise (car clause))
-                  `(return-from ,block-var 
-                     (progn ,@(remove--> (cdr clause)))))
-                 (t
-                  (let ((patterns (mklist-pattern (car clause))))
-                    (dolist (pat patterns)
-                      (let ((c (count-pattern-variables pat)))
-                        (when (> c n-of-pv-max) (setq n-of-pv-max c))))
-                    `(matching-exp
-                      ,patterns
-                      (return-from ,block-var
-                        (progn ,@(remove--> (cdr clause))))
-                      nil
-                      ,form-var)))))
-            normal-clauses)))
+        (otherwise-action))
+    (let ((pats-act-list                ; list of (<patterns> . <action>)
+           (loop for clause in normal-clauses
+               if (symbol= 'otherwise (car clause))
+               do
+                 (setq otherwise-action `(progn ,@(remove--> (cdr clause))))
+                 (loop-finish)
+               else
+               collect
+               (let ((patterns (mklist-pattern (car clause)))
+                     (action `(progn ,@(remove--> (cdr clause)))))
+                 (cons (mapcan #'extract-optional patterns)
+                       action)))
+           ))
       `(let ((,form-var ,keyform))
          (declare (ignorable ,form-var))
-         (block ,block-var              ; どこかでマッチ成立ならreturn-from
-           ,.converted-nclauses
-           nil                          ; 多分不必要だが一応
-           )))))
+         ,(match-action-form pats-act-list form-var otherwise-action))
+      )))

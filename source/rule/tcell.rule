@@ -26,7 +26,7 @@
     #?(struct ,@init))
    ~(,(car x) ,@(mapcar #'initializer init)) )
   ((#?(,desig[designator] ,init))
-   ~(,(get-retval 'desig) ,(initializer init)) )
+   ~(,(get-retval desig) ,(initializer init)) )
   ((#?,exp)
    (expression exp) )
   )
@@ -46,43 +46,43 @@
 (defrule declaration tcell
   ;; variable
   ((#?(,scs[storage-class-specifier] ,id[identifier] ,texp {,init}))
-   (list (if (pattern-variable-p 'init)
+   (list (if (pattern-variable-p init)
              ~(,scs ,id ,(wfn2fn texp) ,(initializer init))
            ~(,scs ,id ,(wfn2fn texp)))) )
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;; def task
   ;; * task-data -> struct
   ((#?(def (task ,id[identifier]) ,@rest))
-   (tcell:add-task (get-retval 'id))
-   (tcell:with-task (get-retval 'id)
+   (tcell:add-task (get-retval id))
+   (tcell:with-task (get-retval id)
      (let ((task-mems (mapcar #'task-member rest)))
        (list
         ~(def (struct ,(tcell:task-struct-id))
               ,@task-mems)))))
   ;; * do_task_body
   ((#?(def (task-body ,id[identifier]) ,@body))
-   (tcell:with-task (get-retval 'id)
+   (tcell:with-task (get-retval id)
      (list (tcell:task-body-function
             (tcell:with-new-bk ~-bk (function-body body))))) )
   ;;; 以下はtaskに登録しておくだけ．最後にまとめてコードを作る
   ;; * send_task_body
   ((#?(def (task-sender ,id[identifier]) ,@body))
-   (tcell:with-task (get-retval 'id)
+   (tcell:with-task (get-retval id)
      (tcell:set-task-send (function-body body))
      (list)) )
   ;; * send_rslt_body
   ((#?(def (task-receiver ,id[identifier]) ,@body))
-   (tcell:with-task (get-retval 'id)
+   (tcell:with-task (get-retval id)
      (tcell:set-task-recv (function-body body))
      (list)) )
   ;; * recv_task_body
   ((#?(def (rslt-sender ,id[identifier]) ,@body))
-   (tcell:with-task (get-retval 'id)
+   (tcell:with-task (get-retval id)
      (tcell:set-rslt-send (function-body body))
      (list)) )
   ;; * recv_rslt_body
   ((#?(def (rslt-receiver ,id[identifier]) ,@body))
-   (tcell:with-task (get-retval 'id)
+   (tcell:with-task (get-retval id)
      (tcell:set-rslt-recv (function-body body))
      (list)) )
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -202,7 +202,7 @@
    (when (ruleset-param 'no-nestfunc)
      (return-from block-item (list ~(begin ,@(block-item stat1)
                                            ,@(block-item stat2)))))
-   (tcell:with-task (get-retval 'id)
+   (tcell:with-task (get-retval id)
      (let* ((spn-id  (generate-id "spawned"))
             (tdat-id (generate-id "st"))
             (bk-id (generate-id "do_two_bk"))
@@ -255,7 +255,7 @@
                    (:get ,@get-body))))
    (when (ruleset-param 'no-nestfunc)
      (return-from block-item
-       (let ((var2 (generate-id (string+ (get-retval 'var) "_end"))))
+       (let ((var2 (generate-id (string+ (get-retval var) "_end"))))
          (list
           ~(begin
             (def ,var int ,(expression from))
@@ -264,8 +264,8 @@
               ,@(function-body body)))))))
    (let ((spn-id (generate-id "spawned"))
          (bk-id (generate-id "do_many_bk"))
-         (var2 (generate-id (string+ (get-retval 'var) "_end"))))
-     (tcell:with-task (get-retval 'id)
+         (var2 (generate-id (string+ (get-retval var) "_end"))))
+     (tcell:with-task (get-retval id)
        (list
         ~(begin
           (def ,var  int ,(expression from))
@@ -343,10 +343,10 @@
   ((#?(if ,exp ,stat1 {,stat2}) )
    (let ((e-exp (expression exp))
          (b-stat1 (block-item stat1))
-         (b-stat2 (if (pattern-variable-p 'stat2) (block-item stat2))))
+         (b-stat2 (if (pattern-variable-p stat2) (block-item stat2))))
      (list ~(if ,e-exp
                 (begin ,@b-stat1)
-                ,@(when (pattern-variable-p 'stat2)
+                ,@(when (pattern-variable-p stat2)
                     (list ~(begin ,@b-stat2)))))
      ) )
   ;; switch

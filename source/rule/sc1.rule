@@ -45,7 +45,7 @@
   ((#?(,scs[storage-class-specifier] (,soru[struct-or-union] ,id[identifier]) ,@rem) )
    ~( (,scs (,soru ,id) ,@(sc-program rem)) ) )
   ((#?(,cscs[compound-storage-class-specifier] ,texp ,@list) )
-   (let ((scs (get-retval 'cscs)))
+   (let ((scs (get-retval cscs)))
      (loop 
          for id-init0 in list
          as id-init = (mklist id-init0)

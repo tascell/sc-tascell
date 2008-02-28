@@ -17,24 +17,24 @@
 (defrule translation-unit sc2c
   ((#?(,@ext-decl-list))
    (mapcar #'(lambda (x)
-	       (aif (external-declaration? x)
-		    it
-		    (list #\Newline "/* Error!" #\Newline
-                          (write-to-string x) 
-                          #\Newline "*/" #\Newline)))
-	   ext-decl-list)))
+               (aif (external-declaration? x)
+                   it
+                 (list #\Newline "/* Error!" #\Newline
+                       (write-to-string x) 
+                       #\Newline "*/" #\Newline)))
+           ext-decl-list)))
 
 (defrule external-declaration sc2c
   ((#?,decl[declaration])
-   (get-retval 'decl))
+   (get-retval decl))
   ((#?,cexp[c-expression])
-   (list (get-retval 'cexp) #\Newline)))
+   (list (get-retval cexp) #\Newline)))
 
 ;;;; 2.Declarations
 ;; declaration
 (defrule declaration sc2c
   ((#?,i-decl[inlined-declaration])
-   (get-retval 'i-decl))
+   (get-retval i-decl))
   ;; 'def' abbreviation (SC-1)
   ((#?(,id[identifier] ,texp[type-expression] { ,init[initializer] })
     #?(,f-id[function-identifier]
@@ -52,13 +52,13 @@
   ;; variable definitions/declarations
   ((#?(,scs[storage-class-specifier]
            ,id[identifier] ,texp[type-expression] { ,init[initializer] } ))
-   (let ((scs-str (get-retval 'scs))
-         (idtexp-str (funcall (get-retval 'texp) (get-retval 'id)))
-         (init-str (if (pattern-variable-p 'init)
+   (let ((scs-str (get-retval scs))
+         (idtexp-str (funcall (get-retval texp) (get-retval id)))
+         (init-str (if (pattern-variable-p init)
                        (list " = "
-                                (sc2c:parenthesize
-                                 (multiple-value-list (get-retval 'init))
-                                 15))
+                             (sc2c:parenthesize
+                              (multiple-value-list (get-retval init))
+                              15))
                      "")))
      (list scs-str " " idtexp-str init-str ";" #\Newline)))
   ;; function definitions/declarations
@@ -69,98 +69,98 @@
            { :attr ,f-attr[function-attribute] }
            { ,r-decl[register-declarator] }
            ,@bi-list[block-item]))
-   (let ((scs-retval (multiple-value-list (get-retval 'scs)))
-         (fid-str (car (get-retval 'func-id)))
-         (texp-fun (get-retval 'texp))
+   (let ((scs-retval (multiple-value-list (get-retval scs)))
+         (fid-str (car (get-retval func-id)))
+         (texp-fun (get-retval texp))
          (arg-list (combine-each-nth    ; list of (<texp> "<id>")
                     (list 
-                     (get-retval 'texp-list)
-                     (cdr (get-retval 'func-id)))
+                     (get-retval texp-list)
+                     (cdr (get-retval func-id)))
                     :n (max (length texp-list) 
-                            (length (cdr (get-retval 'func-id))))))
-         (inline-str  (if (pattern-variable-p 'f-attr)
-                          (list (get-retval 'f-attr) " ")
+                            (length (cdr (get-retval func-id))))))
+         (inline-str  (if (pattern-variable-p f-attr)
+                          (list (get-retval f-attr) " ")
                         ""))
-         (register-list (if (pattern-variable-p 'r-decl)
-                            (get-retval 'r-decl)
+         (register-list (if (pattern-variable-p r-decl)
+                            (get-retval r-decl)
                           nil))
-         (vaarg-str (if (pattern-variable-p 'va-arg) ", ..." "")))
+         (vaarg-str (if (pattern-variable-p va-arg) ", ..." "")))
      (let ((scs-str (first scs-retval))
            (arg-str 
             (list
              (separate-list 
-	      (mapcar 
-	       #'(lambda (xx)
-		   (list
-		    (if (member (second xx) register-list
-				:test #'string=)
-			"register "
-		      "")
-		    (if (first xx)
-			(funcall (first xx)
-				 (if (second xx) (second xx) ""))
-		      (second xx))))
-	       arg-list)
-	      ", ")
+              (mapcar 
+               #'(lambda (xx)
+                   (list
+                    (if (member (second xx) register-list
+                                :test #'string=)
+                        "register "
+                      "")
+                    (if (first xx)
+                        (funcall (first xx)
+                                 (if (second xx) (second xx) ""))
+                      (second xx))))
+               arg-list)
+              ", ")
              vaarg-str))      
            (body-str (if (and (eq 'decl (second scs-retval))
                               (null bi-list))
                          ";"
                        (list #\Newline "{" #\Newline 
-			     (get-retval 'bi-list)
-			     "}"))))
+                             (get-retval bi-list)
+                             "}"))))
        (list #\Newline
-	     inline-str scs-str " "
-	     (funcall texp-fun
-		      (list fid-str " (" arg-str ")"))
-	     body-str
-	     #\Newline
-	     )))
+             inline-str scs-str " "
+             (funcall texp-fun
+                      (list fid-str " (" arg-str ")"))
+             body-str
+             #\Newline
+             )))
    )
   ;; struct/union definiitons/declarations
   ((#?(,dd[def-or-decl] ,su-spec[struct-or-union-specifier]
           ,@sdcl-list[struct-declaration]))
-   (if (and (eq 'decl (nth-multiple-value 1 (get-retval 'dd)))
+   (if (and (eq 'decl (nth-multiple-value 1 (get-retval dd)))
             (null sdcl-list))
-       (list (get-retval 'su-spec) ";" #\Newline)
-     (list #\Newline (get-retval 'su-spec)
-	   "{" #\Newline (get-retval 'sdcl-list) "};"
-	   #\Newline)))
+       (list (get-retval su-spec) ";" #\Newline)
+     (list #\Newline (get-retval su-spec)
+           "{" #\Newline (get-retval sdcl-list) "};"
+           #\Newline)))
   ;; enum definitions
   ((#?(def ,espec[enum-specifier] ,@en-list[enumerator]))
-   (list (get-retval 'espec) 
-            " { "
-            (separate-list (get-retval 'en-list) ", ")
-            "};" #\Newline))
+   (list (get-retval espec) 
+         " { "
+         (separate-list (get-retval en-list) ", ")
+         "};" #\Newline))
   ;; compound variable definitions/declarations (SC1 ext)
   ((#?(,spec[compound-storage-class-specifier]
             ,texp ,@idec-list[init-declarator]))
-   (let ((spec-retval (get-retval 'spec))
-         (idec-retval-list (get-retval 'idec-list)))
+   (let ((spec-retval (get-retval spec))
+         (idec-retval-list (get-retval idec-list)))
      (mapcar #'(lambda (xx)
-		 (inlined-declaration
-		  `(,spec-retval ,(first xx) ,texp ,@(cdr xx)))) 
-	     idec-retval-list)) )
+                 (inlined-declaration
+                  `(,spec-retval ,(first xx) ,texp ,@(cdr xx)))) 
+             idec-retval-list)) )
   ;; deftype
   ((#?(,dt-tag[deftype-tag] ,id[identifier] ,texp[type-expression]))
    (push id *sc2c-typename-list*)
-   (list (get-retval 'dt-tag) " "
-	 (funcall (get-retval 'texp)
-		  (get-retval 'id)) ";" #\Newline) )
+   (list (get-retval dt-tag) " "
+         (funcall (get-retval texp)
+                  (get-retval id)) ";" #\Newline) )
   ;; deftype (struct)
   ((#?(,dt-tag[deftype-tag] ,id[identifier] ,su[struct-or-union]
               ,@sdcl-list[struct-declaration]))
    (push id *sc2c-typename-list*)
-   (list (get-retval 'dt-tag) " "
-	 (get-retval 'su) " {" #\Newline
-	 (get-retval 'sdcl-list) " } "
-	 (get-retval 'id) ";" #\Newline) )
+   (list (get-retval dt-tag) " "
+         (get-retval su) " {" #\Newline
+         (get-retval sdcl-list) " } "
+         (get-retval id) ";" #\Newline) )
   ;; deftype (enum)
   ((#?(,dt-tag[deftype-tag] ,id[identifier] enum ,@en-list[enumerator]))
    (push id *sc2c-typename-list*)
-   (list (get-retval 'dt-tag) " enum { "
-         (separate-list (get-retval 'en-list) ", ") " } "
-         (get-retval 'id) ";" #\Newline) )
+   (list (get-retval dt-tag) " enum { "
+         (separate-list (get-retval en-list) ", ") " } "
+         (get-retval id) ";" #\Newline) )
   )
 
 (defrule function-attribute sc2c
@@ -176,9 +176,9 @@
 ;; funcion-identifier
 (defrule function-identifier sc2c
   ((#?,id[identifier])
-   (list (get-retval 'id)))
+   (list (get-retval id)))
   ((#?(,@id-list[identifier]))
-   (get-retval 'id-list))
+   (get-retval id-list))
   )
 
 ;; init-declarator
@@ -193,7 +193,7 @@
   ((#?,tag[storage-class-specifier]
     #?,tag[deftype-tag]
     #?,tag[compound-storage-class-specifier]) ;sc1
-   (get-retval 'tag)))
+   (get-retval tag)))
 
 (defrule deftype-tag sc2c
   ((#?deftype)       "typedef"))
@@ -205,7 +205,7 @@
 
 ;; storage-class-specifier
 (defrule storage-class-specifier sc2c
-  ((#?,dd[def-or-decl])        (get-retval 'dd))
+  ((#?,dd[def-or-decl])        (get-retval dd))
   ((#?extern #?extern-def)     (values "extern" 'def))
   ((#?extern-decl)             (values "extern" 'decl))
   ((#?static #?static-def)     (values "static" 'def))
@@ -224,10 +224,10 @@
 
 ;; struct-declaration
 (defrule struct-declaration sc2c
-  ((#?,decl[declaration]) (get-retval 'decl))
+  ((#?,decl[declaration]) (get-retval decl))
   ((#?:bit)               " : ")
   ((#?,exp[expression])
-   (let ((exp-retval (multiple-value-list (get-retval 'exp)))
+   (let ((exp-retval (multiple-value-list (get-retval exp)))
          (assoc 14))
      (list (sc2c:parenthesize exp-retval assoc) #\Newline)))
   )
@@ -235,30 +235,30 @@
 ;; enumerator
 (defrule enumerator sc2c
   ((#?,en-const[enumeration-constant])
-   (get-retval 'en-const))
+   (get-retval en-const))
   ((#?(,en-const[enumeration-constant] ,exp[expression]))
-   (let ((exp-retval (multiple-value-list (get-retval 'exp))))
-     (list (get-retval 'en-const)
+   (let ((exp-retval (multiple-value-list (get-retval exp))))
+     (list (get-retval en-const)
            "=" (sc2c:parenthesize exp-retval 15))))
   )
 
 ;; enumeration-constant
 (defrule enumeration-constant sc2c
   ((#?,id[identifier])
-   (get-retval 'id)))
+   (get-retval id)))
 
 ;; designator
 (defrule designator sc2c
   ((#?(aref-this ,@exp-list[expression]))
-   (separate-list (get-retval 'exp-list) "][" "[" "]"))
+   (separate-list (get-retval exp-list) "][" "[" "]"))
   ((#?(fref-this ,@id-list[identifier]))
-   (separate-list (get-retval 'id-list) "." "." ""))
+   (separate-list (get-retval id-list) "." "." ""))
   ((#?(aref ,desig[designator] ,@exp-list[expression]))
-   (list (get-retval 'desig)
-	 (separate-list (get-retval 'exp-list) "][" "[" "]")))
+   (list (get-retval desig)
+         (separate-list (get-retval exp-list) "][" "[" "]")))
   ((#?(fref ,desig[designator] ,@id-list[identifier]))
-   (list (get-retval 'desig)
-	 (separate-list (get-retval 'id-list) "." "." "")))
+   (list (get-retval desig)
+         (separate-list (get-retval id-list) "." "." "")))
   )
 
 (defrule designator-tag sc2c
@@ -269,10 +269,10 @@
 (defrule designated-initializer sc2c
   ((#?(,desig[designator] ,init[initializer]))
    (values
-    (list (get-retval 'desig) " = " (get-retval 'init))
+    (list (get-retval desig) " = " (get-retval init))
     (nth-multiple-value 1 (assignment-operator! ~=))))
   ((#?,init[initializer])
-   (get-retval 'init))
+   (get-retval init))
   )
 
 ;;compound-initializer
@@ -281,7 +281,7 @@
     #?(struct ,@init-list[designated-initializer]))
    (let ((init-retval-list
           (combine-each-nth
-           (multiple-value-list (get-retval 'init-list)))))
+           (multiple-value-list (get-retval init-list)))))
      (values
       (list
        "{ " 
@@ -296,19 +296,19 @@
 ;; initializer
 (defrule initializer sc2c
   ((#?,cmp-init[compound-initializer])
-   (get-retval 'cmp-init))
+   (get-retval cmp-init))
   ((#?,exp[expression])
-   (get-retval 'exp))
+   (get-retval exp))
   )
 
 ;;;; 3.Type-expressions
 (defrule type-expression sc2c
   ((#?,tspec[type-specifier])
    (values
-    #'(lambda (cid) (list (get-retval 'tspec) " " cid)) 
+    #'(lambda (cid) (list (get-retval tspec) " " cid)) 
     17))
   ((#?(,ar-tag[array-tag] ,texp[type-expression]))
-   (let ((retval-texp (multiple-value-list (get-retval 'texp)))
+   (let ((retval-texp (multiple-value-list (get-retval texp)))
          (assoc 1))
      (values
       #'(lambda (cid)
@@ -318,58 +318,58 @@
                                         assoc)))
       assoc)))
   ((#?(,ar-tag[array-tag] ,texp[type-expression] ,@exp-list[expression]))
-   (let ((retval-texp (multiple-value-list (get-retval 'texp)))
+   (let ((retval-texp (multiple-value-list (get-retval texp)))
          (assoc 1))
      (values
       #'(lambda (cid)
           (funcall
            (first retval-texp)
            (sc2c:parenthesize-t (list cid
-				      "["
-				      (separate-list (get-retval 'exp-list) "][")
-				      "]")
+                                      "["
+                                      (separate-list (get-retval exp-list) "][")
+                                      "]")
                                 (second retval-texp)
                                 assoc)))
       assoc)))
   ((#?(,ptr-tag[pointer-tag] ,texp[type-expression]))
-   (let ((retval-texp (multiple-value-list (get-retval 'texp)))
+   (let ((retval-texp (multiple-value-list (get-retval texp)))
          (assoc 2))
      (values
       #'(lambda (cid)
           (funcall (first retval-texp)
-                   (sc2c:parenthesize-t (list (get-retval 'ptr-tag) cid)
+                   (sc2c:parenthesize-t (list (get-retval ptr-tag) cid)
                                         (second retval-texp)
                                         assoc)))
       assoc)))
   ((#?(,fn-tag[function-tag] ,texp1[type-expression] ,@texp-list[type-expression]
               {,va-arg[vaarg-tag]}))
-   (let ((retval-texp1 (multiple-value-list (get-retval 'texp1)))
+   (let ((retval-texp1 (multiple-value-list (get-retval texp1)))
          (assoc 1))
      (values
       #'(lambda (cid)
           (funcall
            (first retval-texp1)
            (sc2c:parenthesize-t (list cid
-                                         "( "
-                                         ;; 引数リスト
-                                         (separate-list (mapcar #'(lambda (xx)
-                                                             (funcall xx ""))
-                                                         (get-retval 'texp-list))
-                                                 ", ")
-                                         ;; "..."
-                                         (if (pattern-variable-p 'va-arg)
-                                             (list ", " (get-retval 'va-arg))
-                                           "")
-                                         " )")
+                                      "( "
+                                      ;; 引数リスト
+                                      (separate-list (mapcar #'(lambda (xx)
+                                                                 (funcall xx ""))
+                                                             (get-retval texp-list))
+                                                     ", ")
+                                      ;; "..."
+                                      (if (pattern-variable-p va-arg)
+                                          (list ", " (get-retval va-arg))
+                                        "")
+                                      " )")
                                 (second retval-texp1)
                                 assoc)))
       assoc)))
   ((#?(,@tq-list[type-qualifier] ,texp[type-expression]))
    (values
     #'(lambda (cid)
-        (funcall (get-retval 'texp)
-                 (list " " (separate-list (get-retval 'tq-list) " ")
-		       " " cid)))
+        (funcall (get-retval texp)
+                 (list " " (separate-list (get-retval tq-list) " ")
+                       " " cid)))
     17))
   )
 
@@ -390,7 +390,7 @@
     #?,tspc[struct-or-union-specifier]
     #?,tspc[enum-specifier]
     #?,tspc[typedef-name])
-   (get-retval 'tspc))
+   (get-retval tspc))
   )
 
 (defrule build-in-type sc2c
@@ -418,7 +418,7 @@
 
 (defrule struct-or-union-specifier sc2c
   ((#?(,s-u[struct-or-union] ,id[identifier]))
-   (list (get-retval 's-u) " " (get-retval 'id)))
+   (list (get-retval s-u) " " (get-retval id)))
   )
 
 (defrule struct-or-union sc2c
@@ -428,7 +428,7 @@
 
 (defrule enum-specifier sc2c
   ((#?(,en[enum-tag] ,id[identifier]))
-   (list (get-retval 'en) " " (get-retval 'id)))
+   (list (get-retval en) " " (get-retval id)))
   )
 
 (defrule enum-tag sc2c
@@ -442,7 +442,7 @@
 
 (defrule typedef-name sc2c
   ((#?,id[identifier])
-   (get-retval 'id))
+   (get-retval id))
   )
 
 ;;;; 4.Statements
@@ -461,7 +461,7 @@
     #?,stat[labeled-statement]
     #?,stat[expression-statement]
     )
-   (get-retval 'stat))
+   (get-retval stat))
 
   ((#?())
    (list ";" #\Newline))
@@ -470,36 +470,36 @@
 (defrule compound-statement sc2c
   ((#?(begin ,@bi-list[block-item]))
    (list "{" #\Newline
-         (get-retval 'bi-list)
+         (get-retval bi-list)
          "}" #\Newline) )
   ((#?(let (,@decl-list[declaration]) ,@bi-list[block-item]))
    (list "{" #\Newline
-         (get-retval 'decl-list)
+         (get-retval decl-list)
          #\Newline
-         (get-retval 'bi-list)
+         (get-retval bi-list)
          "}" #\Newline))
   )
 
 (defrule block-item sc2c
   ((#?,bi[inlined-declaration]
     #?,bi[statement])
-   (get-retval 'bi))
+   (get-retval bi))
   (otherwise
    (list "/*Error: " (write-to-string x) "*/"))
   )
 
 (defrule labeled-statement sc2c
   ((#?(label ,id[identifier] ,stat[statement]))
-   (list (get-retval 'id) ": " (get-retval 'stat)))
+   (list (get-retval id) ": " (get-retval stat)))
   ((#?(case ,exp[expression]))
-   (list "case " (get-retval 'exp) ":" #\Newline))
+   (list "case " (get-retval exp) ":" #\Newline))
   ((#?(default))
    (list "default:" #\Newline))
   )
 
 (defrule expression-statement sc2c
   ((#?,exp-stat[expression])
-   (list (get-retval 'exp-stat) ";" #\Newline))
+   (list (get-retval exp-stat) ";" #\Newline))
   )
 
 (defrule selection-statement sc2c
@@ -511,7 +511,7 @@
    (statement (sc2c:cond->if clauses)))
   ((#?(if ,exp[expression] ,stat1[statement] {,stat2[statement]}))
    ;; [trick] sc1.ruleでできた if + do-while を while, forにできればする
-   (when (and (not (pattern-variable-p 'stat2))
+   (when (and (not (pattern-variable-p stat2))
               (consp stat1)
               (eq ~do-while (car stat1)))
      (cond ((equal exp (second stat1))
@@ -523,14 +523,13 @@
             (return-from selection-statement
               (iteration-statement
                ~(for (,exp ,(butlast (second stat1))) ,@(cddr stat1)))))))
-   
-   (list* "if(" (get-retval 'exp) " )" #\Newline
-          (get-retval 'stat1)
-          (when (pattern-variable-p 'stat2)
-             (list " else " (get-retval 'stat2)))) )
+   (list* "if(" (get-retval exp) " )" #\Newline
+          (get-retval stat1)
+          (when (pattern-variable-p stat2)
+            (list " else " (get-retval stat2)))) )
   ((#?(switch ,exp[expression] ,@bi-list[block-item]))
-   (list "switch( " (get-retval 'exp) " )" #\Newline
-         "{" #\Newline (get-retval 'bi-list) "}" #\Newline) )
+   (list "switch( " (get-retval exp) " )" #\Newline
+         "{" #\Newline (get-retval bi-list) "}" #\Newline) )
   )
 
 (defrule iteration-statement sc2c
@@ -542,54 +541,54 @@
     #?(do-while ,exp[expression] ,@bi-list[block-item]))
    (let ((prev nil) (post nil))
      (case (if (eql 1 exp) ~while (car x)) ; (do-while 1 ...) なら (while 1 ...) にする
-       ((sc::while) (setq prev (list "while( " (get-retval 'exp) " )")
+       ((sc::while) (setq prev (list "while( " (get-retval exp) " )")
                           post ""))
        ((sc::do-while) (setq prev "do "
-                             post (list "while( " (get-retval 'exp) " );")))
+                             post (list "while( " (get-retval exp) " );")))
        (otherwise (error "unexpected keyword ~S in iteration-statement."
                          (car x))))
      (list prev                         ; "while" or "do"
            #\Newline 
-           "{" #\Newline (get-retval 'bi-list)
+           "{" #\Newline (get-retval bi-list)
            "}" post                     ; "while(...);" of do-while if necessary
            #\Newline)) )
   ((#?(loop ,@bi-list[block-item]))
    (iteration-statement ~(while 1 ,@bi-list)))
-  
+
   ((#?(for (,@exp-list[expression] 
                       ,exp1[expression] ,exp2[expression])
            ,@bi-list[block-item]))
    (let ((exp-retval-list 
           (combine-each-nth 
-           (multiple-value-list (get-retval 'exp-list)))))
+           (multiple-value-list (get-retval exp-list)))))
      (list "for( "
            (separate-list (mapcar #'(lambda (xx)
                                       (sc2c:parenthesize xx 16))
                                   exp-retval-list)
                           ", ")
-           " ; " (get-retval 'exp1)
-           " ; " (get-retval 'exp2)
+           " ; " (get-retval exp1)
+           " ; " (get-retval exp2)
            " )" #\Newline 
-           "{" #\Newline (get-retval 'bi-list)
+           "{" #\Newline (get-retval bi-list)
            "}" #\Newline)) )
   ((#?(for (,@idecl-list[inlined-declaration] 
                         ,exp1[expression] ,exp2[expression])
            ,@bi-list[block-item]))
-   (list "{" #\Newline (get-retval 'idecl-list)
+   (list "{" #\Newline (get-retval idecl-list)
          (iteration-statement ~(for (,exp1 ,exp2) ,@bi-list))
          "}" #\Newline) )
   )
 
 (defrule jump-statement sc2c
   ((#?(goto ,id[identifier]))
-   (list "goto " (get-retval 'id) ";" #\Newline))
+   (list "goto " (get-retval id) ";" #\Newline))
   ((#?(continue))
    (list "continue;" #\Newline))
   ((#?(break))
    (list "break;" #\Newline))
   ((#?(return { ,exp[expression] }))
-   (list "return " (when (pattern-variable-p 'exp)
-                     (get-retval 'exp))
+   (list "return " (when (pattern-variable-p exp)
+                     (get-retval exp))
          ";" #\Newline))
   )
 
@@ -600,7 +599,7 @@
     #?,tag[selection-statement-tag]
     #?,tag[iteration-statement-tag]
     #?,tag[jump-statement-tag])
-   (get-retval 'tag))
+   (get-retval tag))
   )
 
 (defrule labeled-statement-tag sc2c
@@ -642,27 +641,27 @@
   ;; number, character, string-literal
   ((#?,id[identifier])
    (and (not (member id *sc2c-typename-list* :test #'eq))
-        (values (get-retval 'id) 0) ) )
+        (values (get-retval id) 0) ) )
   ((#?,num[sc-number])
-   (values (get-retval 'num) 0) )
+   (values (get-retval num) 0) )
   ((#?,char[sc-character])
-   (values (get-retval 'char) 0) )
+   (values (get-retval char) 0) )
   ((#?,str[sc-string])
-   (values (get-retval 'str) 0) )
+   (values (get-retval str) 0) )
   ;; compound-literal
   ((#?(init ,texp[type-expression] ,cmp-init[compound-initializer]))
    (let ((assoc 3))
-     (values (list "(" (funcall (get-retval 'texp) "") ") "
-                   (get-retval 'cmp-init))
+     (values (list "(" (funcall (get-retval texp) "") ") "
+                   (get-retval cmp-init))
              assoc)) )
   ;; aref
   ((#?(aref ,exp1[expression] ,@exp-list[expression]))
    (if (null exp-list)
-       (get-retval 'exp1)
-     (let ((exp1-retval (multiple-value-list (get-retval 'exp1)))
+       (get-retval exp1)
+     (let ((exp1-retval (multiple-value-list (get-retval exp1)))
            (exp-retval-list
             (combine-each-nth
-             (multiple-value-list (get-retval 'exp-list))))
+             (multiple-value-list (get-retval exp-list))))
            (assoc 1))
        (values
         (list (sc2c:parenthesize exp1-retval assoc)
@@ -674,8 +673,8 @@
         assoc))) )
   ;; fref
   ((#?(fref ,exp[expression] ,@fi-list[field-identifier]))
-   (let ((exp-retval (multiple-value-list (get-retval 'exp)))
-         (fi-str-list0 (get-retval 'fi-list))
+   (let ((exp-retval (multiple-value-list (get-retval exp)))
+         (fi-str-list0 (get-retval fi-list))
          (fi-str-list nil)
          (assoc 1))
      (do ((str fi-str-list0 (cdr str)))
@@ -692,7 +691,7 @@
   ;; inc,dec
   ((#?(inc ,exp[expression])
     #?(dec ,exp[expression]))
-   (let ((exp-retval (multiple-value-list (get-retval 'exp)))
+   (let ((exp-retval (multiple-value-list (get-retval exp)))
          (op-str (postfix-operator (car x)))
          (assoc 1))
      (assert op-str)
@@ -700,20 +699,20 @@
              assoc)) )
   ;; unary-operator
   ((#?(sizeof ,texp[type-expression]))
-   (let ((texp-str (funcall (get-retval 'texp) ""))
+   (let ((texp-str (funcall (get-retval texp) ""))
          (assoc 2))
      (values (list "sizeof(" texp-str ")")
              assoc)) )
   ((#?(,uop[unary-operator] ,exp[expression])) ; includes 'sizeof'
-   (let ((exp-retval (multiple-value-list (get-retval 'exp)))
-         (uop-retval (multiple-value-list (get-retval 'uop))))
+   (let ((exp-retval (multiple-value-list (get-retval exp)))
+         (uop-retval (multiple-value-list (get-retval uop))))
      (let ((uop-str (first uop-retval))
            (uop-assoc (second uop-retval)))
        (values (list uop-str (sc2c:parenthesize exp-retval uop-assoc))
                uop-assoc))) )
   ((#?(+ ,exp[expression])
     #?(- ,exp[expression]))
-   (let ((exp-retval (multiple-value-list (get-retval 'exp)))
+   (let ((exp-retval (multiple-value-list (get-retval exp)))
          (assoc 2))
      (values (list (unary-operator (car x))
                    (sc2c:parenthesize exp-retval assoc))
@@ -722,22 +721,22 @@
    (expression ~(/ 1 ,exp)) )
   ;; cast
   ((#?(cast ,texp[type-expression] ,exp[expression]))
-   (let ((texp-str (funcall (get-retval 'texp) ""))
-         (exp-retval (multiple-value-list (get-retval 'exp)))
+   (let ((texp-str (funcall (get-retval texp) ""))
+         (exp-retval (multiple-value-list (get-retval exp)))
          (assoc 3))
      (values (list "(" texp-str ")" (sc2c:parenthesize exp-retval assoc))
              assoc)) )
   ;; operator
   ((#?(,op[operator]))
-   (let ((op-noarg (third (multiple-value-list (get-retval 'op)))))
+   (let ((op-noarg (third (multiple-value-list (get-retval op)))))
      (if op-noarg
          (expression op-noarg)
        (error "~A requires at least one argument" op))) )
   ((#?(,op[binary-operator] ,@exp-list[expression]))
-   (let ((op-retval (multiple-value-list (get-retval 'op)))
+   (let ((op-retval (multiple-value-list (get-retval op)))
          (exp-retval-list
           (combine-each-nth
-           (multiple-value-list (get-retval 'exp-list)))))
+           (multiple-value-list (get-retval exp-list)))))
      (let ((op-str (first op-retval))
            (op-assoc (second op-retval)))
        (values
@@ -751,9 +750,9 @@
         op-assoc))) )
   ;; comparator
   ((#?(,comp[comparator] ,exp1[expression] ,exp2[expression]))
-   (let ((comp-retval (multiple-value-list (get-retval 'comp)))
-         (exp1-retval (multiple-value-list (get-retval 'exp1)))
-         (exp2-retval (multiple-value-list (get-retval 'exp2))))
+   (let ((comp-retval (multiple-value-list (get-retval comp)))
+         (exp1-retval (multiple-value-list (get-retval exp1)))
+         (exp2-retval (multiple-value-list (get-retval exp2))))
      (let ((comp-str (first comp-retval))
            (comp-assoc (second comp-retval)))
        (values (list (sc2c:parenthesize exp1-retval comp-assoc)
@@ -762,9 +761,9 @@
                comp-assoc))))
   ;; if-exp
   ((#?(if-exp ,exp1[expression] ,exp2[expression] ,exp3[expression]))
-   (let ((exp1-retval (multiple-value-list (get-retval 'exp1)))
-         (exp2-retval (multiple-value-list (get-retval 'exp2)))
-         (exp3-retval (multiple-value-list (get-retval 'exp3)))
+   (let ((exp1-retval (multiple-value-list (get-retval exp1)))
+         (exp2-retval (multiple-value-list (get-retval exp2)))
+         (exp3-retval (multiple-value-list (get-retval exp3)))
          (assoc 14))
      (values (list (sc2c:parenthesize exp1-retval assoc)
                    "?" (sc2c:parenthesize exp2-retval assoc)
@@ -772,9 +771,9 @@
              assoc)) )
   ;; assignment-operator
   ((#?(,as-op[assignment-operator] ,exp1[expression] ,exp2[expression]))
-   (let ((as-retval (multiple-value-list (get-retval 'as-op)))
-         (exp1-retval (multiple-value-list (get-retval 'exp1)))
-         (exp2-retval (multiple-value-list (get-retval 'exp2))))
+   (let ((as-retval (multiple-value-list (get-retval as-op)))
+         (exp1-retval (multiple-value-list (get-retval exp1)))
+         (exp2-retval (multiple-value-list (get-retval exp2))))
      (let ((as-str (first as-retval))
            (as-assoc (second as-retval)))
        (values (list (sc2c:parenthesize exp1-retval as-assoc)
@@ -785,7 +784,7 @@
   ((#?(exps ,@exp-list[expression]))
    (let ((exp-retval-list
           (combine-each-nth
-           (multiple-value-list (get-retval 'exp-list))))
+           (multiple-value-list (get-retval exp-list))))
          (assoc 16))
      (values (separate-list (mapcar #'(lambda (xx)
                                         (sc2c:parenthesize xx assoc))
@@ -795,17 +794,17 @@
   ;; statement-expression (gcc extension)
   (#?(stat-exp ,@bi-list[block-item])
    (let ((assoc 1))
-     (values (list "({" #\Newline (get-retval 'bi-list) "})")
+     (values (list "({" #\Newline (get-retval bi-list) "})")
              assoc)) )
   ;;  C-expression
   ((#?,cexp[c-expression])
-   (get-retval 'cexp) )
+   (get-retval cexp) )
   ;; funcion-call
   ((#?(,fexp[expression] ,@exp-list[expression]))
-   (let ((fexp-retval (multiple-value-list (get-retval 'fexp)))
+   (let ((fexp-retval (multiple-value-list (get-retval fexp)))
          (exp-retval-list
           (combine-each-nth
-           (multiple-value-list (get-retval 'exp-list))))
+           (multiple-value-list (get-retval exp-list))))
          (assoc 1))
      (values (list (sc2c:parenthesize fexp-retval assoc)
                    "(" (separate-list 
@@ -823,11 +822,11 @@
 
 (defrule sc-character sc2c
   ((#?,ch[#'sc2c:char-sc2c])
-   (list "'" (get-retval 'ch) "'" )) )
+   (list "'" (get-retval ch) "'" )) )
 
 (defrule sc-string sc2c
   ((#?,str[#'sc2c:string-sc2c])
-   (list #\" (get-retval 'str) #\") ))
+   (list #\" (get-retval str) #\") ))
 
 ;;; operator
 ;;; 返り値は (<Cでの表現> <優先度> {<単位元>})
@@ -841,7 +840,7 @@
     #?,op[assignment-operator]
     #?,op[comma-operator]
     #?,op[cexp-operator])
-   (get-retval 'op))
+   (get-retval op))
   )
 
 (defrule binary-operator sc2c
@@ -849,7 +848,7 @@
     #?,op[bitwise-shift-operator]
     #?,op[bitwise-operator]
     #?,op[logical-operator])
-   (get-retval 'op))
+   (get-retval op))
   )
 
 (defrule postfix-operator sc2c
@@ -860,13 +859,13 @@
   ((#?init)    (values :compound-literal 1)) ; for compound-literal
   )
 
-(defrule unary-operator sc2c  
+(defrule unary-operator sc2c
   ((#?++)      (values "++" 2))
   ((#?--)      (values "--" 2))
   ((#?ptr)     (values "&" 2))
   ((#?mref)    (values "*" 2))
-  ((#?+)       (values "+" 2))
-  ((#?-)       (values "-" 2))
+  ((#?+)       (values "+" 2 ~0))
+  ((#?-)       (values "-" 2 ~0))
   ((#?bit-not) (values "~" 2))
   ((#?not)     (values "!" 2))
   ((#?sizeof)  (values "sizeof" 2))
@@ -879,7 +878,7 @@
 (defrule arithmetic-operator sc2c
   ((#?,op[multiplicative-operator]
     #?,op[additive-operator])
-   (get-retval 'op))
+   (get-retval op))
   )
 
 (defrule multiplicative-operator sc2c
@@ -949,21 +948,21 @@
   ((#?->)
    '->)
   ((#?,id[identifier])
-   (get-retval 'id) )
+   (get-retval id) )
   )
 
 
 ;; identifier
 (defrule c-keyword sc2c
   ((#?,kw[~(auto break case char const
-            continue default do double
-            else enum extern float for
-            goto if inline int long  
-            register restrict return short
-            signed sizeof static struct
-            switch typedef union unsigned
-            void volatile while
-            -Bool -Complex -Imaginary)])
+                 continue default do double
+                 else enum extern float for
+                 goto if inline int long  
+                 register restrict return short
+                 signed sizeof static struct
+                 switch typedef union unsigned
+                 void volatile while
+                 -Bool -Complex -Imaginary)])
    x)
   )
 (defrule identifier sc2c
@@ -976,7 +975,7 @@
 ;; keywordでないチェックを省きたいときはこちら
 (defrule identifier0 sc2c
   ((#?,id[#'sc2c:identifier-sc2c])
-   (get-retval 'id)))
+   (get-retval id)))
 
 (defrule sc-keyword sc2c
   ((#?,sym[function-tag]
@@ -995,13 +994,13 @@
     #?,sym[designator-tag]
     #?,sym[operator]
     #?c-exp)
-   (get-retval 'sym)))
+   (get-retval sym)))
 
 ;;;; 6.C-expressions
 (defrule c-expression sc2c
   ((#?(,cop[cexp-operator] ,str[#'stringp] ,@exp-list[expression]))
    (let ((exp-retval-list
-          (combine-each-nth (multiple-value-list (get-retval 'exp-list)))))
+          (combine-each-nth (multiple-value-list (get-retval exp-list)))))
      (apply #'format nil str (mapcar #'(lambda (xx) 
                                          (string+-rec
                                           (sc2c:parenthesize xx 1)))

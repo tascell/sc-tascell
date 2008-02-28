@@ -104,7 +104,7 @@
   ((#?,type-name[identifier])
    (type:assoc-vartype type-name :typename) )
   ((#?,ret[call-next-rule])
-   (get-retval 'ret))
+   (get-retval ret))
   )
 
 ;;;;;;; body ;;;;;;;
@@ -124,7 +124,7 @@
    ~(default) ) 
   ;; if
   (#?(if ,exp ,stat1 {,stat2})
-   (if (pattern-variable-p 'stat2)
+   (if (pattern-variable-p stat2)
        ~(if ,(expression exp) ,(statement stat1) ,(statement stat2))
      ~(if ,(expression exp) ,(statement stat1))) )
   ;; switch
@@ -140,7 +140,7 @@
    x)
   ;; return
   (#?(return {,exp})
-   (if (pattern-variable-p 'exp)
+   (if (pattern-variable-p exp)
        ~(return ,(expression exp))
      ~(return)) )
   ;; null statement
@@ -148,7 +148,7 @@
    ~() )
   ;; expression-statement
   (#?,expr[expression]
-   (get-retval 'expr))
+   (get-retval expr))
   )
 
 ;;;;;;; expression ;;;;;;;
@@ -221,7 +221,7 @@
                             (type-expression! id)
                           ~(the ,datum ,id))))) )
   (#?(sizeof ,texp[type-expression])
-   ~(the int (sizeof ,(get-retval 'texp))) )
+   ~(the int (sizeof ,(get-retval texp))) )
   (#?(sizeof ,exp[expression])
    (type:handle-exp-1arg ~sizeof (const-f ~int) exp))
   ;; cast
@@ -266,7 +266,7 @@
    ~(c-exp ,str ,@(mapcar #'expression! exp-list)) )
   ;; function-call
   ((#?(,fexp[expression] ,@arg-list))
-   (let* ((fexp-with-type (get-retval 'fexp))
+   (let* ((fexp-with-type (get-retval fexp))
           (fexp-type (cadr fexp-with-type))
           (fn-type nil))
      (if-match #?(ptr (,fn-tag[function-tag] ,ret-type ,@arg-types))

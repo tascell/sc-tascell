@@ -1,5 +1,5 @@
 #!/bin/sh
-DO="rm -v *.o *.fasl *.x86f *.fas *.lib"
+DO="rm -fv *.o *.fasl *.x86f *.fas *.lib"
 $DO
 (cd rule && $DO)
 (cd sample/tcell && $DO)

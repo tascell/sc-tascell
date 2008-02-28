@@ -19,69 +19,69 @@
 
 (defrule external-declaration sc0-to-sc0
   ((#?,decl[declaration])
-   (get-retval 'decl))
+   (get-retval decl))
   ((#?,cexp[c-expression])
-   (get-retval 'cexp)))
+   (get-retval cexp)))
 
 ;;;; 2.Declarations
 ;;; declaration
 (defrule declaration sc0-to-sc0
   ((#?,i-decl[inlined-declaration] )
-   (get-retval 'i-decl))
+   (get-retval i-decl))
   )
 
 ;;; inlined-declaration
 (defrule inlined-declaration sc0-to-sc0
   ;; variable definitions/declarations
   ((#?(,scs[storage-class-specifier] ,id[identifier] ,texp {,init}))
-   ~(,(get-retval 'scs)
-     ,(get-retval 'id) ,(type-expression texp)
-     ,@(when (pattern-variable-p 'init) (list (initializer init)))))
+   ~(,(get-retval scs)
+     ,(get-retval id) ,(type-expression texp)
+     ,@(when (pattern-variable-p init) (list (initializer init)))))
   ;; function definitions/declarations
   ((#?(,scs[storage-class-specifier]
        ,func-id[function-identifier]
        (,fn-tag[function-tag] ,texp ,@texp-list {,va-arg[vaarg-tag]} )
        ,@fbody)
     )
-   ~(,(get-retval 'scs) ,(get-retval 'func-id)
-     (,(get-retval 'fn-tag) ,(type-expression! texp)
+   ~(,(get-retval scs) ,(get-retval func-id)
+     (,(get-retval fn-tag) ,(type-expression! texp)
                             ,.(mapcar #'type-expression! texp-list)
-			    ,.(when (pattern-variable-p 'va-arg)
-				(list (get-retval 'va-arg))))
+			    ,.(when (pattern-variable-p va-arg)
+				(list (get-retval va-arg))))
      ,@(function-body fbody))
    )
   ;; struct/union definitions/declarations
   ((#?(,dd[def-or-decl] ,su-spec[struct-or-union-specifier] ,@sdcl-list))
-   ~(,(get-retval 'dd)
-     ,(get-retval 'su-spec)
+   ~(,(get-retval dd)
+     ,(get-retval su-spec)
      ,@(mapcar #'struct-declaration sdcl-list)))
   ;; enum definitions
   ((#?(def ,espec[enum-specifier] ,@en-list))
-   ~(def ,(get-retval 'espec)
+   ~(def ,(get-retval espec)
 	 ,@(mapcar #'enumerator en-list)))
   ;; deftype (struct)
   ((#?(,dt-tag[deftype-tag] ,id ,su[struct-or-union]
 	      ,@sdcl-list))
    (push id *typename-list*)
-   ~(,(get-retval 'dt-tag) 
-     ,(identifier id) ,(get-retval 'su)
+   ~(,(get-retval dt-tag) 
+     ,(identifier id) ,(get-retval su)
      ,@(mapcar #'struct-declaration sdcl-list)))
   ;; deftype (enum)
   ((#?(,dt-tag[deftype-tag] ,id enum ,@en-list))
-   (push (get-retval 'id) *typename-list*)
-   ~(,(get-retval 'dt-tag)
+   (push (get-retval id) *typename-list*)
+   ~(,(get-retval dt-tag)
      ,(identifier id) enum ,@(mapcar #'enumerator en-list)))
   ;; deftype
   ((#?(,dt-tag[deftype-tag] ,id ,texp))
    (push id *typename-list*) 
-   ~(,(get-retval 'dt-tag) ,(identifier id) ,(type-expression texp)))
+   ~(,(get-retval dt-tag) ,(identifier id) ,(type-expression texp)))
   )
 
 (defrule function-body sc0-to-sc0
   ((#?({:attr ,f-attr} { ,r-decl[register-declarator] }
 		       ,@bi-list))
-   ~(,@(when (pattern-variable-p 'f-attr) (list ~(:attr ,(function-attribute f-attr))))
-       ,@(when (pattern-variable-p 'r-decl) (list (get-retval 'r-decl)))
+   ~(,@(when (pattern-variable-p f-attr) (list ~(:attr ,(function-attribute f-attr))))
+       ,@(when (pattern-variable-p r-decl) (list (get-retval r-decl)))
        ,@(mapcar #'block-item bi-list))))
 
 (defrule function-attribute sc0-to-sc0
@@ -90,7 +90,7 @@
 
 (defrule register-declarator sc0-to-sc0
   ((#?(,reg[register-tag] ,@id-list))
-   ~(,(get-retval 'reg) ,@(mapcar #'identifier id-list)))
+   ~(,(get-retval reg) ,@(mapcar #'identifier id-list)))
   )
 
 (defrule register-tag sc0-to-sc0
@@ -100,9 +100,9 @@
 ;; funcion-identifier
 (defrule function-identifier sc0-to-sc0
   ((#?,id[identifier])
-   (list (get-retval 'id)))
+   (list (get-retval id)))
   ((#?(,@id-list[identifier]))
-   (get-retval 'id-list))
+   (get-retval id-list))
   )
 
 ;; init-declarator
@@ -116,7 +116,7 @@
 (defrule declaration-tag sc0-to-sc0
   ((#?,tag[storage-class-specifier]
     #?,tag[deftype-tag])
-   (get-retval 'tag))
+   (get-retval tag))
   )
 
 (defrule deftype-tag sc0-to-sc0
@@ -131,7 +131,7 @@
 
 ;; storage-class-specifier
 (defrule storage-class-specifier sc0-to-sc0
-  ((#?,dd[def-or-decl])        (get-retval 'dd))
+  ((#?,dd[def-or-decl])        (get-retval dd))
   ((#?extern #?extern-def)     x)
   ((#?extern-decl)             x)
   ((#?static #?static-def)     x)
@@ -141,24 +141,24 @@
 
 ;; struct-declaration
 (defrule struct-declaration sc0-to-sc0
-  ((#?,decl[declaration]) (get-retval 'decl))
+  ((#?,decl[declaration]) (get-retval decl))
   ((#?:bit)               x)
   ((#?,exp[expression])
-   (get-retval 'exp))
+   (get-retval exp))
   )
 
 ;; enumerator
 (defrule enumerator sc0-to-sc0
   ((#?,en-const[enumeration-constant])
-   (get-retval 'en-const))
+   (get-retval en-const))
   ((#?(,en-const[enumeration-constant] ,exp))
-   ~(,(get-retval 'en-const) ,(expression exp)))
+   ~(,(get-retval en-const) ,(expression exp)))
   )
 
 ;; enumeration-constant
 (defrule enumeration-constant sc0-to-sc0
   ((#?,id[identifier])
-   (get-retval 'id))
+   (get-retval id))
   )
 
 ;; designator
@@ -180,9 +180,9 @@
 ;; designated-initializer
 (defrule designated-initializer sc0-to-sc0
   ((#?(,desig[designator] ,init))
-   ~(,(get-retval 'desig) (initializer ,init)))
+   ~(,(get-retval desig) (initializer ,init)))
   ((#?,init[initializer])
-   (get-retval 'init))
+   (get-retval init))
   )
 
 ;; compound-initializer
@@ -196,24 +196,24 @@
 ;; initializer
 (defrule initializer sc0-to-sc0
   ((#?,cmp-init[compound-initializer])
-   (get-retval 'cmp-init))
+   (get-retval cmp-init))
   ((#?,exp[expression])
-   (get-retval 'exp))
+   (get-retval exp))
   )
 
 ;;;; 3.Type-expressions
 (defrule type-expression sc0-to-sc0
   ((#?,tspec[type-specifier])
-   (get-retval 'tspec))
+   (get-retval tspec))
   ((#?(,ar-tag[array-tag] ,texp ,@exp-list))
-   ~(,(get-retval 'ar-tag) ,(type-expression texp)
+   ~(,(get-retval ar-tag) ,(type-expression texp)
      ,@(mapcar #'expression exp-list)))
   ((#?(,ptr-tag[pointer-tag] ,texp))
-   ~(,(get-retval 'ptr-tag) ,(type-expression texp)))
+   ~(,(get-retval ptr-tag) ,(type-expression texp)))
   ((#?(,fn-tag[function-tag] ,texp1 ,@texp-list {,va-arg[vaarg-tag]}))
-   ~(,(get-retval 'fn-tag) ,(type-expression texp1)
+   ~(,(get-retval fn-tag) ,(type-expression texp1)
      ,@(mapcar #'type-expression texp-list)
-     ,@(when (pattern-variable-p 'va-arg) (list (get-retval 'va-arg))))
+     ,@(when (pattern-variable-p va-arg) (list (get-retval va-arg))))
    )
   ((#?(,@tq-list[type-qualifier] ,texp))
    ~(,@(get-retval tq-list) ,(type-expression texp)))
@@ -240,7 +240,7 @@
     #?,tspc[struct-or-union-specifier]
     #?,tspc[enum-specifier]
     #?,tspc[typedef-name])
-   (get-retval 'tspc))
+   (get-retval tspc))
   )
 
 (defrule build-in-type sc0-to-sc0
@@ -255,7 +255,7 @@
 
 (defrule struct-or-union-specifier sc0-to-sc0
   ((#?(,s-u[struct-or-union] ,id))
-   ~(,(get-retval 's-u) ,(identifier id)))
+   ~(,(get-retval s-u) ,(identifier id)))
   )
 
 (defrule struct-or-union sc0-to-sc0
@@ -265,7 +265,7 @@
 
 (defrule enum-specifier sc0-to-sc0
   ((#?(,en[enum-tag] ,id))
-   ~(,(get-retval 'en) ,(identifier id)))
+   ~(,(get-retval en) ,(identifier id)))
   )
 
 (defrule enum-tag sc0-to-sc0
@@ -279,14 +279,14 @@
 
 (defrule typedef-name sc0-to-sc0
   ((#?,id[identifier])
-   (get-retval 'id))
+   (get-retval id))
   )
 
 ;;;; 4.Statements
 (defrule block-item sc0-to-sc0
   ((#?,bi[inlined-declaration]
     #?,bi[statement])
-   (get-retval 'bi))
+   (get-retval bi))
   )
 
 (defrule statement sc0-to-sc0
@@ -296,7 +296,7 @@
     #?,stat[jump-statement]
     #?,stat[labeled-statement]
     #?,stat[expression-statement])
-   (get-retval 'stat))
+   (get-retval stat))
   (#?()
      ~())
   )
@@ -317,14 +317,14 @@
 
 (defrule expression-statement sc0-to-sc0
   ((#?,exp-stat[expression])
-   (get-retval 'exp-stat))
+   (get-retval exp-stat))
   )
 
 (defrule selection-statement sc0-to-sc0
   ((#?(if ,exp ,stat1 {,stat2}))
    ~(if ,(expression exp)
 	,(statement stat1)
-	,@(when (pattern-variable-p 'stat2)
+	,@(when (pattern-variable-p stat2)
 	    (list (statement stat2))))
    )
   ((#?(switch ,exp ,@bi-list))
@@ -345,7 +345,7 @@
   ((#?(continue))   x)
   ((#?(break))      x)
   ((#?(return { ,exp[expression] }))
-   ~(return ,@(when (pattern-variable-p 'exp)
+   ~(return ,@(when (pattern-variable-p exp)
                 (list (get-retval exp)))) )
   )
 
@@ -356,7 +356,7 @@
     #?,tag[selection-statement-tag]
     #?,tag[iteration-statement-tag]
     #?,tag[jump-statement-tag])
-   (get-retval 'tag))
+   (get-retval tag))
   )
 
 (defrule labeled-statement-tag sc0-to-sc0
@@ -389,13 +389,13 @@
 (defrule expression sc0-to-sc0
   ;; number, character, string-literal
   ((#?,id[identifier])
-   (get-retval 'id))
+   (get-retval id))
   ((#?,num[sc-number])
-   (get-retval 'num))
+   (get-retval num))
   ((#?,char[sc-character])
-   (get-retval 'char))
+   (get-retval char))
   ((#?,str[sc-string])
-   (get-retval 'str))
+   (get-retval str))
   ;; compound-literal
   ((#?(init ,texp ,cmp-init))
    ~(init ,(type-expression! texp)
@@ -416,7 +416,7 @@
   (#?(sizeof ,texp[type-expression])
    ~(,(car x) ,(get-retval texp)))
   ((#?(,uop[unary-operator] ,exp))  ; includes 'sizeof'
-   ~(,(get-retval 'uop) ,(expression! exp)))
+   ~(,(get-retval uop) ,(expression! exp)))
   ((#?(+ ,exp)
     #?(- ,exp)
     #?(/ ,exp))
@@ -426,25 +426,25 @@
    ~(cast ,(type-expression! texp) ,(expression! exp)))
   ;; operator
   ((#?(,op[binary-operator] ,@exp-list))
-   ~(,(get-retval 'op) ,@(mapcar #'expression! exp-list)))
+   ~(,(get-retval op) ,@(mapcar #'expression! exp-list)))
   ;; comparator
   ((#?(,comp[comparator] ,exp1 ,exp2))
-   ~(,(get-retval 'comp) ,@(mapcar #'expression! (list exp1 exp2))))
+   ~(,(get-retval comp) ,@(mapcar #'expression! (list exp1 exp2))))
   ;; if-exp
   ((#?(if-exp ,exp1 ,exp2 ,exp3))
    ~(if-exp ,@(mapcar #'expression! (list exp1 exp2 exp3))))
   ;; assignment-operator
   ((#?(,as-op[assignment-operator] ,exp1 ,exp2))
-   ~(,(get-retval 'as-op) ,@(mapcar #'expression! (list exp1 exp2))))
+   ~(,(get-retval as-op) ,@(mapcar #'expression! (list exp1 exp2))))
   ;; exps
   ((#?(exps ,@exp-list))
    ~(exps ,@(mapcar #'expression! exp-list)))
   ;;  C-expression
   ((#?,cexp[c-expression])
-   (get-retval 'cexp) )
+   (get-retval cexp) )
   ;; funcion-call
   ((#?(,fexp[expression] ,@exp-list))
-   ~(,(get-retval 'fexp) ,@(mapcar #'expression exp-list)))   
+   ~(,(get-retval fexp) ,@(mapcar #'expression exp-list)))   
   )
 
 (defrule sc-number sc0-to-sc0
@@ -471,7 +471,7 @@
     #?,op[assignment-operator]
     #?,op[comma-operator]
     #?,op[cexp-operator])
-   (get-retval 'op))
+   (get-retval op))
   )
 
 (defrule binary-operator sc0-to-sc0
@@ -479,7 +479,7 @@
     #?,op[bitwise-shift-operator]
     #?,op[bitwise-operator]
     #?,op[logical-operator])
-   (get-retval 'op))
+   (get-retval op))
   )
 
 (defrule postfix-operator sc0-to-sc0
@@ -499,7 +499,7 @@
 (defrule arithmetic-operator sc0-to-sc0
   ((#?,op[multiplicative-operator]
     #?,op[additive-operator])
-   (get-retval 'op))
+   (get-retval op))
   )
 
 (defrule multiplicative-operator sc0-to-sc0
@@ -552,7 +552,7 @@
 ;; field-identifier
 (defrule field-identifier sc0-to-sc0
   ((#?,id[identifier])
-   (get-retval 'id) )
+   (get-retval id) )
   )
 
 ;; identifier
@@ -583,11 +583,11 @@
     #?,sym[statement-tag]
     #?,sym[designator-tag]
     #?,sym[operator])
-   (get-retval 'sym))
+   (get-retval sym))
   )
 
 ;;;; 6.C-expressions
 (defrule c-expression sc0-to-sc0
   ((#?(,c-op[cexp-operator] ,str ,@exp-list))
-   ~(,(get-retval 'c-op) ,str ,@(mapcar #'expression exp-list)))
+   ~(,(get-retval c-op) ,str ,@(mapcar #'expression exp-list)))
   )

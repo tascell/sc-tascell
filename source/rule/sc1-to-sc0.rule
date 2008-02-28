@@ -30,7 +30,7 @@
 ;;; inlined-declaration
 (extendrule inlined-declaration sc1-to-sc0
   ((#?(,cscs[compound-storage-class-specifier] ,texp ,@list) )
-   (let ((scs (get-retval 'cscs)))
+   (let ((scs (get-retval cscs)))
      (cons 'splice
        (loop 
            for id-init0 in list
@@ -53,7 +53,7 @@
 
 (extendrule sc-keyword sc1-to-sc0
   ((#?,cscs[compound-storage-class-specifier])
-   (get-retval 'cscs))
+   (get-retval cscs))
   )
 
 ;;; statement

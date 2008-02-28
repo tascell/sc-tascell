@@ -1,24 +1,28 @@
-void *malloc (int, nil) = (nil);
+void *malloc (int);
 
 struct list
 {
-  int data = (nil);
-  struct list *next = (nil);
+  int data;
+  struct list *next;
 };
 
-nil int
-main (, ...)
+int
+main ()
 {
   {
     struct list *fst = 0;
-    struct list *cur = (nil);
+    struct list *cur;
 
-    for (; i <= 10; i++, j += 2)
-      {
-	cur = malloc (sizeof (struct list));
-	cur->data = i * j;
-	cur->next = fst;
-	fst = cur;
-      }
+    {
+      int i = 0;
+      int j = 0;
+      for (; i <= 10; i++, j += 2)
+        {
+          cur = malloc (sizeof (struct list));
+          cur->data = i * j;
+          cur->next = fst;
+          fst = cur;
+        }
+    }
   }
 }

@@ -1,26 +1,8 @@
 ;;;; sc0 => sc0
-;;;; 関数内の全ての識別子名が異なるように名前を変換
+;;;; Replaces local variables' (parameters') name such that each name is unique in a funciton.
 (define-ruleset rename (sc0-to-sc0))
 
 (scr:require "RENAME-DEFS")
-
-;; ;;; <- マルチスレッド用プリミティブ
-;;   ((#?(thread-create ,decl-list ,@body) )
-;; -> (ren:inc-block-level
-;;     (let* ((new-decl-list (mapcar #'declaration decl-list))
-;; 	   (new-body (function-body body)))
-;;       ~(thread-create ,new-decl-list ,@new-body)))
-
-;;   ((#?(thread-suspend ,id[identifier] ,@body) )
-;; -> (ren:inc-block-level
-;;     (let* ((ren:repl-id (ren:bind-id id))
-;; 	   (new-body (function-body body)))
-;;       ~(thread-suspend ,ren:repl-id ,@new-body)))
-
-;;   ((#?(thread-resume ,exp) )
-;; -> ~(thread-resume ,(ren:repl-id exp) )
-
-;; ;;; マルチスレッド用プリミティブ ->
 
 (defrule sc-program rename
   ((#?(,@declaration-list) )
@@ -36,13 +18,13 @@
      ~(,scs ,id-repl ,texp ,@(ren:repl-id init))) )
   ;;function
   ((#?(,scs[storage-class-specifier]
-       (,@id-list[identifier]) (,fntag[function-tag] ,@texp-list) ,@body))
+           (,@id-list[identifier]) (,fntag[function-tag] ,@texp-list) ,@body))
    (let ((funcid-repl (ren:bind-id (car id-list))))
      (ren:begin-function
       (let* ((arg-list-repl (ren:bind-id (cdr id-list)))
-	     (body-repl (function-body body)))
-	~(,scs (,funcid-repl ,@arg-list-repl) (,fntag ,@texp-list)
-	  ,@body-repl)))) )
+             (body-repl (function-body body)))
+        ~(,scs (,funcid-repl ,@arg-list-repl) (,fntag ,@texp-list)
+               ,@body-repl)))) )
   ;;struct, union
   ((#?(,dd[def-or-decl] (,soru[struct-or-union] ,id[identifier]) ,@sdeclist) )
    (let ((id-repl (ren:bind-id id)))
@@ -50,12 +32,12 @@
   ;;enum
   ((#?(def (enum ,id[identifier]) ,@enum-list) )
    (let ((id-repl (ren:bind-id id))
-	 (enum-list-repl
-	  (mapcar #'(lambda (en)
-		      (if (listp en)
-			  (cons (ren:bind-id (car en)) (cdr en))
-			(ren:bind-id en)))
-		  enum-list)))
+         (enum-list-repl
+          (mapcar #'(lambda (en)
+                      (if (listp en)
+                          (cons (ren:bind-id (car en)) (cdr en))
+                        (ren:bind-id en)))
+                  enum-list)))
      ~(def (enum ,id-repl) ,@enum-list-repl)) )
   ;;deftype (struct)
   ((#?(deftype ,id[identifier] struct ,@sdecllist) )
@@ -64,12 +46,12 @@
   ;;deftype (enum)
   ((#?(deftype ,id[identifier] enum ,@enum-list) )
    (let ((id-repl (ren:bind-id id))
-	 (enum-list-repl
-	  (mapcar #'(lambda (en)
-		      (if (listp en)
-			  (cons (ren:bind-id (car en)) (cdr en))
-			(ren:bind-id en)))
-		  enum-list)))
+         (enum-list-repl
+          (mapcar #'(lambda (en)
+                      (if (listp en)
+                          (cons (ren:bind-id (car en)) (cdr en))
+                        (ren:bind-id en)))
+                  enum-list)))
      ~(deftype ,id-repl enum ,@enum-list-repl)) )
   ;;deftype
   ((#?(deftype ,id[identifier] ,texp) )
@@ -108,25 +90,25 @@
    ~(default) )
   ;;if
   ((#?(if ,exp ,stat1 {,stat2}) )
-   (if (pattern-variable-p 'stat2)
+   (if (pattern-variable-p stat2)
        ~(if ,(ren:repl-id exp) ,(block-item stat1) ,(block-item stat2))
      ~(if ,(ren:repl-id exp) ,(block-item stat1))) )
   ;;switch
   ((#?(switch ,exp ,@body) )
    ~(switch ,(ren:repl-id exp)
-	    ,@(ren:inc-block-level (function-body body))) )
+            ,@(ren:inc-block-level (function-body body))) )
   ;;do-while
   ((#?(do-while ,exp ,@body) )
    ~(do-while ,(ren:repl-id exp)
-	      ,@(ren:inc-block-level (function-body body))) )
+              ,@(ren:inc-block-level (function-body body))) )
   ;;goto, continue, break
   ((#?(goto ,id) #?(continue) #?(break) )
    x)
   ;;return
   ((#?(return {,exp}) )
-   (if (pattern-variable-p 'exp)
+   (if (pattern-variable-p exp)
        ~(return ,(ren:repl-id exp))
-       ~(return) ) )
+     ~(return) ) )
   ;; null-statement
   ((#?() )
    ~() )
@@ -136,6 +118,6 @@
   ;; expression-statement or declaration
   (otherwise
    (aif (declaration x)
-	it
-	(ren:repl-id x)) )
+       it
+     (ren:repl-id x)) )
   )

@@ -631,6 +631,22 @@
                (l-u-tail (cdr list) (cons (car list) acc)))))
     (l-u-tail list nil)))
 
+;;; 先頭の共通部分数だけ，第一リストからコピーして返す
+;;; 第二返り値で各givenリストの共通部分の残りをリストにして返す
+(defun head-intersection (test list &rest lists)
+  (if (not lists) (values (copy-list list) (list nil))
+    (let ((ret nil))
+      (do* ((cur-list list (cdr cur-list))
+            (cur-lists lists (mapcar #'cdr cur-lists))
+            (cur-elm (car list) (car cur-list))
+            (cur-elms (mapcar #'car cur-lists) (mapcar #'car cur-lists)))
+          ((or (endp list)
+               (member nil cur-lists)
+               (notevery #'(lambda (x) (funcall test x cur-elm))
+                         cur-elms))
+           (values (nreverse ret) (cons cur-list cur-lists)))
+        (push (car cur-elms) ret)))))
+
 ;;; list のcd..dr を順に調べ，testを満たす直前までのコピーと
 ;;; その要素以後のリストを返す．
 (defun list-until-if (test list &key (key #'identity))
@@ -643,7 +659,7 @@
 ;;; (a b) (1 2) (x y z) => (a 1 x) (a 1 y) (a 1 z) (a 2 x) ... (b 2 z)
 (defun make-all-comb (&rest lists)
   (if (endp lists)
-      '( () )
+      (list ())
     (let ((fst (car lists))
           (rem-comb (apply #'make-all-comb (cdr lists))))
       (mapcan #'(lambda (fst-x)
@@ -1037,6 +1053,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
 ;;; 実際に評価されるフォームかの判定（データとの区別）はしない
 ;;; once が非nilなら最低一度はexpandする
 (defvar *recexpand-symbols* (list))
+(defvar *abbrev-symbols* (list))
 (defun macroexpand-rec (form &optional (once t))
   (macroexpand-rec2 (funcall (if once #'macroexpand-1 #'identity)
                              form)))
@@ -1045,6 +1062,8 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
    ((atom form) form)
    ((member (car form) *recexpand-symbols*)
     (macroexpand-rec2 (macroexpand-1 form)))
+   ((member (car form) *abbrev-symbols*)
+    (list (car form) '*))
    (t
     (loop for rest on form
         as cur = (car rest)
@@ -1061,6 +1080,13 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
 (defun recexpand-clean ()
   (setq *recexpand-symbols* nil))
 
-
-
-
+;;; *abbrev-symbols*への登録，削除
+(defun recexpand-abbrev (&rest symbols)
+  (setq *abbrev-symbols*
+    (delete-duplicates (nconc *abbrev-symbols* symbols))))
+(defun recexpand-unabbrev (&rest symbols)
+  (loop for sym in symbols
+      do (setq *abbrev-symbols* (delete sym *abbrev-symbols*)))
+  *abbrev-symbols*)
+(defun recexpand-abbrev-clean ()
+  (setq *abbrev-symbols* nil))
