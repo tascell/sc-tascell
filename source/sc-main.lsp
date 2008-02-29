@@ -23,7 +23,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun c-indent (c-file &optional (command *indent-command*)
-		 (option *indent-options*))
+                                  (option *indent-options*))
   (setq c-file (namestring c-file))
   (command-line command
                 :args (cons c-file option)
@@ -44,10 +44,10 @@
 (defun make-system-predefined-macros (&key input-file rule-list)
   (when input-file
     (list ~(%defconstant INPUTFILE ,(namestring input-file))
-	  ~(%defconstant INPUTFILE-NAME ,(name-namestring input-file))
-	  ~(%defconstant INPUTFILE-DIRECTORY ,(directory-namestring input-file))
-	  ~(%defconstant RULE ,rule-list)
-	  )))
+          ~(%defconstant INPUTFILE-NAME ,(name-namestring input-file))
+          ~(%defconstant INPUTFILE-DIRECTORY ,(directory-namestring input-file))
+          ~(%defconstant RULE ,rule-list)
+          )))
 
 ;; 中間ファイル出力＋メッセージ
 (defun write-intermediate-file (pathname x)
@@ -57,32 +57,32 @@
 
 ;;; 出力ファイル名
 (defun make-output-filename (output-file input-file
-			     &optional (default-type "c"))
+                             &optional (default-type "c"))
   (if (not input-file) (make-pathname :directory '(:relative)
-				      :name "sc2c-output"
-				      :type default-type)
-      (let ((directory (aif (and output-file (pathname-directory output-file))
-			    it
-			    (pathname-directory input-file)))
-	    (name (if output-file
-		      (pathname-name output-file)
-		      (pathname-name input-file)))
-	    (type (aif (and output-file (pathname-type output-file))
-		       it
-		       default-type)))
-	(make-pathname :name name :directory directory :type type))))
+                                      :name "sc2c-output"
+                                      :type default-type)
+    (let ((directory (aif (and output-file (pathname-directory output-file))
+                         it
+                       (pathname-directory input-file)))
+          (name (if output-file
+                    (pathname-name output-file)
+                  (pathname-name input-file)))
+          (type (aif (and output-file (pathname-type output-file))
+                    it
+                  default-type)))
+      (make-pathname :name name :directory directory :type type))))
 
 (defun sc2c (x
              &key
              ((:rule rule-list) *rule-list-default* rulelist-specified) ;rule-setのリスト
-					; 指定すると %rule で変更不可
+                                        ; 指定すると %rule で変更不可
              (output-file nil outputfile-specified) ; 指定なしだと自動生成
-					; 指定すると %output-file で変更不可
+                                        ; 指定すると %output-file で変更不可
              (sc2c-rule :sc2c sc2c-specified) ; 必要に応じて変更．nilだとCを生成しない
-					; 指定すると %sc2c で変更不可
-             (intermediate nil)		; 中間ファイルを出力するか？
-             (predefinitions '())	; プログラムの先頭に追加するコード
-             (indent *indent-command*)	; Cコードのインデントを揃える外部コマンド
+                                        ; 指定すると %sc2c で変更不可
+             (intermediate nil)         ; 中間ファイルを出力するか？
+             (predefinitions '())       ; プログラムの先頭に追加するコード
+             (indent *indent-command*)  ; Cコードのインデントを揃える外部コマンド
              &aux
              (input-file nil)
              (input-file-directory "./"))
@@ -106,8 +106,8 @@ X is an S-expression or a filespec."
 
   ;; append user's predefinitions
   (setq x (append (make-system-predefined-macros
-		   :input-file input-file :rule-list rule-list)
-		  predefinitions x))
+                   :input-file input-file :rule-list rule-list)
+                  predefinitions x))
 
   ;; 変換実行
   (rule:with-setup-generate-id          ; prepare a table of used variables
@@ -116,9 +116,9 @@ X is an S-expression or a filespec."
             (rule-modifier (if rulelist-specified ; コマンドラインで指定されていたら
                                #'identity ; 変更を認めない
                              #'(lambda (rlist) (setq rule-list rlist))) )
-	    (sc2c-modifier (if sc2c-specified ; コマンドラインで指定されていたら
+            (sc2c-modifier (if sc2c-specified ; コマンドラインで指定されていたら
                                #'identity ; 変更を認めない
-			     #'(lambda (new-sc2c) (setq sc2c-rule new-sc2c))))
+                             #'(lambda (new-sc2c) (setq sc2c-rule new-sc2c))))
             (ofile-modifier (if outputfile-specified ; コマンドラインで指定されていたら
                                 #'identity ; 変更を認めない
                               #'(lambda (newo)
@@ -159,7 +159,7 @@ X is an S-expression or a filespec."
               ;;(force-output *error-output*)
               (setq x (scpp:scpp x :include-path include-path
                                  :sc2c-modifier sc2c-modifier
-				 :ofile-modifier ofile-modifier))
+                                 :ofile-modifier ofile-modifier))
               ;; write to intermediate file (preprocessed) if requried
               (when intermediate
                 (write-intermediate-file

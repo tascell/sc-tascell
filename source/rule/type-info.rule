@@ -32,19 +32,16 @@
      ~(,scs ,id ,texp-ret ,@(mapcar #'initializer init)) ))
   ;; function
   (#?(,scs[storage-class-specifier] (,@id-list)
-           (,fn-tag[function-tag] ,@texp-list {,va-arg[vaarg-tag]}) ,@body)
-   (type:with-function (car id-list)
-     (let ((texp-ret-list (nconc (mapcar #'type-expression! texp-list)
-				 (when (pattern-variable-p va-arg)
-				   (list (get-retval va-arg)))) ))
-       (type:add-variable (first id-list) ~(ptr (,fn-tag ,@texp-ret-list)))
-       ;; (if (and (ruleset-param 'ignore-cfunc) 
-       ;;          (or (cid-p (car id-list)) (eq ~csym::fn fn-tag)))
-       ;;     x
-       (type:with-new-environment
-         (mapc #'type:add-variable (cdr id-list) (cdr texp-ret-list))
-         ~(,scs (,@id-list) (,fn-tag ,@texp-ret-list)
-                ,@(function-body body)) ))))
+          (,fn-tag[function-tag] ,@texp-list {,va-arg[vaarg-tag]}) ,@body)
+     (type:with-function (car id-list)
+       (let ((texp-ret-list (nconc (mapcar #'type-expression! texp-list)
+                                   (when  (pattern-variable-p va-arg)
+                                     (list (get-retval va-arg)))) ))
+         (type:add-variable (first id-list) ~(ptr (,fn-tag ,@texp-ret-list)))
+         (type:with-new-environment
+             (mapc #'type:add-variable (cdr id-list) (cdr texp-ret-list))
+           ~(,scs (,@id-list) (,fn-tag ,@texp-ret-list)
+                  ,@(function-body body)) ))))
   ;; struct, union
   ((#?(,dd[def-or-decl] (,soru[struct-or-union] ,id) ,@sdeclist) )
    (multiple-value-bind (member-alist sdecl-with-type)
@@ -181,7 +178,7 @@
    (type:handle-exp-args
     ~aref
     (compose (compose-n (length (cdr expr-list)) #'deref-type)
-             #'car) ; 先頭の型にderef n-1回
+             #'car)                     ; 先頭の型にderef n-1回
     expr-list))
   ;; fref
   ((#?(fref ,exp1 ,@id-list) )
@@ -296,8 +293,8 @@
    x)
   (#?(array ,texp ,@size-nums)
    (aif (cdr size-nums)
-        ~(array ,texp ,@it)
-        texp))
+       ~(array ,texp ,@it)
+     texp))
   (#?(ptr (,fntag[function-tag] ,@rest))
    x)
   (#?(ptr ,texp)

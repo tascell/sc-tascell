@@ -1,6 +1,6 @@
 ;;;; worker4.sc以降より
 ;;;; コマンドのシリアライズ・デシリアライズ関数
-
+(c-exp "#include <pthread.h>")
 (%include "rule/nestfunc-setrule.sh")
 
 (c-exp "#include<stdio.h>")

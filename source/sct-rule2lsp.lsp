@@ -119,10 +119,14 @@
 ;; form-varの値が<pattern>にマッチすれば
 ;; <action>を実行するようなフォームを生成
 ;; 先頭の共通する部分の処理を一回ですませるようにしている
+;; :action のところの gensym は全ての:actionが equalにならないようにして，
+;; 同じactionでも統合されないようにするためのダミー．
+;; （同一パターン・アクションでもnext-pattern マクロの動作を保証するため）
 (defun match-action-form (pats-act-list form-var &optional otherwise-action)
   (match-check-to-form
    (integrate-ml-actions
-    (mapcar #'(lambda (x) (cons (pattern-matching-list (car x)) (cdr x)))
+    (mapcar #'(lambda (x) (nconc (pattern-matching-list (car x))
+                                 (list `(:action ,(gensym "ACT") ,(cdr x)))))
             (extract-pats-act pats-act-list)))
    (list form-var)
    otherwise-action)
@@ -161,8 +165,7 @@
     var))
 
 (defun flatten-block (form)
-  (if (and (consp form)
-           (eq 'progn (car form)))
+  (if (tagged-p 'progn form)
       (cdr form)
     (list form)))
 
@@ -287,25 +290,30 @@
       )))
 
 (defun match-check-to-form-action (mc focus-stk escape-stk rsvars)
-  (declare (ignore focus-stk escape-stk rsvars))
-  (destructuring-bind (tag form) mc
-    (assert (eq :action tag))
-    `(macrolet ((sct-user:pattern-variable-p (sym)
-                  ;; (if (quoted-p sym)    ; only for compatibility
-                  ;;     `(sct-user:pattern-variable-p ,(second sym))
-                  ;;   (progn
-                  (assert (symbolp sym))
+  (declare (ignore focus-stk rsvars))
+  (let ((escape-var (get-escape-var escape-stk)))
+    (destructuring-bind (tag dummy form) mc
+      (declare (ignore dummy))
+      (assert (eq :action tag))
+      `(macrolet ((sct-user:pattern-variable-p (sym)
+                    ;; (if (quoted-p sym)    ; only for compatibility
+                    ;;     `(sct-user:pattern-variable-p ,(second sym))
+                    ;;   (progn
+                    (assert (symbolp sym))
                   (when (assoc sym ',*pv-list*) t))
-                (sct-user:get-retval (sym)
-                  ;; (if (quoted-p sym)    ; only for compatibility
-                  ;;     `(sct-user:get-retval ,(second sym))
-                  ;;   (progn
-                  (assert (symbolp sym))
-                  `(values-list ,(cdr (assoc sym ',*pv-list*))))
-                )
-       (declare (ignorable (function sct-user:pattern-variable-p)
-                           (function sct-user:get-retval)))
-       (return-from ,*match-block* ,form))))
+                  (sct-user:get-retval (sym)
+                    ;; (if (quoted-p sym)    ; only for compatibility
+                    ;;     `(sct-user:get-retval ,(second sym))
+                    ;;   (progn
+                    (assert (symbolp sym))
+                    `(values-list ,(cdr (assoc sym ',*pv-list*))))
+                  (sct-user:next-pattern ()
+                    '(go ,escape-var))
+                  )
+         (declare (ignorable (function sct-user:pattern-variable-p)
+                             (function sct-user:get-retval)))
+         (return-from ,*match-block* ,form))
+      )))
 
 (defun match-check-list-to-form-new-pv (pv mc-rest focus-stk escape-stk rsvars)
   (let ((pv-ret (gensym (symbol-name pv))))
@@ -423,36 +431,37 @@
 ;;;;;;;;;;;;
 
 
-;; (<matching-list> . <action>) のリストを受けとり
-;; <matching-list> の 先頭共通部分を統合することで木構造にする
+;; (,@<match-check-list> (:action ,<dummy> ,<action>)) のリストを受けとり
+;; <match-check-list> の 先頭共通部分を統合することで分岐構造にする．
+;; (:br <path1> <path2>)
+;; path<n>は :car, (:new-pv ..)，(:br ...)，(:action ..) などからなるリスト
+;; path1の途中で失敗したら最新の:brまで引き返してpath2に移る
 (defun integrate-ml-actions (ml-action-list)
   (cond
-   ((endp ml-action-list) nil)
-   ((endp (caar ml-action-list))
-    `(:action ,(cdar ml-action-list)))
+   ((endp ml-action-list) ())
+   ((endp (car ml-action-list)) (integrate-ml-actions (cdr ml-action-list)))
    (t
     ;; 先頭共通部分が1つでもある部分(succ)と，それ以降(rest)を分ける
     (multiple-value-bind (succ rest)
-        (let ((ml0-head (caaar ml-action-list)))
-          (list-until-if #'(lambda (x) (not (equal x ml0-head)))
-                         ml-action-list :key #'caaar))
+        (let ((ml0-head (caar ml-action-list)))
+          (list-until-if #'(lambda (rem) (not (equal (caar rem) ml0-head)))
+                         ml-action-list))
       ;; succのmatching-listの最長の先頭共通部分headを抜き出して，
       ;; 残った部分をrest2に
-      (multiple-value-bind (head rest-mls)
-          (apply #'head-intersection #'equal (mapcar #'car succ))
-        (let ((rest2 (loop for ml in rest-mls
-                         as ml-act in succ
-                         collect (cons ml (cdr ml-act)))))
-          `(:br (,@head ,@(flatten-branch (integrate-ml-actions rest2)))
-                ,(integrate-ml-actions rest))
-          ))))))
+      (multiple-value-bind (head rest2)
+          (apply #'head-intersection #'equal succ)
+        `(:br (,.head ,@(flatten-branch (integrate-ml-actions rest2)))
+              ,(integrate-ml-actions rest))
+          )))))
 
 (defun flatten-branch (br)
-  (if (and (consp br)
-           (eq :br (car br))
-           (null (third br)))
-      (second br)
-    (list br)))
+  (cond
+    ((null br) ())
+    ((and (consp br)
+          (eq :br (car br))
+          (null (third br)))
+     (second br))
+    (t (list br))))
 
 ;; patternにマッチするために必要な条件のリストを返す
 (defun match-check-list (pattern)
@@ -462,7 +471,7 @@
   ;; リストの要素に対して
   (cond
    ((symbolp pbody) (list `(:type ,(type-of pbody)) `(:eq ,pbody)))
-   ((atom pbody)    (list `(:type ,(type-of pbody)) `(:equal pbody)))
+   ((atom pbody)    (list `(:type ,(type-of pbody)) `(:equal ,pbody)))
    ((pat-comma-p pbody)
     (let ((pv (second pbody))
           (in-bracket (cddr pbody)))    ; [...]
