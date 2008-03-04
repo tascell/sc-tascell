@@ -1,2 +1,0 @@
-#!/bin/sh
-rm -v *.o *.fasl *.x86f *.fas *.lib *-*-rule.lsp
