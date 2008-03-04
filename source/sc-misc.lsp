@@ -501,13 +501,9 @@
 (defun insert1 (x list &optional (n 0))
   (insert (list x) list n))
 
-;;; リストの先頭n要素を抽出
-(defun firstn (x &optional (n 1) &key (func #'nreverse))
-  (labels ((firstn-tail (x n acc)
-             (if (or (= n 0) (null x))
-                 acc
-               (firstn-tail (cdr x) (1- n) (cons (car x) acc)))))
-    (funcall func (firstn-tail x n nil))))
+;;; リストの先頭n要素の複製を返す
+(defun firstn (xs &optional (n 1))
+  (loop repeat n as x in xs collect x))
 
 ;;; リストのn番目をnew に置き換えたのものを返す
 ;;; n-new-list == (n1 new1 n2 new2 ...)

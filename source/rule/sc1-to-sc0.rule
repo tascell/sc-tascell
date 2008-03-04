@@ -59,7 +59,7 @@
 ;;; statement
 (extendrule statement sc1-to-sc0
   ((#?(let (,@decl-list) ,@body) )
-   ~(begin ,@(mapcar #'declaration decl-list)
+   ~(begin ,.(mapcar #'declaration decl-list)
            ,@(function-body body)) )
   ((#?(while ,exp ,@rem) )
    (let ((cdt (expression exp)))
@@ -77,7 +77,7 @@
          (e3 (expression exp3))
          (new-body (function-body rem)))
      ~(begin
-       ,@e1-list
+       ,.e1-list
        (if ,e2
            (do-while (exps ,e3 ,e2)
              ,@new-body)))

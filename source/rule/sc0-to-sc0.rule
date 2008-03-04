@@ -58,7 +58,7 @@
   ;; enum definitions
   ((#?(def ,espec[enum-specifier] ,@en-list))
    ~(def ,(get-retval espec)
-	 ,@(mapcar #'enumerator en-list)))
+         ,@(mapcar #'enumerator en-list)))
   ;; deftype (struct)
   ((#?(,dt-tag[deftype-tag] ,id ,su[struct-or-union]
 	      ,@sdcl-list))
@@ -80,8 +80,8 @@
 (defrule function-body sc0-to-sc0
   ((#?({:attr ,f-attr} { ,r-decl[register-declarator] }
 		       ,@bi-list))
-   ~(,@(when (pattern-variable-p f-attr) (list ~(:attr ,(function-attribute f-attr))))
-       ,@(when (pattern-variable-p r-decl) (list (get-retval r-decl)))
+   ~(,.(when (pattern-variable-p f-attr) (list ~(:attr ,(function-attribute f-attr))))
+       ,.(when (pattern-variable-p r-decl) (list (get-retval r-decl)))
        ,@(mapcar #'block-item bi-list))))
 
 (defrule function-attribute sc0-to-sc0
@@ -212,7 +212,7 @@
    ~(,(get-retval ptr-tag) ,(type-expression texp)))
   ((#?(,fn-tag[function-tag] ,texp1 ,@texp-list {,va-arg[vaarg-tag]}))
    ~(,(get-retval fn-tag) ,(type-expression texp1)
-     ,@(mapcar #'type-expression texp-list)
+     ,.(mapcar #'type-expression texp-list)
      ,@(when (pattern-variable-p va-arg) (list (get-retval va-arg))))
    )
   ((#?(,@tq-list[type-qualifier] ,texp))
