@@ -6,6 +6,7 @@
   (put 'string-case tag '(like case))
   (put 'defrule tag '((1 (3 t) ((1 0 quote) (0 t nil))) (0 t 2)))
   (put 'extendrule tag '(like defrule))
+  (put 'if-pattern-variable tag '(like if))
   (put 'if-match tag 4)
   (put 'when-match tag 3)
   (put 'unless-match tag 3)

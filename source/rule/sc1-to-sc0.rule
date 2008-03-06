@@ -51,7 +51,7 @@
   ((#?register-defs) ~register)
   )
 
-(extendrule sc-keyword sc1-to-sc0
+(extendrule (sc-keyword :memoize) sc1-to-sc0
   ((#?,cscs[compound-storage-class-specifier])
    (get-retval cscs))
   )

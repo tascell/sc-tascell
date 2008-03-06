@@ -54,7 +54,7 @@
            ,id[identifier] ,texp[type-expression] { ,init[initializer] } ))
    (let ((scs-str (get-retval scs))
          (idtexp-str (funcall (get-retval texp) (get-retval id)))
-         (init-str (if (pattern-variable-p init)
+         (init-str (if-pattern-variable init
                        (list " = "
                              (sc2c:parenthesize
                               (multiple-value-list (get-retval init))
@@ -78,13 +78,13 @@
                      (cdr (get-retval func-id)))
                     :n (max (length texp-list) 
                             (length (cdr (get-retval func-id))))))
-         (inline-str  (if (pattern-variable-p f-attr)
+         (inline-str  (if-pattern-variable f-attr
                           (list (get-retval f-attr) " ")
                         ""))
-         (register-list (if (pattern-variable-p r-decl)
+         (register-list (if-pattern-variable r-decl
                             (get-retval r-decl)
                           nil))
-         (vaarg-str (if (pattern-variable-p va-arg) ", ..." "")))
+         (vaarg-str (if-pattern-variable va-arg ", ..." "")))
      (let ((scs-str (first scs-retval))
            (arg-str 
             (list
@@ -357,7 +357,7 @@
                                                              (get-retval texp-list))
                                                      ", ")
                                       ;; "..."
-                                      (if (pattern-variable-p va-arg)
+                                      (if-pattern-variable va-arg
                                           (list ", " (get-retval va-arg))
                                         "")
                                       " )")
@@ -525,8 +525,8 @@
                ~(for (,exp ,(butlast (second stat1))) ,@(cddr stat1)))))))
    (list* "if(" (get-retval exp) " )" #\Newline
           (get-retval stat1)
-          (when (pattern-variable-p stat2)
-            (list " else " (get-retval stat2)))) )
+          (if-pattern-variable stat2
+              (list " else " (get-retval stat2)))) )
   ((#?(switch ,exp[expression] ,@bi-list[block-item]))
    (list "switch( " (get-retval exp) " )" #\Newline
          "{" #\Newline (get-retval bi-list) "}" #\Newline) )
@@ -587,8 +587,8 @@
   ((#?(break))
    (list "break;" #\Newline))
   ((#?(return { ,exp[expression] }))
-   (list "return " (when (pattern-variable-p exp)
-                     (get-retval exp))
+   (list "return " (if-pattern-variable exp
+                       (get-retval exp))
          ";" #\Newline))
   )
 
@@ -953,7 +953,7 @@
 
 
 ;; identifier
-(defrule c-keyword sc2c
+(defrule (c-keyword :memoize) sc2c
   ((#?,kw[~(auto break case char const
                  continue default do double
                  else enum extern float for
@@ -977,7 +977,7 @@
   ((#?,id[#'sc2c:identifier-sc2c])
    (get-retval id)))
 
-(defrule sc-keyword sc2c
+(defrule (sc-keyword :memoize) sc2c
   ((#?,sym[function-tag]
     #?,sym[function-attribute]
     #?,sym[vaarg-tag]

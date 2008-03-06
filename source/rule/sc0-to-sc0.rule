@@ -36,7 +36,7 @@
   ((#?(,scs[storage-class-specifier] ,id[identifier] ,texp {,init}))
    ~(,(get-retval scs)
      ,(get-retval id) ,(type-expression texp)
-     ,@(when (pattern-variable-p init) (list (initializer init)))))
+     ,@(if-pattern-variable init (list (initializer init)))))
   ;; function definitions/declarations
   ((#?(,scs[storage-class-specifier]
        ,func-id[function-identifier]
@@ -44,11 +44,11 @@
        ,@fbody)
     )
    ~(,(get-retval scs) ,(get-retval func-id)
-     (,(get-retval fn-tag) ,(type-expression! texp)
-                            ,.(mapcar #'type-expression! texp-list)
-			    ,.(when (pattern-variable-p va-arg)
-				(list (get-retval va-arg))))
-     ,@(function-body fbody))
+                       (,(get-retval fn-tag) ,(type-expression! texp)
+                                             ,.(mapcar #'type-expression! texp-list)
+                                             ,.(if-pattern-variable va-arg
+                                                 (list (get-retval va-arg))))
+                       ,@(function-body fbody))
    )
   ;; struct/union definitions/declarations
   ((#?(,dd[def-or-decl] ,su-spec[struct-or-union-specifier] ,@sdcl-list))
@@ -80,8 +80,8 @@
 (defrule function-body sc0-to-sc0
   ((#?({:attr ,f-attr} { ,r-decl[register-declarator] }
 		       ,@bi-list))
-   ~(,.(when (pattern-variable-p f-attr) (list ~(:attr ,(function-attribute f-attr))))
-       ,.(when (pattern-variable-p r-decl) (list (get-retval r-decl)))
+   ~(,.(if-pattern-variable f-attr (list ~(:attr ,(function-attribute f-attr))))
+       ,.(if-pattern-variable r-decl (list (get-retval r-decl)))
        ,@(mapcar #'block-item bi-list))))
 
 (defrule function-attribute sc0-to-sc0
@@ -213,7 +213,7 @@
   ((#?(,fn-tag[function-tag] ,texp1 ,@texp-list {,va-arg[vaarg-tag]}))
    ~(,(get-retval fn-tag) ,(type-expression texp1)
      ,.(mapcar #'type-expression texp-list)
-     ,@(when (pattern-variable-p va-arg) (list (get-retval va-arg))))
+     ,@(if-pattern-variable va-arg (list (get-retval va-arg))))
    )
   ((#?(,@tq-list[type-qualifier] ,texp))
    ~(,@(get-retval tq-list) ,(type-expression texp)))
@@ -323,13 +323,13 @@
 (defrule selection-statement sc0-to-sc0
   ((#?(if ,exp ,stat1 {,stat2}))
    ~(if ,(expression exp)
-	,(statement stat1)
-	,@(when (pattern-variable-p stat2)
-	    (list (statement stat2))))
+        ,(statement stat1)
+        ,@(if-pattern-variable stat2
+              (list (statement stat2))))
    )
   ((#?(switch ,exp ,@bi-list))
    ~(switch ,(expression exp)
-	    ,@(mapcar #'block-item bi-list)))
+            ,@(mapcar #'block-item bi-list)))
   )
 
 (defrule iteration-statement sc0-to-sc0
@@ -345,8 +345,8 @@
   ((#?(continue))   x)
   ((#?(break))      x)
   ((#?(return { ,exp[expression] }))
-   ~(return ,@(when (pattern-variable-p exp)
-                (list (get-retval exp)))) )
+   ~(return ,@(if-pattern-variable exp
+                  (list (get-retval exp)))) )
   )
 
 ;;; statement tag
@@ -568,7 +568,7 @@
    id)
   )
 
-(defrule sc-keyword sc0-to-sc0
+(defrule (sc-keyword :memoize) sc0-to-sc0
   ((#?,sym[function-tag]
     #?,sym[function-attribute]
     #?,sym[vaarg-tag]

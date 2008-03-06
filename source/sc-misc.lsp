@@ -948,6 +948,25 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
                 ret)))) )
     ))
 
+;;; define memoized method
+(defmacro defmethod-memo (name specialized-lambda-list keyarg &rest rest-args)
+  (assert (symbolp name))
+  (assert (consp specialized-lambda-list))
+  (assert (symbolp keyarg))
+  (with-fresh-variables (cache do-var)
+    `(let ((,cache (make-hash-table :test #'eq)))
+       (defmethod ,name ,specialized-lambda-list
+                  (flet ((,do-var () ,@rest-args))
+                    (if (symbolp ,keyarg)
+                        (multiple-value-bind (val win) (gethash ,keyarg ,cache)
+                          (if win
+                              (values-list val)
+                            (let ((rets (multiple-value-list (,do-var))))
+                              (setf (gethash ,keyarg ,cache) rets)
+                              (values-list rets))))
+                      (,do-var)))))
+    ))
+
 ;;; argument fixed function
 (defun prefixed-func (func &rest prefix-args)
   #'(lambda (&rest args)

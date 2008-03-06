@@ -90,7 +90,7 @@
    ~(default) )
   ;;if
   ((#?(if ,exp ,stat1 {,stat2}) )
-   (if (pattern-variable-p stat2)
+   (if-pattern-variable stat2
        ~(if ,(ren:repl-id exp) ,(block-item stat1) ,(block-item stat2))
      ~(if ,(ren:repl-id exp) ,(block-item stat1))) )
   ;;switch
@@ -106,7 +106,7 @@
    x)
   ;;return
   ((#?(return {,exp}) )
-   (if (pattern-variable-p exp)
+   (if-pattern-variable exp
        ~(return ,(ren:repl-id exp))
      ~(return) ) )
   ;; null-statement

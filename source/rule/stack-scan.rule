@@ -137,9 +137,9 @@
    ~(case (default)) )
   ;; if
   ((#?(if ,the-exp ,stat1 {,stat2}) )
-   (if (pattern-variable-p 'stat2)
+   (if-pattern-variable stat2
        ~(if ,(the-expression the-exp) ,(statement stat1) ,(statement stat2))
-       ~(if ,(the-expression the-exp) ,(statement stat1))) )
+     ~(if ,(the-expression the-exp) ,(statement stat1))) )
   ;; switch (exp から外にでるものはないはず)
   ((#?(switch ,the-exp ,@body) )
    ~(switch ,(the-expression the-exp) ,@(function-body body)) )

@@ -35,8 +35,8 @@
           (,fn-tag[function-tag] ,@texp-list {,va-arg[vaarg-tag]}) ,@body)
      (type:with-function (car id-list)
        (let ((texp-ret-list (nconc (mapcar #'type-expression! texp-list)
-                                   (when  (pattern-variable-p va-arg)
-                                     (list (get-retval va-arg)))) ))
+                                   (if-pattern-variable va-arg
+                                       (list (get-retval va-arg)))) ))
          (type:add-variable (first id-list) ~(ptr (,fn-tag ,@texp-ret-list)))
          (type:with-new-environment
              (mapc #'type:add-variable (cdr id-list) (cdr texp-ret-list))
@@ -121,7 +121,7 @@
    ~(default) ) 
   ;; if
   (#?(if ,exp ,stat1 {,stat2})
-   (if (pattern-variable-p stat2)
+   (if-pattern-variable stat2
        ~(if ,(expression exp) ,(statement stat1) ,(statement stat2))
      ~(if ,(expression exp) ,(statement stat1))) )
   ;; switch
@@ -137,7 +137,7 @@
    x)
   ;; return
   (#?(return {,exp})
-   (if (pattern-variable-p exp)
+   (if-pattern-variable exp
        ~(return ,(expression exp))
      ~(return)) )
   ;; null statement

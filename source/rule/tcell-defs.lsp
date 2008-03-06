@@ -27,14 +27,14 @@
                                (task-recv (make-task-recv-id cid))
                                (rslt-send (make-rslt-send-id cid))
                                (rslt-recv (make-rslt-recv-id cid)) )))
-  (cid :type string)
-  (no :type fixnum)                     ; task の通し番号
-  (struct-id :type symbol)
-  (do-task :type symbol)
-  (task-send :type symbol)  (task-send-body nil)
-  (task-recv :type symbol)  (task-recv-body nil)
-  (rslt-send :type symbol)  (rslt-send-body nil)
-  (rslt-recv :type symbol)  (rslt-recv-body nil)
+  (cid "" :type string)
+  (no -1 :type fixnum)                     ; task の通し番号
+  (struct-id nil :type symbol)
+  (do-task   nil :type symbol)
+  (task-send nil :type symbol)  (task-send-body nil)
+  (task-recv nil :type symbol)  (task-recv-body nil)
+  (rslt-send nil :type symbol)  (rslt-send-body nil)
+  (rslt-recv nil :type symbol)  (rslt-recv-body nil)
   (fields (list))                       ; list of (<id> <texp>)
   ;; fields のうち :in, :out指定されたもの
   ;; <tsize>: 転送する配列の要素数．整数 or taskメンバ変数．

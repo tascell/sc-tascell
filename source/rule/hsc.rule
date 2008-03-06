@@ -36,7 +36,7 @@
       ,@body)
      (if (or (cid-p fname) (cid-p fntag)) (list x)   ; csym::なら何もしない
        (let* ((hsc:*finfo* (hsc:make-finfo :main-p (eq fname ~hsc-main)))
-	      (vaarg-ret (when (pattern-variable-p va-arg) (list (get-retval va-arg))))
+	      (vaarg-ret (if-pattern-variable va-arg (list (get-retval va-arg))))
               (rtype-ret (type-expression! rtype))
               (type-list-ret (mapcar #'type-expression! type-list)))
          (mapc #'hsc:add-local-variable arg-list type-list-ret)
@@ -73,8 +73,8 @@
    x)
   ;; variable (array)
   (#?(,scs[storage-class-specifier] ,id (array ,texp ,@rem) {,init})
-   (when (pattern-variable-p init)
-     (warn "Array initializer ~S is ignored." init))
+   (if-pattern-variable init
+       (warn "Array initializer ~S is ignored." init))
    (let ((texp-ret (type-expression ~(array ,texp ,@rem))))
      (hsc:add-local-variable id texp-ret)
      ~(,scs ,id ,texp-ret 0)))
@@ -83,9 +83,9 @@
    ;;ptrならmove対象としてリストに加える。csym::がついていたらmove対象から外す。
    (if (cid-p id) x
      (let* ((texp-ret (type-expression texp))
-	    (init-ret (cond ((pattern-variable-p init) (list (initializer init)))
-			    ((ref-type-p texp-ret) (list ~0))
-			    (t '()))))
+            (init-ret (if-pattern-variable init (list (initializer init))
+                        (if (ref-type-p texp-ret) (list ~0)
+                          (t '())))))
        (hsc:add-local-variable id texp-ret)
        ~(,scs ,id ,texp-ret ,@init-ret))))
   )
@@ -132,10 +132,10 @@
 (defrule function-body hsc
   (#?({:attr ,f-attr} { ,r-decl[register-declarator] }
                       ,@bi-list)
-     (let* ((pre (nconc (when (pattern-variable-p f-attr)
-                          (list ~(:attr ,(function-attribute f-attr))))
-                        (when (pattern-variable-p r-decl)
-                          (list (get-retval r-decl)))))
+     (let* ((pre (nconc (if-pattern-variable f-attr
+                            (list ~(:attr ,(function-attribute f-attr))))
+                        (if-pattern-variable r-decl
+                            (list (get-retval r-decl)))))
             (fhead (hsc:function-head-p))
             (rembody bi-list)
             (decls (loop for bi in bi-list ; body先頭の宣言部

@@ -3,9 +3,11 @@
 * worker.{c,sc}, :  大林くんの修論のソースそのもの
 * worker2.{c,sc}, worker2.{h,sh}: 
    worker.cを複数種類のタスクに対応できるように改良し，ヘッダと本体に分けたもの．
-* worker3.{c,sc}, worker2.{h,sh}: 
+* worker3.{c,sc}, worker3.{h,sh}: 
    worker2.cをppopp08投稿後にさらに修正したもの．worker3.scの冒頭を参照．
-* Messages: worker{2,3} におけるメッセージフォーマットの簡易説明
+* worker4.{c,sc}, worker4.{h,sh}: 
+   worker3.cをppopp08投稿後にさらに修正したもの．worker4.scの冒頭を参照．
+* Messages: worker{2,3,4} におけるメッセージフォーマットの簡易説明
 * {fib,lu,pen,pen6x17,nq,cmp,grav}.tcell: T-CELLプログラム
 * 上記に対応する *-{c,gcc,lw,clos,xcc,xccl,icc-c,icc-lw,icc-clos}.c:
    T-CELLプログラムをそれぞれの入れ子関数のバージョンのCに変換したもの

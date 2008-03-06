@@ -300,7 +300,10 @@
                     ;;     `(sct-user:pattern-variable-p ,(second sym))
                     ;;   (progn
                     (assert (symbolp sym))
-                  (when (assoc sym ',*pv-list*) t))
+                    (when (assoc sym ',*pv-list*) t))
+                  (sct-user:if-pattern-variable (sym then-form &optional else-form)
+                    (assert (symbolp sym))
+                    (if (assoc sym ',*pv-list*) then-form else-form))
                   (sct-user:get-retval (sym)
                     ;; (if (quoted-p sym)    ; only for compatibility
                     ;;     `(sct-user:get-retval ,(second sym))

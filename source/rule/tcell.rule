@@ -46,7 +46,7 @@
 (defrule declaration tcell
   ;; variable
   ((#?(,scs[storage-class-specifier] ,id[identifier] ,texp {,init}))
-   (list (if (pattern-variable-p init)
+   (list (if-pattern-variable init
              ~(,scs ,id ,(wfn2fn texp) ,(initializer init))
            ~(,scs ,id ,(wfn2fn texp)))) )
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -140,13 +140,13 @@
   ((#?:in #?(:in ,@tsize))
    (tcell:task-add-input-var
     *tm-id* *tm-texp*
-    (when (pattern-variable-p tsize)
-      (mapcar #'transfer-size-specifier tsize))) )
+    (if-pattern-variable tsize
+        (mapcar #'transfer-size-specifier tsize))) )
   ((#?:out #?(:out ,@tsize))
    (tcell:task-add-output-var
     *tm-id* *tm-texp*
-    (when (pattern-variable-p tsize)
-      (mapcar #'transfer-size-specifier tsize))) )
+    (if-pattern-variable tsize
+        (mapcar #'transfer-size-specifier tsize))) )
   )
 
 (defrule transfer-size-specifier tcell
@@ -343,11 +343,11 @@
   ((#?(if ,exp ,stat1 {,stat2}) )
    (let ((e-exp (expression exp))
          (b-stat1 (block-item stat1))
-         (b-stat2 (if (pattern-variable-p stat2) (block-item stat2))))
+         (b-stat2 (if-pattern-variable stat2 (block-item stat2))))
      (list ~(if ,e-exp
                 (begin ,@b-stat1)
-                ,@(when (pattern-variable-p stat2)
-                    (list ~(begin ,@b-stat2)))))
+                ,@(if-pattern-variable stat2
+                      (list ~(begin ,@b-stat2)))))
      ) )
   ;; switch
   ((#?(switch ,exp ,@body) )

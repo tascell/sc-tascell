@@ -22,13 +22,13 @@
                                (cdr (get-retval func-id)))
                               :n (max (length texp-list) 
                                       (length (cdr (get-retval func-id))))))
-                   (inline-str  (if (pattern-variable-p f-attr)
+                   (inline-str  (if-pattern-variable f-attr
                                     (list (get-retval f-attr) " ")
                                   ""))
-                   (register-list (if (pattern-variable-p r-decl)
+                   (register-list (if-pattern-variable r-decl
                                       (get-retval r-decl)
                                     nil))
-                   (vaarg-str (if (pattern-variable-p va-arg)
+                   (vaarg-str (if-pattern-variable va-arg
                                   ", ..."
                                 "")))
                (let ((scs-str (first scs-retval))
@@ -84,7 +84,7 @@
                                                                          (get-retval texp-list))
                                                                  ", ")
                                                   ;; "..."
-                                                  (if (pattern-variable-p va-arg)
+                                                  (if-pattern-variable va-arg
                                                       (list ", " (get-retval va-arg))
                                                     "")
                                                   " )")

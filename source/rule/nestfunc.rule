@@ -75,7 +75,7 @@
      (list ~() 
            (list (substitute-n x
                                2 (lw:typeconv texp)
-                               3 (if (pattern-variable-p init)
+                               3 (if-pattern-variable init
                                      (initializer init) nil)))
            ~() ~()) )
     ((eq texp ~--label--)               ; local-label
@@ -88,7 +88,7 @@
      (list (list (lw:add-local id texp :static :init init))
            ~() ~() ~()))
     (t                                  ; local-variable
-     (let* ((init (when (pattern-variable-p init) (initializer! init)))
+     (let* ((init (if-pattern-variable init (initializer! init)))
             (conv-texp (lw:typeconv texp))
             (decl0 (lw:add-local id conv-texp :var :init init))
             ;; 宣言と初期化を別にする
@@ -461,8 +461,7 @@
                                ,thread ,attr ,start-routine ,arg))))
     #?       (the ,texp (call (the ,texp-p ,exp-f[thread-creator])
                               ,thread ,attr ,start-routine ,arg)) )
-   (let* ((assign-p (pattern-variable-p id))
-          (farg-id (generate-id "farg"))
+   (let* ((farg-id (generate-id "farg"))
           (decl (lw:add-local farg-id ~(ptr (struct func-arg)) :system))
           (tcreate-exp
            ~(exps (= ,farg-id (cast (ptr (struct func-arg))
@@ -472,7 +471,7 @@
                   (pthread-create ,(expression-rec thread) ,(expression-rec attr)
                                   thread-origin ,farg-id))))
      (list ~() (list decl) ~()
-           (if assign-p
+           (if-pattern-variable id      ; assignment expression?
                ~(the ,texp0 (= ,(expression-rec ~(the ,texp1 ,id)) ,tcreate-exp))
              tcreate-exp))) )
   ;; 通常のfunction-call
@@ -484,8 +483,7 @@
                                ,@exp-list))))
     #?    (the ,texp (call (the (ptr (,fn-tag[function-tag] ,@texp-list)) ,exp-f)
                            ,@exp-list)) )
-   (let ((assign-p (pattern-variable-p id))
-         (decl-prev-tmpid-list nil)     ; list of (<decl> <prev> <tmpid>)
+   (let ((decl-prev-tmpid-list nil)     ; list of (<decl> <prev> <tmpid>)
          (id-tmp nil) (type-tmp nil))
      (let ((fptr ~(the (ptr (,fn-tag ,@texp-list)) ,exp-f)))
        ;; Cの関数ならなにもしない
@@ -494,7 +492,7 @@
                                                    (cons fptr exp-list)))) ))
            (return-from expression
              (list ~() ~() ~()
-                   (if assign-p
+                   (if-pattern-variable id
                        ~(= ,(expression-rec ~(the ,texp1 ,id)) ,rvalue)
                      rvalue)) )))
        ;; 関数ポインタ保存
@@ -528,9 +526,9 @@
                          ,(car tmpid-list)
                          ,(if lw:*all-in-estack* ~esp ~new-esp)
                          ,@(cdr tmpid-list)))
-            (eq-exp  (when assign-p
-                       ~(== (= ,(expression-rec ~(the ,texp1 ,id)) ,fcall-exp)
-                            (SPECIAL ,(car texp-list)))))
+            (eq-exp  (if-pattern-variable id
+                         ~(== (= ,(expression-rec ~(the ,texp1 ,id)) ,fcall-exp)
+                              (SPECIAL ,(car texp-list)))))
             (neq-exp ~(!= (= (fref efp -> tmp-esp)
                              (mref-t (ptr char) esp))
                           0)))
@@ -539,7 +537,7 @@
        (list ~() 
              decl-list
              prev-list
-             ~(while ,(if assign-p
+             ~(while ,(if-pattern-variable id
                           (if (ruleset-param 'use-builtin-expect)
                               ~(and (csym::--builtin-expect ,eq-exp 0)
                                     (csym::--builtin-expect ,neq-exp 1))
@@ -611,8 +609,7 @@
                                ,@exp-list))))
     #?   (the ,texp (call (the (ptr (lightweight ,@texp-list)) ,exp-f)
                           ,@exp-list)) )
-   (let ((assign-p (pattern-variable-p id))
-         (return-p (not (or (lw:thread-origin-p (lw:finfo-name lw:*current-func*))
+   (let ((return-p (not (or (lw:thread-origin-p (lw:finfo-name lw:*current-func*))
                             (lw:finfo-parent-func lw:*current-func*)
                             lw:*all-in-estack*)))
          (fp-id nil) (fp-type nil) fp-decl fp-prev
@@ -688,13 +685,13 @@
                    )
                  )
              ;; 帰り値の代入（必要な場合）
-             ,@(when assign-p
-                 ~( (= ,(expression-rec ~(the ,texp1 ,id))
-                       (mref-t
-                        ,texp1
-                        ,(if return-p
-                             ~(fref efp -> argp)
-                           ~argp)) )))
+             ,@(if-pattern-variable id
+                   ~( (= ,(expression-rec ~(the ,texp1 ,id))
+                         (mref-t
+                          ,texp1
+                          ,(if return-p
+                               ~(fref efp -> argp)
+                             ~argp)) )))
              )))
    )
   ;; ・関数呼出し以外の式
@@ -790,4 +787,3 @@
    (mapcan #'search-ptr2 list) )
   (otherwise
    nil) )
-

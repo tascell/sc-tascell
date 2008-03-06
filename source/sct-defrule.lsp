@@ -127,64 +127,73 @@
 ;; defrule
 (defun rulemethod-args (ruleset)
   `(,(x-var) (,*ruleset-arg* ,(ruleset-class-symbol ruleset))))
-(defmacro rule:defrule (name ruleset &body pats-act-list)
-  `(progn
-     ;; ユーザは↓の関数を使って間接的にmethod を呼ぶ．
-     ;; method を直接だといちいち第二引数にクラスオブジェクトを指定しないといけない．
-     (unless (fboundp ',(rule-function-symbol name))
-       ;; <rule-name>
-       (defun ,(rule-function-symbol name)
-           (x &optional (ruleset-name-or-instance *current-ruleset* r) &rest initargs)
-         (if r
-             (with-ruleset (apply #'ensure-ruleset-instance
-                                  ruleset-name-or-instance initargs)
-               (,(rule-method-symbol name) x *current-ruleset*))
-           (,(rule-method-symbol name) x *current-ruleset*)))
-       ;; for optimization
-       (define-compiler-macro ,(rule-function-symbol name) (&whole form x &rest args)
-         (declare (ignore args))
-         (if (cddr form)
-             form
-           (list ',(rule-method-symbol name) x '*current-ruleset*)))
-       (export ',(rule-function-symbol name))
-       ;; <rule-name>? rule::no-match のかわりにnilを返す
-       (defun ,(rule-probe-function-symbol name) (&rest args)
-         (let ((ret-list (multiple-value-list (apply #',(rule-function-symbol name) args))))
-           (when (eq 'rule::no-match (car ret-list))
-             (rplaca ret-list nil))
-           (values-list ret-list)))
-       (export ',(rule-probe-function-symbol name))
-       ;; <rule-name>! rule::no-match ならwarningを出す
-       (defun ,(rule-warning-function-symbol name) (&rest args)
-         (let ((ret-list (multiple-value-list (apply #',(rule-function-symbol name) args))))
-           (when (eq 'rule::no-match (car ret-list))
-             (iwarn "Any patterns in `~S' did not match ~S" ',name (car args)))
-           (values-list ret-list)))
-       (export ',(rule-warning-function-symbol name))
+(defmacro rule:defrule (name-opt ruleset &body pats-act-list)
+  (let* ((name (if (consp name-opt) (car name-opt) name-opt))
+         (options (when (consp name-opt) (cdr name-opt)))
+         (memoize-p (member :memoize options)))
+    `(progn
+       ;; ユーザは↓の関数を使って間接的にmethod を呼ぶ．
+       ;; method を直接だといちいち第二引数にクラスオブジェクトを指定しないといけない．
+       (unless (fboundp ',(rule-function-symbol name))
+         ;; <rule-name>
+         (defun ,(rule-function-symbol name)
+             (x &optional (ruleset-name-or-instance *current-ruleset* r) &rest initargs)
+           (if r
+               (with-ruleset (apply #'ensure-ruleset-instance
+                                    ruleset-name-or-instance initargs)
+                 (,(rule-method-symbol name) x *current-ruleset*))
+             (,(rule-method-symbol name) x *current-ruleset*)))
+         ;; for optimization
+         (define-compiler-macro ,(rule-function-symbol name) (&whole form x &rest args)
+           (declare (ignore args))
+           (if (cddr form)
+               form
+             (list ',(rule-method-symbol name) x '*current-ruleset*)))
+         (export ',(rule-function-symbol name))
+         ;; <rule-name>? rule::no-match のかわりにnilを返す
+         (defun ,(rule-probe-function-symbol name) (&rest args)
+           (let ((ret-list (multiple-value-list (apply #',(rule-function-symbol name) args))))
+             (when (eq 'rule::no-match (car ret-list))
+               (rplaca ret-list nil))
+             (values-list ret-list)))
+         (export ',(rule-probe-function-symbol name))
+         ;; <rule-name>! rule::no-match ならwarningを出す
+         (defun ,(rule-warning-function-symbol name) (&rest args)
+           (let ((ret-list (multiple-value-list (apply #',(rule-function-symbol name) args))))
+             (when (eq 'rule::no-match (car ret-list))
+               (iwarn "Any patterns in `~S' did not match ~S" ',name (car args)))
+             (values-list ret-list)))
+         (export ',(rule-warning-function-symbol name))
+         )
+       ;; method本体
+       (,(if memoize-p 'defmethod-memo 'defmethod) ,(rule-method-symbol name) ,(rulemethod-args ruleset)
+         ,.(when memoize-p (list (x-var)))
+         (block ,name
+           (flet ,(make-call-next-rule)
+             (declare (ignorable #'rule:call-next-rule))
+             (rule:cond-match ,(x-var)
+                              ,@pats-act-list
+                              (otherwise
+                               (do-otherwise ,(x-var) ',ruleset))))))
        )
-     ;; method本体
-     (defmethod ,(rule-method-symbol name) ,(rulemethod-args ruleset)
-       (block ,name
-         (flet ,(make-call-next-rule)
-           (declare (ignorable #'rule:call-next-rule))
-           (rule:cond-match ,(x-var)
-             ,@pats-act-list
-             (otherwise
-              (do-otherwise ,(x-var) ',ruleset))))))
-     ))
-
+    ))
 
 ;; extendrule
-(defmacro rule:extendrule (name ruleset &body pats-act-list)
-  `(progn
-     (defmethod ,(rule-method-symbol name) ,(rulemethod-args ruleset)
-       (flet ,(make-call-next-rule)
-         (declare (ignorable #'rule:call-next-rule))
-         (block ,name
-           (rule:cond-match ,(x-var)
-             ,@pats-act-list
-             (otherwise (call-next-method)))))) ; ここがdefruleと違う
-     ))
+(defmacro rule:extendrule (name-opt ruleset &body pats-act-list)
+  (let* ((name (if (consp name-opt) (car name-opt) name-opt))
+         (options (when (consp name-opt) (cdr name-opt)))
+         (memoize-p (member :memoize options)))
+    `(progn
+       (,(if memoize-p 'defmethod-memo 'defmethod)
+           ,(rule-method-symbol name) ,(rulemethod-args ruleset)
+         ,.(when memoize-p (list (x-var)))
+         (flet ,(make-call-next-rule)
+           (declare (ignorable #'rule:call-next-rule))
+           (block ,name
+             (rule:cond-match ,(x-var)
+                              ,@pats-act-list
+                              (otherwise (call-next-method))))))) ; ここがdefruleと違う
+    ))
 
 ;; 次のルールをユーザが意図的に呼び出すための局所関数
 ;; のfletの第二要素を作成
