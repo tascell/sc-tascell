@@ -132,10 +132,10 @@
          (options (when (consp name-opt) (cdr name-opt)))
          (memoize-p (member :memoize options)))
     `(progn
-       ;; ユーザは↓の関数を使って間接的にmethod を呼ぶ．
-       ;; method を直接だといちいち第二引数にクラスオブジェクトを指定しないといけない．
        (unless (fboundp ',(rule-function-symbol name))
          ;; <rule-name>
+         ;; ユーザは↓の関数を使って間接的にmethod を呼ぶ．
+         ;; method を直接だといちいち第二引数にクラスオブジェクトを指定しないといけない．
          (defun ,(rule-function-symbol name)
              (x &optional (ruleset-name-or-instance *current-ruleset* r) &rest initargs)
            (if r
