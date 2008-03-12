@@ -377,8 +377,9 @@
            (setq ,pv ,clct-var)
            (setq ,focus-var ,pred-var)
            ,.(when in-bracket
-               (list `(setq ,pv-ret (combine-each-nth ,rclct-var :n ,maxvals-var)))))
-         ,@(flatten-block (match-check-list-to-form mc-rest focus-stk escape-stk rsvars))))))
+               (list `(setq ,pv-ret (when ,rclct-var (combine-each-nth ,rclct-var :n ,maxvals-var))))))
+         ,@(flatten-block (match-check-list-to-form mc-rest focus-stk escape-stk rsvars)))
+      )))
 
 (defun match-check-list-to-form-pv-* (mc0 mc-rest focus-stk escape-stk rsvars)
   (destructuring-bind (tag pv in-bracket mc-list) mc0

@@ -933,6 +933,7 @@ External data representation(XDR)
       (= (fref (aref hx 511) next) 0)
       ;; ワーカスレッド生成
       ;; 同一ノード内（共有メモリ）でもやりくりできるか？
+      ;; !!! pthread_setconcurrencyで性能向上の可能性
       (csym::systhr-create worker thr)))
   
   ;; masterスレッドはOUTSIDEからのメッセージ処理
