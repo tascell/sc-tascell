@@ -98,20 +98,23 @@
   (or (find-package pname)
       (apply #'make-package pname args)))
 
-;;; ファイルをS式として（read-string=tなら文字列として）読み込む
-(defun read-file (file-name 
+;;; ファイルをS式として読み込む
+(defun read-file (file-name
                   &key
-                  (read-string nil)
                   ((:package *package*) *package*)
                   ((:readtable *readtable*) *readtable*)
                   &aux ret)
   (unless (probe-file file-name)
     (error "Can't open ~S." file-name))
   (with-open-file (istream file-name :direction :input)
-    (if read-string (input-buffer-to-string istream)
-      (do ((y (read istream nil 'eof) (read istream nil 'eof)))
-          ((eq y 'eof) (nreverse ret))
-        (push y ret)))))
+    (do ((y (read istream nil 'eof) (read istream nil 'eof)))
+        ((eq y 'eof) (nreverse ret))
+      (push y ret))))
+
+;;; ファイルを文字列として読み込む
+(defun read-file-as-string (file-name)
+  (with-open-file (istream file-name :direction :input)
+    (input-buffer-to-string istream)))
 
 #+allegro (defparameter *eol-convention* :unix)
 ;;; ファイルにS式または文字列を書き込む
@@ -166,8 +169,9 @@
 (defun input-buffer-to-output (istream &rest ostreams &aux (cnt 0))
   (do-input-stream-buffer (ch istream cnt)
     (incf cnt)
-    (dolist (ost ostreams)
-      (write-char ch ost))))
+    (dolist (ost ostreams (values))
+      (write-char ch ost))
+    ))
 
 ;; input-stream のバッファにたまっているものを文字列に変換
 (defun input-buffer-to-string (istream)
@@ -214,7 +218,7 @@
 ;;; ファイル名の拡張子獲得
 (defun get-extension (pathname)
   (let* ((pathstring (namestring pathname))
-         (i (position #\. pathstring :test #'char=)))
+         (i (when pathstring (position #\. pathstring :test #'char=))))
     (if i
         (subseq pathstring (1+ i))
       "" )))
@@ -253,6 +257,7 @@
        (some #'lower-case-p seq)))
 
 (defun string-invertcase (str)
+  (declare (string str))
   (map 'string #'char-invertcase str))
 
 ;;; str2 が str1 で始まる文字列なら、その残りの文字列を返す
@@ -279,7 +284,7 @@
 
 ;;; 文字列参照
 (defun string-ref (str n)
-  (check-type str string)
+  (declare (simple-string str) (fixnum n))
   (if (>= n (length str))
       nil
     (aref str n)))
