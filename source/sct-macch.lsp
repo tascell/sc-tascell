@@ -198,7 +198,7 @@
   (if (eq :uninitialized (pattern-_matching-list x))
       (setf (pattern-_matching-list x)
         (match-check-list x))
-    (pattern-_matching-list X)))
+    (pattern-_matching-list x)))
 
 ;; パターン判定述語
 #+obsolete
