@@ -357,7 +357,7 @@
           (maxvals-var (gensym "MAXV")))
       `(let ((,succ-var ,focus-var)
              ,.(when in-bracket (list rtmp-var)))
-         ,.(loop for i from 1 upto rest-len
+         ,.(loop for i of-type fixnum from 1 upto rest-len
                if (= i rest-len)
                nconc (list `(when (endp ,succ-var) (go ,escape-var))
                            `(setq ,succ-var (cdr ,succ-var)))
@@ -496,7 +496,7 @@
      :listp
      (nconc
       ;; ,@以前の各要素をチェック
-      (loop :as x :in until-commaat
+      (loop :for x :in until-commaat
         :nconc (nconc (list :non-nil :push-focus :car)
                       (match-check-list-for-exp x)
                       (list :pop-focus :cdr)))

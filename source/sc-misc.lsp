@@ -63,6 +63,7 @@
 ;;; コマンドラインの実行（実装依存部分を吸収）
 #+(or allegro kcl ecl cmu clisp)
 (defun command-line (command &key args verbose other-options)
+  (declare (simple-string command) (list verbose) (list other-options))
   (let ((cat-string (strcat (cons command args) #\Space)))
     (prin1 cat-string verbose)
     (fresh-line verbose)
@@ -257,28 +258,32 @@
        (some #'lower-case-p seq)))
 
 (defun string-invertcase (str)
-  (declare (string str))
+  (declare (simple-string str))
   (map 'string #'char-invertcase str))
 
 ;;; str2 が str1 で始まる文字列なら、その残りの文字列を返す
 (defun string-begin-with (str1 str2)
+  (declare (simple-string str1 str2))
   (let ((pos (search str1 str2)))
     (and (eql 0 pos)
          (string-left-ntrim str2 (length str1)))))
 
 ;;; character or string or symbol のリストを文字列として結合
 (defun string+ (&rest strings)
+  (declare (list strings))
   (apply #'concatenate 'string
          (mapcar #'string strings)))
 
 ;;; tree内にある全ての文字列を結合
 (defun string+-rec (&rest trees)
+  (declare (list trees))
   (with-output-to-string (s)
     (do-all-atoms #'(lambda (x) (when x (princ x s)))
       trees)))
 
 ;;; リスト内の文字列を結合
 (defun strcat (string-list &optional (inter "") (prev "") (post ""))
+  (declare (list string-list) (simple-string inter prev post))
   (apply #'string+
          (separate-list string-list inter prev post)))
 
@@ -296,6 +301,7 @@
 
 ;;; 最初のn文字
 (defun string-firstn (str n &optional (ellipsis "..."))
+  (declare (simple-string str ellipsis) (fixnum n))
   (with-output-to-string (s-out)
     (with-input-from-string (s-in str)
       (loop for i from 1 to n
@@ -308,11 +314,13 @@
 
 ;;; n文字削除
 (defun string-left-ntrim (str &optional (n 1))
+  (declare (simple-string str) (fixnum n))
   (values (subseq str n)
           (subseq str 0 n)))
 
 ;;; 左から条件に合う文字を削除
 (defun string-left-trim-if (str func)
+  (declare (simple-string str) (function func))
   (if (or (string= "" str)
           (not (funcall func (aref str 0))))
       (values str "")
@@ -327,42 +335,52 @@
 
 ;;; 右から条件に合う文字を削除
 (defun string-right-trim-if (str func)
+  (declare (simple-string str) (function func))
   (let ((str2 (copy-seq str)))
     (nreverse (string-left-trim-if (nreverse str2) func))))
 
 ;;; 空白削除
-(defun string-left-trim-space (string)
+(defun string-left-trim-space (str)
+  (declare (simple-string str))
   (string-left-trim-if
-   string
+   str
    #'(lambda (c) 
+       (declare (character c))
        (member c '(#\Tab #\Newline #\Page #\Return #\Space)))))
 (defun string-right-trim-space (str)
+  (declare (simple-string str))
   (let ((str2 (copy-seq str)))
     (nreverse (string-left-trim-space (nreverse str2)))))
 
 ;;; 空白でないものを削除
-(defun string-left-trim-notspace (string)
+(defun string-left-trim-notspace (str)
+  (declare (simple-string str))
   (string-left-trim-if
-   string
-   #'(lambda (c) 
+   str
+   #'(lambda (ch) 
+       (declare (character ch))
        (not
-        (member c '(#\Tab #\Newline #\Page #\Return #\Space))))))
+        (member ch '(#\Tab #\Newline #\Page #\Return #\Space))))))
 (defun string-right-trim-notspace (str)
+  (declare (simple-string str))
   (let ((str2 (copy-seq str)))
     (nreverse (string-left-trim-notspace (nreverse str2)))))
 
 ;; chの部分をstrに置き換える
-(defun substitute-string (newstr old string)
+(defun substitute-string (newstr oldch str)
+  (declare (simple-string newstr str) (character oldch))
   (with-output-to-string (ost)
     (map nil #'(lambda (ch)
-                 (if (char= ch old)
+                 (declare (character ch))
+                 (if (char= ch oldch)
                      (write-string newstr ost)
                    (write-char ch ost)))
-         string)))
+         str)))
 
 ;; 文字列strをcharsに含まれる文字で分割してリストにする
 (defun split-string (str &optional (chars '(#\Tab #\Newline #\Page #\Return #\Space))
                      &aux (ret (list)))
+  (declare (simple-string str))
   (setq chars (mklist chars))
   (with-input-from-string (s-in str)
     (loop
@@ -382,6 +400,7 @@
 
 ;; 文字列strを最初のcharsに含まれる文字で分割して2要素のリストで返す
 (defun split-string-1 (str &optional (chars '(#\Tab #\Newline #\Page #\Return #\Space)))
+  (declare (simple-string str))
   (setq chars (mklist chars))
   (with-input-from-string (s-in str)
     (let* ((ret1
@@ -403,6 +422,7 @@
 (defmacro string-case (exp &body case-clauses)
   (with-fresh-variables (exp-var)
     `(let ((,exp-var ,exp))
+       (declare (simple-string ,exp-var))
        (cond
         ,@(loop for clause in case-clauses 
               collect
@@ -412,14 +432,14 @@
                  (t
                   `((or ,@(mapcar
                            #'(lambda (str)
+                               (assert (stringp str))
                                `(string= ,exp-var ,str))
                            (mklist (car clause))))
                     ,@(cdr clause)))))))))
 
 ;;;;;; multiple-value 関連
 (defmacro nth-multiple-value (n form)
-  `(nth ,n
-        (multiple-value-list ,form)))
+  `(nth ,n (multiple-value-list ,form)))
 
 ;;;;;; シンボル操作
 
@@ -433,6 +453,7 @@
 ;;; x 中の pkg2 に登録されているシンボル( inherited も含む )
 ;;; を pkg1 に登録し直したものを返す
 (defun immigrate-package (x pkg1 &optional pkg2)
+  (declare (package pkg1))
   (map-all-atoms 
       #'(lambda (xx)
           (if (and (symbolp xx)
@@ -444,12 +465,14 @@
 
 ;;; concatenate symbols
 (defun cat-symbol (sym1 sym2)
+  (declare (symbol sym1 sym2))
   (unless (and (symbolp sym1) (symbolp sym2))
     (error "~s or ~s is not symbol" sym1 sym2))
   (make-symbol
    (concatenate 'string (symbol-name sym1) (symbol-name sym2))))
 
 (defun symbol+ (sym1 &rest rest-syms)
+  (declare (symbol sym1))
   (let ((package (symbol-package sym1))
         (symstr (apply #'string+ 
                        (symbol-name sym1)
@@ -460,6 +483,7 @@
 
 ;;; 登録されているpackgeに依らず，シンボル名が同じがどうかを判定
 (defun symbol= (sym1 sym2)
+  (declare (symbol sym1 sym2))
   (and
    (symbolp sym1)
    (symbolp sym2)
@@ -469,7 +493,8 @@
 
 ;;; list を `(,@prev ,el1 ,@inter ,el2 ,@inter ... ,eln ,@post)
 (defun separate-list (elms separator
-		      &optional (head nil head-p) (tail nil tail-p))
+                      &optional (head nil head-p) (tail nil tail-p))
+  (declare (list elms))
   (nconc (when head-p (list head))
          (when elms
            (cons (car elms)
@@ -479,6 +504,7 @@
 
 ;;; member-from-tail
 (defun member-from-tail (item list &key (key #'identity) (test #'eql) test-not)
+  (declare (list list) (function key test))
   (do ((cur (member item list :key key :test test)
             (member item (cdr cur) :key key :test test))
        (prev nil cur))
@@ -498,16 +524,19 @@
 
 ;; listのn番目の直前に xs をappendしたものを返す（n=0でappendと同じ）
 (defun insert (xs list &optional (n 0))
+  (declare (list xs list) (fixnum n))
   (multiple-value-bind (prev post)
       (list-until list (nthcdr n list))
     (nconc prev (append xs post))))
 
 ;; listのn番目の直前に x をconsしたものを返す（n=0でconsと同じ）
 (defun insert1 (x list &optional (n 0))
+  (declare (list list) (fixnum n))
   (insert (list x) list n))
 
 ;;; リストの先頭n要素の複製を返す
 (defun firstn (xs &optional (n 1))
+  (declare (list xs) (fixnum n))
   (loop repeat n as x in xs collect x))
 
 ;;; リストのn番目をnew に置き換えたのものを返す
@@ -515,10 +544,11 @@
 ;; > (substitute-n '(1 2 3 4) 1 nil 2 10)
 ;; (1 nil 10 4)
 (defun substitute-n (list &rest n-new-list)
+  (declare (list list))
   (loop
       for x in list
-      as i from 0
-      collect 
+      as i upfrom 0
+      collect
         (progn (loop for n-new on n-new-list by #'cddr
                    thereis (and (= i (car n-new))
                                 (progn (setq x (cadr n-new))
@@ -527,7 +557,9 @@
 
 ;;; position-rec
 (defun position-rec (x list &key (test #'eql) (key #'identity))
+  (declare (list list) (function test key))
   (labels ((rec (focus acc)
+             (declare (list focus acc))
              (cond
               ((funcall test x (funcall key focus))
                acc)
@@ -542,6 +574,7 @@
 ;; > (assort '((1 2) (1 3) (3 4) (2 5) (9 3) (3 2)) :key #'car)
 ;; (((9 3)) ((2 5)) ((3 2) (3 4)) ((1 3) (1 2)))
 (defun assort (lst &key (test #'eql) (key #'identity))
+  (declare (list lst) (function test key))
   (let ((retval '()))
     (dolist (elm lst (mapcar #'cdr retval))
       (let ((keyval (funcall key elm)))
@@ -553,11 +586,13 @@
 ;; > (stable-assort '((1 2) (1 3) (3 4) (2 5) (9 3) (3 2)) :key #'car)
 ;; (((1 2) (1 3)) ((3 4) (3 2)) ((2 5)) ((9 3)))
 (defun stable-assort (lst &key (test #'eql) (key #'identity))
+  (declare (list lst) (function test key))
   (nreverse (mapcar #'nreverse (assort lst :test test :key key))))
 
 
 ;; リストの中から与えられた基準での最高要素を見付ける
 (defun find-max (lst &key (test #'>) (key #'identity))
+  (declare (list lst) (function test key))
   (let* ((ret (car lst))
          (ret-key (funcall key ret)))
     (mapc #'(lambda (x)
@@ -570,19 +605,22 @@
 
 ;; リストの中から最初に条件に合ったものを除いて，除いたものを返す
 (defmacro find-pop (place test &key (key #'identity))
-  `(let ((test-val ,test)
-         (key-val ,key))
-     (if (funcall test-val (funcall key-val (car ,place)))
-         (pop ,place)
-       (loop 
-           for prev on ,place
-           as x = (cadr prev)
-           when (funcall test-val (funcall key-val x))
-           do (rplacd prev (cddr prev))
-              (return x)))))
+  (with-fresh-variables (test-var key-var prev-var x-var)
+    `(let ((,test-var ,test)
+           (,key-var ,key))
+       (declare (function ,test ,key))
+       (if (funcall ,test-var (funcall ,key-var (car ,place)))
+           (pop ,place)
+         (loop 
+             for ,prev-var on ,place
+             as ,x-var = (cadr ,prev-var)
+             when (funcall ,test-var (funcall ,key-var ,x-var))
+             do (rplacd ,prev-var (cddr ,prev-var))
+                (return ,x-var))))))
 
 ;; 中間値
 (defun median (lst &key (test #'>) (key #'identity))
+  (declare (list lst) (function test key))
   (nth (truncate (/ (length lst) 2))
        (sort (copy-list lst) test :key key)))
 
@@ -592,17 +630,19 @@
 
 ;;; リストの末尾にobjを追加
 (defun append1 (lst obj)
+  (declare (list lst))
   (append lst (list obj)))
-
 
 ;;; リストの長さと整数を比較
 (defun list-length>= (list n)
+  (declare (list list) (fixnum n))
   (if (endp list) (<= n 0)
     (loop for x in list
         as i upfrom 1
         thereis (>= i n))))
 
 (defun list-length= (list n)
+  (declare (list list) (fixnum n))
   (if (endp list) (= n 0)
     (loop for rest on list
         as i upfrom 1
@@ -614,6 +654,7 @@
 
 ;;; 巾集合
 (defun power-set (list)
+  (declare (list list))
   (if (endp list)
       '(())
     (let ((remain-power-set (power-set (cdr list))))
@@ -625,7 +666,9 @@
 ;;; その要素以後のリストを返す。
 ;;; test = #'eq , key = #'identity のときは ldiff とほぼ同じ
 (defun list-until (list p &key (test #'eq) (key #'identity))
+  (declare (list list) (function test key))
   (labels ((l-u-tail (list acc)
+             (declare (list list acc))
              (if (or (endp list)
                      (funcall test (funcall key list) p))
                  (values (nreverse acc) list)
@@ -635,6 +678,7 @@
 ;;; 先頭の共通部分数だけ，第一リストからコピーして返す
 ;;; 第二返り値で各givenリストの共通部分の残りをリストにして返す
 (defun head-intersection (test list &rest lists)
+  (declare (function test) (list list))
   (if (not lists) (values (copy-list list) (list nil))
     (let ((ret nil))
       (do* ((cur-list list (cdr cur-list))
@@ -651,6 +695,7 @@
 ;;; list のcd..dr を順に調べ，testを満たす直前までのコピーと
 ;;; その要素以後のリストを返す．
 (defun list-until-if (test list &key (key #'identity))
+  (declare (function test key) (list list))
   (list-until list t 
               :test #'(lambda (x y)
                         (declare (ignore y))
@@ -669,16 +714,18 @@
 
 ;;; make an integer list from 'from' to 'end' by step 'step'
 (defun integer-list (from end &optional (step 1))
-
+  (declare (integer from end step))
   (labels ((nl-tail (from acc)
+             (declare (integer from) (list acc))
              (if (or (and (> step 0) (> from end))
                      (and (< step 0) (< from end)))
                  acc
                (nl-tail (+ from step) (cons from acc)))))
-    (reverse (nl-tail from nil))))
+    (nreverse (nl-tail from nil))))
 
 ;;; recursive member
 (defun member-rec (item list &rest args-member-rest)
+  (declare (list list))
   (let (ret)
     (if (setq ret (apply #'member item list args-member-rest))
         ret
@@ -712,6 +759,7 @@ Returns a list whose Nth element is a list whose Mth element is Nth of Mth of li
 (defun cmpd-list (a b &aux ab)
   "Args: (x y)
 Returns a list whose Nth element is (cons (nth x) (nth y))"
+  (declare (list a b ab))
   (unless (and (listp a) (listp b))
     (error "~s or ~s is not list" a b))
   (do ((aa a (cdr aa)) (bb b (cdr bb)))
@@ -722,13 +770,17 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
 (defun make-queue ()
   (cons nil nil))
 (defun empty-queue-p (queue)
+  (declare (list queue))
   (null (car queue)))
 (defun front-queue (queue)
+  (declare (list queue))
   (if (empty-queue-p queue) nil
     (caar queue)))
 (defun queue-list (queue)
+  (declare (list queue))
   (car queue))
 (defun insert-queue (item queue)
+  (declare (list queue))
   (let ((new-pair (cons item '())))
     (cond ((empty-queue-p queue)
            (rplaca queue new-pair)
@@ -738,6 +790,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
            (rplacd queue new-pair)))
     queue))
 (defun delete-queue (queue)
+  (declare (list queue))
   (if (empty-queue-p queue) nil
     (let* ((front (car queue))
            (item (car front)))
@@ -745,6 +798,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
       item)))
 
 (defun find-delete-queue (queue test &key (key #'identity))
+  (declare (list queue) (function test key))
   (let ((qlist (queue-list queue)))
     (if (funcall test (funcall key (car qlist)))
         (progn
@@ -762,14 +816,18 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
 ;;;;;; ハッシュテーブル
 (defun list-to-hashtable (list &optional (default-value t)
                           &rest make-hash-table-args)
+  (declare (list list))
   (let ((ret-hashtable (apply #'make-hash-table make-hash-table-args)))
+    (declare (hash-table ret-hashtable))
     (loop for elm in list
         do (setf (gethash elm ret-hashtable)
              default-value))
     ret-hashtable))
 
 (defun alist-to-hashtable (alist &rest make-hash-table-args)
+  (declare (list alist))
   (let ((ret-hashtable (apply #'make-hash-table make-hash-table-args)))
+    (declare (hash-table ret-hashtable))
     (loop for (key . val) in alist
         do (setf (gethash key ret-hashtable) val))
     ret-hashtable))
@@ -785,6 +843,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
 ;;; 途中でnilがでたら中断してnilを返すmapcar
 ;;; multiple-value 対応
 (defun check-mapcar (func list)
+  (declare (function func) (list list))
   (catch 'suspend
     (apply 
      #'values
@@ -798,6 +857,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
 
 ;;; recursive mapcar
 (defun rmapcar (fn &rest args)
+  (declare (function fn))
   (if (some #'atom args)
       (apply fn args)
     (apply #'mapcar 
@@ -808,6 +868,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
 ;;; treeの全てのatom要素にfnを適用する
 ;;; 返り値はarg自身
 (defun do-all-atoms (fn tree)
+  (declare (function fn) (list tree))
   (if (atom tree)
       (funcall fn tree)
     (progn
@@ -816,6 +877,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
 
 ;;; treeの全てのatom要素を，fnを適用した結果に置き換えたtreeを生成して返す
 (defun map-all-atoms (fn tree)
+  (declare (function fn) (list tree))
   (if (atom tree)
       (funcall fn tree)
     (cons (map-all-atoms fn (car tree))
@@ -823,6 +885,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
 
 ;;; 非破壊的なmapcan
 (defun mappend (fn &rest lists)
+  (declare (function fn))
   (mapcan #'copy-list (apply #'mapcar fn lists)))
 
 ;;; quoteされている式か
@@ -831,6 +894,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
        (eq 'quote (car exp))))
 
 (defun tagged-p (tag exp &key (test #'eq))
+  (declare (function test))
   (and (consp exp)
        (funcall test tag (car exp))))
 
@@ -851,7 +915,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
              (fns (cdr fns)))
         #'(lambda (&rest args)
             (let ((ret (apply fn1 args)))
-              (loop for fn in fns
+              (loop for fn of-type function in fns
                   do (setq ret (funcall fn ret)))
               ret)))
     #'identity))
@@ -860,6 +924,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
   (apply #'compose-rev (nreverse fns)))
 
 (defun compose-n (n fn)
+  (declare (fixnum n) (function fn))
   (cond
    ((= n 0)
     #'identity)
@@ -931,11 +996,14 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
                    (rehash-threshold nil rehash-threshold-p)
                    (use-multiple-values nil)
                    )
+  (declare (function fn test) (integer size rehash-size rehash-threshold)
+           (boolean use-multiple-values))
   (let ((cache (apply #'make-hash-table :test test
                       (nconc (when size-p (list :size size))
                              (when rehash-size-p (list :rehash-size rehash-size))
                              (when rehash-threshold-p
                                (list :rehash-threshold rehash-threshold))))))
+    (declare (hash-table cache))
     (if use-multiple-values
         #'(lambda (arg)
             (multiple-value-bind (val win) (gethash arg cache)
@@ -960,6 +1028,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
   (assert (symbolp keyarg))
   (with-fresh-variables (cache do-var)
     `(let ((,cache (make-hash-table :test #'eq)))
+       (declare (hash-table ,cache))
        (defmethod ,name ,specialized-lambda-list
                   (flet ((,do-var () ,@rest-args))
                     (if (symbolp ,keyarg)
@@ -974,14 +1043,17 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
 
 ;;; argument fixed function
 (defun prefixed-func (func &rest prefix-args)
+  (declare (function func))
   #'(lambda (&rest args)
       (apply func (append prefix-args args))))
 
 (defun suffixed-func (func &rest suffix-args)
+  (declare (function func))
   #'(lambda (&rest args)
       (apply func (append args suffix-args))))
 
 (defun argfixed-func (func &optional prefixes suffixes)
+  (declare (function func))
   (apply #'prefixed-func
          (apply #'suffixed-func func suffixes)
          prefixes))
@@ -995,6 +1067,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
 (defun query-select-list (list &key
                                (print-elm #'write-to-string) 
                                (message "Select number"))
+  (declare (list list) (function print-elm))
   (assert (consp list))
   (let ((i 0)
         (user-input nil))
