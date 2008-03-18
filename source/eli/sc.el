@@ -4,6 +4,7 @@
   (put 'acond tag '(like cond))
   (put 'aif tag '(like if))
   (put 'string-case tag '(like case))
+  (put 'with-fresh-variables '(like let))
   (put 'defrule tag '((1 (3 t) ((1 0 quote) (0 t nil))) (0 t 2)))
   (put 'extendrule tag '(like defrule))
   (put 'if-pattern-variable tag '(like if))
@@ -26,21 +27,21 @@
   )
 
 (defadvice fi::lisp-invoke-method (around sharp-question
-					  (form-start method depth count state
-						      indent-point))
+                                          (form-start method depth count state
+                                                      indent-point))
   (let (ret)
     (cond ((and form-start
-		(eq (char-after (- form-start 1)) ?\?)   ; pattern notation #?(...)
-		(eq (char-after (- form-start 2)) ?\#))
-	   (setq ret (fi::lisp-indent-quoted-list depth count state indent-point))
-	   (message "%S,%S:pattern indent" state ret))
-	  ((and form-start
-		(eq (char-after (- form-start 1)) ?\~))   ; SC-backquote ~(...)
-	   (setq ret (fi::lisp-indent-quoted-list depth count state indent-point))
-	   (message "%S,%S:SC-backquote indent" state ret))
-	  (t
-	   (setq ret ad-do-it)
-	   (message "%S,%S" state ret)))
+                (eq (char-after (- form-start 1)) ?\?) ; pattern notation #?(...)
+                (eq (char-after (- form-start 2)) ?\#))
+           (setq ret (fi::lisp-indent-quoted-list depth count state indent-point))
+           (message "%S,%S:pattern indent" state ret))
+          ((and form-start
+                (eq (char-after (- form-start 1)) ?\~)) ; SC-backquote ~(...)
+           (setq ret (fi::lisp-indent-quoted-list depth count state indent-point))
+           (message "%S,%S:SC-backquote indent" state ret))
+          (t
+           (setq ret ad-do-it)
+           (message "%S,%S" state ret)))
     ret))
 (ad-activate 'fi::lisp-invoke-method t)
 ;; (ad-deactivate 'fi::lisp-invoke-method)

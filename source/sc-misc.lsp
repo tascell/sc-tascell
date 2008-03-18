@@ -15,8 +15,8 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro with-fresh-variables (varlist &body body)
     `(let ,(mapcar
-            #'(lambda (var) `(,var (gensym ,(symbol-name var))))
-            varlist)
+            #'(lambda (var) (declare (symbol var)) `(,var (gensym ,(symbol-name var))))
+            (if (symbolp varlist) (list varlist) varlist))
        ,@body)))
 
 ;;; Anaphoric Variants (from "On Lisp")
