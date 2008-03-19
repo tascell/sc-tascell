@@ -1934,7 +1934,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;; MCPP
-(defparameter *cpp-command* "../../../mcpp/mcpp-2.4.1/src/c2sc_cpp")
+(defparameter *cpp-command* "c2sc/src/c2sc_cpp")
 (defparameter *cpp-option*
     (append
      '("-D'__complex__='"
