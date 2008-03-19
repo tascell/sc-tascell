@@ -4,7 +4,7 @@
   (put 'acond tag '(like cond))
   (put 'aif tag '(like if))
   (put 'string-case tag '(like case))
-  (put 'with-fresh-variables '(like let))
+  (put 'with-fresh-variables tag '(like let))
   (put 'defrule tag '((1 (3 t) ((1 0 quote) (0 t nil))) (0 t 2)))
   (put 'extendrule tag '(like defrule))
   (put 'if-pattern-variable tag '(like if))

@@ -1,6 +1,8 @@
 /*-
  * Copyright (c) 1998, 2002-2004 Kiyoshi Matsui <kmatsui@t3.rim.or.jp>
  * All rights reserved.
+ * Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+ * All rights reserved.
  *
  * Some parts of this code are derived from the public domain software
  * DECUS cpp (1984,1985) written by Martin Minow.
