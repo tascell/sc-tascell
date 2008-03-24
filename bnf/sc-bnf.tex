@@ -1,0 +1,337 @@
+\documentclass[a4]{article}
+\def\|{\verb|} %|
+\newcommand{\opt}{$_{{\it opt}}$}
+  
+\begin{document}
+\small
+%------------------------------------------------------------------------------
+\section{External Declarations}
+\it \noindent
+translation-unit{\rm \ :}\\
+\|  | external-declaration \\
+\|  | translation-unit external-declaration \\
+
+
+\noindent
+external-declaration{\rm \ :} \\
+\|  | declaration \\
+%------------------------------------------------------------------------------
+\rm 
+\section{Declarations}
+\it 
+
+\noindent
+declaration-list{\rm \ :} \\
+\|  | declaration \\
+\|  | declaration-list declaration \\ 
+
+\noindent
+declaration{\rm \ :} \\
+\|  | inlined-declaration \\
+\|  | {\tt (}identifier type-expression initializer\opt{\tt )} \\
+\|  | {\tt (}function-identifier {\tt (fn} function-type-list{\tt )}\\
+\|    | {\rm [}{\tt :attr} function-attribute{\rm ]}\opt register-declarator\opt\ block-item-list\opt{\tt )} \\ 
+\|  | {\tt (}struct-or-union-specifier struct-declaration-list\opt{\tt )} \\
+\|  | {\tt (}enum-specifier enumerator-list{\tt )} \\
+
+\noindent
+inlined-declaration-list{\rm \ :} \\
+\|  | inlined-declaration \\
+\|  | inlined-declaration-list declaration \\ 
+
+\noindent
+inlined-declaration{\rm \ :} \\
+\|  | {\tt (}storage-class-specifier identifier type-expression initializer\opt{\tt )} \\
+\|  | {\tt (}storage-class-specifier function-identifier {\tt (fn} function-type-list{\tt )}\\
+\|    | {\rm [}{\tt :attr} function-attribute{\rm ]}\opt register-declarator\opt block-item-list\opt{\tt )} \\ 
+\|  | {\tt (}def-or-decl struct-or-union-specifier struct-declaration-list\opt{\tt )} \\
+\|  | {\tt (def} enum-specifier enumerator-list{\tt )} \\
+\|  | {\tt (}compound-storage-class-specifier type-expression init-declarator-list{\tt )} \\
+\|  | {\tt (deftype} identifier type-expression{\tt )} \\
+\|  | {\tt (deftype} identifier struct-or-union struct-declaration-list\opt{\tt )} \\
+\|  | {\tt (deftype} identifier {\tt enum} enumerator-list{\tt )} \\
+
+\noindent
+function-identifier{\rm \ :} \\
+\|  | identifier \\
+\|  | {\tt (}identifier-list{\tt )} \\
+
+\noindent
+def-or-decl{\rm \ :} \\ \tt
+\|  | def \\
+\|  | decl \\ \it
+
+\noindent
+init-declarator-list{\rm \ :} \\
+\|  | init-declarator \\
+\|  | init-declarator-list init-declarator \\ 
+
+\noindent
+init-declarator{\rm \ :} \\
+\|  | identifier \\
+\|  | {\tt (}identifier initializer{\tt )} \\ 
+
+\noindent
+storage-class-specifier{\rm \ :} {\rm one of} \\  \tt
+\|  | def decl extern extern-def extern-decl\\
+\|  | static static-def auto auto-def register register-def \\ \it
+
+
+\noindent
+compound-storage-class-specifier{\rm \ :} {\rm one of} \\ \tt
+\|  | defs extern-defs static-defs auto-defs register-defs \\ \it
+
+\noindent
+function-attribute{\rm \ :} \\ \tt
+\|  | inline \\ \it
+
+
+\noindent
+register-declarator{\rm \ :} \\
+\|  | {\tt (register} identifier-list{\tt )} \\
+
+\noindent
+struct-declaration-list{\rm \ :} \\
+\|  | struct-declaration \\
+\|  | struct-declaration-list struct-declaration \\
+
+
+\noindent
+struct-declaration{\rm \ :} \\
+\|  | declaration {\rm [}{\tt :bit} expression{\rm ]}\opt \\
+
+\noindent
+enumerator-list{\rm \ :} \\
+\|  | enumerator \\
+\|  | enumerator-list enumerator \\
+
+\noindent
+enumerator{\rm \ :} \\
+\|  | enumeration-constant \\
+\|  | {\tt (}enumeration-constant expression{\tt )}\\
+
+\noindent
+enumeration-constant{\rm \ :} \\
+\|  | identifier \\
+
+\noindent
+identifier-list{\rm \ :} \\
+\|  | identifier \\
+\|  | identifier-list identifier \\
+
+\noindent
+designator{\rm \ :} \\
+\|  | {\tt (aref-this} expression-list{\tt )} \\
+\|  | {\tt (fref-this} identifier-list{\tt )} \\
+\|  | {\tt (aref} designator expression-list{\tt )} \\
+\|  | {\tt (fref} designator identifier-list{\tt )} \\
+
+\noindent 
+designated-initializer{\rm \ :} \\
+\|  | initializer \\
+\|  | {\tt (}designator initializer{\tt )}\\
+
+\noindent
+initializer-list{\rm \ :} \\
+\|  | designated-initializer \\
+\|  | initializer-list designated-initializer \\
+
+\noindent
+compound-initializer{\rm \ :} \\
+\|  | {\tt (array} initializer-list{\tt )}\\
+\|  | {\tt (struct} initializer-list{\tt )}\\
+
+\noindent
+initializer{\rm \ :} \\
+\|  | expression \\
+\|  | compound-initializer \\
+
+%------------------------------------------------------------------------------
+\rm
+\section{Type-expressions}
+\it
+
+\noindent
+type-expression{\rm \ :} \\
+\|  | type-specifier \\
+\|  | {\tt (}type-qualifier-list type-expression{\tt )} \\
+\|  | {\tt (array} type-expression array-subscription-list\opt{\tt )} \\
+\|  | {\tt (ptr}  type-expression{\tt )} \\
+\|  | {\tt (fn} function-type-list{\tt )} \\
+
+\noindent
+function-type-list{\rm \ :} \\
+\|  | type-expression-list {\tt va-arg}\opt \\
+
+\noindent
+type-expression-list \\
+\|  | type-expression \\
+\|  | type-expression-list type-expression \\
+
+\noindent
+type-specifier{\rm \ :} {\rm one of} \\ \tt
+\|  | void \\
+\|  | char signed-char unsigned-char short signed-short unsigned-short \\
+\|  | int signed-int unsigned-int long signed-long unsigned-long \\
+\|  | long-long signed-long-long unsigned-long-long \\
+\|  | float double long-double \\ \it
+\|  | struct-or-union-specifier \\
+\|  | enum-specifier \\
+\|  | typedef-name \\
+
+\noindent
+array-subscription-list{\rm \ :} \\
+\|  | expression-list \\
+
+\noindent
+struct-or-union-specifier{\rm \ :} \\
+\|  | {\tt (}struct-or-union identifier{\tt )} \\
+
+\noindent
+struct-or-union{\rm \ :} \\ \tt
+\|  | struct \\
+\|  | union \\ \it
+
+\noindent
+enum-specifier{\rm \ :} \\
+\|  | {\tt (enum} identifier{\tt )} \\
+
+\noindent
+type-qualifier-list{\rm \ :} \\
+\|  | type-qualifier \\
+\|  | type-qualifier-list type-qualifier \\
+
+\noindent
+type-qualifier{\rm \ :} \\ \tt
+\|  | const \\
+\|  | restrict \\
+\|  | volatile \\ \it
+
+\noindent
+typedef-name{\rm \ :} \\
+\|  | identifier \\
+%------------------------------------------------------------------------------
+\rm
+\section{Statements}
+
+\it
+
+\noindent
+statement{\rm \ :} \\
+\|  | compound-statement \\
+\|  | expression-statement \\
+\|  | selection-statement \\
+\|  | iteration-statement \\
+\|  | jump-statement \\
+\|  | labeled-statement \\
+\|  | {\tt ()} \\
+
+\noindent
+compound-statement{\rm \ :} \\
+\|  | {\tt (}{\tt begin} block-item-list\opt{\tt )} \\
+\|  | {\tt (}{\tt let} {\tt (}declaration-list\opt {\tt )} block-item-list\opt{\tt )} \\
+
+\noindent
+block-item-list{\rm \ :} \\
+\|  | block-item \\
+\|  | block-item-list block-item \\
+
+\noindent
+block-item{\rm \ :} \\
+\|  | inlined-declaration \\
+\|  | statement \\
+
+\noindent
+labeled-statement{\rm \ :} \\
+\|  | {\tt (label} identifier statement{\tt )} \\
+\|  | {\tt (case} expression{\tt )} \\
+\|  | {\tt (default)} \\
+
+\noindent
+expression-statement{\rm \ :} \\
+\|  | expression \\
+
+\noindent
+selection-statement{\rm \ :} \\
+\|  | {\tt (if} expression statement statement\opt{\tt )} \\
+\|  | {\tt (switch} expression block-item-list\opt{\tt )} \\
+
+\noindent
+iteration-statement{\rm \ :} \\
+\|  | {\tt (while} expression block-item-list\opt{\tt )} \\
+\|  | {\tt (do-while} expression block-item-list\opt{\tt )} \\
+\|  | {\tt (for} {\tt (}expression-list\opt\ expression expression{\tt )} block-item-list\opt{\tt )} \\
+\|  | {\tt (for} {\tt (}inlined-declaration-list\opt\ expression expression{\tt )} block-item-list\opt{\tt )} \\
+\|  | {\tt (loop} block-item-list\opt{\tt )} \\
+
+\noindent
+jump-statement{\rm \ :} \\
+\|  | {\tt (goto} identifier{\tt )} \\
+\|  | {\tt (continue)} \\
+\|  | {\tt (break)} \\
+\|  | {\tt (return} expression\opt{\tt )} \\
+%------------------------------------------------------------------------------
+\rm
+\section{Expressions}
+\it
+
+\noindent
+expression{\rm \ :} \\
+\|  | identifier \\
+\|  | constant \\
+\|  | string-literal \\
+\|  | compound-literal \\
+\|  | {\tt (}expression-list{\tt )} \\
+\|  | {\tt (aref} expression-list{\tt )} \\
+\|  | {\tt (fref} expression field-identifier-list{\tt )} \\
+\|  | {\tt (inc} expression{\tt )} \\
+\|  | {\tt (dec} expression{\tt )} \\
+\|  | {\tt (++} expression{\tt )} \\
+\|  | {\tt (--} expression{\tt )} \\
+\|  | {\tt (}unary-operator expression{\tt )} \\
+\|  | {\tt (sizeof} expression{\tt )} \\
+\|  | {\tt (sizeof} type-expression{\tt )} \\
+\|  | {\tt (cast} type-expression expression{\tt )} \\
+\|  | {\tt (}operator expression-list{\tt )} \\
+\|  | {\tt (}comparator expression expression{\tt )} \\
+\|  | {\tt (if-exp} expression expression expression{\tt )} \\
+\|  | {\tt (}assignment-operator expression expression{\tt )} \\
+\|  | {\tt (exps} expression-list{\tt )} \\
+
+\noindent
+compound-literal{\rm \ :} \\
+\|  | {\tt (init} type-expression compound-initializer{\tt )} \\
+
+\noindent
+expression-list{\rm \ :} \\
+\|  | expression \\
+\|  | expression-list expression \\
+
+\noindent
+field-identifier-list{\rm \ :} \\
+\|  | field-identifier \\
+\|  | field-identifier-list field-identifier \\
+
+\noindent
+field-identifier{\rm \ :} \\
+\|  | identifier \\
+\|  | {\tt ->} identifier \\
+
+\noindent
+operator{\rm \ :} {\rm one of} \\ \tt
+\|  | * / \% + - << >> bit-xor bit-and bit-or and or \\ \it
+
+\noindent
+comparator{\rm \ :} {\rm one of} \\ \tt
+\|  | < > <= >= == != \\ \it
+
+\noindent
+assignment-operator{\rm \ :} {\rm one of} \\ \tt
+\|  | = *= /= \%= += -= <<= >>= bit-and= bit-xor= bit-or= \\ \it
+
+\noindent
+unary-operator{\rm \ :} {\rm one of} \\ \tt
+\|  | ptr mref bit-not not \\ \it
+
+\rm
+\end{document}
