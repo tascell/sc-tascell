@@ -1,8 +1,17 @@
 \documentclass[a4]{article}
+\oddsidemargin=9.5pt
+\textheight=556pt
+\textwidth=450pt
+
+\title{The Syntax of the SC-0/1 Language}
+\date{March 24, 2008}
+
 \def\|{\verb|} %|
 \newcommand{\opt}{$_{{\it opt}}$}
-  
+\newcommand{\scoo}{{\rm \hfill (SC-1 only)}}
+
 \begin{document}
+\maketitle
 \small
 %------------------------------------------------------------------------------
 \section{External Declarations}
@@ -28,11 +37,11 @@ declaration-list{\rm \ :} \\
 \noindent
 declaration{\rm \ :} \\
 \|  | inlined-declaration \\
-\|  | {\tt (}identifier type-expression initializer\opt{\tt )} \\
-\|  | {\tt (}function-identifier {\tt (fn} function-type-list{\tt )}\\
+\|  | {\tt (}identifier type-expression initializer\opt{\tt )} \scoo \\
+\|  | {\tt (}function-identifier {\tt (fn} function-type-list{\tt )} \scoo\\
 \|    | {\rm [}{\tt :attr} function-attribute{\rm ]}\opt register-declarator\opt\ block-item-list\opt{\tt )} \\ 
-\|  | {\tt (}struct-or-union-specifier struct-declaration-list\opt{\tt )} \\
-\|  | {\tt (}enum-specifier enumerator-list{\tt )} \\
+\|  | {\tt (}struct-or-union-specifier struct-declaration-list\opt{\tt )} \scoo \\
+\|  | {\tt (}enum-specifier enumerator-list{\tt )} \scoo \\
 
 \noindent
 inlined-declaration-list{\rm \ :} \\
@@ -46,7 +55,7 @@ inlined-declaration{\rm \ :} \\
 \|    | {\rm [}{\tt :attr} function-attribute{\rm ]}\opt register-declarator\opt block-item-list\opt{\tt )} \\ 
 \|  | {\tt (}def-or-decl struct-or-union-specifier struct-declaration-list\opt{\tt )} \\
 \|  | {\tt (def} enum-specifier enumerator-list{\tt )} \\
-\|  | {\tt (}compound-storage-class-specifier type-expression init-declarator-list{\tt )} \\
+\|  | {\tt (}compound-storage-class-specifier type-expression init-declarator-list{\tt )} \scoo \\
 \|  | {\tt (deftype} identifier type-expression{\tt )} \\
 \|  | {\tt (deftype} identifier struct-or-union struct-declaration-list\opt{\tt )} \\
 \|  | {\tt (deftype} identifier {\tt enum} enumerator-list{\tt )} \\
@@ -78,7 +87,7 @@ storage-class-specifier{\rm \ :} {\rm one of} \\  \tt
 
 
 \noindent
-compound-storage-class-specifier{\rm \ :} {\rm one of} \\ \tt
+compound-storage-class-specifier{\rm \ :} {\rm one of} \scoo \\ \tt
 \|  | defs extern-defs static-defs auto-defs register-defs \\ \it
 
 \noindent
@@ -229,7 +238,7 @@ statement{\rm \ :} \\
 \noindent
 compound-statement{\rm \ :} \\
 \|  | {\tt (}{\tt begin} block-item-list\opt{\tt )} \\
-\|  | {\tt (}{\tt let} {\tt (}declaration-list\opt {\tt )} block-item-list\opt{\tt )} \\
+\|  | {\tt (}{\tt let} {\tt (}declaration-list\opt {\tt )} block-item-list\opt{\tt )} \scoo \\
 
 \noindent
 block-item-list{\rm \ :} \\
@@ -258,11 +267,11 @@ selection-statement{\rm \ :} \\
 
 \noindent
 iteration-statement{\rm \ :} \\
-\|  | {\tt (while} expression block-item-list\opt{\tt )} \\
+\|  | {\tt (while} expression block-item-list\opt{\tt )} \scoo \\
 \|  | {\tt (do-while} expression block-item-list\opt{\tt )} \\
-\|  | {\tt (for} {\tt (}expression-list\opt\ expression expression{\tt )} block-item-list\opt{\tt )} \\
-\|  | {\tt (for} {\tt (}inlined-declaration-list\opt\ expression expression{\tt )} block-item-list\opt{\tt )} \\
-\|  | {\tt (loop} block-item-list\opt{\tt )} \\
+\|  | {\tt (for} {\tt (}expression-list\opt\ expression expression{\tt )} block-item-list\opt{\tt )} \scoo \\
+\|  | {\tt (for} {\tt (}inlined-declaration-list\opt\ expression expression{\tt )} block-item-list\opt{\tt )} \scoo \\
+\|  | {\tt (loop} block-item-list\opt{\tt )} \scoo \\
 
 \noindent
 jump-statement{\rm \ :} \\
@@ -315,7 +324,7 @@ field-identifier-list{\rm \ :} \\
 \noindent
 field-identifier{\rm \ :} \\
 \|  | identifier \\
-\|  | {\tt ->} identifier \\
+\|  | {\tt ->} identifier \scoo \\
 
 \noindent
 operator{\rm \ :} {\rm one of} \\ \tt
