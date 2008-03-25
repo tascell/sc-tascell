@@ -1,6 +1,6 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 ;;;;; SC½èÍý·Ï main ;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
 (provide "SC-MAIN")
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (require "SC-DECL" "sc-decl.lsp"))
