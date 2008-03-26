@@ -1,8 +1,34 @@
+;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; All rights reserved.
+
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+;;; 1. Redistributions of source code must retain the above copyright
+;;;    notice, this list of conditions and the following disclaimer.
+;;; 2. Redistributions in binary form must reproduce the above copyright
+;;;    notice, this list of conditions and the following disclaimer in the
+;;;    documentation and/or other materials provided with the distribution.
+
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE
+;;; FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+;;; OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+;;; LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+;;; SUCH DAMAGE.
+
+;;; Header file for MT-SC, automatically included by multithread.rule
+
 (c-exp "#include<stdio.h>")
 (c-exp "#include<stdlib.h>")
 
-(%ifndef @nestfunc-tag
-	 ((%defconstant @nestfunc-tag fn)))
+(%ifndef NESTFUNC-TAG
+	 ((%defconstant NESTFUNC-TAG fn)))
 
 (decl (struct _thstelm))
 
@@ -12,7 +38,7 @@
 ;; 継続用入れ子関数のポインタ
 (deftype
     cont-f 
-    (ptr (@nestfunc-tag (ptr void) (ptr (struct _thstelm)) reason)))
+    (ptr (NESTFUNC-TAG (ptr void) (ptr (struct _thstelm)) reason)))
 
 ;; スレッドの状態
 (def (enum _stat)
@@ -43,7 +69,7 @@
 ;; スレッド管理用スタックのトップ
 (def thst-top thst-ptr thst)
 
-(deftype schdexit (ptr (@nestfunc-tag void)))
+(deftype schdexit (ptr (NESTFUNC-TAG void)))
 
 ;; スケジューラの非局所脱出先
 (def cur-schd-exit schdexit 0)
@@ -56,7 +82,7 @@
      (def prev-thst-top thst-ptr cur-schd-thst-top)
      ;;このスケジュラの情報
      (def mythst-top thst-ptr thst-top)
-     (def nonlocalexit (@nestfunc-tag void) (goto @L0))
+     (def nonlocalexit (NESTFUNC-TAG void) (goto @L0))
 
      (label @L0 nil)
      (= cur-schd-exit nonlocalexit)

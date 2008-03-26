@@ -1,18 +1,30 @@
-   ;; MT-SC(with type information) -> SC-0 (with nested-functions)
-;;
-;; Written by Xiaolu Li (Feb, 2004)
-;; Refined by Tassuku Hiraishi (May, 2004)
+;;; Copyright (c) 2004 Xiaolu Li
+;;; All rights reserved.
+;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; All rights reserved.
 
-;; 2004/06/14 c-expressionに対応
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+;;; 1. Redistributions of source code must retain the above copyright
+;;;    notice, this list of conditions and the following disclaimer.
+;;; 2. Redistributions in binary form must reproduce the above copyright
+;;;    notice, this list of conditions and the following disclaimer in the
+;;;    documentation and/or other materials provided with the distribution.
 
-;; ＊cont の扱い
-;; 田畑さんの論文のコード例では，
-;; 高水準言語の cont は ( 継続＋スレッドの状態 ) の組
-;; C レベルでの cont は 継続
-;;              thst-ptr は( 継続＋スレッドの状態 ) の組
-;; 紛らわしいので C の cont を cont-f に変え，
-;; MT-SCで cont 用に (deftype cont thst-ptr)としてしまうことにした
-;; cont -> thread としたほうが意味的にわかりやすい気もする．
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE
+;;; FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+;;; OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+;;; LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+;;; SUCH DAMAGE.
+
+;; MT-SC (with type information) -> LW-SC
 
 (define-ruleset multithread (sc2c)
   (initiator 'sc-program)
@@ -23,7 +35,7 @@
 
 (defrule sc-program multithread
   ((#?(,@declaration-list))
-   (list* ~(%defconstant @nestfunc-tag ,(ruleset-param 'nestfunc-tag))
+   (list* ~(%defconstant NESTFUNC-TAG ,(ruleset-param 'nestfunc-tag))
           ~(%include "rule/multithread.sh")
           (mappend (compose #'second #'declaration) x)))
   )
