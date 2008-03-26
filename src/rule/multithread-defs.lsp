@@ -105,7 +105,7 @@
   |#
   (let ((nfunc-id (finfo-nfunc-id *current-func*))
 	(label-list (reverse (finfo-label *current-func*))))
-    ~(def (,nfunc-id cp rsn) (@nestfunc-tag (ptr void) thst_ptr reason)
+    ~(def (,nfunc-id cp rsn) (NESTFUNC-TAG (ptr void) thst_ptr reason)
 	  (switch rsn 
 		  (case rsn_cont)
 		  ,(switch-cont label-list)

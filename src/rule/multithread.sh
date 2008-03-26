@@ -76,15 +76,15 @@
 (def cur-schd-thst-top thst-ptr thst)
 
 (def scheduling (fn void)
-     (def @L0 --label--)
+     (def L0 --label--)
      ;;元のスケジューラの情報
      (def prev-exit schdexit cur-schd-exit)
      (def prev-thst-top thst-ptr cur-schd-thst-top)
      ;;このスケジュラの情報
      (def mythst-top thst-ptr thst-top)
-     (def nonlocalexit (NESTFUNC-TAG void) (goto @L0))
+     (def nonlocalexit (NESTFUNC-TAG void) (goto L0))
 
-     (label @L0 nil)
+     (label L0 nil)
      (= cur-schd-exit nonlocalexit)
      (= cur-schd-thst-top (= thst-top mythst-top))
      (while 1

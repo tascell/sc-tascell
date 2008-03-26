@@ -57,3 +57,7 @@ respectively.
 * (%error <string> <s-exp> ...)
 interrupts the compilation with an error message.
 The message is an evaluation result of (format *error-output* <string> <s-exp>).
+
+* (%output-file <string1> <string2> ... <stringn>)
+Each <stringk> is macro-expanded, and then the name of the output C file is
+changed to (string+ <string1> <string2> ... <stringn> ".c").

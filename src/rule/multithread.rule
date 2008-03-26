@@ -24,10 +24,11 @@
 ;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 ;;; SUCH DAMAGE.
 
-;; MT-SC (with type information) -> LW-SC
+;;; MT-SC (with type information) -> LW-SC
+
+;;; to be rewritten as an extension of sc0t-to-sc0t
 
 (define-ruleset multithread (sc2c)
-  (initiator 'sc-program)
   (nthr-id ~nthr)
   (nestfunc-tag ~fn))
 

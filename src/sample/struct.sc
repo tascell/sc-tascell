@@ -22,35 +22,20 @@
 ;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 ;;; SUCH DAMAGE.
 
-(deftype mat (array int 2 2))
-(decl printf (fn int (ptr (const char)) va-arg))
+(%defconstant NULL 0)
 
-;(private pa int)
-;(private pb long)
+(decl malloc (fn (ptr void) int))
 
-((matmul a b c) (fn void mat mat mat)
-  (defs int i j k)
-  (for ( (def i int 0) (<= i 1) (inc i) )
-   (for ( (def j int 0) (<= j 1) (inc j) )
-    (= (aref c i j) 0)))
-  (for ( (def i int 0) (<= i 1) (inc i) )
-   (for ( (def j int 0) (<= j 1) (inc j) )
-    (for ( (def k int 0) (<= k 1) (inc k) )
-     (deftype l int)
-     (+= (aref c i j) (* (aref a i k) (aref b k j))))))
-  
-  (def k__2 unsigned-char)
+((struct list)
+  (data int)
+  (next (ptr (struct list))))
 
-  (return))
-
-((main) (fn int)
- (let ((defs mat (a (array (array 1 2) (array 3 4)))
-                 (b (array (array 5 6) (array 7 8))) c))
-  (matmul a b c)
-  (printf "a:%d %d %d %d \\n" 
-    (aref a 0 0) (aref a 0 1) (aref a 1 0) (aref a 1 1))
-  (printf "b:%d %d %d %d \\n" 
-    (aref b 0 0) (aref b 0 1) (aref b 1 0) (aref b 1 1))
-  (printf "c:%d %d %d %d \\n" 
-    (aref c 0 0) (aref c 0 1) (aref c 1 0) (aref c 1 1))
-  (return)))
+(main (fn int)
+  (let ((fst (ptr (struct list)) NULL)
+        (cur (ptr (struct list))))
+    (for ((defs int (i 0) (j 0))
+            (<= i 10) (exps (inc i) (+= j 2)))
+       (= cur (malloc (sizeof (struct list))))
+       (= (fref cur -> data) (* i j))
+       (= (fref cur -> next) fst)
+       (= fst cur))))
