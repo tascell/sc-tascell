@@ -1,3 +1,0 @@
-#!/bin/sh -x
-# XC-cube lightweight for i386
-LANG=C /home/lab4/yasugi/tmp/i386-linux2.4.20/n1/bin/gcc -DCT=lightweight $*

@@ -1,4 +1,0 @@
-* This program requires a runtime system supporting private
-  variables.  The program will not work under Solaris/threads
-  nor SGI/threads.  It should work properly on Solaris/processes
-  and Linux.

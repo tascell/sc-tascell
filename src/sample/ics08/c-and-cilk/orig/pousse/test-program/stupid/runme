@@ -1,6 +1,0 @@
-#!/usr/bin/perl
-
-srand;
-$n = <>;
-@dirs = ('L', 'R', 'T', 'B');
-print $dirs[rand 4],int(rand $n)+1,"\n";

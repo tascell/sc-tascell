@@ -1,5 +1,0 @@
-#!/bin/sh
-rm -fv $* *.?.*.sc
-rm -fv $* *.?p.*.sc
-rm -fv $* *.1?.*.sc
-rm -fv $* *.1?p.*.sc

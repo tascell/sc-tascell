@@ -1,3 +1,0 @@
-#!/bin/sh -x
-# XC-cube lightweight for sparc
-LANG=C /home/lab4/yasugi/tmp/sparc-sol2.6/n3/bin/gcc -DSUN -DCT=lightweight $*

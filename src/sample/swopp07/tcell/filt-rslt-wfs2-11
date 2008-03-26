@@ -1,169 +1,0 @@
-./fib-c
-time: 1.085551
-time: 1.085805
-time: 1.086028
-time: 1.086250
-time: 1.086633
-time: 1.089021
-time: 1.091401
-time: 1.095673
-time: 1.096148
-[m[m[m[Jwfs2% [K../lu-   fb ib-gcc
-time: 3.845785
-time: 3.852888
-time: 3.861649
-time: 3.863831
-time: 3.870777
-time: 3.872196
-time: 3.876483
-time: 3.883791
-time: 3.890395
-[m[m[m[Jwfs2% [K../fib-lw
-time: 1.480386
-time: 1.481562
-time: 1.481854
-time: 1.482543
-time: 1.482574
-time: 1.483501
-time: 1.483533
-time: 1.484483
-time: 1.484525
-[m[m[m[Jwfs2% [K/ ../fib-clos
-time: 1.708218
-time: 1.708326
-time: 1.708553
-time: 1.708599
-time: 1.708861
-time: 1.709213
-time: 1.709686
-time: 1.710092
-time: 1.717567
-[m[m[m[Jwfs2% [K../fib-xcc
-time: 1.233482
-time: 1.233904
-time: 1.233975
-time: 1.234051
-time: 1.234223
-time: 1.234440
-time: 1.234842
-time: 1.236295
-time: 1.236839
-[m[m[m[Jwfs2% [K../fib-xcccl
-time: 1.330873
-time: 1.330959
-time: 1.331127
-time: 1.331137
-time: 1.331147
-time: 1.331733
-time: 1.332204
-time: 1.338863
-time: 1.340041
-[m[m[m[Jwfs2% [K../fib-    lu-c
-time: 3.034967
-time: 3.044639
-time: 3.044669
-time: 3.056514
-time: 3.079536
-[m[m[m[Jwfs2% [K../lu-gcc
-time: 3.065293
-time: 3.070531
-time: 3.074434
-time: 3.086827
-time: 3.108516
-[m[m[m[Jwfs2% [K../lu-lw
-time: 3.032947
-time: 3.039765
-time: 3.047539
-time: 3.056671
-time: 3.065556
-[m[m[m[Jwfs2% [K./lu-lw  clos
-time: 3.024493
-time: 3.033476
-time: 3.041758
-time: 3.058011
-time: 3.070721
-[m[m[m[Jwfs2% [K./lu-clos    xcc
-time: 3.017920
-time: 3.021033
-time: 3.023247
-time: 3.055020
-time: 3.070312
-[m[m[m[Jwfs2% [K./lu-xcccl
-time: 3.020942
-time: 3.043398
-time: 3.054457
-time: 3.062993
-time: 3.064773
-[m[m[m[Jwfs2% [K../pen-c
-time: 2.762248
-time: 2.762304
-time: 2.766149
-time: 2.768141
-time: 2.769507
-[m[m[m[Jwfs2% [K./pen-c gcc
-time: 5.139362
-time: 5.141109
-time: 5.144494
-time: 5.146276
-time: 5.149095
-[m[m[m[Jwfs2% [K/ ../pen-lw
-time: 2.898965
-time: 2.899276
-time: 2.900100
-time: 2.900313
-time: 2.900413
-[m[m[m[Jwfs2% [K../pen-clos
-time: 4.887223
-time: 4.888382
-time: 4.889006
-time: 4.889841
-time: 4.892495
-[m[m[m[Jwfs2% [K../pen-xcc
-time: 4.400170
-time: 4.400541
-time: 4.400561
-time: 4.402608
-time: 4.426796
-[m[m[m[Jwfs2% [K../pen-xcccl
-time: 4.656582
-time: 4.657320
-time: 4.657347
-time: 4.657539
-time: 4.659459
-[m[m[m[Jwfs2% [K../cmp-c
-time: 8.229437
-time: 8.241687
-time: 8.244368
-time: 8.249875
-time: 8.253722
-[m[m[m[Jwfs2% [K../pen   cmp-gcc
-time: 21.919218
-time: 21.928182
-time: 21.943636
-time: 21.962334
-time: 21.994725
-[m[m[m[Jwfs2% [K./cmp-gcc   lw
-time: 8.753291
-time: 8.758663
-time: 8.762772
-time: 8.767267
-time: 8.769784
-[m[m[m[Jwfs2% [K./cmp-lw  clos
-time: 11.097126
-time: 11.097396
-time: 11.103366
-time: 11.107020
-time: 11.111181
-[m[m[m[Jwfs2% [K./cmp-clos    xcc
-time: 8.986701
-time: 8.997489
-time: 9.025275
-time: 9.025417
-time: 9.141759
-[m[m[m[Jwfs2% [K./cmp-xcccl
-time: 10.523272
-time: 10.526238
-time: 10.534051
-time: 10.543804
-time: 10.554259
-[m[m[m[Jwfs2% [K
