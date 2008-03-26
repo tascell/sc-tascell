@@ -1,45 +1,59 @@
-=== SCプリプロセッサ命令 ===
+* SC Preprocessor directives
 
-SCソースコード中にある
-(%<ディレクティブ> ...)
+* (%include <file-name>)
+corresponds to an #include directive in C.
+The file <file-name> is included.
 
-の形のS式はSCプリプロセッサディレクティブとして
-SCプリプロセッサによって処理される。
+* (%cinclude <cfile-name>)
+<Cfile-name> specifies a C header file.
+The C code is compiled into SC-0 and the result is spliced there.
+The SC programmers can use library functions and most of macros
+such as \|printf| and \|NULL| declared/\|#define|d in C header files.
 
-* (%include <ファイル名>)
-その場所を<ファイル名>で指定されたファイルの内容に置き換える。
+* (%rule (<rule-set1> ... <rule-setn>))
+is available only in the first application of SC preprocessor.
+This directive specifies the list of rule-sets which the SC program being compiled
+to be applied.
+Each <rule-setk> is a keyword symbol which specifies a rule-set (e.g. :nestfunc)
+or a keyword symbol with arguments to the rule-set (e.g., (:nestfunc :all-in-estack ALL-IN-ESTACK)).
+The :rule keyword parameter of sc2c function, if supplied, overwrites setting of this directive.
 
-* (%cinclude <ファイル名>)
-<ファイル名>で指定されたCプログラムをSCに変換し、
-その場所を変換結果に置き換える。
+* (%defmacro <symbol> <lambda-list> <S-exp> ...)
+evaluated as a defmacro form of Common Lisp to define an SC macro.
+After the definition,
+every list in the form of (<symbol> ...) is replaced with
+the result of the application of Common Lisp's macroexpand-1 function
+to the list.
+The algorithm to expand nested macro applications
+complies with the standard C specification.
 
-* (%rule (<規則セット> ... <規則セット>))
-規則セットは :rulename または， (:rulename <option> ...) 
-自分が適用される規則セットを順番に指定する．
-初回の scpp 処理時のみ有効．
-また，sc2c 呼出し時に :rule パラメータが指定された場合はそちらが優先される．
-
-* (%defmacro <symbol> <引数> <S-exp> ...)
-マクロを定義する。
-定義以後、(<symbol> ... ) の形のS式は定義にしたがってマクロ展開される。
-
-* (%defconstant <symbol> <value>)
-マクロ定義。
-定義以後、<symbol>は<value>に置き換えられる。
+* (%defconstant <symbol> <S-exp>)
+defines an SC macro in the same way as a %defmacro directive,
+except that every symbol which "eq"s <symbol> is
+replaced with <S-exp> after the definition.
 
 * (%undef <symbol>)
-%defmacro, %defconstant の定義を取り消す
+undefines the specified macro defined by %defmacros or %defconstants.
 
 * (%ifdef  <symbol> (<body1>) (<body2>))
 * (%ifndef <symbol> (<body1>) (<body2>))
-マクロ<symbol>が定義済であれば(なければ)<body1>
-定義されてなければ(されていれば)<body2>
-に当該箇所を置き換える。
+If the macro specified (not specified) by <symbol> is defined, <body1> is spliced there.
+Otherwise <body2> is spliced.
 
 * (%if <constant> (<body1>) (<body2>))
-<constant>をLispが評価した結果が nil でなければ <body1>
-nil なら <body2> に置き換わる。
+<constant> is macro-expanded, and then the result is evaluated by Common Lisp.
+If the return value "eql"s nil or 0, <body2> is spliced there.
+Otherwise <body1> is spliced.
+
+* (%ifdef* <symbol> <body1_1> ... <body1_m> %else <body2_1> ... <body2_n>)
+* (%ifndef* <symbol> <body1_1> ... <body1_m> %else <body2_1> ... <body2_n>)
+* (%if* <constant> <body1_1> ... <body1_m> %else <body2_1> ... <body2_n>)
+equivalent to
+- (%ifdef <symbol> (<body1_1> ... <body1_m>) (<body2_1> ... <body2_n>))
+- (%ifndef <symbol> (<body1_1> ... <body1_m>) (<body2_1> ... <body2_n>))
+- (%if <constant> (<body1_1> ... <body1_m>) (<body2_1> ... <body2_n>))
+respectively.
 
 * (%error <string> <s-exp> ...)
-(format *error-output* <string> <s-exp>) を評価し、
-メッセージを出力する。
+interrupts the compilation with an error message.
+The message is an evaluation result of (format *error-output* <string> <s-exp>).

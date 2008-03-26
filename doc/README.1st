@@ -1,57 +1,36 @@
-=== SC処理系 README === (2005/02/25, 平石)
+Readme file for the SC language system
+==========================================================================
 
-1.ディレクトリ構成
-
+1. Directories
 sc/
- bnf/  SC-0, SC-1の文法
- doc/  このディレクトリ。ドキュメント群
- memo/ いろんな覚え書き
- source/  SC処理系本体のソース
-   old-sc2c/ 名前のとおり
-   rule/     変形規則ファイル
-   sample/   SCプログラムのサンプル
-   csample/  CtoSC用サンプル
+ bnf/  the syntax of the SC-0/1 language.
+ doc/  documents (including this file)
+ src/  source code of the SC language system.
+   rule/     transformation rule-sets
+   sample/   sample code of (extended) SC languages
 
-2.使い方
+2. System requirements
+2.1 OS
+* Microsoft Windows (>= 2000)
+* FreeBSD, Linux
 
-sc/source に移動して、Common Lisp処理系を実行。
-（clisp, cmucl, allegro など．KCl不可）
-"init.lsp"をロードする。
-(load "init.lsp")
+2.2 Common Lisp system
+* Allegro Common Lisp (>= version 7.x)
+* GNU CLISP (>= version 2.xx)
 
-# あと，このディレクトリにある "C2SC" に従って，
-# CtoSC変換器 を使えるようにしておいてください．
+3. How to set up the SC language system
+3.0 Set up CtoSC Compiler (see "C2SC" in this directory).
 
-----
+3.1 Run Common Lisp in sc/src/
+% cd sc/src
+% alisp     # or "clisp"
 
-SC-0のプログラムなら
-(sc-main:sc2c <sc-file>)
-だけでCが生成される。
+3.2 Load "init.lsp":
+> (load "init.lsp")
 
-SC-1なら
-(sc-main:sc2c <sc-file> :rule :basic)
+3.3 To translate an SC program into a C program, call the sc2c function. For example:
+> (sc2c "sample/fib.sc")
 
-このように :rule に 適用する規則名のリストを書くことで、
-それらの規則を適用してから、Cへの変換を行うようになる。
-対応するruleファイルが存在すれば、勝手にコンパイル、ロードを実行してくれる。
-
-MT-SC (sample/{fib.sc, multithread-orig.sc})
-(sc-main:sc2c <sc-file> :rule *mt-sc*)
-<<注：*mt-sc*は init.lsp で定義>>
-
-LW-SC (sample/{nonlocalexit*.sc, l-closure.sc})
-(sc-main:sc2c <sc-file> :rule *lw-sc*)
-Cのコンパイル時に rule/nestfunc.c とリンク
-
-LW-MT-SC (sample/{fib.sc, multithread-orig.sc})
-rule/multithread-defs.lsp の *nestfunc-tag* を 'lightweight にしてから
-(sc-main:sc2c <sc-file> :rule *lw-mt-sc*)
-
-----
-
-3.SC文法の補足事項
-
-(c-exp "文字列" arg ...)
-でCのコードを埋め込むことができます．
-例:(c-exp "printf(~a,~a);" "%d~%" x)
-   ==> printf( "%d\n", x );
+3.4 You can compile the reslting C program using a C compiler (e.g., gcc) and run it.
+% gcc fib.c -o fib
+% ./fib 30

@@ -1,0 +1,26 @@
+* Notes about Identifiers in SC-0/1 (and almost of extended SC languages)
+
+1. Hyphens in an SC identifier
+All hyphens (#\-) in an SC identifier are translated to underbars (#\_) by an SC preprocessor.
+ex. --time-- --> __time__
+ex. --time__ --> __time__
+
+2. Correspondense between SC identifiers and C identifiers
+All SC code (and patterns in .rule files) are read in a readtable environment
+where readtable-case is set to :invert.
+A C identifier is created by inverting case of the print name of a Lisp symbol
+when all the alphabets in the symbol are of the same case, otherwise
+no modification is applied.
+
+(example)
+SC              print-name (of CL)      C
+-----------------------------------------------
+abc             "ABC"                   abc
+Abc             "Abc"                   aBC
+NULL            "null"                  NULL
+null            "NULL"                  null
+FreeBSD         "FreeBSD"               FreeBSD
+
+
+(Reference) Readtable case in Common Lisp
+http://www.lispworks.com/documentation/HyperSpec/Body/f_rdtabl.htm

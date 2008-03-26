@@ -1,11 +1,17 @@
-CtoSC を使えるようにするための手順
+How to set up CtoSC Compiler
 
-1. mcpp/mcpp-2.4.1/ 上で configure, make する．
-2. sc2c/source/c2sc-parser.lsp の 下のほうにある
-   *cpp-command* の値を，実際に "mcpp/mcpp-2.4.1/src/c2sc_cpp" がある場所に
-   設定．
-3. mcpp/mcpp-2.4.1/src/c2sc_cpp 内の
-   C2SCPP の値を適切なディレクトリに設定
-4. SC で (%cinclude "stdio.h") などとする．
-   CtoSC だけ試したいときは，SC処理系を起動させたあと，
-   (c2sc <Cファイル名>) とすればいいです．
+1.
+ cd src/c2sc
+
+2.
+ ./configure && make
+
+3. Add
+    (%cinclude "<stdio.h>" (:macro))
+   into your SC code to include declarations in <stdio.h>.
+
+4. To include C macros, set the :macro keyword argument as
+    (%cinclude "<stdio.h>" (:macro NULL stdin stdout)).
+
+5. To include multiple C header files, write as
+    (%cinclude "<stdio.h>" "<math.h>" (:macro NULL stdin stdout)).
