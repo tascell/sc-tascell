@@ -22,20 +22,26 @@
 ;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 ;;; SUCH DAMAGE.
 
+;;; LW-SC example
+
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE LW-SC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
+(%include "rule/nestfunc-setrule.sh")
+
 (def (frac n) (fn int int)
-     (def L0 __label__)
-     (def acc int 1)
-     (def (frac-t n) (lightweight void int)
-	  (if (== n 0)
-	      (goto L0)
-	    (begin
-	     (*= acc n)
-	     (frac-t (- n 1)))))
-     
-     (frac-t n)
-     (return -1)
-     
-     (label L0 (return acc)))
+  (def L0 __label__)
+  (def acc int 1)
+  (def (frac-t n) (lightweight void int)
+    (if (== n 0)
+        (goto L0)                       ; non-local exit
+      (begin
+       (*= acc n)
+       (frac-t (- n 1)))))
+  
+  (frac-t n)
+  (return -1)
+  
+  (label L0 (return acc)))
 
 (def (main) (fn int)
-     (return (frac 10)))
+  (return (frac 10)))

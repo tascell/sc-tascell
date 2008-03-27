@@ -26,10 +26,10 @@ all-icc-lw: fib-icc-lw lu-icc-lw cmp-icc-lw pen-icc-lw pen6x17-icc-lw nq-icc-lw 
 all-icc-clos: fib-icc-clos lu-icc-clos cmp-icc-clos pen-icc-clos pen6x17-icc-clos nq-icc-clos grav-icc-clos
 
 
-WORKER=worker4-gcc.c cmd-serial-gcc.c
-WORKER_GCC=worker4-gcc.c cmd-serial-gcc.c
-WORKER_XCLW=worker4-lw.c cmd-serial-lw.c
-WORKER_XCCL=worker2-clos.c
+WORKER=worker-gcc.c cmd-serial-gcc.c
+WORKER_GCC=worker-gcc.c cmd-serial-gcc.c
+WORKER_XCLW=worker-lw.c cmd-serial-lw.c
+WORKER_XCCL=worker-clos.c
 
 # RAWC version (can't divide task)
 fib-c: $(WORKER) fib-c.c $(LIBS)
@@ -185,8 +185,8 @@ fib-orig: worker.c ../../obayashi/fib.c
 	$(GCC) $(OPT) $(THROPT) worker.c ../../obayashi/fib.c -o fib-orig
 
 # demo
-pen-demo: $(WORKER_GCC) pen-gcc-gtk.c $(LIBS)
-	$(GCC) $(OPT)  $(THROPT) $(WORKER_GCC) pen-gcc-gtk.c $(LIBS) -o pen-demo `pkg-config --cflags --libs gtk+-2.0`
+# pen-demo: $(WORKER_GCC) pen-gcc-gtk.c $(LIBS)
+#	$(GCC) $(OPT)  $(THROPT) $(WORKER_GCC) pen-gcc-gtk.c $(LIBS) -o pen-demo `pkg-config --cflags --libs gtk+-2.0`
 
 # clean:
 # 	rm -f $(PROGS)

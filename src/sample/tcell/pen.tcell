@@ -1,4 +1,33 @@
-;;; Solve Pentomino puzzle
+;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; All rights reserved.
+
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+;;; 1. Redistributions of source code must retain the above copyright
+;;;    notice, this list of conditions and the following disclaimer.
+;;; 2. Redistributions in binary form must reproduce the above copyright
+;;;    notice, this list of conditions and the following disclaimer in the
+;;;    documentation and/or other materials provided with the distribution.
+
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE
+;;; FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+;;; OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+;;; LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+;;; SUCH DAMAGE.
+
+;;; Find all the solutions of Pentomino puzzle
+
+;; task 0 0 0 1
+;;
+
+
 (c-exp "#include<sys/time.h>")
 
 (%include "rule/tcell-setrule.sh")
@@ -140,42 +169,42 @@
        (def pss (ptr int) (aref ps i))
        (def kk int k)  (decl l int)
        (for ((= l 0) (< l 4) (inc l))
-	 (if (or (>= (+= kk (aref pss l)) 70)
-		 (!= (aref (fref (mref tsk) b) kk) 0))
-	     (goto Ln)))
+     (if (or (>= (+= kk (aref pss l)) 70)
+         (!= (aref (fref (mref tsk) b) kk) 0))
+         (goto Ln)))
        (dynamic-wind
-	(:before
-	 (= (aref (fref (mref tsk) b)
-		  (= kk k))
-	    (+ p #\A))
-	 (for ((= l 0) (< l 4) (inc l))
-	   (= (aref (fref (mref tsk) b)
-		    (+= kk (aref pss l)))
-	      (+ p #\A)))
-	 (= (aref (fref (mref tsk) a) p)
-	    (aref (fref (mref tsk) a) j0))
-	 (= (aref (fref (mref tsk) a) j0) ap))
-	(:body
-	 (for ((= kk k) (< kk 70) (inc kk))
-	   (if (== (aref (fref (mref tsk) b) kk) 0) (break)))
-	 (if (== kk 70)
-	     (+= s 1)
-	     (if (and (or (>= (+ kk 7) 70)
-			  (!= (aref (fref (mref tsk) b) (+ kk 7)) 0))
-		      (or (!= (aref (fref (mref tsk) b) (+ kk 1)) 0)
-			  (and (or (>= (+ kk 8) 70)
-				   (!= (aref (fref (mref tsk) b) (+ kk 8)) 0))
-			       (!= (aref (fref (mref tsk) b) (+ kk 2)) 0))))
-		 ()
-		 (+= s (search kk (+ j0 1) (+ j0 1) 12 tsk)))))
-	(:after
-	 (= ap (aref (fref (mref tsk) a) j0))
-	 (= (aref (fref (mref tsk) a) j0) (aref (fref (mref tsk) a) p))
-	 (= (aref (fref (mref tsk) a) p) ap)
-	 (= (aref (fref (mref tsk) b) (= kk k)) 0)
-	 (for ((= l 0) (< l 4) (inc l))
-	   (= (aref (fref (mref tsk) b) (+= kk (aref pss l))) 0)))
-	)
+    (:before
+     (= (aref (fref (mref tsk) b)
+          (= kk k))
+        (+ p #\A))
+     (for ((= l 0) (< l 4) (inc l))
+       (= (aref (fref (mref tsk) b)
+            (+= kk (aref pss l)))
+          (+ p #\A)))
+     (= (aref (fref (mref tsk) a) p)
+        (aref (fref (mref tsk) a) j0))
+     (= (aref (fref (mref tsk) a) j0) ap))
+    (:body
+     (for ((= kk k) (< kk 70) (inc kk))
+       (if (== (aref (fref (mref tsk) b) kk) 0) (break)))
+     (if (== kk 70)
+         (+= s 1)
+         (if (and (or (>= (+ kk 7) 70)
+              (!= (aref (fref (mref tsk) b) (+ kk 7)) 0))
+              (or (!= (aref (fref (mref tsk) b) (+ kk 1)) 0)
+              (and (or (>= (+ kk 8) 70)
+                   (!= (aref (fref (mref tsk) b) (+ kk 8)) 0))
+                   (!= (aref (fref (mref tsk) b) (+ kk 2)) 0))))
+         ()
+         (+= s (search kk (+ j0 1) (+ j0 1) 12 tsk)))))
+    (:after
+     (= ap (aref (fref (mref tsk) a) j0))
+     (= (aref (fref (mref tsk) a) j0) (aref (fref (mref tsk) a) p))
+     (= (aref (fref (mref tsk) a) p) ap)
+     (= (aref (fref (mref tsk) b) (= kk k)) 0)
+     (for ((= l 0) (< l 4) (inc l))
+       (= (aref (fref (mref tsk) b) (+= kk (aref pss l))) 0)))
+    )
        (label Ln (continue))
        )
      ;; put/get pentomino task/result
