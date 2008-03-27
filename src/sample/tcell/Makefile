@@ -1,4 +1,4 @@
-XCC=/tmp/local/bin/gcc
+XCC=xcc
 GCC=gcc #$(XCC)
 ICC=icc
 OPT=-O2 $(MOPT)
@@ -28,8 +28,10 @@ all-icc-clos: fib-icc-clos lu-icc-clos cmp-icc-clos pen-icc-clos pen6x17-icc-clo
 
 WORKER=worker-gcc.c cmd-serial-gcc.c
 WORKER_GCC=worker-gcc.c cmd-serial-gcc.c
-WORKER_XCLW=worker-lw.c cmd-serial-lw.c
-WORKER_XCCL=worker-clos.c
+WORKER_LW=worker-lw.c cmd-serial-lw.c
+WORKER_CLSC=worker-clos.c cmd-serial-clos.c
+WORKER_XCC=worker-xcc.c cmd-serial-xcc.c
+WORKER_XCCCL=worker-xcccl.c cmd-serial-xcccl.c
 
 # RAWC version (can't divide task)
 fib-c: $(WORKER) fib-c.c $(LIBS)
@@ -80,100 +82,100 @@ grav-gcc: $(WORKER_GCC) grav-gcc.c $(LIBS)
 	$(GCC) $(OPT)  $(THROPT) $(WORKER_GCC) grav-gcc.c $(LIBS) -o grav-gcc
 
 # LW-SC
-fib-lw: $(WORKER_XCLW) fib-lw.c nestfunc.c $(LIBS)
-	$(GCC) $(OPT)  $(THROPT) $(WORKER_XCLW) fib-lw.c nestfunc.c $(LIBS) -o fib-lw
-lu-lw: $(WORKER_XCLW) lu-lw.c nestfunc.c $(LIBS)
-	$(GCC) $(OPT)  $(THROPT) $(WORKER_XCLW) lu-lw.c nestfunc.c $(LIBS) -o lu-lw
-cmp-lw: $(WORKER_XCLW) cmp-lw.c nestfunc.c $(LIBS)
-	$(GCC) $(OPT)  $(THROPT) $(WORKER_XCLW) cmp-lw.c nestfunc.c $(LIBS) -o cmp-lw
-pen-lw: $(WORKER_XCLW) pen-lw.c nestfunc.c $(LIBS)
-	$(GCC) $(OPT)  $(THROPT) $(WORKER_XCLW) pen-lw.c nestfunc.c $(LIBS) -o pen-lw
-pen6x17-lw: $(WORKER_XCLW) pen6x17-lw.c nestfunc.c $(LIBS)
-	$(GCC) $(OPT)  $(THROPT) $(WORKER_XCLW) pen6x17-lw.c nestfunc.c $(LIBS) -o pen6x17-lw
-nq-lw: $(WORKER_XCLW) nq-lw.c nestfunc.c $(LIBS)
-	$(GCC) $(OPT)  $(THROPT) $(WORKER_XCLW) nq-lw.c nestfunc.c $(LIBS) -o nq-lw
-grav-lw: $(WORKER_XCLW) grav-lw.c nestfunc.c $(LIBS)
-	$(GCC) $(OPT)  $(THROPT) $(WORKER_XCLW) grav-lw.c nestfunc.c $(LIBS) -o grav-lw
+fib-lw: $(WORKER_LW) fib-lw.c nestfunc.c $(LIBS)
+	$(GCC) $(OPT)  $(THROPT) $(WORKER_LW) fib-lw.c nestfunc.c $(LIBS) -o fib-lw
+lu-lw: $(WORKER_LW) lu-lw.c nestfunc.c $(LIBS)
+	$(GCC) $(OPT)  $(THROPT) $(WORKER_LW) lu-lw.c nestfunc.c $(LIBS) -o lu-lw
+cmp-lw: $(WORKER_LW) cmp-lw.c nestfunc.c $(LIBS)
+	$(GCC) $(OPT)  $(THROPT) $(WORKER_LW) cmp-lw.c nestfunc.c $(LIBS) -o cmp-lw
+pen-lw: $(WORKER_LW) pen-lw.c nestfunc.c $(LIBS)
+	$(GCC) $(OPT)  $(THROPT) $(WORKER_LW) pen-lw.c nestfunc.c $(LIBS) -o pen-lw
+pen6x17-lw: $(WORKER_LW) pen6x17-lw.c nestfunc.c $(LIBS)
+	$(GCC) $(OPT)  $(THROPT) $(WORKER_LW) pen6x17-lw.c nestfunc.c $(LIBS) -o pen6x17-lw
+nq-lw: $(WORKER_LW) nq-lw.c nestfunc.c $(LIBS)
+	$(GCC) $(OPT)  $(THROPT) $(WORKER_LW) nq-lw.c nestfunc.c $(LIBS) -o nq-lw
+grav-lw: $(WORKER_LW) grav-lw.c nestfunc.c $(LIBS)
+	$(GCC) $(OPT)  $(THROPT) $(WORKER_LW) grav-lw.c nestfunc.c $(LIBS) -o grav-lw
 
 # ICC: LW-SC
-fib-icc-lw: $(WORKER_XCLW) fib-lw.c nestfunc.c $(LIBS)
-	$(ICC) $(OPT)  $(THROPT) $(WORKER_XCLW) fib-lw.c nestfunc.c $(LIBS) -o fib-icc-lw
-lu-icc-lw: $(WORKER_XCLW) lu-lw.c nestfunc.c $(LIBS)
-	$(ICC) $(OPT)  $(THROPT) $(WORKER_XCLW) lu-lw.c nestfunc.c $(LIBS) -o lu-icc-lw
-cmp-icc-lw: $(WORKER_XCLW) cmp-lw.c nestfunc.c $(LIBS)
-	$(ICC) $(OPT)  $(THROPT) $(WORKER_XCLW) cmp-lw.c nestfunc.c $(LIBS) -o cmp-icc-lw
-pen-icc-lw: $(WORKER_XCLW) pen-lw.c nestfunc.c $(LIBS)
-	$(ICC) $(OPT)  $(THROPT) $(WORKER_XCLW) pen-lw.c nestfunc.c $(LIBS) -o pen-icc-lw
-pen6x17-icc-lw: $(WORKER_XCLW) pen6x17-lw.c nestfunc.c $(LIBS)
-	$(ICC) $(OPT)  $(THROPT) $(WORKER_XCLW) pen6x17-lw.c nestfunc.c $(LIBS) -o pen6x17-icc-lw
-nq-icc-lw: $(WORKER_XCLW) nq-lw.c nestfunc.c $(LIBS)
-	$(ICC) $(OPT)  $(THROPT) $(WORKER_XCLW) nq-lw.c nestfunc.c $(LIBS) -o nq-icc-lw
-grav-icc-lw: $(WORKER_XCLW) grav-lw.c nestfunc.c $(LIBS)
-	$(ICC) $(OPT)  $(THROPT) $(WORKER_XCLW) grav-lw.c nestfunc.c $(LIBS) -o grav-icc-lw
+fib-icc-lw: $(WORKER_LW) fib-lw.c nestfunc.c $(LIBS)
+	$(ICC) $(OPT)  $(THROPT) $(WORKER_LW) fib-lw.c nestfunc.c $(LIBS) -o fib-icc-lw
+lu-icc-lw: $(WORKER_LW) lu-lw.c nestfunc.c $(LIBS)
+	$(ICC) $(OPT)  $(THROPT) $(WORKER_LW) lu-lw.c nestfunc.c $(LIBS) -o lu-icc-lw
+cmp-icc-lw: $(WORKER_LW) cmp-lw.c nestfunc.c $(LIBS)
+	$(ICC) $(OPT)  $(THROPT) $(WORKER_LW) cmp-lw.c nestfunc.c $(LIBS) -o cmp-icc-lw
+pen-icc-lw: $(WORKER_LW) pen-lw.c nestfunc.c $(LIBS)
+	$(ICC) $(OPT)  $(THROPT) $(WORKER_LW) pen-lw.c nestfunc.c $(LIBS) -o pen-icc-lw
+pen6x17-icc-lw: $(WORKER_LW) pen6x17-lw.c nestfunc.c $(LIBS)
+	$(ICC) $(OPT)  $(THROPT) $(WORKER_LW) pen6x17-lw.c nestfunc.c $(LIBS) -o pen6x17-icc-lw
+nq-icc-lw: $(WORKER_LW) nq-lw.c nestfunc.c $(LIBS)
+	$(ICC) $(OPT)  $(THROPT) $(WORKER_LW) nq-lw.c nestfunc.c $(LIBS) -o nq-icc-lw
+grav-icc-lw: $(WORKER_LW) grav-lw.c nestfunc.c $(LIBS)
+	$(ICC) $(OPT)  $(THROPT) $(WORKER_LW) grav-lw.c nestfunc.c $(LIBS) -o grav-icc-lw
 
 # CL-SC
-fib-clos: $(WORKER_XCCL) fib-clos.c nestfunc.c $(LIBS)
-	$(GCC) $(OPT)  $(THROPT) $(WORKER_XCCL) fib-clos.c nestfunc.c $(LIBS) -o fib-clos
-lu-clos: $(WORKER_XCCL) lu-clos.c nestfunc.c $(LIBS)
-	$(GCC) $(OPT)  $(THROPT) $(WORKER_XCCL) lu-clos.c nestfunc.c $(LIBS) -o lu-clos
-cmp-clos: $(WORKER_XCCL) cmp-clos.c nestfunc.c $(LIBS)
-	$(GCC) $(OPT)  $(THROPT) $(WORKER_XCCL) cmp-clos.c nestfunc.c $(LIBS) -o cmp-clos
-pen-clos: $(WORKER_XCCL) pen-clos.c nestfunc.c $(LIBS)
-	$(GCC) $(OPT)  $(THROPT) $(WORKER_XCCL) pen-clos.c nestfunc.c $(LIBS) -o pen-clos
-pen6x17-clos: $(WORKER_XCCL) pen6x17-clos.c nestfunc.c $(LIBS)
-	$(GCC) $(OPT)  $(THROPT) $(WORKER_XCCL) pen6x17-clos.c nestfunc.c $(LIBS) -o pen6x17-clos
-nq-clos: $(WORKER_XCCL) nq-clos.c nestfunc.c $(LIBS)
-	$(GCC) $(OPT)  $(THROPT) $(WORKER_XCCL) nq-clos.c nestfunc.c $(LIBS) -o nq-clos
-grav-clos: $(WORKER_XCCL) grav-clos.c nestfunc.c $(LIBS)
-	$(GCC) $(OPT)  $(THROPT) $(WORKER_XCCL) grav-clos.c nestfunc.c $(LIBS) -o grav-clos
+fib-clos: $(WORKER_CLSC) fib-clos.c nestfunc.c $(LIBS)
+	$(GCC) $(OPT)  $(THROPT) $(WORKER_CLSC) fib-clos.c nestfunc.c $(LIBS) -o fib-clos
+lu-clos: $(WORKER_CLSC) lu-clos.c nestfunc.c $(LIBS)
+	$(GCC) $(OPT)  $(THROPT) $(WORKER_CLSC) lu-clos.c nestfunc.c $(LIBS) -o lu-clos
+cmp-clos: $(WORKER_CLSC) cmp-clos.c nestfunc.c $(LIBS)
+	$(GCC) $(OPT)  $(THROPT) $(WORKER_CLSC) cmp-clos.c nestfunc.c $(LIBS) -o cmp-clos
+pen-clos: $(WORKER_CLSC) pen-clos.c nestfunc.c $(LIBS)
+	$(GCC) $(OPT)  $(THROPT) $(WORKER_CLSC) pen-clos.c nestfunc.c $(LIBS) -o pen-clos
+pen6x17-clos: $(WORKER_CLSC) pen6x17-clos.c nestfunc.c $(LIBS)
+	$(GCC) $(OPT)  $(THROPT) $(WORKER_CLSC) pen6x17-clos.c nestfunc.c $(LIBS) -o pen6x17-clos
+nq-clos: $(WORKER_CLSC) nq-clos.c nestfunc.c $(LIBS)
+	$(GCC) $(OPT)  $(THROPT) $(WORKER_CLSC) nq-clos.c nestfunc.c $(LIBS) -o nq-clos
+grav-clos: $(WORKER_CLSC) grav-clos.c nestfunc.c $(LIBS)
+	$(GCC) $(OPT)  $(THROPT) $(WORKER_CLSC) grav-clos.c nestfunc.c $(LIBS) -o grav-clos
 
 # ICC: CL-SC
-fib-icc-clos: $(WORKER_XCCL) fib-clos.c nestfunc.c $(LIBS)
-	$(ICC) $(OPT)  $(THROPT) $(WORKER_XCCL) fib-clos.c nestfunc.c $(LIBS) -o fib-icc-clos
-lu-icc-clos: $(WORKER_XCCL) lu-clos.c nestfunc.c $(LIBS)
-	$(ICC) $(OPT)  $(THROPT) $(WORKER_XCCL) lu-clos.c nestfunc.c $(LIBS) -o lu-icc-clos
-cmp-icc-clos: $(WORKER_XCCL) cmp-clos.c nestfunc.c $(LIBS)
-	$(ICC) $(OPT)  $(THROPT) $(WORKER_XCCL) cmp-clos.c nestfunc.c $(LIBS) -o cmp-icc-clos
-pen-icc-clos: $(WORKER_XCCL) pen-clos.c nestfunc.c $(LIBS)
-	$(ICC) $(OPT)  $(THROPT) $(WORKER_XCCL) pen-clos.c nestfunc.c $(LIBS) -o pen-icc-clos
-pen6x17-icc-clos: $(WORKER_XCCL) pen6x17-clos.c nestfunc.c $(LIBS)
-	$(ICC) $(OPT)  $(THROPT) $(WORKER_XCCL) pen6x17-clos.c nestfunc.c $(LIBS) -o pen6x17-icc-clos
-nq-icc-clos: $(WORKER_XCCL) nq-clos.c nestfunc.c $(LIBS)
-	$(ICC) $(OPT)  $(THROPT) $(WORKER_XCCL) nq-clos.c nestfunc.c $(LIBS) -o nq-icc-clos
-grav-icc-clos: $(WORKER_XCCL) grav-clos.c nestfunc.c $(LIBS)
-	$(ICC) $(OPT)  $(THROPT) $(WORKER_XCCL) grav-clos.c nestfunc.c $(LIBS) -o grav-icc-clos
+fib-icc-clos: $(WORKER_CLSC) fib-clos.c nestfunc.c $(LIBS)
+	$(ICC) $(OPT)  $(THROPT) $(WORKER_CLSC) fib-clos.c nestfunc.c $(LIBS) -o fib-icc-clos
+lu-icc-clos: $(WORKER_CLSC) lu-clos.c nestfunc.c $(LIBS)
+	$(ICC) $(OPT)  $(THROPT) $(WORKER_CLSC) lu-clos.c nestfunc.c $(LIBS) -o lu-icc-clos
+cmp-icc-clos: $(WORKER_CLSC) cmp-clos.c nestfunc.c $(LIBS)
+	$(ICC) $(OPT)  $(THROPT) $(WORKER_CLSC) cmp-clos.c nestfunc.c $(LIBS) -o cmp-icc-clos
+pen-icc-clos: $(WORKER_CLSC) pen-clos.c nestfunc.c $(LIBS)
+	$(ICC) $(OPT)  $(THROPT) $(WORKER_CLSC) pen-clos.c nestfunc.c $(LIBS) -o pen-icc-clos
+pen6x17-icc-clos: $(WORKER_CLSC) pen6x17-clos.c nestfunc.c $(LIBS)
+	$(ICC) $(OPT)  $(THROPT) $(WORKER_CLSC) pen6x17-clos.c nestfunc.c $(LIBS) -o pen6x17-icc-clos
+nq-icc-clos: $(WORKER_CLSC) nq-clos.c nestfunc.c $(LIBS)
+	$(ICC) $(OPT)  $(THROPT) $(WORKER_CLSC) nq-clos.c nestfunc.c $(LIBS) -o nq-icc-clos
+grav-icc-clos: $(WORKER_CLSC) grav-clos.c nestfunc.c $(LIBS)
+	$(ICC) $(OPT)  $(THROPT) $(WORKER_CLSC) grav-clos.c nestfunc.c $(LIBS) -o grav-icc-clos
 
 # XCC nested function (lightweight)
-fib-xcc: $(WORKER) fib-xcc.c $(LIBS)
-	$(XCC) $(OPT) $(XCCOPT) $(THROPT) $(WORKER) fib-xcc.c $(LIBS) -o fib-xcc
-lu-xcc: $(WORKER) lu-xcc.c $(LIBS)
-	$(XCC) $(OPT) $(XCCOPT) $(THROPT) $(WORKER) lu-xcc.c $(LIBS) -o lu-xcc
-cmp-xcc: $(WORKER) cmp-xcc.c $(LIBS)
-	$(XCC) $(OPT) $(XCCOPT) $(THROPT) $(WORKER) cmp-xcc.c $(LIBS) -o cmp-xcc
-pen-xcc: $(WORKER) pen-xcc.c $(LIBS)
-	$(XCC) $(OPT) $(XCCOPT) $(THROPT) $(WORKER) pen-xcc.c $(LIBS) -o pen-xcc
-pen6x17-xcc: $(WORKER) pen6x17-xcc.c $(LIBS)
-	$(XCC) $(OPT) $(XCCOPT) $(THROPT) $(WORKER) pen6x17-xcc.c $(LIBS) -o pen6x17-xcc
-nq-xcc: $(WORKER) nq-xcc.c $(LIBS)
-	$(XCC) $(OPT) $(XCCOPT) $(THROPT) $(WORKER) nq-xcc.c $(LIBS) -o nq-xcc
-grav-xcc: $(WORKER) grav-xcc.c $(LIBS)
-	$(XCC) $(OPT) $(XCCOPT) $(THROPT) $(WORKER) grav-xcc.c $(LIBS) -o grav-xcc
+fib-xcc: $(WORKER_XCC) fib-xcc.c $(LIBS)
+	$(XCC) $(OPT) $(XCCOPT) $(THROPT) $(WORKER_XCC) fib-xcc.c $(LIBS) -o fib-xcc
+lu-xcc: $(WORKER_XCC) lu-xcc.c $(LIBS)
+	$(XCC) $(OPT) $(XCCOPT) $(THROPT) $(WORKER_XCC) lu-xcc.c $(LIBS) -o lu-xcc
+cmp-xcc: $(WORKER_XCC) cmp-xcc.c $(LIBS)
+	$(XCC) $(OPT) $(XCCOPT) $(THROPT) $(WORKER_XCC) cmp-xcc.c $(LIBS) -o cmp-xcc
+pen-xcc: $(WORKER_XCC) pen-xcc.c $(LIBS)
+	$(XCC) $(OPT) $(XCCOPT) $(THROPT) $(WORKER_XCC) pen-xcc.c $(LIBS) -o pen-xcc
+pen6x17-xcc: $(WORKER_XCC) pen6x17-xcc.c $(LIBS)
+	$(XCC) $(OPT) $(XCCOPT) $(THROPT) $(WORKER_XCC) pen6x17-xcc.c $(LIBS) -o pen6x17-xcc
+nq-xcc: $(WORKER_XCC) nq-xcc.c $(LIBS)
+	$(XCC) $(OPT) $(XCCOPT) $(THROPT) $(WORKER_XCC) nq-xcc.c $(LIBS) -o nq-xcc
+grav-xcc: $(WORKER_XCC) grav-xcc.c $(LIBS)
+	$(XCC) $(OPT) $(XCCOPT) $(THROPT) $(WORKER_XCC) grav-xcc.c $(LIBS) -o grav-xcc
 
 # XCC nested function (closure)
-fib-xcccl: $(WORKER) fib-xcccl.c $(LIBS)
-	$(XCC) $(OPT) $(XCCCLOPT) $(THROPT) $(WORKER) fib-xcccl.c $(LIBS) -o fib-xcccl
-lu-xcccl: $(WORKER) lu-xcccl.c $(LIBS)
-	$(XCC) $(OPT) $(XCCCLOPT) $(THROPT) $(WORKER) lu-xcccl.c $(LIBS) -o lu-xcccl
-cmp-xcccl: $(WORKER) cmp-xcccl.c $(LIBS)
-	$(XCC) $(OPT) $(XCCCLOPT) $(THROPT) $(WORKER) cmp-xcccl.c $(LIBS) -o cmp-xcccl
-pen-xcccl: $(WORKER) pen-xcccl.c $(LIBS)
-	$(XCC) $(OPT) $(XCCCLOPT) $(THROPT) $(WORKER) pen-xcccl.c $(LIBS) -o pen-xcccl
-pen6x17-xcccl: $(WORKER) pen6x17-xcccl.c $(LIBS)
-	$(XCC) $(OPT) $(XCCCLOPT) $(THROPT) $(WORKER) pen6x17-xcccl.c $(LIBS) -o pen6x17-xcccl
-nq-xcccl: $(WORKER) nq-xcccl.c $(LIBS)
-	$(XCC) $(OPT) $(XCCCLOPT) $(THROPT) $(WORKER) nq-xcccl.c $(LIBS) -o nq-xcccl
-grav-xcccl: $(WORKER) grav-xcccl.c $(LIBS)
-	$(XCC) $(OPT) $(XCCCLOPT) $(THROPT) $(WORKER) grav-xcccl.c $(LIBS) -o grav-xcccl
+fib-xcccl: $(WORKER_XCCCL) fib-xcccl.c $(LIBS)
+	$(XCC) $(OPT) $(XCCCLOPT) $(THROPT) $(WORKER_XCCCL) fib-xcccl.c $(LIBS) -o fib-xcccl
+lu-xcccl: $(WORKER_XCCCL) lu-xcccl.c $(LIBS)
+	$(XCC) $(OPT) $(XCCCLOPT) $(THROPT) $(WORKER_XCCCL) lu-xcccl.c $(LIBS) -o lu-xcccl
+cmp-xcccl: $(WORKER_XCCCL) cmp-xcccl.c $(LIBS)
+	$(XCC) $(OPT) $(XCCCLOPT) $(THROPT) $(WORKER_XCCCL) cmp-xcccl.c $(LIBS) -o cmp-xcccl
+pen-xcccl: $(WORKER_XCCCL) pen-xcccl.c $(LIBS)
+	$(XCC) $(OPT) $(XCCCLOPT) $(THROPT) $(WORKER_XCCCL) pen-xcccl.c $(LIBS) -o pen-xcccl
+pen6x17-xcccl: $(WORKER_XCCCL) pen6x17-xcccl.c $(LIBS)
+	$(XCC) $(OPT) $(XCCCLOPT) $(THROPT) $(WORKER_XCCCL) pen6x17-xcccl.c $(LIBS) -o pen6x17-xcccl
+nq-xcccl: $(WORKER_XCCCL) nq-xcccl.c $(LIBS)
+	$(XCC) $(OPT) $(XCCCLOPT) $(THROPT) $(WORKER_XCCCL) nq-xcccl.c $(LIBS) -o nq-xcccl
+grav-xcccl: $(WORKER_XCCCL) grav-xcccl.c $(LIBS)
+	$(XCC) $(OPT) $(XCCCLOPT) $(THROPT) $(WORKER_XCCCL) grav-xcccl.c $(LIBS) -o grav-xcccl
 
 
 # ¤â¤È¤ÎC Version

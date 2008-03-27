@@ -22,14 +22,14 @@
 ;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 ;;; SUCH DAMAGE.
 
-;;;; worker4.sc以降より
 ;;;; コマンドのシリアライズ・デシリアライズ関数
 (c-exp "#include <pthread.h>")
 (%include "rule/nestfunc-setrule.sh")
 
 (c-exp "#include<stdio.h>")
 (c-exp "#include<stdlib.h>")
-(%include "worker4.sh")
+(c-exp "#include<string.h>")
+(%include "worker.sh")
 
 
 ;; (enum node)の値が配列添字に対応

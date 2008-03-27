@@ -79,7 +79,6 @@
 (def (nqueens n k ix iy tsk)
     (wfn int int int int int (ptr (struct nqueens)))
   (def s int 0)
-  (= tsk-copy (mref tsk))
   (do-many for i from ix to iy
     (def ai int (aref (fref tsk -> a) i))
     ;; 駒が置けるかチェック

@@ -28,11 +28,13 @@
 
 (c-exp "#include<stdio.h>")
 (c-exp "#include<stdlib.h>")
+(c-exp "#include<string.h>")
+(c-exp "#include<math.h>")
 (c-exp "#include<pthread.h>")
 (c-exp "#include<sys/time.h>")
 (c-exp "#include<getopt.h>")
 #+tcell-gtk (c-exp "#include<gtk/gtk.h>")
-(%include "worker4.sh")
+(%include "worker.sh")
 
 (def (systhr-create start-func arg)
     (fn int (ptr (fn (ptr void) (ptr void))) (ptr void))
@@ -170,11 +172,11 @@
 (def (csym::flush-treq-with-none thr) (csym::fn void (ptr (struct thread-data)))
   (def rcmd (struct cmd))
   (def hx (ptr (struct task-home)))
-  (= rcmd.c 1)                          ; 4でへらした
+  (= rcmd.c 1)
   (= rcmd.w NONE)
   (while (= hx thr->treq-top)
     (= rcmd.node hx->req-from)          ; 外部or内部
-    (csym::copy-address (aref rcmd.v 0) hx->task-head) ; 4でへらした
+    (csym::copy-address (aref rcmd.v 0) hx->task-head)
     (csym::send-command (ptr rcmd) 0 0)
     (= thr->treq-top hx->next)          ; treqスタックをpop
     (= hx->next thr->treq-free)         ; フリーリストに...

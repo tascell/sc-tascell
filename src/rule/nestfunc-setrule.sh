@@ -57,7 +57,7 @@
 %else
 (%if* (eq 'NF-TYPE 'XCCCL)
   (%defconstant NESTFN lightweight)
-  (%sc2c (:sxcc2c :closure-keyword "lightweight"))
+  (%sc2c (:sxcc2c :closure-keyword "closure"))
   (%output-file INPUTFILE-NAME "-xcccl")
 %else
   (%error "Unknown NF-TYPE!")

@@ -71,6 +71,9 @@
 ;; with XC-cube lightweight nested functions
 (defun sc2c-xcc (filename &rest args)
   (apply #'sc-main:sc2c filename :predefinitions ~((%defconstant NF-TYPE XCC)) args))
+;; with XC-cube closure nested functions
+(defun sc2c-xcccl (filename &rest args)
+  (apply #'sc-main:sc2c filename :predefinitions ~((%defconstant NF-TYPE XCCCL)) args))
 ;; with GCC nested functions
 (defun sc2c-gcc (filename &rest args)
   (apply #'sc-main:sc2c filename :predefinitions ~((%defconstant NF-TYPE GCC)) args))

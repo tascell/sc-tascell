@@ -79,7 +79,7 @@
 ;; task番号と処理関数への対応表（配列）を定義するコード
 (defun task-maps ()
   (let ((rev-tasks (reverse *tasks*))
-        (len ~TASK-MAX)                 ; worker4.sh で %defconstant
+        (len ~TASK-MAX)                 ; worker.sh で %defconstant
         (doer-type      ~(ptr ,(task-body-type ~void)))
         (tsender-type   ~(ptr ,(task-sender-type ~void)))
         (treceiver-type ~(ptr ,(task-receiver-type ~void)))
