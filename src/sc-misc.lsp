@@ -236,10 +236,21 @@
     (setq pathname (pathname pathname)))
   (unless (or (null newext) (stringp newext))
     (setq newext (string-downcase (string newext))))
-  (make-pathname
-   :name (pathname-name pathname)
-   :type newext
-   :directory (pathname-directory pathname)))
+  #-clisp (make-pathname
+           :name (pathname-name pathname)
+           :type newext
+           :directory (pathname-directory pathname))
+  #+clisp (let* ((pname-name (pathname-name pathname))
+                 (dot-pos (position #\. pname-name))
+                 (name (if (and dot-pos (> dot-pos 0))
+                           (subseq pname-name 0 dot-pos)
+                         pname-name)))
+            (make-pathname
+             :name (string+ name #\. newext)
+             :type nil
+             :directory (pathname-directory pathname))
+            )
+  )
 
 ;;; ファイル名の拡張子獲得
 (defun get-extension (pathname)
