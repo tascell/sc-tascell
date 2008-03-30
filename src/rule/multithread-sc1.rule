@@ -22,7 +22,7 @@
 ;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 ;;; SUCH DAMAGE.
 
-(define-ruleset multithread-sc1 (sc1))
+(define-ruleset multithread-sc1 (sc1-to-sc0))
 
 ;; マルチスレッド用プリミティブ
 (extendrule statement multithread-sc1
