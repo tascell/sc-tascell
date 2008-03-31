@@ -177,20 +177,19 @@
                  (return))
                ~((return ,return-exp)))))) )
   ;;; <--- マルチスレッド用プリミティブ
-  ((#?(thread-create (,@decl-list) ,@body))
-   (let* ((thrc-decl (mapcar #'mtcreate-decl decl-list))
-          (ln (1+ (length (mt:finfo-label mt:*current-func*))))
+  ((#?(thread-create ,@body))
+   (let* ((ln (1+ (length (mt:finfo-label mt:*current-func*))))
           (label-l (generate-id (string+ "L" (write-to-string ln))))
           (nfunc-id (mt:make-nestfunc-id (ruleset-param 'nthr-id))))
      (push (list label-l nil)
            (mt:finfo-label mt:*current-func*))
-     (let* ((prev-tcreate 
-             ~(begin 
+     (let* ((prev-tcreate
+             ~(begin
                (= ln ,ln)
                (= (fref thst_top -> c) ,(mt:finfo-nfunc-id mt:*current-func*))
                (= (fref thst_top -> stat) thr_new_runnable)
                (inc thst_top)))
-            (post-tcreate 
+            (post-tcreate
              ~(if (!= (fref (- thst_top 1) -> stat) thr_new_runnable)
                   (scheduling)
                   (dec thst_top)))
@@ -201,17 +200,14 @@
                                 :nfunc-id nfunc-id)))
        (push ~(def ln int 0) (mt:finfo-decl mt:*current-func*))
        (let* ((fb-body (function-body body))
-              (tcre-body ~(,@thrc-decl
-                           ,@(mt:finfo-decl mt:*current-func*)
-                           ,(mt:make-nestfunc (first fb-body))
-                           ,@(second fb-body))))
-         (list ~(,prev-tcreate
-                 (begin ,@tcre-body)
-                 ,post-tcreate
+              (common ~(,prev-tcreate
+                        (begin ,@(mt:finfo-decl mt:*current-func*)
+                               ,(mt:make-nestfunc (first fb-body))
+                               ,@(second fb-body))
+                        ,post-tcreate)))
+         (list ~(,@common
                  (label ,label-l nil))
-               ~(,prev-tcreate
-                 (begin ,@tcre-body)
-                 ,post-tcreate))))) )
+               ~(,@common)) ))))
   ;;
   ((#?(thread-suspend ,id[identifier] ,@body))
    (let* ((ln (1+ (length (mt:finfo-label mt:*current-func*))))

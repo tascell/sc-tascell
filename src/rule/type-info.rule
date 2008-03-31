@@ -110,8 +110,8 @@
    ;;~(deftype ,id ,texp)
    '(splice) )
   ;; c-exp
-  ((#?(c-exp ,@rem))
-   x)
+  ((#?(c-exp ,str ,@exprs))
+   ~(c-exp ,str ,@(mapcar #'expression exprs)))
   )
 
 (defrule type-expression type-info

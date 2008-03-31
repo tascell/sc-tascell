@@ -25,15 +25,15 @@
 (define-ruleset multithread-temp (temp))
 
 ;; マルチスレッド用プリミティブ
-(extendrule block-item multithread-temp
-  ((#?(thread-create ,decl-list ,@body))
-   (let* ((tmpbody (function-body body))
-          (add-decl (first tmpbody))
-          (newbody (second tmpbody)))
-     (list ~() ~() ~(thread-create ,(append decl-list add-decl) ,@newbody))) )
-  ((#?(thread-suspend ,var ,@body))
-   (list ~() ~() ~(thread-suspend ,var ,@body)) )
-  ((#?(thread-resume ,exp))
-   (let ((tmpexp (sub-expression exp)))
-     (list (first tmpexp) (second tmpexp) ~(thread-resume ,(third tmpexp)))) )
+(extendrule statement multithread-temp
+  (#?(thread-create ,decl-list ,@body)
+   ~(thread-create ,@(function-body body)) )
+  (#?(thread-suspend ,var ,@body)
+   ~(thread-suspend ,var ,@(function-body body)) )
+  (#?(thread-resume ,exp)
+   (temp:with-new-block-item 1
+     (let ((exp-ret (expression! exp)))
+       (aif (temp:flush-precedents)
+           ~(begin ,.it (thread-resume ,exp-ret))
+         ~(thread-resume ,exp-ret) ))))
   )
