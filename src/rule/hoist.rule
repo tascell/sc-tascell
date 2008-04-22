@@ -23,8 +23,10 @@
 ;;; SUCH DAMAGE.
 
 ;;; hoisting.rule: move all the declarations to the beginning of a function body.
+;;; This transformation should be applied after rename.rule.
 
-;;; rename.rule を適用済みであること。
+;;; to be rewritten as an extension of the sc0t-to-sc0t rule-set.
+
 ;;; !!! initializer が副作用を起こす場合は、正しく動作しない
 
 (defpackage "HOIST"
@@ -106,9 +108,9 @@
    (let ((*top-level* nil))
      (multiple-value-bind (sepbody1 sepbody2)  ; 先頭の宣言が終わる前後で分割
 	 (list-until-if #'(lambda (bi)
-			    (and (consp bi)
-				 (or (storage-class-specifier (first bi))
-				     (deftype-tag (first bi)))))
+                            (not (and (consp bi)
+                                      (declaration-tag? (first bi) :sc2c))))
+                        body
 			:key #'car)
        (let ((fb-sepbody2 (function-body sepbody2)))
 	 (list ~((,scs (,@id-list) (,fn-tag ,@texp-list) 
@@ -122,7 +124,7 @@
     #?(deftype ,id[identifier] ,texp)) ; deftype
    (list ~(,x) nil))
   (otherwise
-   (list ~(,x) nil))
+   (list () x))
   )
 
 ;;;;;;; body +α ;;;;;;
@@ -153,13 +155,13 @@
    (list nil x))
   ;;if
   ((#?(if ,exp ,stat1 ,@stat2))
-   (let ((hsb-stat1 (block-item stat1))
-	 (hsb-stat2 (if stat2 (block-item (car stat2)) nil)))
+   (let ((stat1-ret (block-item stat1))
+	 (stat2-ret (if stat2 (block-item (car stat2)) nil)))
      (if stat2
-	 (list (append (first hsb-stat1) (first hsb-stat2))
-	       ~(if ,exp ,(second hsb-stat1) ,(second hsb-stat2)))
-	 (list (first hsb-stat1)
-	       ~(if ,exp ,(second hsb-stat1))))))
+	 (list (append (first stat1-ret) (first stat2-ret))
+	       ~(if ,exp ,(second stat1-ret) ,(second stat2-ret)))
+	 (list (first stat1-ret)
+	       ~(if ,exp ,(second stat1-ret))))))
   ;;switch
   ((#?(switch ,exp ,@body))
    (let ((fb-body (function-body body)))
@@ -179,4 +181,3 @@
   (otherwise
    (declaration x) )
   )
-

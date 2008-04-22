@@ -26,15 +26,14 @@
 
 ;; マルチスレッド用プリミティブ
 (extendrule block-item multithread-hoist
-  ((#?(thread-create ,decl-list ,@body) )
-   (let ((hs2-body (function-body body)))
-     (list nil
-	   ~(thread-create ,(append decl-list (first hs2-body))
-	     ,@(second hs2-body)))))
+  ((#?(thread-create ,@body) )
+   (let ((body-ret (function-body body)))
+     (list (first body-ret)
+	   ~(thread-create ,@(second body-ret)))))
   ((#?(thread-suspend ,id ,@body) )
-   (let ((hs2-body (function-body body)))
-     (list (first hs2-body)
-	   ~(thread-suspend ,id ,@(second hs2-body)))) )
+   (let ((body-ret (function-body body)))
+     (list (first body-ret)
+	   ~(thread-suspend ,id ,@(second body-ret)))) )
   ((#?(thread-resume ,exp))
    (list nil x) )
   )

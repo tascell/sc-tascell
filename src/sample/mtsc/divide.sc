@@ -78,6 +78,6 @@
 
 (def (msc-main argc argv) (fn int int (ptr (ptr char)))
   (def n int 100)
-  (def m int 50)
+  (def m int 1)
   (divide-work n m)
   (return 0))

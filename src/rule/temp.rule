@@ -26,6 +26,7 @@
 
 (define-ruleset temp (sc0t-to-sc0t)
   (ignore-cfn t)                        ; csymの関数呼出し，csymの関数定義は変形しない
+  (decl-each-block nil)                 ; tmpの宣言を，t: 関数の先頭 nil: 各ブロックの先頭
   )
 
 (scr:require "TEMP-DEFS")

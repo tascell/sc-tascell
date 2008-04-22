@@ -26,11 +26,9 @@
 
 ;; マルチスレッド用プリミティブ
 (extendrule block-item multithread-rename
-  ((#?(thread-create ,decl-list ,@body) )
+  ((#?(thread-create ,@body) )
    (ren:inc-block-level
-    (let* ((new-decl-list (mapcar #'declaration decl-list))
-           (new-body (function-body body)))
-      ~(thread-create ,new-decl-list ,@new-body) )))
+    ~(thread-create ,@(function-body body)) ))
   ((#?(thread-suspend ,id[identifier] ,@body) )
    (ren:inc-block-level
     (let* ((ren:repl-id (ren:bind-id id))
