@@ -33,7 +33,7 @@
 
 (def (pfib n) (fn int int)
   (def x int) (def y int) (def nn int 0) (def c cont 0)
-  (if (<= n 2)
+  (if (<= n 1)
       (return 1)
       (begin
        (thread-create

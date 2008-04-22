@@ -67,7 +67,7 @@
               (new-body (second sep-body))
               (add-decl (mt:finfo-decl mt:*current-func*)))
          (list nil 
-               ~((,scs (,func-id c_p ,@arg-id)
+               ~((,scs (,func-id c-p ,@arg-id)
                        (fn ,func-texp cont-f ,@arg-texp)
                         ,@new-decl ,@add-decl ,def-nfunc ,@new-body)
                  ;;msc-main関数なら、main関数の定義を追加
@@ -173,7 +173,7 @@
                ~((return)))
        (let ((return-exp (car (first (expression (car exp))))))
          (list ~((= (mref (cast (ptr ,(mt:finfo-rettype mt:*current-func*))
-                            (c_p cp rsn_retval)))
+                            (c-p cp rsn-retval)))
                     ,return-exp)
                  ,@caller-resume
                  (return))
@@ -188,13 +188,13 @@
      (let* ((prev-tcreate
              ~(begin
                (= ln ,ln)
-               (= (fref thst_top -> c) ,(mt:finfo-nfunc-id mt:*current-func*))
-               (= (fref thst_top -> stat) thr_new_runnable)
-               (inc thst_top)))
+               (= (fref thst-top -> c) ,(mt:finfo-nfunc-id mt:*current-func*))
+               (= (fref thst-top -> stat) thr-new-runnable)
+               (inc thst-top)))
             (post-tcreate
-             ~(if (!= (fref (- thst_top 1) -> stat) thr_new_runnable)
+             ~(if (!= (fref (- thst-top 1) -> stat) thr-new-runnable)
                   (scheduling)
-                  (dec thst_top)))
+                  (dec thst-top)))
             (rettype (mt:finfo-rettype mt:*current-func*))
             (mt:*current-func* (mt:make-finfo
                                 :id nil
@@ -218,26 +218,26 @@
           (label-l (generate-id (string+ "L" (write-to-string ln)))) )
      ;; (print var-c)(print ~ccc)  
      (push (list label-l nil) (mt:finfo-label mt:*current-func*))
-     #| (setf (mt:finfo-id mt:*current-func*) thr_s) |#
+     #| (setf (mt:finfo-id mt:*current-func*) thr-s) |#
      (push ~(def ,id thst-ptr) (mt:finfo-decl mt:*current-func*))
      (list ~((begin 
               (= ,id cp)
               (= (fref ,id -> c) ,nfunc-id)
-              (= (fref ,id -> stat) thr_suspended)
+              (= (fref ,id -> stat) thr-suspended)
               ,@(first fb-body)
               (= ln ,ln)
               (return))
              (label ,label-l nil))      
            ~((begin 
-              (= ,id (inc thst_top))
+              (= ,id (inc thst-top))
               (= (fref ,id -> c) ,nfunc-id)
-              (= (fref ,id -> stat) thr_new_suspended)
+              (= (fref ,id -> stat) thr-new-suspended)
               ,@(second fb-body)
               (= ln ,ln)
               (scheduling))))) )
   ((#?(thread-resume ,exp))
-   (list ~((thr_resume ,exp))
-         ~((thr_resume ,exp))) )
+   (list (list ~(thr-resume ,exp))
+         (list ~(thr-resume ,exp))) )
   ;;; マルチスレッド用プリミティブ --->
   ;; null statement
   ((#?() )
@@ -270,11 +270,11 @@
   ;; function-call
   ;; ・引数の値を保存
   ;; ・呼び出す関数のポインタも保存
-  ((#? #1=(the ,texp (call (the (,fn-tag[function-tag] ,fexp1 ,@fexp) ,exp-f)
+  ((#? #1=(the ,texp (call (the (ptr (,fn-tag[function-tag] ,fexp1 ,@fexp)) ,exp-f)
                            ,@arg-list))
     #?(the ,texp0 (= (the ,texp1 ,id) #1#)))
-   (if (or (cid-p fexp) (eq 'csym::fn fn-tag))
-       (list x x)
+   (if (or (cid-p exp-f) (eq 'csym::fn fn-tag))
+       (list (list x) (list x))
      (let* ((nfunc-id (mt:finfo-nfunc-id mt:*current-func*))
             (ln (1+ (length (mt:finfo-label mt:*current-func*))))	 
             (label-l (generate-id (string+ "L" (write-to-string ln))))
@@ -286,8 +286,8 @@
             (new-exp (if-pattern-variable id ~(= ,id ,call-exp) call-exp)))
        (push (list label-l tmp-id)
              (mt:finfo-label mt:*current-func*))
-       (list ~(,renew-ln ,new-exp ,label-stat)
-             ~(,renew-ln ,new-exp ))) ))
+       (list (list renew-ln new-exp label-stat)
+             (list renew-ln new-exp)) )))
   ;; その他の式，c-exp
   ((#?(the ,@rem))
    (list (list x) (list x)) )

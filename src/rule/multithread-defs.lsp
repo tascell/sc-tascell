@@ -122,9 +122,9 @@
 	  (return))
 	  #|
 	  ,@(cond 
-	     ((eq `thr_c flag)
+	     ((eq `thr-c flag)
 	      `((return)))
-	     ((eq `thr_s flag)
+	     ((eq `thr-s flag)
 	      returninfos)
 	     (t
 	      returninfo))

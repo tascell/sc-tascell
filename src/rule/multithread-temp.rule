@@ -26,7 +26,7 @@
 
 ;; マルチスレッド用プリミティブ
 (extendrule statement multithread-temp
-  (#?(thread-create ,decl-list ,@body)
+  (#?(thread-create ,@body)
    ~(thread-create ,@(function-body body)) )
   (#?(thread-suspend ,var ,@body)
    ~(thread-suspend ,var ,@(function-body body)) )

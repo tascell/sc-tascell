@@ -33,6 +33,6 @@
    (type:with-new-environment
      (type:add-variable id ~thst-ptr)
      ~(thread-suspend ,id ,@(function-body! body))) )
-  (#?(thread-resume exp)
+  (#?(thread-resume ,exp)
    ~(thread-resume ,(expression! exp)) )
   )
