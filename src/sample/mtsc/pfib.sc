@@ -38,20 +38,19 @@
       (begin
        (thread-create
         (= x (pfib (- n 1)))
-    (inc nn)
-    (if (== nn 0)
-        (thread-resume c)))
-  (= y (pfib (- n 2)))
-  (= nn (- nn 1))
-  (if (< nn 0)
-      (thread-suspend c0
-        (= c c0)))
-  (return (+ x y)))))
+        (inc nn)
+        (if (== nn 0)
+            (thread-resume c)))
+       (= y (pfib (- n 2)))
+       (= nn (- nn 1))
+       (if (< nn 0)
+           (thread-suspend c0
+                           (= c c0)))
+       (return (+ x y)))))
 
 (def (msc-main argc argv) (fn int int (ptr (ptr char)))
   (def n int 4)
   (if (> argc 1)
-      (= n (c-exp "atoi(~A)" (aref argv 1))))
-  (c-exp "printf(~A, ~A, ~A);" "fib(%d)=%d~%" n (pfib n))
+      (= n (csym::atoi (aref argv 1))))
+  (csym::printf "fib(%d)=%d~%" n (pfib n))
   (return n))
-

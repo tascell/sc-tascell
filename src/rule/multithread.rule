@@ -51,26 +51,28 @@
   ((#?(,scs[storage-class-specifier] ,id[identifier] ,texp ,@init))
    (list nil (list x)))
   ;; function
-  ((#?(,scs[storage-class-specifier] (,func-id ,@arg-id[identifier]) (fn ,func-texp ,@arg-texp) ,@body))
-   (let ((mt:*current-func*
-          (mt:make-finfo
-           :id func-id
-           :rettype func-texp
-           :nfunc-id (mt:make-nestfunc-id func-id))))
-     (push ~(def ln int 0) (mt:finfo-decl mt:*current-func*))
-     (let* ((fb-body (function-body body))
-            (def-nfunc (mt:make-nestfunc (first fb-body)))
-            (sep-body (mt:separate-decl (second fb-body)))
-            (new-decl (first sep-body))
-            (new-body (second sep-body))
-            (add-decl (mt:finfo-decl mt:*current-func*)))
-       (list nil 
-             ~((,scs (,func-id c_p ,@arg-id)
-                     (fn ,func-texp cont-f ,@arg-texp)
-                     ,@new-decl ,@add-decl ,def-nfunc ,@new-body)
-               ;;msc-main関数なら、main関数の定義を追加
-               ,@(when (eq ~msc-main func-id) 
-                   ~((%include "rule/multithread-main.sc"))))))) )
+  ((#?(,scs[storage-class-specifier] (,func-id ,@arg-id[identifier])
+           (,fn-tag[function-tag] ,func-texp ,@arg-texp) ,@body))
+   (if (or (cid-p func-id) (eq 'csym::fn fn-tag)) (list nil (list x))
+     (let ((mt:*current-func*
+            (mt:make-finfo
+             :id func-id
+             :rettype func-texp
+             :nfunc-id (mt:make-nestfunc-id func-id))))
+       (push ~(def ln int 0) (mt:finfo-decl mt:*current-func*))
+       (let* ((fb-body (function-body body))
+              (def-nfunc (mt:make-nestfunc (first fb-body)))
+              (sep-body (mt:separate-decl (second fb-body)))
+              (new-decl (first sep-body))
+              (new-body (second sep-body))
+              (add-decl (mt:finfo-decl mt:*current-func*)))
+         (list nil 
+               ~((,scs (,func-id c_p ,@arg-id)
+                       (fn ,func-texp cont-f ,@arg-texp)
+                        ,@new-decl ,@add-decl ,def-nfunc ,@new-body)
+                 ;;msc-main関数なら、main関数の定義を追加
+                 ,@(when (eq ~msc-main func-id) 
+                     ~((%include "rule/multithread-main.sc"))))) ))))
   ;; struct, union
   ((#?(,dd[def-or-decl] (,soru[struct-or-union] ,id[identifier]) ,@sdeclist))
    (list nil (list x)) )
@@ -104,11 +106,11 @@
      (list (first newbody)
            ~((register ,@regarg) ,@(second newbody)))) )
   ((#?(,@item-list))
-   (let* ((function-body-ilist (mapcar #'block-item item-list))
-          (cen-function-body-ilist (combine-each-nth function-body-ilist))
-          (nest-list (apply #'append (first cen-function-body-ilist)))
-          (ori-list  (apply #'append (second cen-function-body-ilist))))
-     (list nest-list ori-list)) )
+   (let* ((bitem-rets (mapcar #'block-item item-list))
+          (comb-rets (combine-each-nth bitem-rets))
+          (nest-list (apply #'append (first comb-rets)))
+          (orig-list  (apply #'append (second comb-rets))))
+     (list nest-list orig-list)) )
   )
 
 (defrule block-item multithread
@@ -268,23 +270,24 @@
   ;; function-call
   ;; ・引数の値を保存
   ;; ・呼び出す関数のポインタも保存
-  ((#?(the ,texp (call (the (fn ,fexp1 ,@fexp) ,exp-f) ,@arg-list))
-    #?(the ,texp0
-           (= (the ,texp1 ,id)
-              (the ,texp (call (the (fn ,fexp1 ,@fexp) ,exp-f) ,@arg-list)))) )
-   (let* ((nfunc-id (mt:finfo-nfunc-id mt:*current-func*))
-          (ln (1+ (length (mt:finfo-label mt:*current-func*))))	 
-          (label-l (generate-id (string+ "L" (write-to-string ln))))
-          (renew-ln ~(= ln ,ln))
-          (label-stat ~(label ,label-l nil))
-          (tmp-id (if-pattern-variable id id nil))
-          ;; 第1引数に入れ子関数へのポインタを追加
-          (call-exp ~(,exp-f ,nfunc-id ,@arg-list))
-          (new-exp (if-pattern-variable id ~(= ,id ,call-exp) call-exp)))
-     (push (list label-l tmp-id)
-           (mt:finfo-label mt:*current-func*))
-     (list ~(,renew-ln ,new-exp ,label-stat)
-           ~(,renew-ln ,new-exp ))) )
+  ((#? #1=(the ,texp (call (the (,fn-tag[function-tag] ,fexp1 ,@fexp) ,exp-f)
+                           ,@arg-list))
+    #?(the ,texp0 (= (the ,texp1 ,id) #1#)))
+   (if (or (cid-p fexp) (eq 'csym::fn fn-tag))
+       (list x x)
+     (let* ((nfunc-id (mt:finfo-nfunc-id mt:*current-func*))
+            (ln (1+ (length (mt:finfo-label mt:*current-func*))))	 
+            (label-l (generate-id (string+ "L" (write-to-string ln))))
+            (renew-ln ~(= ln ,ln))
+            (label-stat ~(label ,label-l nil))
+            (tmp-id (if-pattern-variable id id nil))
+            ;; 第1引数に入れ子関数へのポインタを追加
+            (call-exp ~(,exp-f ,nfunc-id ,@arg-list))
+            (new-exp (if-pattern-variable id ~(= ,id ,call-exp) call-exp)))
+       (push (list label-l tmp-id)
+             (mt:finfo-label mt:*current-func*))
+       (list ~(,renew-ln ,new-exp ,label-stat)
+             ~(,renew-ln ,new-exp ))) ))
   ;; その他の式，c-exp
   ((#?(the ,@rem))
    (list (list x) (list x)) )
