@@ -84,15 +84,13 @@
 (defun make-nestfunc-id (f-id)  
   (generate-id (string+ (identifier f-id) "_c")))
 
-; separate declarations from the others in block-item-list
+; block-item-listから先頭の宣言部分を取り出す
 (defun separate-decl (bil &aux dcl-list oth-list)
-  (dolist (bi bil (list (reverse dcl-list) (reverse oth-list)))
-    (if (and (listp bi)
-	     (or (storage-class-specifier (first bi))
-		 (eq ~deftype (first bi)))
-	     (identifier (second bi)))
+  (dolist (bi bil (list (nreverse dcl-list) (nreverse oth-list)))
+    (if (and (consp bi)
+	     (rule:declaration-tag? (first bi) :sc2c))
 	(push bi dcl-list)
-      (push bi oth-list))))
+        (push bi oth-list))))
 
 ;; 入れ子関数の定義を生成
 (defun make-nestfunc (nf-body)
