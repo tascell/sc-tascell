@@ -26,7 +26,6 @@
 (%ifndef* NF-TYPE
   (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
 (%include "rule/multithread-setrule.sh")
-(%rule (:multithread-sc1 :multithread-type :multithread-temp :multithread :untype))
 
 (c-exp "#include<stdio.h>")
 (c-exp "#include<stdlib.h>")
