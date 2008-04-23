@@ -35,6 +35,8 @@
 (decl (strncpy) (csym::fn (ptr char) (ptr char) (ptr (const char)) size-t))
 (decl (printf) (csym::fn int (ptr (const char)) va-arg))
 
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE LW-SC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
 (%include "rule/nestfunc-setrule.sh")
 (%include "hsc.sh")
 

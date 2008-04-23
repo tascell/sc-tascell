@@ -1,3 +1,0 @@
-tosize=10485760, stack=1310720, limit=32
-Bintree=20, maxins=160000, maxsearch=300000
-total=0.110537 gc=0.000000 other=0.110537

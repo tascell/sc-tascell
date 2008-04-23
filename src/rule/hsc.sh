@@ -24,9 +24,8 @@
 
 ;;; Header file for HSC, automatically included by hsc.rule
 
-(%ifndef NESTFN
-	 ((%defconstant NESTFN fn))
-	 )
+(%ifndef* NESTFN
+  (%defconstant NESTFN fn))
 (deftype sht (ptr (NESTFN void void)))
 
 ;;;
