@@ -43,7 +43,7 @@
 ;;   (def d desc-t)        ; (ptr (struct desc-struct))
 ;;   (def data (struct ,data-sid))
 
-(deftype size-t unsigned-int)
+;; (deftype size-t unsigned-int)
 
 (def (struct desc-struct)
   (decl size size-t)
