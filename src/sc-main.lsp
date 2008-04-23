@@ -204,6 +204,6 @@ X is an S-expression or a filespec."
               (write-file output-file x :overwrite t :write-string t)
               (when indent (c-indent output-file indent))
               output-file)
-	      x)) )
+          x)) )
     )
   )

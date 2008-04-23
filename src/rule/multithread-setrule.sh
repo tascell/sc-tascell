@@ -33,9 +33,9 @@
 %else
   (%include "rule/nestfunc-setrule.sh")
   (%defconstant RULE-MTSC
-                (:multithread-sc1 :multithread-type :multithread-temp
-                                  :multithread-rename :multithread-hoist
-                                  (:multithread :nestfunc-tag NESTFN) :untype)))
+    (:multithread-sc1 :multithread-rename :multithread-hoist
+                      :multithread-type (:multithread-temp :decl-each-block nil)
+                      (:multithread :nestfunc-tag NESTFN) :untype)))
 
 (%rule RULE-MTSC RULE)
 (%error "RULE: ~S" RULE)

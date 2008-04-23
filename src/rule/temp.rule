@@ -48,7 +48,7 @@
                               (or (cid-p (car id-list))
                                   (eq ~csym::fn fntag)))
                          x
-                       (let* ((body-ret (function-body body)))
+                       (let* ((body-ret (temp:with-new-block t (function-body body))))
                          (temp:flush-precedents-decl
                           ~(,scs (,@id-list) (,fntag ,@texp-list) ,@body-ret)
                           x))))) )
@@ -63,10 +63,9 @@
 ;; function-attribute & register-decl
 (defrule function-body temp
   (otherwise
-   (temp:with-new-block
-       (let ((ret (call-next-rule)))
-         (temp:handle-block-tag
-          (nconc (temp:flush-add-decls) ret)) ))))
+   (temp:with-new-block nil
+     (let ((ret (call-next-rule x)))
+       (temp:handle-block-tag ret)) )))
 
 ;;;; statement
 (defrule statement temp

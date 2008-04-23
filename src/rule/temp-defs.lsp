@@ -28,7 +28,7 @@
   (:export :with-temprule-environment
            :with-new-block :with-new-block-item
            :with-deeper-subexpression :subexpression-p
-           :add-add-decl :flush-add-decls
+           :add-add-decl
            :add-precedent :flush-precedents :flush-precedents-decl
            :handle-block-tag)
   (:use "CL" "SC-MISC" "RULE")
@@ -40,7 +40,9 @@
 (defvar *precedents* nil)          ; list of <statement>
 
 (defstruct c-block
+  add-here-p                            ; nil: additonal decls are added to an outer block
   add-decls                             ; list of (<id> . <type>)
+  parent
   )
 
 (defmacro with-temprule-environment (&body body)
@@ -49,9 +51,13 @@
          (*precedents* nil))
      ,@body))
 
-(defmacro with-new-block (&body body)
-  `(let ((*current-block* (make-c-block)))
-     ,@body))
+(defmacro with-new-block (add-here-p &body body)
+  (with-fresh-variables (ret-var)
+    `(let* ((*current-block* (make-c-block :add-here-p ,add-here-p
+                                           :parent *current-block*))
+            (,ret-var (progn ,@body)))
+       (nconc (flush-add-decls)         ; tmpの定義列を返す or 外ブロックに回してnilを返す
+              ,ret-var))))
 
 (defmacro with-new-block-item (initial-subexpression-depth &body body)
   `(let ((*expression-depth* ,initial-subexpression-depth)
@@ -69,10 +75,17 @@
   (push (cons id type) (c-block-add-decls *current-block*)))
 
 (defun flush-add-decls ()
-  (prog1 
-      (loop for (id . type) in (nreverse (c-block-add-decls *current-block*))
-	  collect ~(def ,id ,type))
-    (setf (c-block-add-decls *current-block*) nil)))
+  (if (c-block-add-here-p *current-block*)
+      (prog1
+          (loop for (id . type) in (nreverse (c-block-add-decls *current-block*))
+              collect ~(def ,id ,type))
+        (setf (c-block-add-decls *current-block*) nil))
+    (progn
+      ;; 
+      (setf (c-block-add-decls (c-block-parent *current-block*))
+        (nconc (c-block-add-decls (c-block-parent *current-block*))
+               (c-block-add-decls *current-block*)))
+      nil)))
 
 (defun add-precedent (stat)
   (push stat *precedents*))
@@ -94,7 +107,7 @@
                        decl-exp)) )
       decl-exp)))
 
-;; (a b c 'temp::block d e f ...) -> (a b c (begin d e f)) : recursively
+;; (a b c 'temp::mk-block d e f ...) -> (a b c (begin d e f)) : recursively
 (defun handle-block-tag (transformed-body)
   (handle-block-tag2 (splice transformed-body)))
 
