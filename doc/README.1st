@@ -31,5 +31,6 @@ sc/
 > (sc2c "sample/fib.sc")
 
 3.4 You can compile the resulting C program using a C compiler (e.g., gcc) and run it.
+% cd sample
 % gcc fib.c -o fib
 % ./fib 30
