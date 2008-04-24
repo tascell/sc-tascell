@@ -47,6 +47,7 @@
              )
          (splice
           (list*
+           ~(c-exp "#include <stdio.h>") ; for size_t definition
            ~(%defconstant NESTFN ,hsc:*nestfunc-tag*)
            ~(%include "rule/hsc.sh")    ; needs defined NESTFN
            (splice (mapcar #'external-declaration! decl-list)))) )))
@@ -109,8 +110,7 @@
    (if (cid-p id) x
      (let* ((texp-ret (type-expression texp))
             (init-ret (if-pattern-variable init (list (initializer init))
-                        (if (ref-type-p texp-ret) (list ~0)
-                          (t '())))))
+                        (if (ref-type-p texp-ret) (list ~0) ~()))))
        (hsc:add-local-variable id texp-ret)
        ~(,scs ,id ,texp-ret ,@init-ret))))
   )

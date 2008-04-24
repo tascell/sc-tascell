@@ -1,7 +1,10 @@
 ;; (%cinclude "<stdio.h>" "<sys/time.h>" "<string.h>")
-
 (%include "rule/hsc-setrule.sh")
-
+(c-exp "#include<stdio.h>")
+(c-exp "#include<stdlib.h>")
+(c-exp "#include<string.h>")
+;; (c-exp "#include<sys/time.h>")
+       
 ;;; 構造体定義
 (def (struct _Bintree)
   (def key int)
@@ -83,7 +86,7 @@
   (def root (ptr Bintree))
 
   (if (and (> argc 1)
-           (== (strcmp (aref (aref argv index)) "-s") 0))
+           (== (csym::strcmp (aref (aref argv index)) "-s") 0))
       (begin
        (-- argc)
        (++ index)
@@ -97,9 +100,9 @@
 
   (= root (new (init Bintree (struct 0 0 0 0))))
 
-  ;; (gettimeofday (ptr tp1) 0)
+  ;; (csym::gettimeofday (ptr tp1) 0)
   (randinsert root maxins)
-  ;; (gettimeofday (ptr tp2) 0)
+  ;; (csym::gettimeofday (ptr tp2) 0)
 
   (if (not searchskip)
       (randsearch root maxsearch))
@@ -111,6 +114,6 @@
   ;;        (- (fref tp2 tv_usec) (fref tp1 tv_usec))
   ;;        0.000001)))
   
-  ;;   (printf "total=%f gc=%f other=%f~%" ttime gc_ttime (- ttime gc-ttime))
+  ;;   (csym::printf "total=%f gc=%f other=%f~%" ttime gc_ttime (- ttime gc-ttime))
   (return 0)
   )

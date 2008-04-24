@@ -93,7 +93,7 @@
   ~(def (scan1) (,*nestfunc-tag* void void)
         ,@(loop for (var . type) in (finfo-variables finfo)
               when (rule::ref-type-p type)
-              collect ~(= ,var (move ,var)))
+              collect ~(= ,var (csym::move ,var)))
         (scan0)
         (return)))
 

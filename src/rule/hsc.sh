@@ -63,4 +63,4 @@
   
 ;;;
 (extern-decl (getmem scan size) (fn (ptr void) sht size-t))
-(extern-decl (move vp) (csym::fn (ptr void) (ptr void)))
+(extern-decl (csym::move vp) (csym::fn (ptr void) (ptr void)))

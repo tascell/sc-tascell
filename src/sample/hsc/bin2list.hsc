@@ -2,8 +2,9 @@
 ;(%rule (:basic :type :tmp (:nestfunc) :untype))
 
 (c-exp "#include<sys/time.h>")
-(c-exp "#include<stdlib.h>")
 (c-exp "#include<stdio.h>")
+(c-exp "#include<stdlib.h>")
+(c-exp "#include<string.h>")
 (%include "rule/hsc-setrule.sh")
 
 ;;; 構造体定義
@@ -24,21 +25,14 @@
   (def cdr (ptr (struct _Alist))) )
 (deftype Alist (struct _Alist))
 
-
-;; 構造体定義: ポインタの位置
-
-
-
 ;;; 計測パラメータ
 (static-def maxins int)
 (static-def maxsearch int)
-
 
 (def (newBintree k v) (fn (ptr Bintree) int int)
   (def p (ptr Bintree))
   (= p (new (init Bintree (struct k v 0 0))))
   (return p))
-
 
 ;;; x がすでに存在する場合
 (def (insert x k v) (fn void (ptr Bintree) int int)

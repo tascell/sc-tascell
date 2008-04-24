@@ -25,18 +25,17 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; hsc.sc: Library for HSC
 
-(%cinclude "<stdio.h>" "<stdlib.h>" "<sys/time.h>" "<string.h>"
-   (:required-macros NULL))
+;; (%cinclude "<stdio.h>" "<stdlib.h>" "<sys/time.h>" "<string.h>"
+;;    (:required-macros NULL))
 
-;; (c-exp "#include <sys/time.h>")
-;; (%defconstant csym::NULL (cast (ptr void) 0))
-;; (decl (malloc) (csym::fn (ptr void) size-t))
-;; (decl (realloc) (csym::fn (ptr void) (ptr void) size-t))
-;; (decl (strncpy) (csym::fn (ptr char) (ptr char) (ptr (const char)) size-t))
-;; (decl (printf) (csym::fn int (ptr (const char)) va-arg))
+(c-exp "#include <stdio.h>")
+(c-exp "#include <stdlib.h>")
+(c-exp "#include <string.h>")
+(c-exp "#include <sys/time.h>")
+(%defconstant NULL (cast (ptr void) 0))
 
 (%ifndef* NF-TYPE
-  (%defconstant NF-TYPE LW-SC))         ; one of (GCC LW-SC CL-SC XCC XCCCL)
+          (%defconstant NF-TYPE GCC))         ; one of (GCC LW-SC CL-SC XCC XCCCL)
 (%include "rule/nestfunc-setrule.sh")
 (%include "hsc.sh")
 
@@ -75,20 +74,20 @@
 
 ;; util
 (static-def (error s) (csym::fn void (ptr char))
-  (printf "ERROR: %s~%" s)
+  (csym::printf "ERROR: %s~%" s)
   (exit 1))
 
-(static-def (myalloc size) (csym::fn (ptr void) size-t)
+(static-def (csym::myalloc size) (csym::fn (ptr void) size-t)
   (def p (ptr void))
-  (= p (malloc size))
-  (if (== p csym::NULL)
+  (= p (csym::malloc size))
+  (if (== p NULL)
       (error "Not enough memory."))
   (return p))
 
-(static-def (myrealloc p size) (csym::fn (ptr void) (ptr void) size-t)
+(static-def (csym::myrealloc p size) (csym::fn (ptr void) (ptr void) size-t)
   (def q (ptr void))
-  (= q (realloc p size))
-  (if (== q csym::NULL)
+  (= q (csym::realloc p size))
+  (if (== q NULL)
       (error "Not enough memory."))
   (return q))
 
@@ -115,7 +114,7 @@
 (static-def b (ptr char))               ; moveの次の移動先
 
 ;; *link = move(*link);
-(def (move vp) (csym::fn (ptr void) (ptr void))
+(def (csym::move vp) (csym::fn (ptr void) (ptr void))
   (def p (ptr char) vp)
   (def fwp (ptr void))
   (def tag size-t)
@@ -179,7 +178,7 @@
   (def s (ptr char))
 
   (if (fref params gcv)
-      (printf "BREADTH-FIRST-GC start~%"))
+      (csym::printf "BREADTH-FIRST-GC start~%"))
   (= b new-memory) (= s b)
   (scan)                                ; stackから直接指されているobjをcopy
   (while (< s b)                        ; for each copied object
@@ -191,7 +190,7 @@
       (= len (fref (mref d) fli-len))
       (for ((= i 0) (< i len) (++ i))   ; for each reference in the object
         (= link (cast (ptr (ptr void)) (+ p (aref (fref (mref d) fli) i))))
-        (= (mref link) (move (mref link))))
+        (= (mref link) (csym::move (mref link))))
       (+= s (fref (mref d) asize))
       (break)
       (case TYPE-REF-ARRAY)
@@ -201,7 +200,7 @@
       (= el-size (fref (mref ao) el-size))
       (for ((= i 0) (< i len) (++ i))   ; for each element in the array
         (= link (cast (ptr (ptr void)) p))
-        (= (mref link) (move (mref link)))
+        (= (mref link) (csym::move (mref link)))
         (+= p el-size))
       (+= s (fref (mref ao) asize))
       (break)
@@ -220,7 +219,7 @@
   (= new-memory-end old-memory-end)
   (= old-memory-end tmp)
   (if (fref params gcv)
-      (printf "GC complete (%d)~%" allocated-size))
+      (csym::printf "GC complete (%d)~%" allocated-size))
   )
 
 ;; 性能測定用
@@ -259,14 +258,14 @@
   (if (== (fref params limited-stack-max) 0)
       (= (fref params limited-stack-max) GC-LIMITED-STACK-MAX))
 
-  (printf "tosize=%d, stack=%d, limit=%d~%"
-          (fref params tosize)
-          (fref params stack-size)
-          (fref params limited-stack-max) )
+  (csym::printf "tosize=%d, stack=%d, limit=%d~%"
+                (fref params tosize)
+                (fref params stack-size)
+                (fref params limited-stack-max) )
   ;; heap領域の確保
-  (= old-memory (myalloc (fref params tosize)))
+  (= old-memory (csym::myalloc (fref params tosize)))
   (= old-memory-end (+ old-memory (fref params tosize)))
-  (= new-memory (myalloc (fref params tosize)))
+  (= new-memory (csym::myalloc (fref params tosize)))
   (= new-memory-end (+ new-memory (fref params tosize)))
   (= allocated-size 0)
   ;;  (for ((= mp new-memory) (< mp new-memory-end) (+= mp 4096))
@@ -332,7 +331,7 @@
   (def strobj-size size-t)
   (def strobj-asize size-t)
   (def (scan1) (NESTFN void void)
-    (= argv (move argv))
+    (= argv (csym::move argv))
     (return))
   ;; Initialize heap
   (gc-init 0 0 0 0)
@@ -352,7 +351,7 @@
             (fref hsc-argv -> body)))
   ;; each string
   (for ((= i 0) (< i argc) (++ i))
-    (= len (+ 1 (strlen (aref argv i))))
+    (= len (+ 1 (csym::strlen (aref argv i))))
     (= strobj-size (+ (sizeof (struct array-object))
                       (* len (sizeof char))))
     (= strobj-asize (MAKE-ALIGN strobj-size (sizeof align-t)))
@@ -363,9 +362,9 @@
     (= (fref (aref body i) -> el-size) (sizeof char))
     (= (fref (aref body i) -> size) strobj-size)
     (= (fref (aref body i) -> asize) strobj-asize)
-    (strncpy (cast (ptr char) (fref (aref body i) -> body))
-             (aref argv i) 
-             len)
+    (csym::strncpy (cast (ptr char) (fref (aref body i) -> body))
+                   (aref argv i) 
+                   len)
     )
   (return (hsc-main scan1 argc hsc-argv))
   )
