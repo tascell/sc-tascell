@@ -1959,13 +1959,15 @@
 (defparameter *cpp-command* "c2sc/src/c2sc_cpp")
 (defparameter *cpp-option*
     (append
-     '("-D'__complex__='"
-       "-D'__const=const'" "-D'__extension__='" "-D'__cdecl='"
-       "-D'__attribute__(x)='" "-D'__inline='" "-D'__inline__='" "-D'__asm(x)='"
-       "-D'__declspec(x)='"
+     '("-D__complex__"
+       "-D__const=const" "-D__extension__=" "-D__cdecl="
+       "-D__attribute__(x)=" "-D__inline=" "-D__inline__="
+       "-D__asm(x)=" "-D__asm__(x)="
+       "-D__declspec(x)="
        )
-     #-(or mingw mswindows) '()
-     #+(or mingw mswindows) '("-I" "/usr/lib/gcc/i686-pc-cygwin/3.4.4/include/")
+     #-(or cygwin mingw mswindows) '()
+     #+(or cygwin mingw mswindows) '("-I" "/lib/gcc/i686-pc-cygwin/3.4.4/include/"
+                                     "-I" "/usr/lib/gcc/i686-pc-cygwin/3.4.4/include/")
      ))
 #+mswindows (defparameter *sh-command* "\\cygwin\\bin\\sh.exe")
 

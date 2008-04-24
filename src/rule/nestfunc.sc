@@ -49,7 +49,7 @@
 
 ;; for handling pthread
 (def (struct func-arg)
-  (def func (ptr (fn (ptr void) (ptr char) (ptr void))))
+    (def func (ptr (fn (ptr void) (ptr char) (ptr void))))
   (def arg (ptr void)))
 
 (def (struct tho-frame)
@@ -64,11 +64,11 @@
   (def new-esp (ptr char))
   (def estack (array char 8192))
   (def esp (ptr char) estack)
-  
+
   (pthread-cleanup-push free farg)
   (= efp (cast (ptr (struct tho-frame)) esp))
   (= esp (cast (ptr char)
-	       (+ (cast (ptr Align-t) esp)
+           (+ (cast (ptr Align-t) esp)
               (/ (- (+ (sizeof (struct tho-frame)) (sizeof Align-t)) 1)
                  (sizeof Align-t)))))
   (= (mref-t (ptr char) esp) 0)

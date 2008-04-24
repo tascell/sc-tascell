@@ -25,32 +25,32 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; hsc.sc: Library for HSC
 
-;; (%cinclude "<stdio.h>" "<stdlib.h>" "<sys/time.h>" "<string.h>"
-;;	   (:required-macros NULL))
+(%cinclude "<stdio.h>" "<stdlib.h>" "<sys/time.h>" "<string.h>"
+   (:required-macros NULL))
 
-(c-exp "#include <sys/time.h>")
-(%defconstant csym::NULL (cast (ptr void) 0))
-(decl (malloc) (csym::fn (ptr void) size-t))
-(decl (realloc) (csym::fn (ptr void) (ptr void) size-t))
-(decl (strncpy) (csym::fn (ptr char) (ptr char) (ptr (const char)) size-t))
-(decl (printf) (csym::fn int (ptr (const char)) va-arg))
+;; (c-exp "#include <sys/time.h>")
+;; (%defconstant csym::NULL (cast (ptr void) 0))
+;; (decl (malloc) (csym::fn (ptr void) size-t))
+;; (decl (realloc) (csym::fn (ptr void) (ptr void) size-t))
+;; (decl (strncpy) (csym::fn (ptr char) (ptr char) (ptr (const char)) size-t))
+;; (decl (printf) (csym::fn int (ptr (const char)) va-arg))
 
 (%ifndef* NF-TYPE
-  (%defconstant NF-TYPE LW-SC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
+  (%defconstant NF-TYPE LW-SC))         ; one of (GCC LW-SC CL-SC XCC XCCCL)
 (%include "rule/nestfunc-setrule.sh")
 (%include "hsc.sh")
 
 ;;; gc-initで無指定(=0)の場合に採用される値
 (%ifndef TOSIZE
-	 ((%defconstant TOSIZE (* 5 1024 1024))) )
+    ((%defconstant TOSIZE (* 5 1024 1024))) )
 ;; (%ifndef ROOTSIZEMAX
 ;; 	 ((%defconstant ROOTSIZEMAX (* 8 1024))) )
 (%ifndef GC-STACK-SIZE
-	 ((%defconstant GC-STACK-SIZE (/ (fref params tosize) (sizeof double)))) )
+    ((%defconstant GC-STACK-SIZE (/ (fref params tosize) (sizeof double)))) )
 (%ifndef GC-LIMITED-STACK-SIZE
-	 ((%defconstant GC-LIMITED-STACK-SIZE 256)) )
+    ((%defconstant GC-LIMITED-STACK-SIZE 256)) )
 (%ifndef GC-LIMITED-STACK-MAX
-	 ((%defconstant GC-LIMITED-STACK-MAX 32)) )
+    ((%defconstant GC-LIMITED-STACK-MAX 32)) )
 
 ;;; ポインタ判定
 (%defmacro MREF-AS (tp p)
@@ -95,11 +95,11 @@
 
 ;; GC parameter
 (def (struct gc-params-struct)
-  (def gcv int)			        ; verbose?
-  (def gctype int)			; 0: copy-gc
-  (def tosize size-t)			; (/ heap-size 2)
+    (def gcv int)                       ; verbose?
+  (def gctype int)                      ; 0: copy-gc
+  (def tosize size-t)                   ; (/ heap-size 2)
   (def stack-size size-t)		
-  (def limited-stack-max size-t)	; less than 256
+  (def limited-stack-max size-t)        ; less than 256
   )
 (deftype gc-params (struct gc-params-struct))
 (static-def params gc-params)
@@ -112,7 +112,7 @@
 (static-def new-memory-end (ptr char))
 
 ;; Referred in move & gc-breadth-first
-(static-def b (ptr char))  ; moveの次の移動先
+(static-def b (ptr char))               ; moveの次の移動先
 
 ;; *link = move(*link);
 (def (move vp) (csym::fn (ptr void) (ptr void))
@@ -133,7 +133,7 @@
   ;; fowarding pointer OR (bit-or least2bit-tag pointer-to-descriptor)
   (= tag (bit-and #b11 (MREF-AS size-t p)))
   (= fwp (cast (ptr void)
-	       (bit-xor tag (MREF-AS size-t p))))
+           (bit-xor tag (MREF-AS size-t p))))
   ;; Already evacuated
   (if (IN-TOSP fwp)
       (return fwp))
@@ -156,8 +156,8 @@
     (default)
     (error "Illegal type ID!"))
   
-  (= np b)				; 移動先
-  (= nb (+ np asize))			; 次の移動先
+  (= np b)                              ; 移動先
+  (= nb (+ np asize))                   ; 次の移動先
   (if (>= nb new-memory-end)
       (error "buffer overrun."))
   (MEMCPY np p size)
@@ -189,9 +189,9 @@
       (= d (cast desc-t (bit-xor tag (MREF-AS size-t s))))
       (= p (cast (ptr char) s))
       (= len (fref (mref d) fli-len))
-      (for ((= i 0) (< i len) (++ i)) ; for each reference in the object
-           (= link (cast (ptr (ptr void)) (+ p (aref (fref (mref d) fli) i))))
-           (= (mref link) (move (mref link))))
+      (for ((= i 0) (< i len) (++ i))   ; for each reference in the object
+        (= link (cast (ptr (ptr void)) (+ p (aref (fref (mref d) fli) i))))
+        (= (mref link) (move (mref link))))
       (+= s (fref (mref d) asize))
       (break)
       (case TYPE-REF-ARRAY)
@@ -200,12 +200,12 @@
       (= len (fref (mref ao) length))
       (= el-size (fref (mref ao) el-size))
       (for ((= i 0) (< i len) (++ i))   ; for each element in the array
-           (= link (cast (ptr (ptr void)) p))
-           (= (mref link) (move (mref link)))
-           (+= p el-size))
+        (= link (cast (ptr (ptr void)) p))
+        (= (mref link) (move (mref link)))
+        (+= p el-size))
       (+= s (fref (mref ao) asize))
       (break)
-      (case TYPE-NONREF-ARRAY) ; no need to scan elements
+      (case TYPE-NONREF-ARRAY)          ; no need to scan elements
       (= ao (cast (ptr (struct array-object)) s))
       (+= s (fref (mref ao) asize))
       (break)
@@ -230,16 +230,16 @@
 
 ;; GC開始
 (def (gc scan) (fn void sht)
-  (gettimeofday (ptr tp1) 0)
+  (csym::gettimeofday (ptr tp1) 0)
   (switch (fref params gctype)
     (case 0) 
     (gc-breadth-first scan)
     (break)
     )
-  (gettimeofday (ptr tp2) 0)
+  (csym::gettimeofday (ptr tp2) 0)
   (+= gc-ttime
-      (+    (- (fref tp2 tv-sec) (fref tp1 tv-sec))
-	    (* (- (fref tp2 tv-usec) (fref tp1 tv-usec)) 0.000001)))
+      (+ (- (fref tp2 tv-sec) (fref tp1 tv-sec))
+         (* (- (fref tp2 tv-usec) (fref tp1 tv-usec)) 0.000001)))
   )
 
 ;;; Initialize collector
@@ -278,9 +278,9 @@
 (def (gc-init tp tosize stack-size limited-max)
     (csym::fn void int int int int)
   (def p gc-params)
-  (= (fref p gcv) 1)         ; verbose?
-  (= (fref p gctype) tp)     ; 0: copy-gc
-  (= (fref p tosize) tosize) ; half of heap size (from/to space)
+  (= (fref p gcv) 1)                    ; verbose?
+  (= (fref p gctype) tp)                ; 0: copy-gc
+  (= (fref p tosize) tosize)            ; half of heap size (from/to space)
   (= (fref p stack-size) stack-size)
   (= (fref p limited-stack-max) limited-max)
   (getmem-init p))
@@ -309,16 +309,16 @@
        (gc scan)
        (= p (try-getmem size))
        (if (== p 0)
-	   (error "getmem: No enough memory."))
+           (error "getmem: No enough memory."))
        ))
   (return p))
 
 ;;; main: a wrapper of hsc-main
 ;; * convert argv into an hsc array of strings.
 (%defmacro MAKE-ALIGN (exp align-size)
-   `(* (/ (+ ,exp ,align-size -1)
-	  ,align-size)
-       ,align-size))
+  `(* (/ (+ ,exp ,align-size -1)
+         ,align-size)
+      ,align-size))
 
 (decl (hsc-main) (fn int sht int (ptr (struct array-object))))
 
@@ -339,7 +339,7 @@
   ;; an array of strings
   (= hsc-argv-size
      (+ (sizeof (struct array-object))
-	(* argc (sizeof (ptr (struct array-object))))))
+        (* argc (sizeof (ptr (struct array-object))))))
   (= hsc-argv-asize (MAKE-ALIGN hsc-argv-size (sizeof align-t)))
   (= hsc-argv 
      (cast (ptr (struct array-object)) (getmem scan1 hsc-argv-asize)))
@@ -349,12 +349,12 @@
   (= (fref hsc-argv -> size) hsc-argv-size)
   (= (fref hsc-argv -> asize) hsc-argv-asize)
   (= body (cast (ptr (ptr (struct array-object))) 
-	    (fref hsc-argv -> body)))
+            (fref hsc-argv -> body)))
   ;; each string
   (for ((= i 0) (< i argc) (++ i))
     (= len (+ 1 (strlen (aref argv i))))
     (= strobj-size (+ (sizeof (struct array-object))
-		      (* len (sizeof char))))
+                      (* len (sizeof char))))
     (= strobj-asize (MAKE-ALIGN strobj-size (sizeof align-t)))
     (= (aref body i) (cast (ptr (struct array-object))
                        (getmem scan1 strobj-asize)))
@@ -364,8 +364,8 @@
     (= (fref (aref body i) -> size) strobj-size)
     (= (fref (aref body i) -> asize) strobj-asize)
     (strncpy (cast (ptr char) (fref (aref body i) -> body))
-	     (aref argv i) 
-	     len)
+             (aref argv i) 
+             len)
     )
   (return (hsc-main scan1 argc hsc-argv))
   )

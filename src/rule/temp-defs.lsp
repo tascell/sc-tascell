@@ -56,7 +56,7 @@
     `(let* ((*current-block* (make-c-block :add-here-p ,add-here-p
                                            :parent *current-block*))
             (,ret-var (progn ,@body)))
-       (nconc (flush-add-decls)         ; tmp‚Ì’è‹`—ñ‚ğ•Ô‚· or ŠOƒuƒƒbƒN‚É‰ñ‚µ‚Änil‚ğ•Ô‚·
+       (nconc (flush-add-decls)         ; tmp¤ÎÄêµÁÎó¤òÊÖ¤¹ or ³°¥Ö¥í¥Ã¥¯¤Ë²ó¤·¤Ænil¤òÊÖ¤¹
               ,ret-var))))
 
 (defmacro with-new-block-item (initial-subexpression-depth &body body)

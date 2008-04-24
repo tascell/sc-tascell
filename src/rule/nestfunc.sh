@@ -40,38 +40,38 @@
 
 (%defmacro aligned-add (base size)
   `(cast (ptr char)
-	 (+ (cast (ptr Align-t) ,base)
-	    (/ (+ ,size (sizeof Align-t) -1) (sizeof Align-t)))))
+     (+ (cast (ptr Align-t) ,base)
+        (/ (+ ,size (sizeof Align-t) -1) (sizeof Align-t)))))
 
 (%defmacro aligned-sub (base size)
   `(cast (ptr char)
-	 (- (cast (ptr Align-t) ,base)
-	    (/ (+ ,size (sizeof Align-t) -1) (sizeof Align-t)))))
+     (- (cast (ptr Align-t) ,base)
+        (/ (+ ,size (sizeof Align-t) -1) (sizeof Align-t)))))
 
 (%defmacro mref-t (tp p)
   `(mref (cast (ptr ,tp) ,p)))
 
 (%defmacro push-arg (tp v argp)
   `(exps (= (mref-t ,tp ,argp) ,v)
-	 (= ,argp (aligned-add ,argp (sizeof ,tp)))))
+         (= ,argp (aligned-add ,argp (sizeof ,tp)))))
 
 (%defmacro pop-arg (tp argp)
   `(exps (= ,argp (aligned-sub ,argp (sizeof ,tp)))
-	 (mref-t ,tp ,argp)))
+         (mref-t ,tp ,argp)))
 
-#+obsolete
+#+obsolete 
 (def (lw-call esp) (fn void (ptr char))
-     (def tmp-esp (ptr char))
-     (def clos (ptr closure-t) (mref-t (ptr closure-t) esp))
-     (def new-esp (ptr char) esp)
-     (while (= tmp-esp ((fref clos -> fun) new-esp (fref clos -> fr)))
-       (lw-call tmp-esp)
-       (= new-esp (+ esp 1))))
+  (def tmp-esp (ptr char))
+  (def clos (ptr closure-t) (mref-t (ptr closure-t) esp))
+  (def new-esp (ptr char) esp)
+  (while (= tmp-esp ((fref clos -> fun) new-esp (fref clos -> fr)))
+    (lw-call tmp-esp)
+    (= new-esp (+ esp 1))))
 
 (decl (lw-call esp) (fn (ptr char) (ptr char)))
 
 ;;; nonlocalexit-goto に対応させてみる．
-#+obsolete
+#+obsolete                              ; moved to nestfunc.sc
 (def (lw-call esp) (fn (ptr char) (ptr char))
   (def clos (ptr closure-t) (mref-t (ptr closure-t) esp))
   ;; 入れ子関数を呼び出す。
@@ -83,7 +83,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; pthread-create 対応用
 (def (struct func-arg)
-  (def func (ptr (fn (ptr void) (ptr char) (ptr void))))
+    (def func (ptr (fn (ptr void) (ptr char) (ptr void))))
   (def arg (ptr void)))
 
 (decl (thread-origin farg) (fn (ptr void) (ptr void)))

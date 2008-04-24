@@ -32,7 +32,7 @@
 
 # /usr/home/lab4/hiraisi/mcpp/mcpp-2.4.1/src/cpp_std -e1./system.H system.H -o ./system.H.se1 -D'time_t=double' -D'pid_t=long' -D'__complex__=' -D'__extension__(x)=x' -D'__attribute__(x)=' -D'__inline=' -D'__asm(x)='
 
-C2SCPP="$HOME/mcpp/mcpp-2.4.1/src/cpp_std"
+C2SCPP=`dirname $0`/cpp_std
 
 IFILE=$1
 BBASE=`basename $1 .h`
