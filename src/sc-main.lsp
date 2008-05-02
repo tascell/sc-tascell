@@ -117,8 +117,9 @@ X is an S-expression or a filespec."
   ;;;;; 入力S式 => x
   ;; 入力ファイル中のシンボル中は、*code-package*に登録される。
   (when (or (pathnamep x) (stringp x))
-    (unless (setq input-file (or (probe-file x)
-                                 (probe-file (change-extension x "sc"))))
+    (unless (setq input-file (or (and (probe-file x) x)
+                                 (let ((sc-file (change-extension x "sc")))
+                                   (and (probe-file sc-file) sc-file))))
       (error "Input file ~S not found." x))
     (setq input-file-directory
       (make-pathname :directory (pathname-directory input-file)))
@@ -134,26 +135,27 @@ X is an S-expression or a filespec."
   ;; 変換実行
   (rule:with-setup-generate-id          ; prepare a table of used variables
       ;; sc2c
-      (let ((include-path (list input-file-directory))
-            (rule-modifier (if rulelist-specified ; コマンドラインで指定されていたら
-                               #'identity ; 変更を認めない
-                             #'(lambda (rlist) (setq rule-list rlist))) )
-            (sc2c-modifier (if sc2c-specified ; コマンドラインで指定されていたら
-                               #'identity ; 変更を認めない
-                             #'(lambda (new-sc2c) (setq sc2c-rule new-sc2c))))
-            (ofile-modifier (if outputfile-specified ; コマンドラインで指定されていたら
+      (let* ((include-path (list input-file-directory))
+             (rule-modifier (if rulelist-specified ; コマンドラインで指定されていたら
                                 #'identity ; 変更を認めない
-                              #'(lambda (newo)
-                                  (setq output-file
-                                    (make-output-filename newo input-file))))))
+                              #'(lambda (rlist) (setq rule-list rlist))) )
+             (sc2c-modifier (if sc2c-specified ; コマンドラインで指定されていたら
+                                #'identity ; 変更を認めない
+                              #'(lambda (new-sc2c) (setq sc2c-rule new-sc2c))))
+             (ofile-modifier (if outputfile-specified ; コマンドラインで指定されていたら
+                                 #'identity ; 変更を認めない
+                               #'(lambda (newo)
+                                   (setq output-file
+                                     (make-output-filename newo input-file)))))
+             (common-scpp-args (list :input-file-directory input-file-directory
+                                     :include-path include-path
+                                     :sc2c-modifier sc2c-modifier
+                                     :ofile-modifier ofile-modifier)))
         ;; apply scpp (%rule の適用を許す)
         ;;(format *error-output* "~&>>> Applying SCPP...~%")
         ;;(force-output *error-output*)
-        (setq x (scpp:scpp x
-                           :include-path include-path
-                           :rule-modifier rule-modifier
-                           :sc2c-modifier sc2c-modifier
-                           :ofile-modifier ofile-modifier))
+        (setq x (apply #'scpp:scpp x :rule-modifier rule-modifier
+                       common-scpp-args))
         ;; write to intermediate file if requried
         (when intermediate
           (write-intermediate-file (change-extension output-file "0p.init.sc")
@@ -179,9 +181,7 @@ X is an S-expression or a filespec."
               ;; apply scpp
               ;;(format *error-output* "~&>>> Applying SCPP...~%")
               ;;(force-output *error-output*)
-              (setq x (scpp:scpp x :include-path include-path
-                                 :sc2c-modifier sc2c-modifier
-                                 :ofile-modifier ofile-modifier))
+              (setq x (apply #'scpp:scpp x common-scpp-args))
               ;; write to intermediate file (preprocessed) if requried
               (when intermediate
                 (write-intermediate-file

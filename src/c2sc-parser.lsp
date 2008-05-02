@@ -1990,7 +1990,8 @@
     #+mswindows                         ; cygwin sh.exe required
     (let ((command-string
            (strcat
-            `(,*cpp-command* ,inname ,@*cpp-option* ,@option)
+            (mapcar #'(lambda (x) (add-paren x #\'))
+                    `(,*cpp-command* ,inname ,@*cpp-option* ,@option))
             #\Space #\" #\")))
       (command-line *sh-command*
                     :args `("-c" ,command-string)

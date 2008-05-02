@@ -30,7 +30,6 @@
   (provide "SC-MISC")
   (eval-when (:compile-toplevel :load-toplevel :execute)
     (require "SC-DECL" "sc-decl.lsp"))
-  
   (in-package "SC-MISC")
   )
 
@@ -92,8 +91,12 @@
   (let ((cat-string (strcat (cons command args) #\Space)))
     (prin1 cat-string verbose)
     (fresh-line verbose)
-    #+allegro(apply #'excl:run-shell-command cat-string :wait t
-                    other-options)
+    #+allegro(multiple-value-bind (sout eout rval)
+                 (apply #'excl.osi:command-output cat-string :whole t
+                        other-options)
+               (when sout (format *error-output* "~&~A" sout))
+               (when eout (format *error-output* "~&~A" eout))
+               rval)
     #+kcl(apply #'system cat-string other-options)
     #+ecl(apply #'si::system cat-string other-options)
     #+(or cmu clisp)
@@ -334,6 +337,12 @@
 (defmacro add-string (str &rest slist)
   (let ((newstr (nconc `(concatenate 'string ,str) slist)))
     `(setq ,str ,newstr)))
+
+;;; 文字列ををopenとcloseで囲む．
+;;; openを与えてcloseを与えなければclose:=open
+(defun add-paren (str &optional (open #\( open-p)
+                                (close (if open-p open #\))))
+  (string+ open str close))
 
 ;;; 最初のn文字
 (defun string-firstn (str n &optional (ellipsis "..."))

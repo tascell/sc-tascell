@@ -13,9 +13,8 @@
 (extern-decl cmd-strings (array (ptr char))) ; ↑に順序が対応
 
 ;; treq any の相手選択方法
-(def (enum choose) CHS-RANDOM CHS-ORDER) 
+(def (enum choose) CHS-RANDOM CHS-ORDER)
 (%defconstant NKIND-CHOOSE 2)           ; chooseの種類数
-   
 
 ;; ワーカ間でやりとりするコマンド
 ;; task, rsltの本体はcmd-listにある

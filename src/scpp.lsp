@@ -62,7 +62,10 @@
 
 (defparameter *cinclude-h-file* "cinclude_tmp") ; Cのヘッダをincludeする一時ヘッダ
 (defparameter *delete-c2sc-intermediate* nil) ; cinclude_tmp.h, *.se, *.se? を削除するか
-(defparameter *include-path-list* '("./"))
+(defparameter *input-file-directory* "./") ; 入力ファイルの場所
+                                        ; cinclude_tmp.h の生成場所であり，
+                                        ; #include "..." のファイルの探索場所に影響する
+(defparameter *include-path-list* '("./")) ; %includeのヘッダファイルを探す場所
 
 (defvar *macro-entries* (make-hash-table :test #'eq)) ; macro-entries
 (defvar *rule-modifier* #'identity)     ; sc-main から渡される関数．rule-listを変更する．
@@ -92,6 +95,7 @@
                ((:rule-modifier *rule-modifier*) *rule-modifier*)
                ((:sc2c-modifier *sc2c-modifier*) *sc2c-modifier*)
                ((:ofile-modifier *ofile-modifier*) *ofile-modifier*)
+               ((:input-file-directory *input-file-directory*) *input-file-directory*)
                ((:include-path *include-path-list*) *include-path-list*))
   (initialize)
   (when (stringp x)
@@ -217,10 +221,9 @@
 ;; *cinclude-h-file* を作成
 (defun make-cinclude-h (header-list
                         &optional (output-filename *cinclude-h-file*))
-  (let ((output-file (merge-pathnames
-                      (make-pathname :name output-filename
-                                     :type "h")
-                      (car *include-path-list*))))
+  (let ((output-file (make-pathname :name output-filename
+                                    :directory (pathname-directory *input-file-directory*)
+                                    :type "h")))
     (write-file output-file
                 (apply #'string+
                        (mapcar #'(lambda (hfile)

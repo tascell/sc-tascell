@@ -75,23 +75,23 @@
   `(eval-when (:compile-toplevel :load-toplevel :execute)
      (with-package :rule
        (scr:require (get-ruleset-modulename ,ruleset)
-		    *rule-path* "rule"))))
+                    *rule-path* "rule"))))
 
 ;; symbol->ruleset-instance
 (defun ensure-ruleset-instance (ruleset-name-or-instance &rest initargs)
   (assert (or (symbolp ruleset-name-or-instance)
-	      (typep ruleset-name-or-instance *base-ruleset-class-name*)) )
+              (typep ruleset-name-or-instance *base-ruleset-class-name*)) )
   (cond
-    ((symbolp ruleset-name-or-instance)
-     (rule:require-ruleset ruleset-name-or-instance)
-     (apply #'make-instance
-	    (ruleset-class-symbol ruleset-name-or-instance)
-	    initargs))
-    ((typep ruleset-name-or-instance *base-ruleset-class-name*)
-     (when initargs
-       (warn "Initargs ~S are ignored since a ruleset-instance is suplied."
-	     initargs))
-     ruleset-name-or-instance)))
+   ((symbolp ruleset-name-or-instance)
+    (rule:require-ruleset ruleset-name-or-instance)
+    (apply #'make-instance
+           (ruleset-class-symbol ruleset-name-or-instance)
+           initargs))
+   ((typep ruleset-name-or-instance *base-ruleset-class-name*)
+    (when initargs
+      (warn "Initargs ~S are ignored since a ruleset-instance is suplied."
+            initargs))
+    ruleset-name-or-instance)))
 
 ;; 適用中のrulesetを変更
 (defmacro with-ruleset (ruleset-instance &body body)
@@ -134,15 +134,15 @@
   `(progn
      (eval-when (:compile-toplevel :load-toplevel :execute)
        ,@(loop    ; 親ルールの定義ファイルをロード
-	    for rs in (mapcar #'ruleset-class-symbol parents)
-	    collect `(rule:require-ruleset ',rs)))
+             for rs in (mapcar #'ruleset-class-symbol parents)
+             collect `(rule:require-ruleset ',rs)))
      (provide ,(get-ruleset-modulename name))
      (defclass ,(ruleset-class-symbol name)
-	 ,(or (mapcar #'ruleset-class-symbol parents)
-	      (list *base-ruleset-class-name*))
+         ,(or (mapcar #'ruleset-class-symbol parents)
+           (list *base-ruleset-class-name*))
        ,(loop for (p v) in parameters
-	   collect `(,p :initform ,v
-			:initarg ,(immigrate-package p "KEYWORD"))))
+            collect `(,p :initform ,v
+                         :initarg ,(immigrate-package p "KEYWORD"))))
      (defun ,(ruleset-class-symbol name)
          (sc-code-or-filename &rest initargs)
        (apply #'rule:apply-rule
@@ -240,9 +240,9 @@
 ;; entryを呼び出す
 (defun rule:apply-rule (sc-code-or-filename ruleset-name-or-instance &rest initargs)
   (with-ruleset (apply #'ensure-ruleset-instance
-		       ruleset-name-or-instance initargs)
+                       ruleset-name-or-instance initargs)
     (funcall (symbol-function (slot-value *current-ruleset* 'rule:entry))
-	     (if (or (stringp sc-code-or-filename)
-		     (pathnamep sc-code-or-filename))
-		 (sc-file:read-sc-file sc-code-or-filename)
-		 sc-code-or-filename))))
+             (if (or (stringp sc-code-or-filename)
+                     (pathnamep sc-code-or-filename))
+                 (sc-file:read-sc-file sc-code-or-filename)
+               sc-code-or-filename))))

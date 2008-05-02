@@ -45,7 +45,8 @@
 ;;; Implementation-dependent settings
 #+cmu (setq ext:*gc-verbose* nil)
 #+clisp (setq custom:*default-file-encoding* charset:euc-jp)
-#+allegro (setq comp:*cltl1-compile-file-toplevel-compatibility-p* t)
+#+allegro (progn (setq comp:*cltl1-compile-file-toplevel-compatibility-p* t)
+                 (require :osi))
 #+(and allegro mswindows) (setq *locale* (find-locale "japan.EUC"))
 ;; #+(and composer allegro) (wt:start-composer)
 

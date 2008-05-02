@@ -29,7 +29,7 @@
   (:use "RULE" "CL" "SC-MISC")
   (:export :with-environment-bound :task-maps :with-task
            :with-new-bk :latest-bk
-           :task-cid :current-task :add-task
+           :task-id :task-cid :current-task :add-task
            :make-task-struct-id :task-struct-id :task-no
            :task-body-function
            :set-task-send :set-task-recv :set-rslt-send :set-rslt-recv
@@ -45,14 +45,16 @@
 (defvar *current-task* nil)
 (defstruct (task-info
             (:constructor create-task-info
-                          (cid no 
-                               &aux
-                               (struct-id (make-task-struct-id cid))
-                               (do-task (make-do-task-id cid))
-                               (task-send (make-task-send-id cid))
-                               (task-recv (make-task-recv-id cid))
-                               (rslt-send (make-rslt-send-id cid))
-                               (rslt-recv (make-rslt-recv-id cid)) )))
+                          (id no
+                              &aux
+                              (cid (rule:identifier id :sc2c))
+                              (struct-id (make-task-struct-id cid))
+                              (do-task (make-do-task-id cid))
+                              (task-send (make-task-send-id cid))
+                              (task-recv (make-task-recv-id cid))
+                              (rslt-send (make-rslt-send-id cid))
+                              (rslt-recv (make-rslt-recv-id cid)) )))
+  (id nil :type symbol)
   (cid "" :type string)
   (no -1 :type fixnum)                     ; task の通し番号
   (struct-id nil :type symbol)
@@ -69,13 +71,13 @@
   )
 
 ;; create new-task
-(defun add-task (cid)
-  (push (create-task-info cid (length *tasks*)) *tasks*))
-(defun get-task (task-or-cid)
-  (or (and (task-info-p task-or-cid) task-or-cid)
-      (find task-or-cid *tasks* :key #'task-info-cid :test #'string=)
-      (error "Task ~S is undefined." task-or-cid)))
-
+(defun add-task (scid)
+  (push (create-task-info scid (length *tasks*)) *tasks*))
+(defun get-task (task-or-scid)
+  (or (and (task-info-p task-or-scid) task-or-scid)
+      (find task-or-scid *tasks* :key #'task-info-id :test #'eq)
+      (error "Task ~S is undefined." task-or-scid)))
+ 
 ;; task番号と処理関数への対応表（配列）を定義するコード
 (defun task-maps ()
   (let ((rev-tasks (reverse *tasks*))
@@ -119,34 +121,36 @@
   (generate-id (string+ "recv_" cid "_rslt")))
 
 ;; accessor
-(defun task-cid (&optional (task-or-cid *current-task*))
-  (task-info-cid (get-task task-or-cid)))
-(defun task-no (&optional (task-or-cid *current-task*))
-  (task-info-no (get-task task-or-cid)))
-(defun task-struct-id (&optional (task-or-cid *current-task*))
-  (task-info-struct-id (get-task task-or-cid)))
-(defun do-task-id (&optional (task-or-cid *current-task*))
-  (task-info-do-task (get-task task-or-cid)))
-(defun task-send-id (&optional (task-or-cid *current-task*))
-  (task-info-task-send (get-task task-or-cid)))
-(defun task-recv-id (&optional (task-or-cid *current-task*))
-  (task-info-task-recv (get-task task-or-cid)))
-(defun rslt-send-id (&optional (task-or-cid *current-task*))
-  (task-info-rslt-send (get-task task-or-cid)))
-(defun rslt-recv-id (&optional (task-or-cid *current-task*))
-  (task-info-rslt-recv (get-task task-or-cid)))
-(defun task-add-field (id texp &optional (task-or-cid *current-task*))
+(defun task-id (&optional (task-or-scid *current-task*))
+  (task-info-id (get-task task-or-scid)))
+(defun task-cid (&optional (task-or-scid *current-task*))
+  (task-info-cid (get-task task-or-scid)))
+(defun task-no (&optional (task-or-scid *current-task*))
+  (task-info-no (get-task task-or-scid)))
+(defun task-struct-id (&optional (task-or-scid *current-task*))
+  (task-info-struct-id (get-task task-or-scid)))
+(defun do-task-id (&optional (task-or-scid *current-task*))
+  (task-info-do-task (get-task task-or-scid)))
+(defun task-send-id (&optional (task-or-scid *current-task*))
+  (task-info-task-send (get-task task-or-scid)))
+(defun task-recv-id (&optional (task-or-scid *current-task*))
+  (task-info-task-recv (get-task task-or-scid)))
+(defun rslt-send-id (&optional (task-or-scid *current-task*))
+  (task-info-rslt-send (get-task task-or-scid)))
+(defun rslt-recv-id (&optional (task-or-scid *current-task*))
+  (task-info-rslt-recv (get-task task-or-scid)))
+(defun task-add-field (id texp &optional (task-or-scid *current-task*))
   (push (list id texp)
-        (task-info-fields (get-task task-or-cid))))
-(defun task-field-p (id &optional (task-or-cid *current-task*))
-  (member id (task-info-fields (get-task task-or-cid))
+        (task-info-fields (get-task task-or-scid))))
+(defun task-field-p (id &optional (task-or-scid *current-task*))
+  (member id (task-info-fields (get-task task-or-scid))
           :test #'eq :key #'car))
-(defun task-add-input-var (id texp size &optional (task-or-cid *current-task*))
+(defun task-add-input-var (id texp size &optional (task-or-scid *current-task*))
   (push (list id texp size)
-        (task-info-input-vars (get-task task-or-cid))))
-(defun task-add-output-var (id texp size &optional (task-or-cid *current-task*))
+        (task-info-input-vars (get-task task-or-scid))))
+(defun task-add-output-var (id texp size &optional (task-or-scid *current-task*))
   (push (list id texp size)
-        (task-info-output-vars (get-task task-or-cid))))
+        (task-info-output-vars (get-task task-or-scid))))
 
 ;;; do-task を作る
 (defun task-body-function (body &optional (task *current-task*))
@@ -302,8 +306,8 @@
          (*latest-bk* nil))
      ,@body))
 
-(defmacro with-task (task-or-cid &body body)
-  `(let ((*current-task* (get-task ,task-or-cid)))
+(defmacro with-task (task-or-scid &body body)
+  `(let ((*current-task* (get-task ,task-or-scid)))
      ,@body))
 
 (defun current-task ()

@@ -32,16 +32,13 @@
 
 (in-package "SC2C")
 
-(defun add-paren (str)
-  (list "(" str ")"))
-
 (defun parenthesize (exp-retval &optional (assoc -1))
   (funcall
    (if (and (numberp (cadr exp-retval))
             (numberp assoc)
             (> assoc (cadr exp-retval)))
        #'identity
-     #'add-paren)
+     (compose #'add-paren #'string+-rec))
    (car exp-retval)))
 
 (defun parenthesize-t (texp-str outer-assoc inner-assoc)
@@ -50,7 +47,7 @@
             (numberp inner-assoc)
             (<= inner-assoc outer-assoc))
        #'identity
-     #'add-paren)
+     (compose #'add-paren #'string+-rec))
    texp-str))
 
 ;; SC-1 extension

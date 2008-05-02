@@ -25,7 +25,7 @@
 ;;; Tascell --> LW-SC
 ;;; To be rewritten as an extension of sc0t-to-sc0t
 
-(define-ruleset tcell (sc2c)
+(define-ruleset tcell (sc0t-to-sc0t)
   (ignore-cfunc t)
   (nestfunc-tag ~fn)
   (no-nestfunc nil)                     ; 入れ子関数を持たないコードを生成（比較評価用）
@@ -36,7 +36,7 @@
 (defrule sc-program tcell
   ((#?(,@decl-list))
    (tcell:with-environment-bound
-       (let ((pg (mappend #'declaration decl-list)))
+       (let ((pg (mapcar #'external-declaration decl-list)))
          (append
           (list ~(%include "rule/tcell.sh")
                 ~(decl (handle-req) (fn void
@@ -47,118 +47,67 @@
           (tcell:task-maps)))))
   )
 
-(defrule initializer tcell
-  ((#?(array ,@init)
-    #?(struct ,@init))
-   ~(,(car x) ,@(mapcar #'initializer init)) )
-  ((#?(,desig[designator] ,init))
-   ~(,(get-retval desig) ,(initializer init)) )
-  ((#?,exp)
-   (expression exp) )
-  )
-
-(defrule designator tcell
-  ((#?(aref-this ,@exp-list))
-   ~(aref-this ,@(mapcar #'expression exp-list)) )
-  ((#?(fref-this ,@id-list))
-   x)
-  ((#?(aref ,desig ,@exp-list))
-   ~(aref ,(designator desig) ,@(mapcar #'expression exp-list)) )
-  ((#?(fref ,desig ,@id-list))
-   ~(fref ,(designator desig) ,@id-list) )
-  (otherwise nil)
-  )
-
-(defrule declaration tcell
-  ;; variable
-  ((#?(,scs[storage-class-specifier] ,id[identifier] ,texp {,init}))
-   (list (if-pattern-variable init
-             ~(,scs ,id ,(wfn2fn texp) ,(initializer init))
-           ~(,scs ,id ,(wfn2fn texp)))) )
+(extendrule inlined-declaration tcell
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;; def task
   ;; * task-data -> struct
-  ((#?(def (task ,id[identifier]) ,@rest))
-   (tcell:add-task (get-retval id))
-   (tcell:with-task (get-retval id)
-     (let ((task-mems (mapcar #'task-member rest)))
-       (list
+  (#?(def (task ,id) ,@rest)
+   (tcell:add-task id)
+   (tcell:with-task id
+     (let ((task-mems (mapcar #'task-member! rest)))
         ~(def (struct ,(tcell:task-struct-id))
-              ,@task-mems)))))
+              ,@task-mems))))
   ;; * do_task_body
-  ((#?(def (task-body ,id[identifier]) ,@body))
-   (tcell:with-task (get-retval id)
-     (list (tcell:task-body-function
-            (tcell:with-new-bk ~-bk (function-body body))))) )
+  (#?(def (task-body ,id) ,@body)
+   (tcell:with-task id
+     (tcell:task-body-function
+      (tcell:with-new-bk ~-bk (function-body body))) ))
   ;;; 以下はtaskに登録しておくだけ．最後にまとめてコードを作る
   ;; * send_task_body
-  ((#?(def (task-sender ,id[identifier]) ,@body))
-   (tcell:with-task (get-retval id)
+  (#?(def (task-sender ,id) ,@body)
+   (tcell:with-task id
      (tcell:set-task-send (function-body body))
-     (list)) )
+     (list ~%splice) ))
   ;; * send_rslt_body
-  ((#?(def (task-receiver ,id[identifier]) ,@body))
-   (tcell:with-task (get-retval id)
+  (#?(def (task-receiver ,id) ,@body)
+   (tcell:with-task id
      (tcell:set-task-recv (function-body body))
-     (list)) )
+     (list ~%splice) ))
   ;; * recv_task_body
-  ((#?(def (rslt-sender ,id[identifier]) ,@body))
-   (tcell:with-task (get-retval id)
+  (#?(def (rslt-sender ,id) ,@body)
+   (tcell:with-task id
      (tcell:set-rslt-send (function-body body))
-     (list)) )
+     (list ~%splice) ))
   ;; * recv_rslt_body
-  ((#?(def (rslt-receiver ,id[identifier]) ,@body))
-   (tcell:with-task (get-retval id)
+  (#?(def (rslt-receiver ,id) ,@body)
+   (tcell:with-task id
      (tcell:set-rslt-recv (function-body body))
-     (list)) )
+     (list ~%splice) ))
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
   ;; task-work用の関数定義/宣言
-  ((#?(,scs[storage-class-specifier] (,@id-list[identifier])
-           (wfn ,@texp-list) ,@body) )
-   (list ~(,scs ,(wfn-add-argids-decl id-list)
-                ,(wfn2fn ~(wfn ,@texp-list))
-                ,@(tcell:with-new-bk ~-bk (function-body body)))) )
+  (#?(,scs[storage-class-specifier] (,@id-list[identifier])
+           (wfn ,@texp-list) ,@body)
+   ~(,scs ,(wfn-add-argids-decl id-list)
+          ,(type-expression! ~(wfn ,@texp-list))
+          ,@(tcell:with-new-bk ~-bk (function-body! body))) )
   ;; 通常の関数定義/宣言
-  ((#?(,scs[storage-class-specifier] (,fid[identifier] ,@id-list[identifier])
-           (,fn-tag[function-tag] ,@texp-list) ,@body) )
+  (#?(,scs[storage-class-specifier] (,fid[identifier] ,@id-list[identifier])
+          (,fn-tag[function-tag] ,@texp-list) ,@body)
    (if (and (ruleset-param 'ignore-cfunc)
             (or (cid-p fid) (eq ~csym::fn fn-tag)))
-       (list x)
-     (list ~(,scs (,fid ,@id-list) ,(wfn2fn ~(,fn-tag ,@texp-list))
-                  ,@(function-body body))) ))
-  ;; struct, union
-  ;; 多分なにもしなくていい
-  ((#?(,dd[def-or-decl] (,soru[struct-or-union] ,id[identifier]) ,@sdeclist) )
-   (list x))
-  ;; enum
-  ;; なにもしない
-  ((#?(def (enum ,id[identifier]) ,@enum-list) )
-   (list x))
-  ;; deftype (struct)
-  ;; なにもしない
-  ((#?(deftype ,id[identifier] struct ,@sdecllist) )
-   (list x))
-  ;; deftype (enum)
-  ;; なにもしない
-  ((#?(deftype ,id[identifier] enum ,@enum-list) )
-   (list x))
-  ;; deftype
-  ;; なにもしない
-  ((#?(deftype ,id[identifier] ,texp) )
-   (list ~(deftype ,id ,(wfn2fn texp))) )
-  ;; c-exp
-  ((#?(c-exp ,@rem))
-   (list x))
+       x
+     ~(,scs (,fid ,@id-list) ,(type-expression! ~(,fn-tag ,@texp-list))
+            ,@(function-body body)) ))
   )
 
 (defvar *tm-id*)
 (defvar *tm-texp*)
 
 (defrule task-member tcell
-  ((#?(,dd[def-or-decl] ,id[identifier] ,texp ,@options))
+  (#?(,dd[def-or-decl] ,id[identifier] ,texp ,@options)
    (let ((*tm-id* id) (*tm-texp* texp))
-     (mapc #'task-member-option options))
+     (mapc #'task-member-option! options))
    (tcell:task-add-field id texp)
    ~(,dd ,id ,texp)))
 
@@ -173,62 +122,52 @@
     *tm-id* *tm-texp*
     (if-pattern-variable tsize
         (mapcar #'transfer-size-specifier tsize))) )
+  (#?() (values))
   )
 
+;; 送受信サイズの指定．定数またはそれまでに定義されているメンバ名を指定可能
 (defrule transfer-size-specifier tcell
-  ((#?,num[sc-number])
+  (#?,num[sc-number]
    x)
-  ((#?,id[identifier])
+  (#?,id[identifier]
    (unless (tcell:task-field-p id)
-     (ierror "~S is not field of task ~A" id (tcell:task-cid)))
-   ~(fref (mref pthis) ,id)))
+     (ierror "~S is not defined as a field of task ~A" id (tcell:task-id)))
+   ~(fref (mref pthis) ,id) ))
 
-;;; wfn用 追加引数
+;;; 関数定義の仮引数追加
 (defrule wfn-add-argids-decl tcell
-  ((#?(,@id-list))                      ; id-listには関数名も含む
+  (#?(,@id-list)                        ; id-listには関数名も含む
    (if (ruleset-param 'no-nestfunc) id-list
      (insert (list ~-bk ~-thr) id-list 1) ))
   )
+;;; 関数呼出の実引数追加
 (defrule wfn-add-argids tcell
-  ((#?(,@id-list))                      ; id-listには関数名も含む
+  (#?(,@id-list)                        ; id-listには関数名も含む
    (if (ruleset-param 'no-nestfunc) id-list
      (insert (list (tcell:latest-bk) ~-thr) id-list 1) ))
   )
 
-(defrule wfn2fn tcell
-  ((#?(wfn ,@texp-list))
-   (if (ruleset-param 'no-nestfunc) ~(fn ,@texp-list)
-     ~(fn ,@(insert (list ~(ptr ,(tcell:nestfunc-type))
-                          ~(ptr (struct thread-data)))
-                    texp-list 1)) ))
-  ((#?(,@list))
-   (mapcar #'wfn2fn list))
-  (otherwise x)
+;;; wfn関数型の仮引数の型追加
+(extendrule type-expression tcell
+  (#?(wfn ,@texp-list)
+   (let ((texp-rets (mapcar #'type-expression! texp-list)))
+     (if (ruleset-param 'no-nestfunc) ~(fn ,@texp-rets)
+       ~(fn ,@(insert (list ~(ptr ,(tcell:nestfunc-type))
+                            ~(ptr (struct thread-data)))
+                      texp-rets 1)) )))
   )
 
-;;; function-attribute & register-decl
-(defrule function-body tcell
-  ((#?(:attr ,atr ,@body) )
-   ~(:attr ,atr
-           ,@(function-body body)) )
-  ((#?((register ,@regarg)   ,@body) )
-   ~(,(car x)
-     ,@(function-body body)) )
-  (otherwise
-   (mappend #'block-item x))
-  )
-
-(defrule block-item tcell
+(extendrule statement tcell
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; do-two
   ;; * stat1->stat2 の順に実行
   ;; * stat2 実行中に仕事の要求がきたら，:put以下を実行してsendする．
   ;;   <stat1>が終わり，sendした仕事の結果が返ってきたら，:get 以下を実行．
-  ((#?(do-two ,stat1 ,stat2 (,id[identifier] (:put ,@put-body) (:get ,@get-body))))
+  (#?(do-two ,stat1 ,stat2 (,id (:put ,@put-body) (:get ,@get-body)))
    (when (ruleset-param 'no-nestfunc)
-     (return-from block-item (list ~(begin ,@(block-item stat1)
-                                           ,@(block-item stat2)))))
-   (tcell:with-task (get-retval id)
+     (return-from statement ~(begin ,@(block-item stat1)
+                                    ,@(block-item stat2)) ))
+   (tcell:with-task id
      (let* ((spn-id  (generate-id "spawned"))
             (tdat-id (generate-id "st"))
             (bk-id (generate-id "do_two_bk"))
@@ -236,37 +175,35 @@
             (b-stat2 (block-item stat2))
             (b-put-body (function-body put-body))
             (b-get-body (function-body get-body)))
-       (list
-        ~(begin
-          (def ,tdat-id (struct ,(tcell:task-struct-id))) ; 送信用 task-body
-          (def pthis (ptr (struct ,(tcell:task-struct-id))) (ptr ,tdat-id))
-          (def ,spn-id int 0)           ; すでに仕事をsendしていたら '1'
-          #+enable-dvbl (if (== divisibility-flag 1) (csym::send-divisible))
-          (begin
-           ;; タスク要求がきたら呼ばれる
-           (def (,bk-id) ,(tcell:nestfunc-type)
-             (if ,spn-id  (return 0))   ; すでに仕事をあげてしまってた
-             (,(tcell:latest-bk))       ; より根元での分割を試みる
-             (if (fref (mref -thr) treq-top) ; タスク作成待ちスタックに要素があれば
-                 (begin
-                  ,@b-put-body
-                  (= ,spn-id 1)
-                  (csym::make-and-send-task -thr ,(tcell:task-no) pthis)
-                  (return 1)))
-             (return 0))
-           ;; ここから仕事本体
-           (if (fref (mref -thr) req)   ; （ポーリング）タスク要求がきていたら
-               ,(tcell:with-new-bk bk-id ; 分割を試みる
-                  (wfn-add-argids ~(handle-req))))
-           ,@b-stat1)
-          (if ,spn-id
-              (begin
-               (wait-rslt -thr)
-               ,@b-get-body)
-            (begin
-             ,@b-stat2))
-          )
-        ))) )
+       ~(begin
+         (def ,tdat-id (struct ,(tcell:task-struct-id))) ; 送信用 task-body
+         (def pthis (ptr (struct ,(tcell:task-struct-id))) (ptr ,tdat-id))
+         (def ,spn-id int 0)            ; すでに仕事をsendしていたら '1'
+         #+enable-dvbl (if (== divisibility-flag 1) (csym::send-divisible))
+         (begin
+          ;; タスク要求がきたら呼ばれる
+          (def (,bk-id) ,(tcell:nestfunc-type)
+            (if ,spn-id  (return 0))    ; すでに仕事をあげてしまってた
+            (,(tcell:latest-bk))        ; より根元での分割を試みる
+            (if (fref (mref -thr) treq-top) ; タスク作成待ちスタックに要素があれば
+                (begin
+                 ,@b-put-body
+                 (= ,spn-id 1)
+                 (csym::make-and-send-task -thr ,(tcell:task-no) pthis)
+                 (return 1)))
+            (return 0))
+          ;; ここから仕事本体
+          (if (fref (mref -thr) req)    ; （ポーリング）タスク要求がきていたら
+              ,(tcell:with-new-bk bk-id ; 分割を試みる
+                 (wfn-add-argids ~(handle-req))))
+          ,b-stat1)
+         (if ,spn-id
+             (begin
+              (wait-rslt -thr)
+              ,@b-get-body)
+           (begin
+            ,b-stat2))
+         ) )))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; do-many
   ;; * ,var を制御変数として，,fromから ,toまでについて ,@bodyを実行
@@ -274,56 +211,54 @@
   ;; * 渡し方は :put 中で指定，渡す仕事の範囲の先頭は ,put-from，,put-to
   ;;   に渡され，:put 中の文で使用することができる．
   ;; * 受け取ったtaskの結果の結合は:getで指定
-  ((#?(do-many for ,var[identifier] from ,from to ,to
-               ,@body
-               (,id[identifier]
-                   (:put from ,put-from to ,put-to ,@put-body)
-                   (:get ,@get-body))))
+  (#?(do-many for ,var[identifier] from ,from to ,to
+              ,@body
+              (,id
+               (:put from ,put-from to ,put-to ,@put-body)
+               (:get ,@get-body)))
    (when (ruleset-param 'no-nestfunc)
-     (return-from block-item
+     (return-from statement
        (let ((var2 (generate-id (string+ (get-retval var) "_end"))))
-         (list
-          ~(begin
-            (def ,var int ,(expression from))
-            (def ,var2 int ,(expression to))
-            (for ((< ,var ,var2) (inc ,var))
-              ,@(function-body body)))))))
+         ~(begin
+           (def ,var int ,(expression from))
+           (def ,var2 int ,(expression to))
+           (for ((< ,var ,var2) (inc ,var))
+             ,@(function-body body))) )))
    (let ((spn-id (generate-id "spawned"))
          (bk-id (generate-id "do_many_bk"))
          (var2 (generate-id (string+ (get-retval var) "_end"))))
-     (tcell:with-task (get-retval id)
-       (list
-        ~(begin
-          (def ,var  int ,(expression from))
-          (def ,var2 int ,(expression to)) ; ,var <= i < ,var2 が未処理
-          (def pthis (ptr (struct ,(tcell:task-struct-id)))) ; 送信用 task-body
-          (def ,spn-id int 0)           ; 仕事を他所にsendしている数
-          ;; タスク要求がきたら呼ばれる
-          (def (,bk-id) ,(tcell:nestfunc-type)
-            (if (not ,spn-id) (,(tcell:latest-bk))) ; まだ自分が分割していなければ，まず根元を見る
-            (while (and (fref (mref -thr) treq-top) ; まだタスク要求が残っている
-                        (< (+ ,var 1) ,var2))       ; まだiterationが残っている
-              (def ,put-to int ,var2)
-              (def ,put-from int (/ (+ 1 ,var ,var2) 2))
-              (= ,var2 ,put-from)
-              (= pthis
-                 (cast (ptr (struct ,(tcell:task-struct-id)))
-                   (csym::malloc (sizeof (struct ,(tcell:task-struct-id))))))
-              ,@(function-body put-body)
-              (inc ,spn-id)
-              (csym::make-and-send-task -thr ,(tcell:task-no) pthis))
-            (return 0))
-          #+enable-dvbl (if (== divisibility-flag 1)  (csym::send-divisible))
-          (if (fref (mref -thr) req)    ; （ポーリング）タスク要求がきていたら
-              ,(tcell:with-new-bk bk-id ; 分割を試みる
-                 (wfn-add-argids ~(handle-req))))
-          (for ((< ,var ,var2) (inc ,var))
-            ,@(tcell:with-new-bk bk-id (function-body body)))
-          (while (> (dec ,spn-id) 0)
-            (= pthis (cast (ptr (struct ,(tcell:task-struct-id)))
-                       (wait-rslt -thr)))
-            ,@(function-body get-body)
-            (csym::free pthis)))))) )
+     (tcell:with-task id
+       ~(begin
+         (def ,var  int ,(expression from))
+         (def ,var2 int ,(expression to)) ; ,var <= i < ,var2 が未処理
+         (def pthis (ptr (struct ,(tcell:task-struct-id)))) ; 送信用 task-body
+         (def ,spn-id int 0)            ; 仕事を他所にsendしている数
+         ;; タスク要求がきたら呼ばれる
+         (def (,bk-id) ,(tcell:nestfunc-type)
+           (if (not ,spn-id) (,(tcell:latest-bk))) ; まだ自分が分割していなければ，まず根元を見る
+           (while (and (fref (mref -thr) treq-top) ; まだタスク要求が残っている
+                       (< (+ ,var 1) ,var2)) ; まだiterationが残っている
+             (def ,put-to int ,var2)
+             (def ,put-from int (/ (+ 1 ,var ,var2) 2))
+             (= ,var2 ,put-from)
+             (= pthis
+                (cast (ptr (struct ,(tcell:task-struct-id)))
+                  (csym::malloc (sizeof (struct ,(tcell:task-struct-id))))))
+             ,@(function-body put-body)
+             (inc ,spn-id)
+             (csym::make-and-send-task -thr ,(tcell:task-no) pthis))
+           (return 0))
+         #+enable-dvbl (if (== divisibility-flag 1)  (csym::send-divisible))
+         (if (fref (mref -thr) req)     ; （ポーリング）タスク要求がきていたら
+             ,(tcell:with-new-bk bk-id  ; 分割を試みる
+                (wfn-add-argids ~(handle-req))))
+         (for ((< ,var ,var2) (inc ,var))
+           ,@(tcell:with-new-bk bk-id (function-body body)))
+         (while (> (dec ,spn-id) 0)
+           (= pthis (cast (ptr (struct ,(tcell:task-struct-id)))
+                      (wait-rslt -thr)))
+           ,@(function-body get-body)
+           (csym::free pthis))) )))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; dynamic-wind
   ;; * do-two, do-many の中で使う
@@ -331,97 +266,36 @@
   ;; * body実行中に仕事の要求がきたら，aft-bodyを実行してから
   ;;   do-two, do-many の仕事分割を実行する．
   ;;   分割作業が終わったら，再び bef-bodyを実行してから自分の仕事に戻る．
-  ((#?(dynamic-wind
-       (:before ,@bef-body)
-       (:body ,@body)
-       (:after ,@aft-body)))
+  (#?(dynamic-wind
+      (:before ,@bef-body)
+      (:body ,@body)
+      (:after ,@aft-body))
    (let* ((bk-id (generate-id "dwind_bk"))
           (b-bef-body (function-body bef-body))
           (b-body (tcell:with-new-bk bk-id (function-body body)))
           (b-aft-body (function-body aft-body)))
-     (list
-      ~(begin
-        (begin ,@b-bef-body)
-        (begin
-         ,.(unless (ruleset-param 'no-nestfunc)
-             (list
-              ~(def (,bk-id) ,(tcell:nestfunc-type)
-                    (begin ,@b-aft-body)
-                    (,(tcell:latest-bk))
-                    (begin ,@b-bef-body)) ))
-         (begin ,@b-body)
-         (begin ,@b-aft-body))))) )
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-  ;; begin
-  ((#?(begin ,@body) )
-   (list ~(begin ,@(function-body body))))
-  ;; label
-  ((#?(label ,id ,stat))
-   (list ~(label ,id (begin ,@(block-item stat)))))
-  ;; case (expから外にでるものはないはず)
-  ((#?(case ,exp) )
-   (list ~(case ,(expression exp))) )
-  ;; default
-  ((#?(default) )
-   (list x))
-  ;; if
-  ((#?(if ,exp ,stat1 {,stat2}) )
-   (let ((e-exp (expression exp))
-         (b-stat1 (block-item stat1))
-         (b-stat2 (if-pattern-variable stat2 (block-item stat2))))
-     (list ~(if ,e-exp
-                (begin ,@b-stat1)
-                ,@(if-pattern-variable stat2
-                      (list ~(begin ,@b-stat2)))))
-     ) )
-  ;; switch
-  ((#?(switch ,exp ,@body) )
-   (list ~(switch ,(expression exp) ,@(function-body body))) )
-  ;; do-while
-  ((#?(do-while ,exp ,@body) )
-   (list ~(do-while ,(expression exp) ,@(function-body body))) )
-  ;; goto
-  ((#?(goto ,id))
-   (list x) )
-  ;; continue, break
-  ((#?(continue) #?(break) )
-   (list x) )
-  ;; 返り値なしreturn
-  ((#?(return) )
-   (list x) )
-  ;; return (exp から外にでるものはないはず)
-  ((#?(return ,exp) )
-   (list ~(return ,(expression exp))) )
-  ;; null-statement
-  ((#?() )
-   (list ~()) )
-  ;; expression-statement or declaration
-  ((#?,otherwise )
-   (or (aand (expression? x) (list it))
-       (declaration x)))
+     ~(begin
+       (begin ,@b-bef-body)
+       (begin
+        ,.(unless (ruleset-param 'no-nestfunc)
+            (list
+             ~(def (,bk-id) ,(tcell:nestfunc-type)
+                (begin ,@b-aft-body)
+                (,(tcell:latest-bk))
+                (begin ,@b-bef-body)) ))
+        (begin ,@b-body)
+        (begin ,@b-aft-body))) ))
   )
 
-(defrule expression tcell
+(extendrule expression tcell
   ;; wfn関数呼び出し
   ;; * 引数の追加 
-  ((#?(the ,texp (call (the (ptr (wfn ,@texp-list)) ,exp-f) ,@exp-list)) )
-   ~(the ,texp (call ,@(wfn-add-argids ~((the (ptr ,(wfn2fn ~(wfn ,@texp-list))) ,exp-f)
-                                         ,@(mapcar #'expression exp-list))))) )
-  ;; cast (expression)
-  ((#?(the ,texp (cast (the ,@rest) ,exp)) )
-   ~(the ,texp (cast ,(expression ~(the ,@rest)) ,(expression exp))))
-  ;; cast (type-expression)
-  ((#?(the ,texp (cast ,texp2 ,exp)) )
-   ~(the ,texp (cast ,(wfn2fn texp2) ,(expression exp))))
+  (#?(the ,texp (call (the (ptr (wfn ,@texp-list)) ,exp-f) ,@exp-list))
+   ~(the ,texp (call ,@(wfn-add-argids ~((the (ptr ,(type-expression! ~(wfn ,@texp-list))) ,exp-f)
+                                         ,@(mapcar #'expression! exp-list))))) )
   ;; this -> (mref pthis)
-  ((#?(the ,texp this))
+  (#?(the ,texp this)
    (if (tcell:current-task)
        ~(the ,texp (mref (the (ptr ,texp) pthis)))
      x))
-  ;; othrer 
-  ((#?(the ,texp ,exp))
-   (if (atom exp)
-       x
-     ~(the ,texp ,(mapcar (fun (or expression? identity)) exp)) ))
   )
