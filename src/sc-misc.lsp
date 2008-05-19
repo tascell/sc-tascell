@@ -331,12 +331,16 @@
   (declare (simple-string str))
   (map 'string #'char-invertcase str))
 
-;;; str2 が str1 で始まる文字列なら、その残りの文字列を返す
-(defun string-begin-with (str1 str2)
+;;; str2 が str1 で始まる文字列なら、
+;;; その残りの文字列 (need-remain=t)またはt(need-remain=nil)を返す
+(defun string-begin-with (str1 str2 &optional (need-remain t)) 
   (declare (simple-string str1 str2))
-  (let ((pos (search str1 str2)))
-    (and (eql 0 pos)
-         (string-left-ntrim str2 (length str1)))))
+  (with (len1 (length str1)
+         len2 (length str2))
+    (and (<= len1 len2)
+         (loop for i from 0 to (1- len1)
+             always (char= (aref str1 i) (aref str2 i)))
+         (if need-remain (string-left-ntrim str2 len1) t))))
 
 ;;; character or string or symbol のリストを文字列として結合
 (defun string+ (&rest strings)

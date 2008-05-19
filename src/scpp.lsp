@@ -98,8 +98,8 @@
                ((:input-file-directory *input-file-directory*) *input-file-directory*)
                ((:include-path *include-path-list*) *include-path-list*))
   (initialize)
-  (when (stringp x)
-    (setq x (sc-file:read-sc-file x)))  
+  (when (or (pathnamep x) (stringp x))
+    (setq x (sc-file:read-sc-file x)))
   (scpp-list x))
 
 ;; * Cに変換したときに同じidentifierで，
@@ -112,9 +112,6 @@
       (rule:make-id it (symbol-package sym))
     sym))
 
-(defvar *scpp-abort* nil)
-(defvar *scpp-section* nil)             ; one of {nil, then, else}
-
 (defun scpp-list (x)
   (apply #'nconc (mapcar #'scpp-1exp x)))
 
@@ -123,7 +120,7 @@
    ((and (consp x)
          (symbolp (car x))
          (with1 sname (symbol-name (car x))
-           (and (> (length sname) 1)         ; `%' 演算子がかかることを防止
+           (and (> (length sname) 1)         ; `%' 演算子はだめなので >=2
                 (char= #\% (aref sname 0)))))
     (case (car x)
       ((sc::%splice)
@@ -218,7 +215,7 @@
       (otherwise
        (error "Unknown scpp-directive ~S." (car x)))))
    ((and (symbolp x)
-         (string-begin-with "%%" (symbol-name x)))
+         (string-begin-with "%%" (symbol-name x) nil))
     '())
    (t
     (with1 expand-ret (scpp-macroexpand x)
@@ -327,7 +324,7 @@
             (scpp-macroexpand (macro-entry-value macentry)
                               :extracting-macro (cons macsymbol extracting-macro))
           macsymbol)))))
-   ((consp x)
+   ((consp x)                           ; (<macroname> ... )
     (if (and (symbolp (car x))
              (setq macsymbol (entry-and-normalize-id (car x)))
              (not (member macsymbol extracting-macro))
