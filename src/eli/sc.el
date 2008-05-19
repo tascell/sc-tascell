@@ -27,10 +27,14 @@
 ;;; http://www.franz.com/emacs/
 
 (let ((tag 'fi:lisp-indent-hook))
-  ;; sc-misc functions
+  ;; sc-misc macros
+  (put 'with tag '((1 1 quote) (0 t 1)))
+  (put 'with* tag '(like with))
+  (put 'with1 tag 2)
   (put 'awhen tag '(like when))
   (put 'acond tag '(like cond))
   (put 'aif tag '(like if))
+  (put 'error-indent tag '(like when))
   (put 'string-case tag '(like case))
   (put 'with-fresh-variables tag '(like let))
   ;; .rule

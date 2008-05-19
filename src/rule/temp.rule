@@ -77,7 +77,7 @@
        (aif (temp:flush-precedents)
            (let ((end-label (generate-id "loop_end")))
              ~(begin
-               (do-while 1
+               (do-while (the int 1)
                  ,.it
                  (if (the int (not ,exp-ret)) (goto ,end-label))
                  ,@body-ret)

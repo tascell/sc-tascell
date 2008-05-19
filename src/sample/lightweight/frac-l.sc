@@ -43,5 +43,8 @@
   
   (label L0 (return acc)))
 
-(def (main) (fn int)
-  (return (frac 10)))
+(def (main argc argv) (fn int int (ptr (ptr char)))
+  (def n int (if-exp (> argc 1) (csym::atoi (aref argv 1)) 10))
+  (def r int (frac n))
+  (csym::printf "%d~%" r)
+  (return 0))

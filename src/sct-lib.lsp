@@ -73,31 +73,31 @@
   (let ((symstr "") (mode *print-case*))
     (dotimes (n (length cid) symstr)
       (let ((idn (aref cid n)))
-	(cond
-	  ((char= #\_ idn)
-	   (add-string symstr "-"))
-	  ((and (eq ':downcase mode)
-		(upper-case-p idn))
-	   (setq mode :upcase)
-	   (add-string symstr (string+ "@" idn)))
-	  ((and (eq ':upcase mode)
-		(lower-case-p idn))
-	   (setq mode :downcase)
-	   (add-string symstr (string+ "@" idn)))
-	  (t (add-string symstr (string idn))))))))
+        (cond
+         ((char= #\_ idn)
+          (add-string symstr "-"))
+         ((and (eq ':downcase mode)
+               (upper-case-p idn))
+          (setq mode :upcase)
+          (add-string symstr (string+ "@" idn)))
+         ((and (eq ':upcase mode)
+               (lower-case-p idn))
+          (setq mode :downcase)
+          (add-string symstr (string+ "@" idn)))
+         (t (add-string symstr (string idn))))))))
 #+readtable-case
 (defun cid-to-scidname (cid)
   (substitute
    #\- #\_
    (funcall (if (case-mixed-p cid)
-		#'identity
-		#'string-invertcase)
-	    cid)))
+                #'identity
+              #'string-invertcase)
+            cid)))
 
 
 ;;;; 識別子生成
-;: with-setup-generate-id は最初に sc2c (in "SC-MAIN") でやる．
-;; 最初の既使用識別子登録はscppでやる．
+;;; with-setup-generate-id は最初に sc2c (in "SC-MAIN") でやる．
+;;; 最初の既使用識別子登録はscppでやる．
 
 (defvar *used-identifier* :undefined)
 
@@ -124,108 +124,113 @@
   (if (hash-table-p *used-identifier*)
       ;; *used-identifier* とかぶらないように
       (let ((gen-cid
-	     (if (gethash basename *used-identifier*)
-		 (loop for i from 2
-		    as cand = (string+ basename (write-to-string i))
-		    while (gethash cand *used-identifier*)
-		    finally (return cand))
-		 basename)))
-	(make-id gen-cid package))
-      ;; *used-identifier* 非使用 ＋ 警告
-      (progn
-	(warn "Generate-id should be used in with-setup-generate-id environment.")
-	(gentemp (cid-to-scidname basename) package))))
+             (if (gethash basename *used-identifier*)
+                 (loop for i from 2
+                     as cand = (string+ basename (write-to-string i))
+                     while (gethash cand *used-identifier*)
+                     finally (return cand))
+               basename)))
+        (make-id gen-cid package))
+    ;; *used-identifier* 非使用 ＋ 警告
+    (progn
+      (warn "Generate-id should be used in with-setup-generate-id environment.")
+      (gentemp (cid-to-scidname basename) package))))
 
 ;;;; 型関連
 ;;; !!!拡張性のためにはdefruleに書きかえるべき
 
 ;;; remove type-qualifier from type-expression
-(defun remove-type-qualifier (x)
-  (when (not (listp x)) (return-from remove-type-qualifier x))
-  (setq x (remove-if #'type-qualifier? x))
-  (when (endp (cdr x))
-    (return-from remove-type-qualifier 
-      (remove-type-qualifier (car x))))
-  (mapcar #'remove-type-qualifier x))
+(defun remove-type-qualifier (x &optional (recursive t))
+  (if (not (listp x)) x
+    (progn
+      (setq x (remove-if #'type-qualifier? x))
+      (cond
+       ((not recursive)
+        (if (endp (cdr x)) (car x) x))
+       ((endp (cdr x))
+        (remove-type-qualifier (car x)))
+       (t
+        (mapcar #'remove-type-qualifier x))))))
 
 ;;; whether unsigned-type
 (defun unsigned-p (texp)
   (case texp
     ((sc::unsigned-char sc::unsigned-short sc::unsigned-int sc::unsigned-long
-			sc::unsigned-long-long)
+      sc::unsigned-long-long)
      t)
     (otherwise nil)))
-
 
 ;; return signed, unsigned ,enum ,float or other
 (defun classify-type (texp)
   (cond 
-    ((member texp (mapcar #'car *signed-to-unsigned-alist*) :test #'eq)
-     'signed)
-    ((member texp (mapcar #'cdr *signed-to-unsigned-alist*) :test #'eq)
-     'unsigned)
-    ((and (consp texp) (eq ~enum (car texp)))
-     'enum)
-    ((member texp *float-type-list*)
-     'float)
-    ((eq ~void texp)
-     'void)
-    (t 'other)))
+   ((member texp (mapcar #'car *signed-to-unsigned-alist*) :test #'eq)
+    'signed)
+   ((member texp (mapcar #'cdr *signed-to-unsigned-alist*) :test #'eq)
+    'unsigned)
+   ((and (consp texp) (eq ~enum (car texp)))
+    'enum)
+   ((member texp *float-type-list*)
+    'float)
+   ((eq ~void texp)
+    'void)
+   (t 'other)))
 
 ;;; 一番外側の array を ptr に変換
 (defun array2ptr (texp)
   (if (and (consp texp)
            (eq ~array (car texp)))
       `(sc::ptr ,(second texp))
-      texp))
+    texp))
 
 ;;; implicit type conversion
 ;;; lightweight入れ子関数に対応(2003/12/28)
 (defun type-conversion (texp1 texp2)
   (let* ((class1 (classify-type texp1))
-	 (class2 (classify-type texp2)))
+         (class2 (classify-type texp2)))
     (cond
-      ;; 同じ型のとき
-      ((equal texp1 texp2)
-       texp1)
-      ;; どちらかが voidのとき
-      ((eq 'void  class1) texp1)
-      ((eq 'void  class2) texp2)
-      ;; どちらかが算術型でないとき
-      ((eq 'other class1) (array2ptr texp1))
-      ((eq 'other class2) (array2ptr texp2))
-      ;; どちらかが浮動小数点型のとき
-      ((eq 'float class1) texp1)
-      ((eq 'float class2) texp2)
-      ;; 両方整数型
-      (t
-       ;; enum=>int
-       (when (eq 'enum class1)
-	 (setq texp1 ~int class1 'signed))
-       (when (eq 'enum class2)
-	 (setq texp2 ~int class2 'signed))
-       ;; (少なくとも一方がunsignedの場合、texp1がunsignedになるように入れ替え)
-       (unless (eq 'unsigned class1)
-	 (swap texp1 texp2)
-	 (swap texp1 texp2)
-	 (swap class1 class2))
-       (cond
-	 ;; どちらもsigned, どちらもunsigned
-	 ((eq (eq 'unsigned class1) (eq 'unsigned class2))
-	  (if (> (cdr (assoc texp1 *type-rank-alist*))
-		 (cdr (assoc texp2 *type-rank-alist*)))
-	      texp1 texp2))
-	 ;; unsigned側のランクが低くない場合
-	 ((>= (cdr (assoc texp1 *type-rank-alist*))
-	      (cdr (assoc texp2 *type-rank-alist*)))
-	  texp1)
-	 ;; signed側の型がもう一方の型の値を全て表現できる場合
-	 ((> (cdr (assoc texp2 *type-size-alist*))
-	     (cdr (assoc texp1 *type-size-alist*)))
-	  texp2)
-	 ;; それ以外(signed側の型のunsignedに変換)
-	 (t
-	  (cdr (assoc texp2 *signed-to-unsigned-alist*)) ))))))
+     ;; 同じ型のとき
+     ((equal texp1 texp2)
+      texp1)
+     ;; どちらかが voidのとき
+     ((eq 'void  class1) texp1)
+     ((eq 'void  class2) texp2)
+     ;; どちらかが算術型でないとき
+     ((eq 'other class1) (array2ptr texp1))
+     ((eq 'other class2) (array2ptr texp2))
+     ;; どちらかが浮動小数点型のとき
+     ((eq 'float class1) texp1)
+     ((eq 'float class2) texp2)
+     ;; 両方整数型
+     (t
+      ;; enum=>int
+      (when (eq 'enum class1)
+        (setq texp1 ~int class1 'signed))
+      (when (eq 'enum class2)
+        (setq texp2 ~int class2 'signed))
+      ;; (少なくとも一方がunsignedの場合、texp1がunsignedになるように入れ替え)
+      (unless (eq 'unsigned class1)
+        (swap texp1 texp2)
+        (swap texp1 texp2)
+        (swap class1 class2))
+      (cond
+       ;; どちらもsigned, どちらもunsigned
+       ((eq (eq 'unsigned class1) (eq 'unsigned class2))
+        (if (> (cdr (assoc texp1 *type-rank-alist*))
+               (cdr (assoc texp2 *type-rank-alist*)))
+            texp1 texp2))
+       ;; unsigned側のランクが低くない場合
+       ((>= (cdr (assoc texp1 *type-rank-alist*))
+            (cdr (assoc texp2 *type-rank-alist*)))
+        texp1)
+       ;; signed側の型がもう一方の型の値を全て表現できる場合
+       ((> (cdr (assoc texp2 *type-size-alist*))
+           (cdr (assoc texp1 *type-size-alist*)))
+        texp2)
+       ;; それ以外(signed側の型のunsignedに変換)
+       (t
+        (cdr (assoc texp2 *signed-to-unsigned-alist*)) ))))))
+
+;;;; 文字列関連
 
 ;;; (a b (rule::splice c d) e f) -> (a b c d e f)
 (defun splice (x)

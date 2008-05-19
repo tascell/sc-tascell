@@ -59,8 +59,7 @@
                     (namestring arg)
                   arg))
             args))
-  (command-line "gcc" :args args
-                :verbose nil))
+  (command-line "gcc" :args args :verbose nil))
 
 ;;; Predefined macros
 (defun make-system-predefined-macros (&key input-file rule-list)
@@ -71,7 +70,7 @@
           ~(%defconstant RULE ,rule-list)
           )))
 
-;; 中間ファイル出力＋メッセージ
+;;; 中間ファイル出力＋メッセージ
 (defun write-intermediate-file (pathname x)
   (format *error-output*
       "~&Writing an intermeidate file ~S...~%" (namestring pathname))

@@ -24,7 +24,8 @@
 
 ;;; Header file for LW-SC, automatically included by nestfunc.rule
 
-;; (c-exp "#include<stdio.h>")
+(c-exp "#include<stdio.h>")
+
 ;;; 追加する型、マクロ定義
 (deftype nestfn-t (ptr (fn (ptr char) (ptr char) (ptr void))))
 
@@ -59,7 +60,7 @@
   `(exps (= ,argp (aligned-sub ,argp (sizeof ,tp)))
          (mref-t ,tp ,argp)))
 
-#+obsolete 
+#+obsolete                              ; old version (without goto support)
 (def (lw-call esp) (fn void (ptr char))
   (def tmp-esp (ptr char))
   (def clos (ptr closure-t) (mref-t (ptr closure-t) esp))

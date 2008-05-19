@@ -29,7 +29,7 @@
   (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL RAWC)
 
 (%defconstant RULE-LWSC
-              (:nestfunc-sc1 :nestfunc-rename :nestfunc-type :nestfunc-temp
+              (:nestfunc-sc1 :nestfunc-rename :nestfunc-hoist :nestfunc-type :nestfunc-temp
                              (:nestfunc :all-in-estack ALL-IN-ESTACK)
                              :untype))
 

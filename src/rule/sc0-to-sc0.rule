@@ -84,8 +84,7 @@
    ~(def ,(get-retval espec)
          ,@(mapcar #'enumerator en-list)))
   ;; deftype (struct)
-  ((#?(,dt-tag[deftype-tag] ,id ,su[struct-or-union]
-	      ,@sdcl-list))
+  ((#?(,dt-tag[deftype-tag] ,id ,su[struct-or-union] ,@sdcl-list))
    (push id *typename-list*)
    ~(,(get-retval dt-tag) 
      ,(identifier id) ,(get-retval su)
@@ -102,8 +101,7 @@
   )
 
 (defrule function-body sc0-to-sc0
-  ((#?({:attr ,f-attr} { ,r-decl[register-declarator] }
-		       ,@bi-list))
+  ((#?({:attr ,f-attr} { ,r-decl[register-declarator] } ,@bi-list))
    ~(,.(if-pattern-variable f-attr (list ~(:attr ,(function-attribute f-attr))))
        ,.(if-pattern-variable r-decl (list (get-retval r-decl)))
        ,@(mapcar #'block-item bi-list))))
@@ -167,8 +165,7 @@
 (defrule struct-declaration sc0-to-sc0
   ((#?,decl[declaration]) (get-retval decl))
   ((#?:bit)               x)
-  ((#?,exp[expression])
-   (get-retval exp))
+  ((#?,exp[expression])    (get-retval exp))
   )
 
 ;; enumerator
@@ -483,6 +480,11 @@
 (defrule sc-string sc0-to-sc0
   ((#?,str[#'sc2c:string-sc2c])  x)
   )
+
+;; utility
+(defrule sc-string-length sc0-to-sc0
+  (#?,str[sc-string]
+   (length (sc2c:sc-format str))))
 
 ;;; operator
 (defrule operator sc0-to-sc0

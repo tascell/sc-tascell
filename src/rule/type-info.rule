@@ -183,13 +183,13 @@
   ;; constant
   ((#?,num[#'integerp])
    ~(the int ,num) )
-  ((#?,cha[#'characterp])
-   ~(the int ,cha) )
-  ((#?,num[#'numberp])
+  ((#?,ch[sc-character])
+   ~(the int ,ch) )
+  ((#?,num[sc-number])
    ~(the double ,num) )
   ;; string-literal
-  ((#?,str[#'stringp])
-   ~(the (array char) ,str) )
+  ((#?,str[sc-string])
+   ~(the (ptr char) ,str) )
   ;; aref
   ((#?(aref ,@expr-list))
    (type:handle-exp-args

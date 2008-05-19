@@ -116,13 +116,15 @@
 (defvar *scpp-section* nil)             ; one of {nil, then, else}
 
 (defun scpp-list (x)
-  (reduce #'nconc (mapcar #'scpp-1exp x) :from-end t))
+  (apply #'nconc (mapcar #'scpp-1exp x)))
 
 (defun scpp-1exp (x)
   (cond
-   ((and (listp x)
+   ((and (consp x)
          (symbolp (car x))
-         (char= #\% (aref (symbol-name (car x)) 0))) 
+         (with1 sname (symbol-name (car x))
+           (and (> (length sname) 1)         ; `%' 演算子がかかることを防止
+                (char= #\% (aref sname 0)))))
     (case (car x)
       ((sc::%splice)
        (scpp-list (cdr x)))
@@ -215,8 +217,14 @@
                        (aif (third x) it "")))))
       (otherwise
        (error "Unknown scpp-directive ~S." (car x)))))
-   (t 
-    (list (scpp-macroexpand x)))))
+   ((and (symbolp x)
+         (string-begin-with "%%" (symbol-name x)))
+    '())
+   (t
+    (with1 expand-ret (scpp-macroexpand x)
+      (if (atom expand-ret)
+          (list expand-ret)
+        (list (scpp-list expand-ret)))))))
 
 ;; *cinclude-h-file* を作成
 (defun make-cinclude-h (header-list

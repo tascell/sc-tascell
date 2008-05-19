@@ -36,10 +36,6 @@
 
 (define-ruleset sc1-to-sc0 (sc0-to-sc0))
 
-(defrule sc-program sc1-to-sc0
-  (otherwise
-   (splice (call-next-rule))))
-
 ;;; declaration
 (extendrule declaration sc1-to-sc0
   ((#?,idecl[inlined-declaration])
@@ -53,10 +49,10 @@
 
 ;;; inlined-declaration
 (extendrule inlined-declaration sc1-to-sc0
-  ((#?(,cscs[compound-storage-class-specifier] ,texp ,@list) )
+  (#?(,cscs[compound-storage-class-specifier] ,texp ,@list)
    (let ((scs (get-retval cscs)))
-     (cons 'splice
-       (loop 
+     (cons ~%splice
+       (loop
            for id-init0 in list
            as id-init = (mklist id-init0)
            as id = (car id-init)
@@ -82,10 +78,10 @@
 
 ;;; statement
 (extendrule statement sc1-to-sc0
-  ((#?(let (,@decl-list) ,@body) )
+  (#?(let (,@decl-list) ,@body)
    ~(begin ,.(mapcar #'declaration decl-list)
            ,@(function-body body)) )
-  ((#?(while ,exp ,@rem) )
+  (#?(while ,exp ,@rem)
    (let ((cdt (expression exp)))
      ~(if ,cdt
           (do-while ,cdt ,@(function-body rem))) ))
@@ -95,7 +91,7 @@
            (action (statement ~(begin ,@(cdar clauses)))))
        (if (eq ~else pred) action
          ~(if ,pred ,action ,(statement ~(cond ,@(cdr clauses))))))))
-  ((#?(for (,@list ,exp2 ,exp3) ,@rem) )
+  (#?(for (,@list ,exp2 ,exp3) ,@rem)
    (let ((e1-list (mapcar #'block-item list))
          (e2 (expression exp2))
          (e3 (expression exp3))
@@ -106,19 +102,19 @@
            (do-while (exps ,e3 ,e2)
              ,@new-body)))
      ) )
-  ((#?(loop ,@rem) )
+  (#?(loop ,@rem)
    ~(do-while 1 ,@(function-body rem)))
   )
 
 ;;; expression
 (extendrule expression sc1-to-sc0
-  ((#?(fref ,exp ,@id-list1 -> ,@id-list2))
+  (#?(fref ,exp ,@id-list1 -> ,@id-list2)
    (expression
     (if id-list1
         ~(fref (mref (fref ,exp ,@id-list1)) ,@id-list2)
       ~(fref (mref ,exp) ,@id-list2)
       )))
-  ((#?(fref ,exp ,@id-list))
+  (#?(fref ,exp ,@id-list)
    (if id-list
        ~(fref ,(expression exp) ,@id-list)
      (expression exp)))

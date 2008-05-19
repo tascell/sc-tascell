@@ -27,7 +27,7 @@
 (defpackage "SC2C"
   (:use "CL" "RULE" "SC-MISC")
   (:export :parenthesize :parenthesize-t :cond->if
-           :identifier-sc2c :char-sc2c :string-sc2c)
+           :identifier-sc2c :sc-format :char-sc2c :string-sc2c)
   (:shadow cl:declaration))
 
 (in-package "SC2C")
@@ -141,13 +141,12 @@
                          ,(code-char code)
                          ,@(sc-format-list (nthcdr (1+ step) after-tilde)))))
                  before-tilde))))
-    (let ((retstr
-           (concatenate 'string
-             (sc-format-list (concatenate 'list format-string)))))
+    (with1 retstr (concatenate 'string
+                    (sc-format-list (concatenate 'list format-string)))
       (apply #'format nil retstr args) )))
 
 ;;; SC文字列->C文字列( princ でCのstring-literalが出力される)
 (defun string-sc2c (str &rest args)
   (when (stringp str)
-                                        (let ((f-str (apply #'sc-format str args)))
+    (let ((f-str (apply #'sc-format str args)))
       (apply #'string+ (map 'list #'char-sc2c f-str)))))

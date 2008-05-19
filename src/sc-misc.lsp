@@ -43,6 +43,37 @@
             (if (symbolp varlist) (list varlist) varlist))
        ,@body)))
 
+;;; Arc "with" construct from http://ycombinator.com/arc/tut.txt
+;;; (with (a 3 (b c) (values 4 5)) (list a b c)) ==> (3 4 5)
+(defmacro with1 (syms init &body body)
+  (if (atom syms)
+      `(let ((,syms ,init)) ,@body)
+    `(multiple-value-bind ,syms ,init ,@body)))
+(defmacro with* (binds &body body)
+  (if (endp binds)
+      `(let () ,@body)                  ; prognにすると先頭にdeclareとかが書けない
+    `(with1 ,(car binds) ,(cadr binds)
+       (with* ,(cddr binds) ,@body))))
+;; multiple-value に対応させるため単純なletを使った実装としていない
+(defmacro with (binds &body body)
+  (let ((kari-syms (loop for bind on binds by #'cddr 
+                       if (atom (car bind))
+                       collect (gensym (symbol-name (car bind)))
+                       else
+                       collect (mapcar #'gensym (mapcar #'symbol-name (car bind))))))
+    `(with* (,.(loop for bind on binds by #'cddr
+                   as kari-sym in kari-syms
+                   nconc (list kari-sym (cadr bind)))
+             ,.(loop for bind on binds by #'cddr
+                   as kari-sym in kari-syms
+                   if (atom (car bind))
+                   nconc (list (car bind) kari-sym)
+                   else
+                   nconc (loop for sym0 in (car bind)
+                             as kari-sym0 in kari-sym
+                             nconc (list sym0 kari-sym0))))
+       ,@body)))
+
 ;;; Anaphoric Variants (from "On Lisp")
 (defmacro aif (test-form then-form &optional else-form)
   `(let ((it ,test-form))
@@ -677,6 +708,9 @@
 (defun append1 (lst obj)
   (declare (list lst))
   (append lst (list obj)))
+(defun nconc1 (lst obj)
+  (declare (list lst))
+  (nconc lst (list obj)))
 
 ;;; リストの長さと整数を比較
 (defun list-length>= (list n)

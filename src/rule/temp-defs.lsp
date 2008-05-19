@@ -94,6 +94,8 @@
   (prog1 (nreverse *precedents*)
     (setq *precedents* nil)))
 
+;; 宣言の変換で先行の文が必要になった場合，
+;; <decl> ... --> ,@precds (begin <decl> ...) とする
 (defun flush-precedents-decl (decl-exp orig-exp)
   (let ((precds (flush-precedents)))
     (if precds
