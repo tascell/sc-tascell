@@ -1965,7 +1965,6 @@
        "-D__asm(x)=" "-D__asm__(x)="
        "-D__declspec(x)="
        )
-     #-(or cygwin mingw mswindows) '()
      #+(or cygwin mingw mswindows) '("-I" "/lib/gcc/i686-pc-cygwin/3.4.4/include/"
                                      "-I" "/usr/lib/gcc/i686-pc-cygwin/3.4.4/include/")
      ))
@@ -1985,7 +1984,8 @@
   (let ((inname (unix-namestring infile)))
     #-mswindows
     (command-line *cpp-command*
-                  :args `(,inname ,@*cpp-option* ,@option)
+                  :args (mapcar #'(lambda (x) (add-paren x #\'))
+                                `(,inname ,@*cpp-option* ,@option))
                   :verbose *error-output*)
     #+mswindows                         ; cygwin sh.exe required
     (let ((command-string

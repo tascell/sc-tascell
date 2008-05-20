@@ -1802,6 +1802,7 @@ void output_scdefmacro( DEFBUF *dp )
   static char c_exp_str[BUFFER_SIZE];
   static char scid[BUFFER_SIZE];
   static char arglist[BUFFER_SIZE];
+  if ( dp->nargs >= 0 )
   {
     int ir, iw, start_id;
     char c;
