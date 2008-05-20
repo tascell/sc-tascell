@@ -183,13 +183,13 @@
        (delete-macro (entry-and-normalize-id (second x)))
        '() )
       ((sc::%ifdef sc::%ifndef sc::%if)
-       (if (let ((macsymbol (entry-and-normalize-id (second x)))) 
-             (case (car x)
-               ((sc::%ifdef)  (macro-find macsymbol))
-               ((sc::%ifndef) (not (macro-find macsymbol)))
-               ((sc::%if)     (eval (scpp-macroexpand (second x))))))
-           (scpp-list (third x))
-         (scpp-list (fourth x))))
+       (destructuring-bind (directive cnd then-list &optional else-list) x
+         (if (case directive
+               ((sc::%ifdef)  (macro-find (entry-and-normalize-id cnd)))
+               ((sc::%ifndef) (not (macro-find (entry-and-normalize-id cnd))))
+               ((sc::%if)     (eval (car (scpp-1exp cnd)))))
+             (scpp-list then-list)
+           (scpp-list else-list))))
       ((sc::%ifdef* sc::%ifndef* sc::%if*) ; (%ifdef* ... %else ...) = (%ifdef (...) (...))
        (multiple-value-bind (then-forms else-forms)
            (list-until (cddr x) ~%else :key #'car)
@@ -199,13 +199,12 @@
            (scpp-1exp ~(,tag ,(second x)
                              ,then-forms ,(cdr else-forms))))))
       ((sc::%line)
-       (list
-        `(sc::c-exp ,(format nil "#line ~D \"~a\""
-                       (second x)
-                       (aif (third x) it "")))))
+       (list `(sc::c-exp ,(format nil "#line ~D \"~a\""
+                            (second x)
+                            (aif (third x) it "")))))
       ((sc::%error)
        (apply #'format *error-output* (scpp-list (cdr x)))
-       (format *error-output* "~%") 
+       (format *error-output* "~%")
        '() )
       ((sc::%pragma)
        (list
@@ -250,6 +249,7 @@
       (intern macname *scpp-macro-package*))))
 
 ;; フィールドアクセスをC風に書けるようにする
+;; ~sc::f->x ==> ~(fref f -> x)
 (defun expand-fref-symbol (sym)
   (let ((name (symbol-name sym))
         (pack (symbol-package sym))
@@ -308,14 +308,15 @@
   (remhash macsymbol *macro-entries*))
 
 ;; 適用
+;; fref-idの展開や，identifierのnormalizeもここで
 (defun scpp-macroexpand (x
                          &key (extracting-macro '()) ; 展開を行わないマクロ
                          &aux macsymbol macentry)
   (cond
    ((symbolp x)                         ; constant macro
-    (multiple-value-bind (fref-exp expand-p) (expand-fref-symbol x)
+    (multiple-value-bind (fref-exp expanded-p) (expand-fref-symbol x)
       (cond
-       (expand-p (scpp-macroexpand fref-exp))
+       (expanded-p (scpp-macroexpand fref-exp))
        (t
         (setq macsymbol (entry-and-normalize-id x))
         (if (and (not (member macsymbol extracting-macro))
@@ -333,7 +334,6 @@
         ;; マクロ
         (scpp-macroexpand (macroexpand-1 (cons macsymbol (cdr x)))
                           :extracting-macro (cons macsymbol extracting-macro))
-      ;; それ以外(再帰的に適用)
-      (mapcar #'scpp-macroexpand x)))
-   ;; symbol以外のatom
+      x))
+   ;; symbol以外のatom（number, stringなど）
    (t x)))
