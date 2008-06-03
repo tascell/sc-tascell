@@ -1,7 +1,7 @@
 How to set up CtoSC Compiler
 
 1.
- cd src/c2sc
+ cd src/c2scpp
 
 2.
  ./configure && make
