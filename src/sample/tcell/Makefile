@@ -2,6 +2,7 @@ XCC=xcc
 GCC=gcc #$(XCC)
 ICC=icc
 OPT=-O2 $(MOPT)
+# OPT=-g
 XCCOPT=-DCT=lightweight
 XCCCLOPT=-DCT=closure
 THROPT=-lpthread

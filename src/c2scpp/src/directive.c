@@ -787,7 +787,8 @@ DEFBUF *    do_define(
         if (dnargs != nargs || ! str_eq( defp->repl, repl_list)
                 || (mcpp_mode == STD && ! str_eq( defp->parmnames, work_buf))
                 ) {             /* Warn if differently redefined    */
-            if (warn_level & 1) {
+          if (c2sc_process_mode == 1 && // C2SC
+                warn_level & 1) {
                 cwarn(
             "The macro is redefined", NULL, 0L, NULL);      /* _W1_ */
                 if (! option_flags.no_source_line)
