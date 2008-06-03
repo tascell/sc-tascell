@@ -1,0 +1,42 @@
+*** noconfig.H	2007-12-23 21:34:39.000000000 +0900
+--- noconfig.H.mingw345	2007-12-23 22:10:54.000000000 +0900
+***************
+*** 15,21 ****
+   */
+  
+  /* Define target operating-system.  */
+! #define SYSTEM              SYS_FREEBSD
+  
+  /* Define target compiler.          */
+  #ifndef COMPILER
+--- 15,21 ----
+   */
+  
+  /* Define target operating-system.  */
+! #define SYSTEM              SYS_MINGW
+  
+  /* Define target compiler.          */
+  #ifndef COMPILER
+***************
+*** 331,340 ****
+  #define TARGET_HAVE_LONG_LONG       TRUE
+  #endif
+  #define STDC_VERSION        0L  /* 199409L for V.2.9, 0L for V.3.*,V.4.*    */
+! #define CPLUS_INCLUDE_DIR1  "/usr/include/c++/3.4"  /* "/usr/include/c++/3.3.6" */  /* "/usr/include/c++/4.1.2" */
+! #define CPLUS_INCLUDE_DIR2  "/usr/include/c++/3.4/backward"     /* "/usr/include/c++/3.3.6/i386-vine-linux" */  /* "/usr/include/c++/4.1.2/i486-linux-gnu" */
+! /* #define CPLUS_INCLUDE_DIR3   */  /* "/usr/include/c++/3.3.6/backward"    */  /* "/usr/include/c++/4.1.2/backward"    */
+! /* #define C_INCLUDE_DIR1 */    /* "/usr/lib/gcc-lib/i386-vine-linux/3.3.6/include" */  /* "/usr/lib/gcc/i486-linux-gnu/4.1.2/include" */
+  /* #define C_INCLUDE_DIR2   */
+  #ifndef INC_DIR
+  #ifdef  C_INCLUDE_DIR1
+--- 331,340 ----
+  #define TARGET_HAVE_LONG_LONG       TRUE
+  #endif
+  #define STDC_VERSION        0L  /* 199409L for V.2.9, 0L for V.3.*,V.4.*    */
+! #define CPLUS_INCLUDE_DIR1  "/mingw/include/c++/3.4.5" /* "/usr/include/c++/3.4" */ /* "/usr/include/c++/3.3.6" */  /* "/usr/include/c++/4.1.2" */
+! #define CPLUS_INCLUDE_DIR2  "/mingw/include/c++/3.4.5/mingw32" /* "/usr/include/c++/3.4/backward" */ /* "/usr/include/c++/3.3.6/i386-vine-linux" */  /* "/usr/include/c++/4.1.2/i486-linux-gnu" */
+! #define CPLUS_INCLUDE_DIR3  "/mingw/include/c++/3.4.5/backward" /* "/usr/include/c++/3.3.6/backward"    */  /* "/usr/include/c++/4.1.2/backward"    */
+! #define C_INCLUDE_DIR1      "/mingw/include" /* "/usr/lib/gcc-lib/i386-vine-linux/3.3.6/include" */  /* "/usr/lib/gcc/i486-linux-gnu/4.1.2/include" */
+  /* #define C_INCLUDE_DIR2   */
+  #ifndef INC_DIR
+  #ifdef  C_INCLUDE_DIR1

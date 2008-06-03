@@ -1686,7 +1686,7 @@
            (acond
             ((string-begin-with "c2sc_typename" pragma-arg)
              (set-macroarg-typep (get-all-identifier it) t))
-            ((string-begin-with "c2sc_not_typemame" pragma-arg)
+            ((string-begin-with "c2sc_not_typename" pragma-arg)
              (set-macroarg-typep (get-all-identifier it) nil))
             ((string-begin-with "c2sc_query_typename" pragma-arg)
              (set-macroarg-typep (get-all-identifier it) :remove))
@@ -1956,7 +1956,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;; MCPP
-(defparameter *cpp-command* "c2sc/src/c2sc_cpp")
+;; (defparameter *cpp-command* "c2sc/src/c2sc_cpp")
+(defparameter *cpp-command* "c2scpp/src/mcpp")
 (defparameter *cpp-option*
     (append
      '("-D__complex__"

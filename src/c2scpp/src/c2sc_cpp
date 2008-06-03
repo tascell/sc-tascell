@@ -1,0 +1,58 @@
+#!/bin/sh -x
+
+# 「#define の定義内容も展開してから c2sc に適用する．」の実装方針．
+#
+#     (1)
+# *.h ------> *.se1 (マクロ以外)
+#       |
+#       ----> *.se2 (#define の羅列だけ)
+#       |
+#       ----> *.se3 "#pragma c2sc_macroname f(x,y)"
+#                   "<repl-list>                  "
+#
+#      'cat *.se2 *.se3'          (2)
+# *.se2 ----------------> *.se4 -------> *.se5 (#pragma と 展開済み repl-list)
+#            |
+# *.se3 ------
+#
+#        (3)                              (4)
+# *.se5 -----> *.se6 (展開済み #define) -----> *.se7 (%defmacro/constant-cexp)
+#                     #pragma c2sc_*type*
+#      'cat *.se1 *.se7'
+#
+#
+# *.se1 ----------> *.se
+#            |
+# *.se7 ------
+#
+# (1) cpp_std -Y1 -D'time_t=double' -D'pid_t=long' -D'__complex__=' -D'__extension__(x)=x' -D'__attribute__(x)=' -D'__inline=' -D'__asm(x)=' $*
+# (2) cpp_std -Y2   (通常のプリプロセス − predefined-macro)
+# (3) sed とかで簡単に書けそう
+# (4) cpp_std -Y3   (predefinedは除くこと)
+
+# /usr/home/lab4/hiraisi/mcpp/mcpp-2.4.1/src/cpp_std -e1./system.H system.H -o ./system.H.se1 -D'time_t=double' -D'pid_t=long' -D'__complex__=' -D'__extension__(x)=x' -D'__attribute__(x)=' -D'__inline=' -D'__asm(x)='
+
+C2SCPP=`dirname $0`/mcpp
+
+IFILE=$1
+BBASE=`basename $1 .h`
+BBASE=`basename $BBASE .c`
+DIRE=`dirname $1`
+BASE="$DIRE"/"$BBASE"
+shift
+
+echo $BASE
+
+$C2SCPP -Y1$BASE $IFILE -o $BASE.se1 $*  \
+&& \
+cat $BASE.se2 $BASE.se3 >| $BASE.se4 \
+&& \
+$C2SCPP -Y2 $BASE.se4 -o $BASE.se5 \
+&& \
+sed -e 's/^#pragma[[:blank:]]\{1,\}c2sc_macroname[[:blank:]]*\(.*\)/#define \1 \\/' -e 's/^\$\(.*\)/\1/' $BASE.se5 >| $BASE.se6\
+&& \
+$C2SCPP -Y3 $BASE.se6 -o $BASE.se7  \
+&& \
+cat $BASE.se1 $BASE.se7 >| $BASE.se
+
+#sed -E -e 's/^#pragma[[:blank:]]+c2sc_macroname[[:blank:]]*(.*)/#define \1 \\/' -e 's/^\$(.*)/\1/' $BASE.se5 >| $BASE.se6\
