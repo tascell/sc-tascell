@@ -36,6 +36,20 @@
 #+tcell-gtk (c-exp "#include<gtk/gtk.h>")
 (%include "worker.sh")
 
+
+;;; Command-line options
+(%defconstant HOSTNAME-MAXSIZE 256)
+(def (struct runtime-option)
+  (def num-thrs int)                    ; worker数
+  (def sv-hostname (array char HOSTNAME-MAXSIZE))
+                                        ; Tascellサーバのホスト名．""ならstdout
+  (def port unsigned-short)             ; Tascellサーバへの接続ポート番号
+  (def speculative int)                 ; 投機的に外部へtreq
+  )
+(static option (struct runtime-option))
+
+
+
 (def (systhr-create start-func arg)
     (fn int (ptr (fn (ptr void) (ptr void))) (ptr void))
   (def status int 0)
@@ -214,12 +228,11 @@
 
   ;;(= delay (* 2 1000 1000))
   (= delay 1000)
-  
+
   ;; treqコマンド
   (= rcmd.c 2)
-  (if (> num-thrs 1)
-      (= rcmd.node req-to)
-    (= rcmd.node OUTSIDE))
+  ;; req-to は取り返しであれば取り返し先，そうでなければANY
+  (= rcmd.node (if-exp (> num-thrs 1) req-to OUTSIDE))
   (= rcmd.w TREQ)
   (= (aref rcmd.v 0 0) thr->id)
   (= (aref rcmd.v 0 1) TERM)
@@ -291,7 +304,7 @@
   (csym::pthread-mutex-unlock (ptr thr->mut))
 
   ((aref task-doers tx->task-no) thr tx->body) ; タスク実行
-  
+
   ;; taskの処理完了後は，そのtask-homeにsend-rsltする
   (= rcmd.w RSLT)
   (= rcmd.c 1)
@@ -441,7 +454,7 @@
   (def thr (ptr (struct thread-data)))
   (def avail int 0)
   (def from-head (enum node) (aref from-addr 0))
-  
+
   (= thr (+ threads id))
   (csym::pthread-mutex-lock (ptr thr->mut))
   (csym::pthread-mutex-lock (ptr thr->rack-mut))
@@ -642,45 +655,43 @@
   (return body))
 
 
-(%defconstant HOSTNAME-MAXSIZE 256)
-(def (struct runtime-option)
-  (def num-thrs int)                    ; スレッド数
-  (def sv-hostname (array char HOSTNAME-MAXSIZE))
-                                        ; Tascellサーバのホスト名．""ならstdout
-  (def port unsigned-short)             ; Tascellサーバへの接続ポート番号
-  )
-(static option (struct runtime-option))
-
+;;; Handling command-line options
 (def (csym::usage argc argv) (csym::fn void int (ptr (ptr char)))
   (csym::fprintf stderr
-                 "Usage: %s [-s hostname] [-p port-num] [-n n-threads]~%"
+                 "Usage: %s [-s hostname] [-p port-num] [-n n-threads] [-S]~%"
                  (aref argv 0))
   (csym::exit 1))
 
 (def (set-option argc argv) (csym::fn void int (ptr (ptr char)))
   (def i int) (def ch int)
   ;; Default values
-  (= (fref option num-thrs) 1)
-  (= (aref (fref option sv-hostname) 0) #\NULL)
-  (= (fref option port) 8888)
-  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:")))
+  (= option.num-thrs 1)
+  (= (aref option.sv-hostname 0) #\NULL)
+  (= option.port 8888)
+  (= option.speculative 0)
+  ;; Parse and set options
+  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:S")))
     (for ((= i 0) (< i argc) (inc i))
       (switch ch
         (case #\n)                      ; number of threads
-        (= (fref option num-thrs) (csym::atoi optarg))
+        (= option.num-thrs (csym::atoi optarg))
         (break)
         
         (case #\s)                      ; server name
         (if (csym::strcmp "stdout" optarg)
             (begin
-             (csym::strncpy (fref option sv-hostname) optarg
+             (csym::strncpy option.sv-hostname optarg
                             HOSTNAME-MAXSIZE)
-             (= (aref (fref option sv-hostname) (- HOSTNAME-MAXSIZE 1)) 0))
-          (= (aref (fref option sv-hostname) 0) #\NULL))
+             (= (aref option.sv-hostname (- HOSTNAME-MAXSIZE 1)) 0))
+          (= (aref option.sv-hostname 0) #\NULL))
         (break)
         
         (case #\p)                      ; connection port number
-        (= (fref option port) (csym::atoi optarg))
+        (= option.port (csym::atoi optarg))
+        (break)
+
+        (case #\S)                      ; turn-on speculative task receipt from external nodes
+        (= option.speculative 1)
         (break)
 
         (case #\h)                      ; usage

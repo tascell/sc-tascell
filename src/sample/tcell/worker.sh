@@ -73,13 +73,13 @@
   TASK-INITIALIZED ; セットされている
   TASK-STARTED     ; 実行開始済
   TASK-DONE        ; 完了済み
-  TASK-NONE        ; 空っぽ？ TASK-ALLOCATEDとは違うの？
+  TASK-NONE        ; ALLOC後treqしたがnoneが返ってきた
   TASK-SUSPENDED)  ; 待ち状態
 ;; -(treq送信)-> ALLOCATED --(task受け取り)--> INITIALIZED --> STARTED --> DONE -->
 ;;                 |  |none受け取り                               |
 ;;           再挑戦|  |                                           |
 ;;                 NONE                                        SUSPENDED
-                  
+
 (def (enum task-home-stat)
   TASK-HOME-ALLOCATED    ; 領域のみ，未初期化
   TASK-HOME-INITIALIZED  ; セットされている
