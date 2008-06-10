@@ -49,7 +49,10 @@
 (static option (struct runtime-option))
 
 
+;;; 投機的にtreqして受け取った仕事
+(def reserved-tasks (array (struct task) TASK-LIST-LENGTH))
 
+
 (def (systhr-create start-func arg)
     (fn int (ptr (fn (ptr void) (ptr void))) (ptr void))
   (def status int 0)
@@ -769,6 +772,31 @@
 ;;     return TRUE;
 ;; }
 
+;;; (struct task)双方向リストの初期化
+(def (csym::initialize-task-list tlist len p-top p-free)
+    (fn void (ptr (struct task)) int (ptr (ptr (struct task))) (ptr (ptr (struct task))))
+  (def i int)
+  (= (mref p-top) 0)
+  (= (mref p-free) tlist)
+  (for ((= i 0) (< i (- len 1)) (inc i))
+       (= (fref (aref tlist i) prev) (ptr (aref tlist (+ i 1))))
+       (= (fref (aref tlist (+ i 1)) next) (ptr (aref tlist i))))
+  (= (fref (aref tlist 0) next) 0)
+  (= (fref (aref tlist (- len 1)) prev) 0)
+  (return))
+
+;;; (struct task-home)リストの初期化
+(def (csym::initialize-task-home-list hlist len p-top p-free)
+    (fn void (ptr (struct task-home)) int (ptr (ptr (struct task-home))) (ptr (ptr (struct task-home))))
+  (def i int)
+  (= (mref p-top) 0)
+  (= (mref p-free) hlist)
+  ;; フリーリストを構成
+  (for ((= i 0) (< i (- len 1)) (inc i))
+       (= (fref (aref hlist i) next) (ptr (aref hlist (+ i 1))))
+       (= (fref (aref hlist (- len 1)) next) 0))
+  (return))
+
 ;; main
 ;; データ・スレッドを初期化・起動してから
 ;; 外部メッセージの受信ループに入る
@@ -823,32 +851,23 @@
         (-= r (cast int r))
         (= (fref thr -> random-seed1) r)
         (= (fref thr -> random-seed2) q))
-      (csym::pthread-mutex-init (ptr (fref thr -> mut)) 0)
-      (csym::pthread-mutex-init (ptr (fref thr -> rack-mut)) 0)
-      (csym::pthread-cond-init (ptr (fref thr -> cond)) 0)
-      (csym::pthread-cond-init (ptr (fref thr -> cond-r)) 0)
+      (csym::pthread-mutex-init (ptr thr->mut) 0)
+      (csym::pthread-mutex-init (ptr thr->rack-mut) 0)
+      (csym::pthread-cond-init (ptr thr->cond) 0)
+      (csym::pthread-cond-init (ptr thr->cond-r) 0)
 
-      ;; taskの双方向リスト（スレッドが実行するべきタスク）
+      ;; taskの双方向リスト（スレッドが実行するべきタスク）の初期化
       (= tx (cast (ptr (struct task))
               (csym::malloc (* (sizeof (struct task)) TASK-LIST-LENGTH))))
-      (= (fref thr -> task-top) 0)
-      (= (fref thr -> task-free) tx)
-      (for ((= j 0) (< j (- TASK-LIST-LENGTH 1)) (inc j))
-        (= (fref (aref tx j) prev) (ptr (aref tx (+ j 1))))
-        (= (fref (aref tx (+ j 1)) next) (ptr (aref tx j))))
-      (= (fref (aref tx 0) next) 0)
-      (= (fref (aref tx (- TASK-LIST-LENGTH 1)) prev) 0)
+      (csym::initialize-task-list tx TASK-LIST-LENGTH
+                                  (ptr thr->task-top) (ptr thr->task-free))
 
       ;; task-homeのリスト（分割してできたタスク）
       (= hx (cast (ptr (struct task-home))
               (csym::malloc (* (sizeof (struct task-home)) TASK-LIST-LENGTH))))
-      (= (fref thr -> treq-top) 0)
-      (= (fref thr -> treq-free) hx)
-      (= (fref thr -> sub) 0)
-      ;; フリーリストを構成
-      (for ((= j 0) (< j (- TASK-LIST-LENGTH 1)) (inc j))
-        (= (fref (aref hx j) next) (ptr (aref hx (+ j 1)))))
-      (= (fref (aref hx (- TASK-LIST-LENGTH 1)) next) 0)))
+      (csym::initialize-task-home-list hx TASK-LIST-LENGTH
+                                       (ptr thr->treq-top) (ptr thr->treq-free))
+      (= thr->sub 0)))
   ;; ワーカスレッド生成
   (for ((= i 0) (< i num-thrs) (inc i))
     (let ((thr (ptr (struct thread-data)) (+ threads i)))
