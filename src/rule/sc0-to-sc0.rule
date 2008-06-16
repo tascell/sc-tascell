@@ -201,7 +201,7 @@
 ;; designated-initializer
 (defrule designated-initializer sc0-to-sc0
   ((#?(,desig[designator] ,init))
-   ~(,(get-retval desig) (initializer ,init)))
+   ~(,(get-retval desig) ,(initializer init)))
   ((#?,init[initializer])
    (get-retval init))
   )

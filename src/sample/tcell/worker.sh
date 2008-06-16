@@ -136,7 +136,6 @@
       (csym::fn void (ptr (struct thread-data)) int (ptr void)))
 (decl (wait-rslt thr) (fn (ptr void) (ptr (struct thread-data))))
 
-
 ;;;; cmd-serial.sc
 (decl (csym::serialize-cmdname buf w) (fn int (ptr char) (enum command)))
 (decl (csym::deserialize-cmdname buf str) (fn int (ptr (enum command)) (ptr char)))

@@ -44,13 +44,9 @@
   (def sv-hostname (array char HOSTNAME-MAXSIZE))
                                         ; Tascellサーバのホスト名．""ならstdout
   (def port unsigned-short)             ; Tascellサーバへの接続ポート番号
-  (def speculative int)                 ; 投機的に外部へtreq
+  (def speculation int)                 ; 投機的に外部へtreq
   )
 (static option (struct runtime-option))
-
-
-;;; 投機的にtreqして受け取った仕事
-(def reserved-tasks (array (struct task) TASK-LIST-LENGTH))
 
 
 (def (systhr-create start-func arg)
@@ -182,6 +178,31 @@
 (def threads (array (struct thread-data) 64))
 (def num-thrs unsigned-int)
 
+
+;;; 投機的にtreqして受け取った仕事
+(def reserved-tasks (array (struct task) TASK-LIST-LENGTH))
+(def reserved-tasks-top (ptr (struct task)))
+(def reserved-tasks-free (ptr (struct task)))
+(def reserved-tasks-mut pthread-mutex-t)
+(def reserved-tasks-cond pthread-cond-t)
+
+(def (speculative-treq-sender dummy) (fn (ptr void) (ptr void))
+  (def rcmd (struct cmd) (struct ((fref-this w) TREQ) ((fref-this c) 2)
+                                 ((fref-this node) OUTSIDE)
+                                 ((fref-this v) (array (array ANY TERM)))))
+  (csym::pthread-mutex-lock (ptr reserved-tasks-mut))
+  (loop
+    ;;リストが空になるまで待機
+    (while reserved-tasks-top
+      (csym::pthread-cond-wait (ptr reserved-tasks-cond)
+                               (ptr reserved-tasks-mut)))
+    (csym::send-command (ptr rcmd) 0 0)
+    () )
+  (csym::pthread-mutex-unlock (ptr reserved-tasks-mut))
+  (return 0)
+  )
+
+
 ;;; recv-exec-send および wait-rslt から
 ;;; treq（一旦treqを受け付けたが未初期化） がたまっていたら
 ;;; それらを破棄したうえで noneを送る．
@@ -200,47 +221,36 @@
     (= thr->treq-free hx))              ; ...領域を返却
   )
 
-;;; worker or wait-rslt から
-;;; （後者は外に投げたタスクの結果待ち中に別の仕事をやろうとする時）
-;;; タスク要求 -> 受け取り -> 計算 -> 結果送信
-;;; thr->mut はロック済
-;;; (treq-head,req-to): どこにタスク要求を出すか（any or 取り返し）
-(def (recv-exec-send thr treq-head req-to)
-    (fn void (ptr (struct thread-data)) (ptr (enum node)) (enum node))
+;;; ptv-src(timeval) に diffナノ秒 足した時刻をpts-dst(timespec)に入れる
+(def (csym::timeval-plus-nsec-to-timespec pts-dst ptv-src diff)
+    (fn void (ptr (struct timespec)) (ptr (struct timeval)) long)
+  (def nsec long (+ diff (* 1000 ptv-src->tv-usec)))
+  (= pts-dst->tv-nsec (if-exp (> nsec 999999999)
+                              (- nsec 999999999)
+                              nsec))
+  (= pts-dst->tv-sec (+ ptv-src->tv-sec
+                        (if-exp (> nsec 999999999) 1 0)))
+  )
+
+;;; TREQを送信して thr->task-topの指すtaskをTASK-INITIALIZEDにする
+;;; (treq-head,req-to): recv-exec-send の引数そのまま
+;;; 受付中のtreqのフラッシュや，rsltが来たときの対応も行う
+;;; INITIALIZEDできた->1 そうでなければ->0 を返す
+(def (csym::send-treq-to-initialize-task thr treq-head req-to)
+    (fn int (ptr (struct thread-data)) (ptr (enum node)) (enum node))
   (def rcmd (struct cmd))
-  (def tx (ptr (struct task)))
-  (def delay long)
-  (def old-ndiv int)
-
-  ;; 前に送ったtreq（取り戻し）への none が届くまで待つ
-  ;; （これから送るtreqに対するものと混同しないため）
-  (while (> thr->w-none 0)
-    (csym::pthread-cond-wait (ptr thr->cond) (ptr thr->mut))
-    ;; rsltがきていたら自分の処理を再開できるのでreturn
-    (if (and thr->sub
-             (== thr->sub->stat TASK-HOME-DONE))
-        (return)))
-
-  ;; allocate
-  (= tx thr->task-free)
-  (= tx->stat TASK-ALLOCATED)
-  (if (not tx)
-      (csym::mem-error "Not enough task memory"))
-  (= thr->task-top tx)
-  (= thr->task-free tx->prev)
-
-  ;;(= delay (* 2 1000 1000))
-  (= delay 1000)
+  (def delay long 1000)
+  (def tx (ptr (struct task)) thr->task-top)
 
   ;; treqコマンド
   (= rcmd.c 2)
   ;; req-to は取り返しであれば取り返し先，そうでなければANY
   (= rcmd.node (if-exp (> num-thrs 1) req-to OUTSIDE))
   (= rcmd.w TREQ)
-  (= (aref rcmd.v 0 0) thr->id)
-  (= (aref rcmd.v 0 1) TERM)
+  (= (aref rcmd.v 0 0) thr->id) (= (aref rcmd.v 0 1) TERM)
   (csym::copy-address (aref rcmd.v 1) treq-head)
-  (do-while (!= (fref tx -> stat) TASK-INITIALIZED)
+
+  (do-while (!= tx->stat TASK-INITIALIZED)
     ;; 最初にtreqがたまっていたら，noneを送る
     ;; これをやると treq が飛び交うかもしれないが，
     ;; none を送らないとだけすると，
@@ -265,9 +275,9 @@
           (begin
            (if (!= tx->stat TASK-NONE)
                (inc thr->w-none))
-           (goto Lnone)))
-      (if (!= tx->stat TASK-ALLOCATED)
-          (break))
+           (return 0)))
+      (if (!= tx->stat TASK-ALLOCATED) (break))
+      ;; tx->statの変化を待つ
       (csym::pthread-cond-wait (ptr thr->cond) (ptr thr->mut))
       )
     (if (== tx->stat TASK-NONE)
@@ -275,59 +285,78 @@
          ;; 外への取り返しに失敗したのならしばらく待つ
          (if 1;; (and thr->sub
               ;;    (== PARENT (aref thr->sub->task-head 0)))
-             (let ((t1 (struct timespec))
-                   (now (struct timeval))
-                   (nsec long))
+             (let ((t-until (struct timespec))
+                   (now (struct timeval)))
                (csym::gettimeofday (ptr now) 0)
-               (= nsec (* now.tv-usec 1000))
-               (+= nsec delay)
+               (csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) delay)
+               (csym::pthread-cond-timedwait (ptr thr->cond-r)
+                                             (ptr thr->mut)
+                                             (ptr t-until))
                (+= delay delay)         ; 次回の待ち時間を増やす
                (if (> delay (* 40 1000 1000))
                    (= delay (* 40 1000 1000)))
-               (= t1.tv-nsec (if-exp (> nsec 999999999)
-                                     (- nsec 999999999)
-                                     nsec))
-               (= t1.tv-sec (+ now.tv-sec
-                               (if-exp (> nsec 999999999) 1 0)))
-               (csym::pthread-cond-timedwait (ptr thr->cond-r)
-                                             (ptr thr->mut)
-                                             (ptr t1))
                ))
-         ;; rsltが到着していたら
+         ;; rsltが到着していたらtreqリトライせず，そちらの処理を優先
          (if (and thr->sub
                   (== thr->sub->stat TASK-HOME-DONE))
-             (goto Lnone))))
+             (return 0))))
     )
+  (return 1))
 
-  ;; ここで，statはTASK-INITIALIZED
-  ;; ここからタスク開始
-  (= tx->stat TASK-STARTED)
-  (= old-ndiv thr->ndiv)
-  (= thr->ndiv tx->ndiv)
-  (csym::pthread-mutex-unlock (ptr thr->mut))
+;;; worker or wait-rslt から
+;;; （後者は外に投げたタスクの結果待ち中に別の仕事をやろうとする時）
+;;; タスク要求 -> 受け取り -> 計算 -> 結果送信
+;;; thr->mut はロック済
+;;; (treq-head,req-to): どこにタスク要求を出すか（any or 取り返し）
+(def (recv-exec-send thr treq-head req-to)
+    (fn void (ptr (struct thread-data)) (ptr (enum node)) (enum node))
+  (def tx (ptr (struct task)))
+  (def old-ndiv int)
+  (def rcmd (struct cmd))               ; for RSLT command
 
-  ((aref task-doers tx->task-no) thr tx->body) ; タスク実行
+  ;; 前に送ったtreq（取り戻し）への none が届くまで待つ
+  ;; （これから送るtreqに対するものと混同しないため）
+  (while (> thr->w-none 0)
+    (csym::pthread-cond-wait (ptr thr->cond) (ptr thr->mut))
+    ;; rsltがきていたら自分の処理を再開できるのでreturn
+    (if (and thr->sub
+             (== thr->sub->stat TASK-HOME-DONE))
+        (return)))
 
-  ;; taskの処理完了後は，そのtask-homeにsend-rsltする
-  (= rcmd.w RSLT)
-  (= rcmd.c 1)
-  (= rcmd.node tx->rslt-to)             ; 外部or内部
-  (csym::copy-address (aref rcmd.v 0) tx->rslt-head)
-  (csym::send-command (ptr rcmd) tx->body tx->task-no)
+  ;; allocate
+  (= tx thr->task-free)
+  (= tx->stat TASK-ALLOCATED)
+  (if (not tx)
+      (csym::mem-error "Not enough task memory"))
+  (= thr->task-top tx)
+  (= thr->task-free tx->prev)
 
-  ;; ここでもtreqがたまっていたら noneを送る
-  (csym::flush-treq-with-none thr)
-  (csym::pthread-mutex-lock (ptr thr->rack-mut))
-  (inc thr->w-rack)
-  (csym::pthread-mutex-unlock (ptr thr->rack-mut))
+  (if (csym::send-treq-to-initialize-task thr treq-head req-to)
+      (begin
+       ;; タスク実行開始
+       ;; ここで，tx(=thr->task-top)->statはTASK-INITIALIZED
+       (= tx->stat TASK-STARTED)
+       (= old-ndiv thr->ndiv)
+       (= thr->ndiv tx->ndiv)
+       (csym::pthread-mutex-unlock (ptr thr->mut))
+       ((aref task-doers tx->task-no) thr tx->body) ; タスク実行
+       ;; taskの処理完了後は，そのtask-homeにsend-rsltする
+       (= rcmd.w RSLT)
+       (= rcmd.c 1)
+       (= rcmd.node tx->rslt-to)        ; 外部or内部
+       (csym::copy-address (aref rcmd.v 0) tx->rslt-head)
+       (csym::send-command (ptr rcmd) tx->body tx->task-no)
+       ;; ここでもtreqがたまっていたら noneを送る
+       (csym::flush-treq-with-none thr)
+       (csym::pthread-mutex-lock (ptr thr->rack-mut))
+       (inc thr->w-rack)
+       (csym::pthread-mutex-unlock (ptr thr->rack-mut))
+       (csym::pthread-mutex-lock (ptr thr->mut))
+       (= thr->ndiv old-ndiv)))
 
-  (csym::pthread-mutex-lock (ptr thr->mut))
-  (= thr->ndiv old-ndiv)
   ;; タスクstackをpopしてフリーリストに返す
-  (label Lnone
-         (begin
-          (= thr->task-free tx)
-          (= thr->task-top tx->next)))
+  (= thr->task-free tx)
+  (= thr->task-top tx->next)
   )
 
 (def (worker arg) (fn (ptr void) (ptr void))
@@ -416,7 +445,7 @@
       (csym::proto-error "Wrong rslt-head (no task-id)" pcmd))
   (= thr (+ threads tid))
 
-  (csym::pthread-mutex-lock (ptr (fref thr -> mut)))
+  (csym::pthread-mutex-lock (ptr thr->mut))
   ;; hx = 返ってきたrsltを待っていたtask-home（.id==sid）を探す
   (= hx thr->sub)
   (while (and hx (!= hx->id sid))
@@ -671,7 +700,7 @@
   (= option.num-thrs 1)
   (= (aref option.sv-hostname 0) #\NULL)
   (= option.port 8888)
-  (= option.speculative 0)
+  (= option.speculation 0)
   ;; Parse and set options
   (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:S")))
     (for ((= i 0) (< i argc) (inc i))
@@ -694,7 +723,7 @@
         (break)
 
         (case #\S)                      ; turn-on speculative task receipt from external nodes
-        (= option.speculative 1)
+        (= option.speculation 1)
         (break)
 
         (case #\h)                      ; usage
@@ -739,8 +768,8 @@
 #+tcell-gtk                             ; 再描画
 (def (csym::expose-event widget event data)
   (fn void (ptr GtkWidget) (ptr GdkEventExpose) gpointer)
-  (csym::gdk-draw-pixmap (fref widget -> window)
-                         (aref (fref widget -> style -> fg-gc)
+  (csym::gdk-draw-pixmap widget->window
+                         (aref widget->style->fg-gc
                                (csym::GTK-WIDGET-STATE widget))
                          pixmap
                          (fref (fref (mref event) area) x)
@@ -813,7 +842,7 @@
                      (= darea (csym::gtk-drawing-area-new))
                      (csym::gtk-drawing-area-size (csym::GTK-DRAWING-AREA darea) 300 200)
                      (csym::gtk-container-add (csym::GTK-CONTAINER window) darea)
-                     (= gc (csym::gdk-gc-new (fref window -> window)))
+                     (= gc (csym::gdk-gc-new window->window))
                      (csym::gtk-signal-connect (csym::GTK-OBJECT darea) "configure_event"
                                                (csym::GTK-SIGNAL-FUNC csym::configure-event) 0)
                      (csym::gtk-signal-connect (csym::GTK-OBJECT darea) "expose_event"
@@ -822,35 +851,42 @@
                      (csym::gtk-widget-show-all window)
                      (csym::systhr-create gtk-main 0)
                      )
-  
+
   ;; サーバに接続
-  (= sv-socket (if-exp (== #\NULL (aref (fref option sv-hostname) 0))
+  (= sv-socket (if-exp (== #\NULL (aref option.sv-hostname 0))
                        -1
-                       (csym::connect-to (fref option sv-hostname)
-                                         (fref option port))))
+                       (csym::connect-to option.sv-hostname option.port)))
 
   ;; send-mut（外部送信ロック）の初期化
   (csym::pthread-mutex-init (ptr send-mut) 0)
 
+  ;; 投機treqで受け取ったtask保存リストの初期化
+  (if option.speculation
+      (begin
+        (csym::initialize-task-list reserved-tasks TASK-LIST-LENGTH
+                                    (ptr reserved-tasks-top) (ptr reserved-tasks-free))
+        (csym::pthread-mutex-init (ptr reserved-tasks-mut) 0)
+        (csym::pthread-cond-init (ptr reserved-tasks-cond) 0)))
+
   ;; thread-data の初期化, task の 双方向list も
-  (= num-thrs (fref (fref option num-thrs)))
+  (= num-thrs option.num-thrs)
   (for ((= i 0) (< i num-thrs) (inc i))
     (let ((thr (ptr (struct thread-data)) (+ threads i))
           (tx (ptr (struct task)))
           (hx (ptr (struct task-home))))
-      (= (fref thr -> req) 0)
-      (= (fref thr -> id) i)
-      (= (fref thr -> w-rack) 0)
-      (= (fref thr -> w-none) 0)
-      (= (fref thr -> ndiv) 0)
-      (= (fref thr -> last-treq) i)
-      (= (fref thr -> last-choose) CHS-RANDOM)
+      (= thr->req 0)
+      (= thr->id i)
+      (= thr->w-rack 0)
+      (= thr->w-none 0)
+      (= thr->ndiv 0)
+      (= thr->last-treq i)
+      (= thr->last-choose CHS-RANDOM)
       (let ((r double) (q double))
         (= r (csym::sqrt (+ 0.5 i)))
         (= q (csym::sqrt (+ r i)))
         (-= r (cast int r))
-        (= (fref thr -> random-seed1) r)
-        (= (fref thr -> random-seed2) q))
+        (= thr->random-seed1 r)
+        (= thr->random-seed2 q))
       (csym::pthread-mutex-init (ptr thr->mut) 0)
       (csym::pthread-mutex-init (ptr thr->rack-mut) 0)
       (csym::pthread-cond-init (ptr thr->cond) 0)
@@ -872,6 +908,9 @@
   (for ((= i 0) (< i num-thrs) (inc i))
     (let ((thr (ptr (struct thread-data)) (+ threads i)))
       (systhr-create worker thr)))
+
+  ;; 外部への投機treqスレッド生成
+  (if option.speculation (systhr-create speculative-treq-sender 0))
 
   ;; 本スレッドはOUTSIDEからのメッセージ処理
   (while 1
