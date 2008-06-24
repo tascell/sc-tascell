@@ -372,9 +372,10 @@
 ;;; 投機的にtreqを送ってtaskを受信するスレッドのループ
 ;;; 今のところ投機的にとれる仕事の数は1で固定
 (def (prefetcher thr0) (fn (ptr void) (ptr void))
-  (def treq-head (array (enum node) 2) (array ANY TERM))
+  (def treq-head (array (enum node) 2))
   (def req-to (enum node) OUTSIDE)
   (def thr (ptr (struct thread-data)) (cast (ptr (struct thread-data)) thr0))
+  (= (aref treq-head 0) ANY) (= (aref treq-head 1) TERM)
   (csym::pthread-mutex-lock (ptr thr->mut))
   (loop
     ;;リストが空になるまで待機

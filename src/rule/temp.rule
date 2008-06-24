@@ -75,11 +75,14 @@
      (let ((exp-ret (expression! exp))
            (body-ret (function-body! body)))
        (aif (temp:flush-precedents)
-           (let ((end-label (generate-id "loop_end")))
+           (let ((start-label (generate-id "loop_start"))
+                 (end-label (generate-id "loop_end")))
              ~(begin
+               (goto ,start-label)
                (do-while (the int 1)
                  ,.it
                  (if (the int (not ,exp-ret)) (goto ,end-label))
+                 (label ,start-label ())
                  ,@body-ret)
                (label ,end-label ())) )
          ~(do-while ,exp-ret ,@body-ret) ))))
