@@ -9,8 +9,8 @@
 (%cinclude "sock.h" (:macro))           ; 通信関係
 
 (def (enum node) (OUTSIDE -1) (INSIDE -2) (ANY -3) (PARENT -4) (TERM -5))
-(def (enum command) TASK RSLT TREQ NONE RACK EXIT WRNG)
-(extern-decl cmd-strings (array (ptr char))) ; ↑に順序が対応
+(def (enum command) TASK RSLT TREQ NONE BACK RACK STAT VERB EXIT WRNG)
+(extern-decl cmd-strings (array (ptr char))) ; ↑に対応する文字列．cmd-serial.scで定義．
 
 ;; treq any の相手選択方法
 (def (enum choose) CHS-RANDOM CHS-ORDER)
@@ -42,6 +42,9 @@
 (decl (csym::recv-treq) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-rack) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-none) (csym::fn void (ptr (struct cmd))))
+(decl (csym::recv-back) (csym::fn void (ptr (struct cmd))))
+(decl (csym::print-status) (csym::fn void (ptr (struct cmd))))
+(decl (csym::set-verbose-level) (csym::fn void (ptr (struct cmd))))
 
 (decl (struct task))
 (decl (struct thread-data))
@@ -100,7 +103,7 @@
 ;; Workerが作ったサブタスク管理情報
 (def (struct task-home)
   (def stat (enum task-home-stat))      ; 状態
-  (def id int)                          ; 初期化時に割当てられるID（各計算ノードで一意）
+  (def id int)                          ; 初期化時に割当てられるID（各ワーカで一意）
   (def task-no int)                     ; 実行するタスク番号（tcell追加）
   (def req-from (enum node))            ; 仕事送信先の種別（別ノード or ノード内 or any）
   (def next (ptr (struct task-home)))   ; リンク（次の空きセル or スタックの1コ下）
@@ -145,3 +148,4 @@
 (decl (csym::serialize-cmd buf pcmd) (fn int (ptr char) (ptr (struct cmd))))
 (decl (csym::deserialize-cmd pcmd str) (fn int (ptr (struct cmd)) (ptr char)))
 (decl (csym::copy-address dst src) (fn int (ptr (enum node)) (ptr (enum node))))
+(decl (csym::address-equal adr1 adr2) (fn int (ptr (enum node)) (ptr (enum node))))

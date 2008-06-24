@@ -34,7 +34,7 @@
 
 ;; (enum node)の値が配列添字に対応
 (def cmd-strings (array (ptr char))
-  (array "task" "rslt" "treq" "none" "rack" "exit" 0))
+  (array "task" "rslt" "treq" "none" "back" "rack" "stat" "verb" "exit" 0))
 
 ;; 文字列の最初の空白以外の位置を返す
 (def (csym::skip-whitespace str) (fn (ptr char) (ptr char))
@@ -106,6 +106,7 @@
         (else
          (+= p (csym::sprintf p "%d" node))))
        (= (mref (inc p)) #\:))
+  (if (== i 0) (inc p))
   (= (mref (-- p)) #\NULL)
   (return (- p buf)))
 
@@ -185,3 +186,11 @@
     (= (aref dst i) (aref src i)))
   (= (aref dst i) TERM)
   (return i))
+
+;; ノード列比較 (同一なら非0)
+(def (csym::address-equal adr1 adr2) (fn int (ptr (enum node)) (ptr (enum node)))
+  (def i int)
+  (for ((= i 0) (< i MAXCMDC) (inc i))
+    (if (!= (aref adr1 i) (aref adr2 i)) (return 0))
+    (if (== TERM (aref adr1 i)) (return 1)))
+  (return 1))

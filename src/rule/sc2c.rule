@@ -262,7 +262,7 @@
   ((#?(,en-const[enumeration-constant] ,exp[expression]))
    (let ((exp-retval (multiple-value-list (get-retval exp))))
      (list (get-retval en-const)
-           "=" (sc2c:parenthesize exp-retval 15))))
+           " = " (sc2c:parenthesize exp-retval 15))))
   )
 
 ;; enumeration-constant

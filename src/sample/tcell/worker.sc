@@ -44,7 +44,8 @@
   (def sv-hostname (array char HOSTNAME-MAXSIZE))
                                         ; Tascellサーバのホスト名．""ならstdout
   (def port unsigned-short)             ; Tascellサーバへの接続ポート番号
-  (def speculation int)                 ; 投機的に外部へtreq
+  (def prefetch int)                    ; 投機的に外部へtreq
+  (def verbose int)                     ; verbose level
   )
 (static option (struct runtime-option))
 
@@ -114,6 +115,7 @@
 
   (csym::receive-line b BUFSIZE sv-socket)
   (= cmd-buf.node OUTSIDE)
+  (if (> option.verbose 0) (csym::fprintf stderr "RECEIVED> %s~%" b))
   ;; p:一個前の文字，c:現在の文字
   (csym::deserialize-cmd (ptr cmd-buf) b)
   (return (ptr cmd-buf)))
@@ -152,26 +154,35 @@
 (def (csym::proc-cmd pcmd body) (csym::fn void (ptr (struct cmd)) (ptr void))
   (def w (enum command))
   (= w pcmd->w)
-  (cond
-   ((== w TASK) (csym::recv-task pcmd body))
-   ((== w RSLT) (csym::recv-rslt pcmd body))
-   ((== w TREQ) (csym::recv-treq pcmd))
-   ((== w NONE) (csym::recv-none pcmd))
-   ((== w RACK) (csym::recv-rack pcmd))
-   ((== w EXIT) (csym::exit 0))
-   (else
-    (csym::proto-error "wrong cmd" pcmd))))
+  (switch w
+   (case TASK) (csym::recv-task pcmd body) (break)
+   (case RSLT) (csym::recv-rslt pcmd body) (break)
+   (case TREQ) (csym::recv-treq pcmd) (break)
+   (case NONE) (csym::recv-none pcmd) (break)
+   (case BACK) (csym::recv-back pcmd) (break)
+   (case RACK) (csym::recv-rack pcmd) (break)
+   (case STAT) (csym::print-status pcmd) (break)
+   (case VERB) (csym::set-verbose-level pcmd) (break)
+   (case EXIT) (csym::exit 0) (break)
+   (default) (csym::proto-error "wrong cmd" pcmd) (break))
+  )
 
 ;;; ノード内/外ワーカにコマンドを送信
 ;;; bodyはtask, rsltの本体．それ以外のコマンドではNULLに
 (def (csym::send-command pcmd body task-no) (csym::fn void (ptr (struct cmd)) (ptr void) int)
   (if (== pcmd->node OUTSIDE)
-      (csym::send-out-command pcmd body task-no) ; 外部に送信
-    (csym::proc-cmd pcmd body)          ; 内部に送信（というかworker自身がコマンド処理）
-    ))
+      (begin
+       (csym::send-out-command pcmd body task-no) ; 外部に送信
+       (if (> option.verbose 0)
+           (csym::proto-error "OUTSIDE" pcmd)))
+    (begin
+     (csym::proc-cmd pcmd body)         ; 内部に送信（というかworker自身がコマンド処理）
+     (if (> option.verbose 2)
+         (csym::proto-error "INSIDE" pcmd)))))
 
 (def threads (array (struct thread-data) 64))
-(def streq-thr (ptr (struct thread-data)))
+(def prefetch-thr (ptr (struct thread-data)))
+(def prefetch-thr-id int)
 (def num-thrs unsigned-int)
 
 
@@ -193,7 +204,7 @@
     (= thr->treq-free hx))              ; ...領域を返却
   )
 
-;;; スレッドthrの持つtaskのフリーリストから1つぶんallocateして，そこへのポインタを返す
+;;; スレッドthr(ロック済)の持つtaskのフリーリストから1つぶんallocateして，そこへのポインタを返す
 (def (csym::allocate-task thr) (fn (ptr (struct task)) (ptr (struct thread-data)))
   (def tx (ptr (struct task)))
   (= tx thr->task-free)
@@ -201,9 +212,9 @@
   (if (not tx) (csym::mem-error "Not enough task memory"))
   (= thr->task-top tx)
   (= thr->task-free tx->prev)
-  (return (ptr tx)))
+  (return tx))
 
-;;; スレッドthrの持つtaskのリストから1つぶんフリーリストに返す
+;;; スレッドthr(ロック済)の持つtaskのリストから1つぶんフリーリストに返す
 (def (csym::deallocate-task thr) (fn void (ptr (struct thread-data)))
   (def tx (ptr (struct task)) thr->task-top)
   (= thr->task-free tx)
@@ -229,15 +240,22 @@
     (fn int (ptr (struct thread-data)) (ptr (enum node)) (enum node))
   (def rcmd (struct cmd))
   (def delay long 1000)     ; none が返ってきたとき待つ時間[nsec]
+  (def delay-max long (* 40 1000 1000))
   (def tx (ptr (struct task)) thr->task-top)
 
   ;; treqコマンド
   (= rcmd.c 2)
-  ;; req-to は取り返しであれば取り返し先，そうでなければANY
-  (= rcmd.node (if-exp (> num-thrs 1) req-to OUTSIDE))
+  (= rcmd.node req-to) ; 取り返しであれば取り返し先，そうでなければANY
   (= rcmd.w TREQ)
-  (= (aref rcmd.v 0 0) thr->id) (= (aref rcmd.v 0 1) TERM)
-  (csym::copy-address (aref rcmd.v 1) treq-head)
+  (= (aref rcmd.v 0 0) thr->id)
+  (if (and (!= req-to ANY) thr->sub)
+      (begin
+       ;; 取り返しならば，待ち合わせているタスクのidも含める
+       ;; （try-take-back-prefetched-task での同一性確認のため）
+       (= (aref rcmd.v 0 1) thr->sub->id)
+       (= (aref rcmd.v 0 2) TERM))
+    (= (aref rcmd.v 0 1) TERM))
+  (csym::copy-address (aref rcmd.v 1) treq-head) ; 要求先
 
   (do-while (!= tx->stat TASK-INITIALIZED)
     ;; 最初にtreqがたまっていたら，noneを送る
@@ -282,8 +300,7 @@
                                              (ptr thr->mut)
                                              (ptr t-until))
                (+= delay delay)         ; 次回の待ち時間を増やす
-               (if (> delay (* 40 1000 1000))
-                   (= delay (* 40 1000 1000)))
+               (if (> delay delay-max) (= delay delay-max))
                ))
          ;; rsltが到着していたらtreqリトライせず，そちらの処理を優先
          (if (and thr->sub
@@ -352,21 +369,73 @@
   (csym::pthread-mutex-unlock (ptr thr->mut)))
 
 
-;;; 投機的treqスレッドのループ
-(def (speculative-treq-sender thr) (fn (ptr void) (ptr (struct thread-data)))
+;;; 投機的にtreqを送ってtaskを受信するスレッドのループ
+;;; 今のところ投機的にとれる仕事の数は1で固定
+(def (prefetcher thr0) (fn (ptr void) (ptr void))
   (def treq-head (array (enum node) 2) (array ANY TERM))
   (def req-to (enum node) OUTSIDE)
+  (def thr (ptr (struct thread-data)) (cast (ptr (struct thread-data)) thr0))
   (csym::pthread-mutex-lock (ptr thr->mut))
   (loop
-     ;;リストが空になるまで待機
-     (while thr->task-top
+    ;;リストが空になるまで待機
+    (while thr->task-top
        (csym::pthread-cond-wait (ptr thr->cond) (ptr thr->mut)))
-     (csym::allocate-task thr)
-     (csym::send-treq-to-initialize-task thr treq-head req-to)
-    () )
+    (csym::allocate-task thr)
+    ;; treqを送って仕事獲得：とれるまでやる
+    (while (not (csym::send-treq-to-initialize-task thr treq-head req-to)))
+    ;;リストが空でなくなったことを通知
+    (csym::pthread-cond-signal (ptr thr->cond))
+    )
   (csym::pthread-mutex-unlock (ptr thr->mut))
   (return 0)
   )
+
+;;; prefetchしたtaskをpopして，thrのtask-topをINIITIALIZEする
+(def (csym::pop-prefetched-task thr) (fn int (ptr (struct thread-data)))
+  (defs (ptr (struct task)) tx-dst tx-src)
+  (csym::pthread-mutex-lock (ptr prefetch-thr->mut))
+  ;;リストが空でなくなるまで待機
+  (while (not (and prefetch-thr->task-top
+                   (== prefetch-thr->task-top->stat TASK-INITIALIZED)))
+    (csym::pthread-cond-wait (ptr prefetch-thr->cond) (ptr prefetch-thr->mut)))
+  (csym::pthread-mutex-lock (ptr thr->mut))
+  (= tx-dst thr->task-top) (= tx-src prefetch-thr->task-top)
+  (= tx-dst->task-no tx-src->task-no)
+  (= tx-dst->body tx-src->body)
+  (= tx-dst->ndiv tx-src->ndiv)
+  (= tx-dst->rslt-to tx-src->rslt-to)
+  (csym::copy-address tx-dst->rslt-head tx-src->rslt-head)
+  (= tx-dst->stat TASK-INITIALIZED)
+  (csym::deallocate-task prefetch-thr)
+  ;;仕事ができるようになったことを通知
+  (csym::pthread-cond-signal (ptr thr->cond))
+  ;;リストが空になったことを通知
+  (csym::pthread-cond-signal (ptr prefetch-thr->cond))
+  (csym::pthread-mutex-unlock (ptr thr->mut))
+  (csym::pthread-mutex-unlock (ptr prefetch-thr->mut))
+  (return 1))
+
+;;; 外からprefetchスレッドへのtreq（取り返し）に対し，まだその仕事を始めてなければ
+;;; そのまま返却する．返却した->1, しなかった->0 を返す．
+(def (csym::try-take-back-prefetched-task treq-head) (fn int (ptr (enum node)))
+  (def tx (ptr (struct task)))
+  (def retval int)
+  (csym::pthread-mutex-lock (ptr prefetch-thr->mut))
+  (if (and (= tx prefetch-thr->task-top) ; prefetchスレッドが持っているタスクがtreq元が送ったものと同一か判定
+           (csym::address-equal tx->rslt-head treq-head))
+      (let ((rcmd (struct cmd)))
+        ;; 仕事のキャンセルを伝える
+        (= rcmd.w BACK) (= rcmd.c 1) (= rcmd.node OUTSIDE)
+        (csym::copy-address (aref rcmd.v 0) treq-head)
+        (csym::send-command (ptr rcmd) 0 0)
+        ;; prefetchした仕事を破棄
+        (csym::deallocate-task prefetch-thr) ; !!! bodyのごみをどうする？
+        (csym::pthread-cond-signal (ptr prefetch-thr->cond)) ; 空になったことを通知
+        (= retval 1))
+    (= retval 0))
+  (csym::pthread-mutex-unlock (ptr prefetch-thr->mut))
+  (return retval))
+
 
 ;;;; recv-* は，受信スレッド（内部および外部の2つ）のみ実行
 
@@ -390,7 +459,7 @@
        (csym::read-to-eol)))
   ;; <task-head>を見て，タスクを実行するスレッドを決める．
   (= id (aref pcmd->v 2 0))
-  (if (not (< id num-thrs))
+  (if (not (< id (+ num-thrs (if-exp option.prefetch 1 0))))
       (csym::proto-error "wrong task-head" pcmd))
   (= thr (+ threads id))                ; thr: taskを実行するスレッド
 
@@ -411,24 +480,55 @@
   (csym::pthread-cond-signal (ptr thr->cond))
   )
 
+
+;;; none <送信先>
 (def (csym::recv-none pcmd) (csym::fn void (ptr (struct cmd)))
   (def thr (ptr (struct thread-data)))
   (def id unsigned-int)
   (def len size-t)
-  (if (< pcmd->c 1)
-      (csym::proto-error "Wrong none" pcmd))
+  (if (< pcmd->c 1) (csym::proto-error "Wrong none" pcmd))
   (= id (aref pcmd->v 0 0))
-  (if (not (< id num-thrs))
-      (csym::proto-error "Wrong task-head" pcmd))
+  (if (not (< id num-thrs)) (csym::proto-error "Wrong task-head" pcmd))
   (= thr (+ threads id))
   (csym::pthread-mutex-lock (ptr thr->mut))
   (if (> thr->w-none 0)
       (dec thr->w-none)
     (= thr->task-top->stat TASK-NONE))
   (csym::pthread-mutex-unlock (ptr thr->mut))
-  (csym::pthread-cond-signal (ptr thr->cond))
+  (csym::pthread-cond-signal (ptr thr->cond)) ; TASK-NONEになったことを通知
   )
 
+
+;;; back <送信先>:<task-id>
+;;; 送信した仕事のキャンセル通知．task-homeにある仕事を自分自身でやるようにする．
+;;; キャンセルされた仕事は subスタックのトップにあるものなので，そこから情報獲得．
+(def (csym::recv-back pcmd) (csym::fn void (ptr (struct cmd)))
+  (def thr (ptr (struct thread-data)))
+  (def tx (ptr (struct task)))
+  (def hx (ptr (struct task-home)))
+  (def id unsigned-int)                 ; 引数の数チェック．0:送信先
+  (if (< pcmd->c 1) (csym::proto-error "Wrong back" pcmd))
+  (= id (aref pcmd->v 0 0))
+  (if (not (< id num-thrs)) (csym::proto-error "Wrong task-head" pcmd))
+  (= thr (+ threads id))
+  (csym::pthread-mutex-lock (ptr thr->mut))
+  (= tx thr->task-top) (= hx thr->sub)
+  (= tx->task-no hx->task-no)
+  (= tx->body hx->body)
+  (= tx->ndiv thr->ndiv)
+  (= tx->rslt-to INSIDE)
+  (= (aref tx->rslt-head 0) id)
+  (= (aref tx->rslt-head 1) hx->id)
+  (= (aref tx->rslt-head 2) TERM)
+  (= hx->req-from INSIDE)               ; taskの送り先情報を変更
+  (= (aref hx->task-head 0) id)         ;
+  (= (aref hx->task-head 0) TERM)       ;
+  (= tx->stat TASK-INITIALIZED)
+  (csym::pthread-mutex-unlock (ptr thr->mut))
+  (csym::pthread-cond-signal (ptr thr->cond)) ; TASK-INITIALIZEDになったことを通知
+  )
+
+
 (def (csym::recv-rslt pcmd body) (csym::fn void (ptr (struct cmd)) (ptr void))
   (def rcmd (struct cmd))               ; rackコマンド
   (def thr (ptr (struct thread-data)))
@@ -481,6 +581,7 @@
   (csym::pthread-mutex-unlock (ptr thr->mut))
   (csym::send-command (ptr rcmd) 0 0))  ;rack送信
 
+
 ;;; threads[id] にtreqを試みる
 (def (csym::try-treq pcmd id from-addr)
     (csym::fn int (ptr (struct cmd)) unsigned-int (ptr (enum node)))
@@ -523,87 +624,121 @@
 ;; 親からのランダム用
 (def random-seed1 double 0.2403703)
 (def random-seed2 double 3.638732)
-
 ;; 0--max-1までの整数乱数を返す
 (def (csym::my-random max pseed1 pseed2) (fn int int (ptr double) (ptr double))
   (= (mref pseed1) (+ (* (mref pseed1) 3.0) (mref pseed2)))
   (-= (mref pseed1) (cast int (mref pseed1)))
   (return (* max (mref pseed1))))
 
+;;; treq any処理中に呼ばれ，要求元がどこかに応じて
+;;; 適当な戦略で，最初にどのワーカに問い合わせるかを決める
 (def (csym::choose-treq from-node) (fn int (enum node))
   (cond
-    ((<= 0 from-node)
-     (let ((thr (ptr (struct thread-data)) (+ threads from-node)))
-       ;; 戦略を前回と変える
-       (= thr->last-choose (% (+ 1 thr->last-choose) NKIND-CHOOSE))
-       (cond
-         ((== CHS-RANDOM thr->last-choose) ; ランダム
-          (return (csym::my-random num-thrs
-                                   (ptr thr->random-seed1)
-                                   (ptr thr->random-seed2))))
-         ((== CHS-ORDER thr->last-choose) ; 順番に
-          (= thr->last-treq (% (+ 1 thr->last-treq) num-thrs))
-          (return thr->last-treq))
-         (else
-          (return 0)))))
-    ((== PARENT from-node)
-     (return (csym::my-random num-thrs (ptr random-seed1) (ptr random-seed2))))
-    (else
-     (return 0))))
+   ((<= 0 from-node)                    ; 内部から
+    (let ((thr (ptr (struct thread-data)) (+ threads from-node)))
+      ;; 戦略を前回と変える
+      (= thr->last-choose (% (+ 1 thr->last-choose) NKIND-CHOOSE))
+      (cond
+       ((== CHS-RANDOM thr->last-choose) ; ランダム
+        (return (csym::my-random num-thrs
+                                 (ptr thr->random-seed1)
+                                 (ptr thr->random-seed2))))
+       ((== CHS-ORDER thr->last-choose) ; 順番に
+        (= thr->last-treq (% (+ 1 thr->last-treq) num-thrs))
+        (return thr->last-treq))
+       (else
+        (return 0)))))
+   ((== PARENT from-node)               ; 外部から
+    (return (csym::my-random num-thrs (ptr random-seed1) (ptr random-seed2))))
+   (else
+    (return 0))))
 
+;;; treqメッセージ（仕事要求）の処理
+;;; 要求先のidのワーカ（ANYの場合は全てのワーカ）に仕事分割が可能か確認
+;;; 可能なら要求キューに追加するので(try-treq内)そのうちtaskメッセージが送られてきて
+;;; 要求元のタスクリストのアイテムが TASK-ALLOCATED => TASK-INITIALIZEDになる．
+;;; 不可能ならNONEを返す．
+;;; ただし，0番ワーカがANY要求をしている場合はtreqメッセージを外部に転送する．
 (def (csym::recv-treq pcmd) (csym::fn void (ptr (struct cmd)))
   (def rcmd (struct cmd))
-  (def id unsigned-int)
+  (def dst0 (enum node))
   (if (< pcmd->c 2)                     ; 引数の数チェック 0:from, 1:to
       (csym::proto-error "Wrong treq" pcmd))
   ;; 仕事を要求するスレッドを決めて，要求を出す
-  (if (== (aref pcmd->v 1 0) ANY)
-      (let ((myid int) (start-id int) (d int))
-        (= myid (aref pcmd->v 0 0))     ; 要求元
-        (= start-id (csym::choose-treq myid))
-        (for ((= d 0) (< d num-thrs) (inc d))
-           (= id (% (+ d start-id) num-thrs)) ; 要求先id
-          (if (and (!= pcmd->node OUTSIDE)
-                   (== id myid))
-              (continue))               ; 自分自身には要求を出さない
-          (if (csym::try-treq pcmd id (aref pcmd->v 0)) (break)))
-        (if (!= d num-thrs)             ; treqできた
-            (return)))
-    (begin                              ; "any"でない場合（取り返し）
-     (= id (aref pcmd->v 1 0))
-     (if (not (< id num-thrs))
-         (csym::proto-error "Wrong task-head" pcmd))
-     (if (csym::try-treq pcmd id (aref pcmd->v 0)) ; treqできた
-         (return))))
-  
-  ;; 内部からのtreq anyに仕事を返せなかった場合
-  (if (== pcmd->node ANY)
-      (if (== (aref pcmd->v 0 0) 0)     ; v[0]:from
-          ;; 0番workerからのtreqの場合は外部に問い合わせる
-          (begin
-           (= pcmd->node OUTSIDE)
+  (= dst0 (aref pcmd->v 1 0))
+  (cond
+   ;; ANY
+   ((== dst0 ANY)
+    (let ((myid int) (start-id int) (d int) (id int))
+      (= myid (aref pcmd->v 0 0))       ; 要求元
+      (= start-id (csym::choose-treq myid)) ; 要求先開始id
+      (for ((= d 0) (< d num-thrs) (inc d))
+        (= id (% (+ d start-id) num-thrs)) ; 要求先id
+        (if (and (!= pcmd->node OUTSIDE)
+                 (== id myid))
+            (continue))                 ; 自分自身には要求を出さない
+        (if (csym::try-treq pcmd id (aref pcmd->v 0))
+            (begin
+             (if (> option.verbose 1) (fprintf stderr "try-treq %d->%d... accepted.~%" myid id))
+             (break)))
+        (if (> option.verbose 1) (fprintf stderr "try-treq to %d->%d... refused.~%" myid id))
+        )
+      (if (!= d num-thrs)               ; treqできた
+          (return))))
+   ;; prefetchスレッドへの要求
+   ((== dst0 prefetch-thr-id)
+    (if (== pcmd->node OUTSIDE)         ; 外からの取り返し
+        (if (csym::try-take-back-prefetched-task (aref pcmd->v 0)) ; まだタスクが開始されてなければそのまま取り返す
+            (return)
+          (begin                        ; 開始されていれば0番スレッドから取り返す(leapfrogging)
+           (= (aref pcmd->v 1 0) 0)
+           (csym::recv-treq pcmd)
+           (return)))
+      ;; (!= pcmd->node OUTSIDE): 内部ワーカからprefetchedタスクの要求
+      (if (csym::pop-prefetched-task (+ threads (aref pcmd->v 0 0)))
+          (return))))
+   ;; 取り返し(leapfrogging)
+   (else
+    (if (not (and (< 0 dst0) (< dst0 num-thrs)))
+        (csym::proto-error "Wrong task-head" pcmd))
+    (if (csym::try-treq pcmd dst0 (aref pcmd->v 0)) ; treqできた
+        (return))))
+  ;; 内部のワーカが，渡せる仕事がなかった場合のみここに来る
+  (if (and (== pcmd->node ANY)
+           (== (aref pcmd->v 0 0) 0))    ; v[0]:from
+      ;; 0番workerからのtreqの場合は外部に問い合わせる
+      (if option.prefetch
+          (begin                        ; 投機treqスレッドに
+           (= pcmd->node INSIDE)
+           (= (aref pcmd->v 1 0) prefetch-thr-id) (= (aref pcmd->v 1 1) TERM)
            (csym::send-command pcmd 0 0)
            (return))
-        ;; それ以外のworkerには単にnoneを返す
-        (= pcmd->node INSIDE)))
-
+        (begin                          ; 外部に
+         (= pcmd->node OUTSIDE)
+         (csym::send-command pcmd 0 0)
+         (return))))
+  ;; 外へのtreq転送もしなかった場合のみここに来る
   ;; noneを返す
   (= rcmd.c 1)
-  (= rcmd.node pcmd->node)              ; [INSIDE|OUTSIDE]
+  (= rcmd.node (if-exp (== pcmd->node ANY) INSIDE pcmd->node)) ; [INSIDE|OUTSIDE]
   (= rcmd.w NONE)
   (csym::copy-address (aref rcmd.v 0) (aref pcmd->v 0))
   (csym::send-command (ptr rcmd) 0 0))
 
+
 ;; rack <rack送信先header(ここではthread-id)>
 (def (csym::recv-rack pcmd) (csym::fn void (ptr (struct cmd)))
   (def tx (ptr (struct task)))
   (def thr (ptr (struct thread-data)))
   (def id unsigned-int)
   (def len size-t)
-  (if (< pcmd->c 1)
+  (if (< pcmd->c 1)                     ; 引数の数チェック 0:返送先（スレッドid）
       (csym::proto-error "Wrong rack" pcmd))
-  ;; idを<task-head>に含める
   (= id (aref pcmd->v 0 0))
+  ;; prefetchスレッドへのrackは0番に転送
+  ;; （prefetchしたタスクは必ず0番が取るようにしているため）
+  (if (and option.prefetch (== prefetch-thr-id id))
+      (= id 0))
   (if (not (< id num-thrs))
       (csym::proto-error "Wrong task-head" pcmd))
   (= thr (+ threads id))
@@ -611,6 +746,83 @@
   (dec thr->w-rack)
   (csym::pthread-mutex-unlock (ptr thr->rack-mut)))
 
+
+;;; taskの情報を出力
+(def task-stat-strings (array (ptr char)) ; enum task-statに対応
+  (array "TASK-ALLOCTED" "TASK-INITIALIZED" "TASK-STARTED" "TASK-DONE" "TASK-NONE" "TASK-SUSPENDED"))
+(def (csym::node-to-string buf node) (csym::fn void (ptr char) (enum node)) ; enum nodeに対応
+  (switch node
+    (case OUTSIDE) (sprintf buf "OUTSIDE") (break)
+    (case INSIDE)  (sprintf buf "INSIDE")  (break)
+    (case ANY)     (sprintf buf "ANY")     (break)
+    (case PARENT)  (sprintf buf "PARENT")  (break)
+    (case TERM)    (sprintf buf "TERM")    (break)
+    (default)      (sprintf buf "%d" node) (break)))
+(def (csym::print-task-list task-top) (csym::fn void (ptr (struct task)))
+  (def cur (ptr (struct task)))
+  (defs (array char BUFSIZE) buf1 buf2)
+  (csym::fprintf stderr "task= {")
+  (for ((= cur task-top) cur (= cur cur->next))
+    (csym::fprintf stderr "{stat=%s, task-no=%d, body=%p, ndiv=%d, rslt-to=%s, rslt-head=%s}, "
+                   (aref task-stat-strings cur->stat) cur->task-no cur->body cur->ndiv
+                   (exps (csym::node-to-string buf1 cur->rslt-to) buf1)
+                   (exps (csym::serialize-arg buf2 cur->rslt-head) buf2)))
+  (csym::fprintf stderr "}, ")
+  (return))
+
+;;; task-homeの情報を出力
+(def task-home-stat-strings (array (ptr char)) ; enum task-home-statに対応
+  (array "TASK-HOME-ALLOCATED" "TASK-HOME-INITIALIZED" "TASK-HOME-DONE"))
+(def (csym::print-task-home-list treq-top name) (csym::fn void (ptr (struct task-home)) (ptr char))
+  (def cur (ptr (struct task-home)))
+  (defs (array char BUFSIZE) buf1 buf2)
+  (csym::fprintf stderr "%s= {" name)
+  (for ((= cur treq-top) cur (= cur cur->next))
+    (csym::fprintf stderr "{stat=%s, id=%d, task-no=%d, body=%p, req-from=%s, task-head=%s}, "
+                   (aref task-home-stat-strings cur->stat) cur->id cur->task-no cur->body
+                   (exps (csym::node-to-string buf1 cur->req-from) buf1)
+                   (exps (csym::serialize-arg buf2 cur->task-head) buf2)))
+  (csym::fprintf stderr "}, ")
+  (return))
+
+;;; threadの情報を出力
+(def choose-strings (array (ptr char)) (array "CHS-RANDOM" "CHS-ORDER")) ; enum chooseに対応
+(def (csym::print-thread-status thr) (csym::fn void (ptr (struct thread-data)))
+  (csym::fprintf stderr "<Thread %d>~%" thr->id)
+  (csym::fprintf stderr "req=%p, " thr->req)
+  (csym::fprintf stderr "w-rack=%d, " thr->w-rack)
+  (csym::fprintf stderr "w-none=%d, " thr->w-none)
+  (csym::fprintf stderr "ndiv=%d, " thr->ndiv)
+  (csym::fprintf stderr "last-treq=%d, " thr->last-treq)
+  (csym::fprintf stderr "last-choose=%s, " (aref choose-strings thr->last-choose))
+  (csym::fprintf stderr "random-seed(1,2)=(%f,%f), " thr->random-seed1 thr->random-seed2)
+  (csym::print-task-list thr->task-top)
+  (csym::print-task-home-list thr->treq-top "treq-top")
+  (csym::print-task-home-list thr->sub "sub")
+  (csym::fprintf stderr "~%")
+  (return)
+  )
+
+;;; statコマンド -> 状態を出力
+(def (csym::print-status pcmd) (csym::fn void (ptr (struct cmd)))
+  (def i int)
+  (csym::fprintf stderr "num-thrs: %d~%" num-thrs)
+  (csym::fprintf stderr "prefetches: %d~%" option.prefetch)
+  (csym::fprintf stderr "verbose-level: %d~%" option.verbose)
+  (for ((= i 0) (< i num-thrs) (inc i))
+    (csym::print-thread-status (ptr (aref threads i))))
+  (return)
+  )
+
+
+;;; verbコマンド -> verbose levelを変更
+(def (csym::set-verbose-level pcmd) (csym::fn void (ptr (struct cmd)))
+  (if (< pcmd->c 1)                     ; 引数の数チェック 0:verbose-level
+      (csym::proto-error "Wrong verb" pcmd))
+  (= option.verbose (aref pcmd->v 0 0))
+  (return))
+
+
 ;; ワーカスレッドが仕事分割開始時に呼ぶ
 (def (handle-req -bk -thr)
     (fn void (ptr (NESTFN int void)) (ptr (struct thread-data)))
@@ -673,7 +885,7 @@
           ))
     (= thr->task-top->stat TASK-STARTED)
     (if (== sub->stat TASK-HOME-DONE) (break))
-    ;; 取り返しにいく
+    ;; 取り返しにいく (leapfrogging)
     (recv-exec-send thr sub->task-head sub->req-from))
   (= body sub->body)
   (= thr->sub sub->next)                ; サブタスクstackをpop
@@ -686,7 +898,7 @@
 ;;; Handling command-line options
 (def (csym::usage argc argv) (csym::fn void int (ptr (ptr char)))
   (csym::fprintf stderr
-                 "Usage: %s [-s hostname] [-p port-num] [-n n-threads] [-S]~%"
+                 "Usage: %s [-s hostname] [-p port-num] [-n n-threads] [-P n-prefetches] [-v verbose]~%"
                  (aref argv 0))
   (csym::exit 1))
 
@@ -696,15 +908,16 @@
   (= option.num-thrs 1)
   (= (aref option.sv-hostname 0) #\NULL)
   (= option.port 8888)
-  (= option.speculation 0)
+  (= option.prefetch 0)
+  (= option.verbose 0)
   ;; Parse and set options
-  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:S:")))
+  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:P:v:h")))
     (for ((= i 0) (< i argc) (inc i))
       (switch ch
         (case #\n)                      ; number of threads
         (= option.num-thrs (csym::atoi optarg))
         (break)
-        
+
         (case #\s)                      ; server name
         (if (csym::strcmp "stdout" optarg)
             (begin
@@ -713,19 +926,23 @@
              (= (aref option.sv-hostname (- HOSTNAME-MAXSIZE 1)) 0))
           (= (aref option.sv-hostname 0) #\NULL))
         (break)
-        
+
         (case #\p)                      ; connection port number
         (= option.port (csym::atoi optarg))
         (break)
 
-        (case #\S)                      ; the number of speculative tasks from external nodes
-        (= option.speculation (csym::atoi optarg))
+        (case #\P)                      ; the number of speculative tasks from external nodes
+        (= option.prefetch (csym::atoi optarg))
+        (break)
+
+        (case #\v)                      ; verbose level
+        (= option.verbose (csym::atoi optarg))
         (break)
 
         (case #\h)                      ; usage
         (csym::usage argc argv)
         (break)
-        
+
         (default)
         (csym::fprintf stderr "Unknown option: %c~%" ch)
         (csym::usage argc argv)
@@ -808,6 +1025,9 @@
        (= (fref (aref tlist (+ i 1)) next) (ptr (aref tlist i))))
   (= (fref (aref tlist 0) next) 0)
   (= (fref (aref tlist (- len 1)) prev) 0)
+  (for ((= i 0) (< i len) (inc i))
+    (= (fref (aref tlist i) rslt-to) TERM)
+    (= (aref (fref (aref tlist i) rslt-head) 0) TERM))
   (return))
 
 ;;; (struct task-home)リストの初期化
@@ -819,7 +1039,7 @@
   ;; フリーリストを構成
   (for ((= i 0) (< i (- len 1)) (inc i))
        (= (fref (aref hlist i) next) (ptr (aref hlist (+ i 1))))
-       (= (fref (aref hlist (- len 1)) next) 0))
+      (= (fref (aref hlist (- len 1)) next) 0))
   (return))
 
 ;; main
@@ -859,7 +1079,7 @@
   ;; thread-data の初期化, task の 双方向list も
   ;; 冬季treqがonなら，それ用のスレッドをnum-thrs+1番目として作って初期化する
   (= num-thrs option.num-thrs)
-  (for ((= i 0) (< i (+ num-thrs (if-exp option.speculation 1 0))) (inc i))
+  (for ((= i 0) (< i (+ num-thrs (if-exp option.prefetch 1 0))) (inc i))
     (let ((thr (ptr (struct thread-data)) (+ threads i))
           (tx (ptr (struct task)))
           (hx (ptr (struct task-home))))
@@ -893,15 +1113,18 @@
       (csym::initialize-task-home-list hx TASK-LIST-LENGTH
                                        (ptr thr->treq-top) (ptr thr->treq-free))
       (= thr->sub 0)))
-  
+  ;; 投機treqスレッドを参照するポインタとidを設定
+  (if option.prefetch
+      (begin (= prefetch-thr (+ threads num-thrs))
+             (= prefetch-thr-id num-thrs)))
+
   ;; ワーカスレッド生成
   (for ((= i 0) (< i num-thrs) (inc i))
     (systhr-create worker (+ threads i)))
 
-  ;; 外部への投機treqスレッド生成
-  (if option.speculation
-      (begin (= streq-thr (+ threads num-thrs))
-             (systhr-create speculative-treq-sender streq-thr)))
+  ;; 投機treqスレッド生成
+  (if option.prefetch
+      (systhr-create prefetcher prefetch-thr))
 
   ;; 本スレッドはOUTSIDEからのメッセージ処理
   (while 1
