@@ -38,6 +38,7 @@
 (%include "rule/tcell-setrule.sh")
 
 (%include "clib.sh")
+(%include "dprint.sh")
 (%cinclude "sendrecv.h" (:macro))
 
 ;; (def (struct timeval)
@@ -629,7 +630,7 @@
       (if-exp (fref this tmpnx) (fref this tmpnx)
               (fref this anx)))
 
-    (csym::fprintf stderr "start %d~%" (fref this tt))
+    (DEBUG-PRINT 1 "start %d~%" (fref this tt))
     (switch (fref this tt)
       (case TASK-CMD) (start-lu n1 n2 n3 a) (break)
       (case TASK-LU)  (decomp-lu n1 a nx anx) (break)

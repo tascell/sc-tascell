@@ -31,6 +31,7 @@
 
 (%include "rule/tcell-setrule.sh")
 (%include "clib.sh")
+(%include "dprint.sh")
 (%cinclude "sendrecv.h" (:macro))
 
 (%defconstant ASIZE 20)
@@ -59,9 +60,9 @@
   (def i2 int (fref this i2))
   (def maxp int (fref this maxp))
   (def maxk int (fref this maxk))
-  (csym::fprintf stderr "start %d %d %d %d %d %d~%" k i0 i1 i2 maxp maxk)
+  (DEBUG-PRINT 1 "start %d %d %d %d %d %d~%" k i0 i1 i2 maxp maxk)
   (= (fref this r) (search k i0 i1 i2 maxp maxk (ptr this)))
-  (csym::fprintf stderr "end %d~%" (fref this r)))
+  (DEBUG-PRINT 1 "end %d~%" (fref this r)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (def (task start-pentomino)

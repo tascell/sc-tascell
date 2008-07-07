@@ -34,10 +34,11 @@
     (setq *locale* (find-locale "japan.EUC")))
   ;; The most debuggable (and yet reasonably fast) code, use
   (proclaim '(optimize (speed 3) (safety 1) (space 1))); (debug 3)))
+  ;; (proclaim '(optimize (speed 3) (safety 0) (space 1)))
   (load (compile-file-if-needed (or (probe-file "sc-misc.lsp")
                                     "../../sc-misc.lsp")
                                 :output-file "sc-misc.fasl"))
-  ;; Ignore logging code
+  ;; Uncomment to ignore logging code
   (push :tcell-no-transfer-log *features*)
   )
 #+sc-system (use-package "SC-MISC")
@@ -83,6 +84,8 @@
   ((host :initform *parent-host*)
    (port :initform *parent-port*)
    (n-treq-sent :accessor parent-n-treq-sent :type fixnum :initform 0)
+   (diff-task-rslt :accessor parent-diff-task-rslt :type fixnum :initform 0)
+                                        ; <taskをもらった回数>-<rsltを送った回数> (childとは違うので注意)
    (last-none-time :accessor parent-last-none-time :type integer :initform -1)
    ))
 
@@ -279,7 +282,8 @@
             ;; メッセージ処理
             (while (mp:gate-open-p msg-gate)
               (destructuring-bind (host . message) (delete-buffer msg-buf)
-                (proc-cmd sv host message)))))
+                (proc-cmd sv host message))
+              (retry-treq sv))))
       (ts-buffer sv))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -479,10 +483,11 @@
         :test #'=))
 
 ;;; 一番仕事が残ってそうな子
-(defmethod most-divisible-child ((sv tcell-server))
+(defmethod most-divisible-child ((sv tcell-server) (from host))
   (let ((max nil) (maxchld nil))
     (loop for chld in (ts-children sv)
         do (when (and (> (child-diff-task-rslt chld) 0)
+                      (not (eq chld from))
                       (or (null max) (> (child-wsize chld) max)))
              (setq max (child-wsize chld))
              (setq maxchld chld)))
@@ -496,8 +501,14 @@
 ;;; p-task-head は，"<treqのfromのid>" ":" "<treqのtask-head>" 
 (defmethod push-treq-any0 ((sv tcell-server) (tae ta-entry))
   (push tae (ts-talist sv)))
+(defmethod push-treq-any1 ((sv tcell-server) (tae ta-entry))
+  (push tae (cdr (ts-talist sv))))
 (defmethod push-treq-any ((sv tcell-server) (from host) (p-task-head string))
-  (push-treq-any0 sv (make-instance 'ta-entry :from from :head p-task-head)))
+  (let ((entry (make-instance 'ta-entry :from from :head p-task-head)))
+    (if (or (eq from (ts-eldest-child sv)) ; eldest-childからのtreqは優先的に先頭
+            (null (ts-talist sv)))      ;  ; （retry時に先頭がだめだったら以降をあきら
+        (push-treq-any0 sv entry)       ;  ;   めるようにしているが，その時に親も試す
+      (push-treq-any1 sv entry))))      ;  ;   ようにするため）
 
 ;;; treq-any-list のpop
 (defmethod pop-treq-any ((sv tcell-server))
@@ -646,6 +657,10 @@
 (defmethod send-rslt (to rslt-head rslt-body)
   (send to (list "rslt " rslt-head #\Newline rslt-body #\Newline)))
 
+(defmethod send-rslt :after ((to parent) rslt-head rslt-body)
+  (declare (ignore rslt-head rslt-body))
+  (decf (parent-diff-task-rslt to)))
+
 (defmethod send-rslt :after ((to terminal-parent) rslt-head rslt-body)
   (declare (ignore rslt-body))
   ;; rack自動送信およびtask自動送信の準備（task再送信は性能評価用）
@@ -679,6 +694,7 @@
                          (excl:gc t)
                          (format *error-output* "~&auto-resend-task~%")
                          (setf (task-home-start-time it) (get-internal-real-time))
+                         (incf (parent-diff-task-rslt to))
                          (send-task rack-to ; rackの送り先と同じでよいことを仮定
                                     (second cmd) (head-push to new-rslt-head)
                                     rack-task-head (fifth cmd) (nthcdr 5 cmd))
@@ -690,8 +706,21 @@
 (defmethod send-none (to task-head)
   (send to (list "none " task-head #\Newline)))
 
+(defmethod send-back (to task-head)
+  (send to (list "back " task-head #\Newline)))
+
+(defmethod send-back ((to parent) task-head)
+  (declare (ignore task-head))
+  (decf (parent-diff-task-rslt to)))
+
 (defmethod send-rack (to task-head)
   (send to (list "rack " task-head #\Newline)))
+
+(defmethod send-stat (to task-head)
+  (send to (list "stat " task-head #\Newline)))
+
+(defmethod send-verb (to task-head)
+  (send to (list "verb " task-head #\Newline)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Dispatch
@@ -700,11 +729,13 @@
     (:|treq| (proc-treq sv from cmd))
     (:|task| (proc-task sv from cmd))
     (:|none| (proc-none sv from cmd))
+    (:|back| (proc-back sv from cmd))
     (:|rslt| (proc-rslt sv from cmd))
     (:|rack| (proc-rack sv from cmd))
     (:|eof|  (remove-child sv from))
     (:|log|  (proc-log sv from cmd))
-    (:|stat| (print-server-status sv))
+    (:|stat| (proc-stat sv from cmd))
+    (:|verb| (proc-verb sv from cmd))
     (:|eval| (print (eval (read-from-string (strcat (cdr cmd) #\Space)))))
     (otherwise (warn "Unknown Command:~S" cmd))))
 
@@ -724,7 +755,7 @@
       (refuse-treq sv from p-task-head))))
 
 (defmethod try-send-treq-any ((sv tcell-server) (from host) p-task-head)
-  (or (awhen (most-divisible-child sv)
+  (or (awhen (most-divisible-child sv from)
         (try-send-treq sv it p-task-head "any"))
       ;; 自分のところに仕事がなければ，eldestな子が代表して親に聞きにいく
       (and (eq (ts-eldest-child sv) from)
@@ -734,6 +765,13 @@
 (defmethod try-send-treq ((sv tcell-server) (to host) p-task-head s-treq-head)
   (send-treq to p-task-head s-treq-head)
   t)
+
+;; terminal-parentについては，もらった仕事を消化しきれていなければtreqしない
+(defmethod try-send-treq :around ((sv tcell-server) (to terminal-parent) p-task-head s-treq-head)
+  (declare (ignore p-task-head s-treq-head))
+  (if (>= 0 (parent-diff-task-rslt to))
+      (call-next-method)
+    nil))
 
 ;; 条件を満たしていればsend
 (defmethod try-send-treq :around ((sv tcell-server) (to child) p-task-head s-treq-head)
@@ -769,12 +807,15 @@
           (task-body (nthcdr 5 cmd)))
       (send-task to wsize-str p-rslt-head s-task-head task-no
                  task-body)
-      (retry-treq sv)
       )))
 
 (defmethod proc-task :before ((sv tcell-server) (from child) cmd)
   (let ((wsize (parse-integer (second cmd))))
     (renew-work-size from (- wsize))))
+
+(defmethod proc-task :before ((sv tcell-server) (from parent) cmd)
+  (declare (ignorable sv cmd))
+  (incf (parent-diff-task-rslt from)))
 
 ;; rack自動送信のために受け取ったtaskを覚えておく
 (defmethod proc-task :after ((sv tcell-server) (from terminal-parent) cmd)
@@ -795,6 +836,17 @@
       (head-shift sv (second cmd))      ; none送信先
     (send-none to s-task-head)))
 
+;;; back
+(defmethod proc-back ((sv tcell-server) (from host) cmd)
+  (destructuring-bind (to s-task-head)
+      (head-shift sv (second cmd))      ; back送信先
+    (send-back to s-task-head)))
+
+(defmethod proc-back :before ((sv tcell-server) (from child) cmd)
+  (declare (ignore cmd))
+  (when (< (decf (child-diff-task-rslt from)) 0)
+    (warn "~S: diff-task-rslt less than 0!" (hostinfo from))))
+
 ;;; rslt
 (defmethod proc-rslt ((sv tcell-server) (from host) cmd)
   (destructuring-bind (to s-rslt-head)
@@ -813,7 +865,24 @@
       (head-shift sv (second cmd))      ; rack送信先
     (send-rack to s-task-head)))
 
-;;; log
+;;; stat: サーバ／ワーカの状態を出力
+(defmethod proc-stat ((sv tcell-server) (from host) cmd)
+  (if (cdr cmd)
+      ;; 引数を与えた場合はそこにstatコマンドを転送
+      (destructuring-bind (to s-task-head)
+          (head-shift sv (second cmd))  ; stat送信先
+        (send-stat to s-task-head))
+    ;; 無引数の場合はサーバの状態を表示
+    (print-server-status sv)))
+
+;;; verb: ワーカのverbose-levelを変更
+;;; "verb <送信先>:<level>" で．
+(defmethod proc-verb ((sv tcell-server) (from host) cmd)
+  (destructuring-bind (to s-task-head)
+      (head-shift sv (second cmd))      ; verb送信先
+    (send-verb to s-task-head)))
+
+;;; log: サーバのverbose-levelを設定
 (defmethod proc-log ((sv tcell-server) (from host) cmd)
   (loop
       for str in (cdr cmd)

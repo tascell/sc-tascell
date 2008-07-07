@@ -204,12 +204,17 @@
           (ret-type exp1-type))
      (loop
          for id-rem on id-list
-         unless (struct-or-union-specifier ret-type)
-         do (ierror "~S: ~S is not struct or union"
-                    x ~(fref ,exp1 ,@(ldiff  id-list id-rem)))
-         do (type:with-field-information (cadr ret-type)
-              (setq ret-type
-                (type:assoc-vartype (car id-rem) :variable))))
+         do
+           (cond
+            ((eq 'type::undefined ret-type)
+             (loop-finish))
+            ((struct-or-union-specifier ret-type)
+             (type:with-field-information (cadr ret-type)
+               (setq ret-type
+                 (type:assoc-vartype (car id-rem) :variable))))
+            (t
+             (ierror "~S: ~S is not struct or union"
+                     x ~(fref ,exp1 ,@(ldiff id-list id-rem))))))
      ~(the ,ret-type
            (fref ,exp1-with-type ,@id-list))))
   ;; compound literal

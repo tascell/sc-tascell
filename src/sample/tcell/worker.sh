@@ -1,3 +1,6 @@
+(%include "dprint.sh")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (%defconstant BUFSIZE 1280)             ; コマンド行の文字数の最大+1
 (%defconstant MAXCMDC 4)                ; コマンドのargument数の最大（コマンド名自身含む）
 (%defconstant ARG-SIZE-MAX 16)          ; コマンドの各引数の許される長さ
@@ -32,19 +35,6 @@
   (def task-no int)                  ; task番号（bodyの送信関数を決定するため）
   (def next (ptr (struct cmd-list)))
   )
-
-(decl (csym::proto-error str pcmd) (csym::fn void (ptr (const char)) (ptr (struct cmd))))
-
-(decl (csym::read-to-eol) (csym::fn void void))
-
-(decl (csym::recv-rslt) (csym::fn void (ptr (struct cmd)) (ptr void)))
-(decl (csym::recv-task) (csym::fn void (ptr (struct cmd)) (ptr void)))
-(decl (csym::recv-treq) (csym::fn void (ptr (struct cmd))))
-(decl (csym::recv-rack) (csym::fn void (ptr (struct cmd))))
-(decl (csym::recv-none) (csym::fn void (ptr (struct cmd))))
-(decl (csym::recv-back) (csym::fn void (ptr (struct cmd))))
-(decl (csym::print-status) (csym::fn void (ptr (struct cmd))))
-(decl (csym::set-verbose-level) (csym::fn void (ptr (struct cmd))))
 
 (decl (struct task))
 (decl (struct thread-data))
@@ -138,6 +128,33 @@
 (decl (csym::make-and-send-task thr task-no body)
       (csym::fn void (ptr (struct thread-data)) int (ptr void)))
 (decl (wait-rslt thr) (fn (ptr void) (ptr (struct thread-data))))
+
+(decl (csym::proto-error str pcmd) (csym::fn void (ptr (const char)) (ptr (struct cmd))))
+(decl (csym::read-to-eol) (csym::fn void void))
+
+(decl (csym::recv-rslt) (csym::fn void (ptr (struct cmd)) (ptr void)))
+(decl (csym::recv-task) (csym::fn void (ptr (struct cmd)) (ptr void)))
+(decl (csym::recv-treq) (csym::fn void (ptr (struct cmd))))
+(decl (csym::recv-rack) (csym::fn void (ptr (struct cmd))))
+(decl (csym::recv-none) (csym::fn void (ptr (struct cmd))))
+(decl (csym::recv-back) (csym::fn void (ptr (struct cmd))))
+(decl (csym::print-task-list task-top name) (csym::fn void (ptr (struct task)) (ptr char)))
+(decl (csym::print-task-home-list treq-top name) (csym::fn void (ptr (struct task-home)) (ptr char)))
+(decl (csym::print-thread-status thr) (csym::fn void (ptr (struct thread-data))))
+(decl (csym::print-status) (csym::fn void (ptr (struct cmd))))
+(decl (csym::set-verbose-level) (csym::fn void (ptr (struct cmd))))
+
+;;;; Command line options
+(%defconstant HOSTNAME-MAXSIZE 256)
+(def (struct runtime-option)
+  (def num-thrs int)                    ; worker数
+  (def sv-hostname (array char HOSTNAME-MAXSIZE))
+                                        ; Tascellサーバのホスト名．""ならstdout
+  (def port unsigned-short)             ; Tascellサーバへの接続ポート番号
+  (def prefetch int)                    ; 投機的に外部へtreq
+  (def verbose int)                     ; verbose level
+  )
+(extern-decl option (struct runtime-option))
 
 ;;;; cmd-serial.sc
 (decl (csym::serialize-cmdname buf w) (fn int (ptr char) (enum command)))

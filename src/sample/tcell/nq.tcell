@@ -32,6 +32,7 @@
 
 (%include "rule/tcell-setrule.sh")
 (%include "clib.sh")
+(%include "dprint.sh")
 (%cinclude "sendrecv.h" (:macro))
 
 ;;; thread local strogae
@@ -124,7 +125,7 @@
   (def n int (fref this n))
   (def k int (fref this k))
   (decl tp (array (struct timeval) 2))
-  (csym::fprintf stderr "start %d %d %d %d~%" n k (fref this i1) (fref this i2))
+  (if (> option.verbose 0) (csym::fprintf stderr "start %d %d %d %d~%" n k (fref this i1) (fref this i2)))
   (if (< k 0)
       (begin
        (for ((= i 0) (< i n) (inc i))
@@ -139,5 +140,5 @@
        (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp)))
       (= (fref this r)
          (nqueens n k (fref this i1) (fref this i2) (ptr this))))
-  (csym::fprintf stderr "end %d %d %d %d~%" k n (fref this i1) (fref this i2))
+  (DEBUG-PRINT 1 "end %d %d %d %d~%" k n (fref this i1) (fref this i2))
   )

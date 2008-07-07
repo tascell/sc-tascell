@@ -32,15 +32,19 @@
 (%include "worker.sh")
 
 
-;; (enum node)の値が配列添字に対応
-(def cmd-strings (array (ptr char))
-  (array "task" "rslt" "treq" "none" "back" "rack" "stat" "verb" "exit" 0))
-
 ;; 文字列の最初の空白以外の位置を返す
 (def (csym::skip-whitespace str) (fn (ptr char) (ptr char))
   (def ch char)
   (= ch (mref str))
   (for ((or (== ch #\Space) (== ch #\Newline))
+        (= ch (mref (++ str)))))
+  (return str))
+
+;; 文字列の最初の空白の位置を返す
+(def (csym::skip-notwhitespace str) (fn (ptr char) (ptr char))
+  (def ch char)
+  (= ch (mref str))
+  (for ((not (or (== ch #\Space) (== ch #\Newline)))
         (= ch (mref (++ str)))))
   (return str))
 
@@ -61,6 +65,11 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;
+;; (enum node)の値が配列添字に対応
+;; ここを変えると deserilalize-cmdname の「ゆるい文字列比較」も変える必要があるので注意
+(def cmd-strings (array (ptr char))
+  (array "task" "rslt" "treq" "none" "back" "rack" "stat" "verb" "exit" 0))
+
 ;; コマンド->文字列 (retruns 書いた文字数)
 (def (csym::serialize-cmdname buf w) (fn int (ptr char) (enum command))
   (def p (ptr char) buf)
@@ -79,16 +88,46 @@
   (def p (ptr char))
   (def cmdstr (ptr char))
   (= p str)
-  (for ((= i 0) (= cmdstr (aref cmd-strings i)) (inc i))
-       (if (== 0 (csym::strncmp p cmdstr 4))
-           (begin
-            (= (mref buf) i)            ; コマンドをセット
-            (+= p 4)
-            (= p (csym::skip-whitespace p))
-            (return (- p str))
-            (return i))))
-  (= (mref buf) WRNG)
-  (return 0))
+  ;; ゆるい文字列比較ver.
+  (begin
+   (switch (mref (inc p))
+     (case #\t)
+     (switch (mref (inc p))
+       (case #\a) (= (mref buf) TASK) (break)
+       (case #\r) (= (mref buf) TREQ) (break)
+       (default) (= (mref buf) WRNG) (return 0))
+     (break)
+     
+     (case #\r)
+     (switch (mref (inc p))
+       (case #\s) (= (mref buf) RSLT) (break)
+       (case #\a) (= (mref buf) RACK) (break)
+       (default) (= (mref buf) WRNG) (return 0))
+     (break)
+     
+     (case #\n) (= (mref buf) NONE) (break)
+     (case #\b) (= (mref buf) BACK) (break)
+     (case #\s) (= (mref buf) STAT) (break)
+     (case #\v) (= (mref buf) VERB) (break)
+     (case #\e) (= (mref buf) EXIT) (break)
+
+     (default) (= (mref buf) WRNG) (return 0))
+   (= p (csym::skip-notwhitespace p))
+   (= p (csym::skip-whitespace p))
+   (return (- p str)))
+  #+comment                             ; 厳密に文字列比較ver.
+  (begin
+   (for ((= i 0) (= cmdstr (aref cmd-strings i)) (inc i))
+     (if (== 0 (csym::strncmp p cmdstr 4))
+         (begin
+          (= (mref buf) i)              ; コマンドをセット
+          (+= p 4)
+          (= p (csym::skip-whitespace p))
+          (return (- p str))
+          (return i))))
+   (= (mref buf) WRNG)
+   (return 0))
+  )
 
 ;;;;;;;;;;
 ;; [整数|ノード]列->文字列 (returns 書いた文字数)

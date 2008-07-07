@@ -36,6 +36,7 @@
 (%include "rule/tcell-setrule.sh")
 
 (%include "clib.sh")
+(%include "dprint.sh")
 (%cinclude "sendrecv.h" (:macro))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -99,8 +100,7 @@
 (def (task-body cmp)
   (decl tp (array (struct timeval) 2))
   (def i int) (def j int)
-  (csym::fprintf stderr "start %d %d~%"
-                 (fref this n1) (fref this n2))
+  (DEBUG-PRINT 1 "start %d %d~%" (fref this n1) (fref this n2))
   (if (> 0 (fref this n2))              ; n2<0 のときは，新しい問題を作って解く
       (begin
        (= (fref this d1)
