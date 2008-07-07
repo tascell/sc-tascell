@@ -38,9 +38,9 @@
 
 ;;; Optimization settings: referred ACL reference manual
 ;; The most debuggable (and yet reasonably fast) code, use
-(proclaim '(optimize (speed 2) (safety 1) (space 1) (debug 3)))
+;; (proclaim '(optimize (speed 2) (safety 1) (space 1) (debug 3)))
 ;; The fastest and least safe code
-;; (proclaim '(optimize (speed 3) (safety 0) (space 1) (debug 3)))
+(proclaim '(optimize (speed 3) (safety 0) (space 1) (debug 3)))
 
 ;;; Implementation-dependent settings
 #+cmu (setq ext:*gc-verbose* nil)

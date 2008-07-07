@@ -276,16 +276,13 @@
                 (inc thr->w-none))
             (return 0)))
        (if (!= tx->stat TASK-ALLOCATED) (break))
-       ;; tx->statの変化を待つ
-       ;; (csym::fprintf stderr "cond-wait(%d)~%" thr->id)
+       ;; tx->stat またはthr->sub->statの変化を待つ
        (csym::pthread-cond-wait (ptr thr->cond) (ptr thr->mut))
-       ;; (csym::fprintf stderr "cond-wait done(%d)~%" thr->id)
-       )
+      )
     (if (== tx->stat TASK-NONE)
         (begin
          ;; 外への取り返しに失敗したのならしばらく待つ
-         (if (and thr->sub
-                  (== req-to OUTSIDE))
+         (if 1 #+comment (and (== req-to OUTSIDE) thr->sub)
              (let ((t-until (struct timespec))
                    (now (struct timeval)))
                (csym::gettimeofday (ptr now) 0)
