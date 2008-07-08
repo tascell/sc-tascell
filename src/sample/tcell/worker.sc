@@ -37,6 +37,17 @@
 (%include "worker.sh")
 
 
+(%defmacro xread (tp exp)
+  `(mref (cast (ptr (volatile ,tp)) (ptr ,exp))))
+;; expが満たされる間，ビジーウェイト
+(%defmacro pthread-cond-busywait (exp pmut)
+  `(begin
+    (csym::pthread-mutex-unlock ,pmut)
+    (while ,exp)
+    (csym::pthread-mutex-lock ,pmut)
+    ))
+
+
 ;;; Command-line options
 (def option (struct runtime-option))
 
@@ -276,13 +287,19 @@
                 (inc thr->w-none))
             (return 0)))
        (if (!= tx->stat TASK-ALLOCATED) (break))
-       ;; tx->stat またはthr->sub->statの変化を待つ
-       (csym::pthread-cond-wait (ptr thr->cond) (ptr thr->mut))
-      )
+       ;; tx->statまたは thr->sub->statの変化を待つ
+       #+busywait (if thr->sub
+                      (pthread-cond-busywait (and (== (xread (enum task-stat) tx->stat) TASK-ALLOCATED)
+                                                  (!= (xread (enum task-home-stat) thr->sub->stat) TASK-HOME-DONE))
+                                             (ptr thr->mut))
+                      (pthread-cond-busywait (== (xread (enum task-stat) tx->stat) TASK-ALLOCATED)
+                                             (ptr thr->mut)))
+       #-busywait (csym::pthread-cond-wait (ptr thr->cond) (ptr thr->mut))
+       )
     (if (== tx->stat TASK-NONE)
         (begin
          ;; 外への取り返しに失敗したのならしばらく待つ
-         (if 1 #+comment (and (== req-to OUTSIDE) thr->sub)
+         (if #+busywait 1 #-busywait (and thr->sub (== req-to OUTSIDE))
              (let ((t-until (struct timespec))
                    (now (struct timeval)))
                (csym::gettimeofday (ptr now) 0)

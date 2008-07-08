@@ -77,20 +77,22 @@
        (scr:require (get-ruleset-modulename ,ruleset)
                     *rule-path* "rule"))))
 
-;; symbol->ruleset-instance
+;; (symbol | ruleset-instance)->ruleset-instance
 (defun ensure-ruleset-instance (ruleset-name-or-instance &rest initargs)
-  (assert (or (symbolp ruleset-name-or-instance)
-              (typep ruleset-name-or-instance *base-ruleset-class-name*)) )
+  #+comment (assert (or (symbolp ruleset-name-or-instance)
+                        (typep ruleset-name-or-instance *base-ruleset-class-name*)) )
   (cond
    ((symbolp ruleset-name-or-instance)
-    (rule:require-ruleset ruleset-name-or-instance)
-    (apply #'make-instance
-           (ruleset-class-symbol ruleset-name-or-instance)
-           initargs))
-   ((typep ruleset-name-or-instance *base-ruleset-class-name*)
+    (with1 class-sym (ruleset-class-symbol ruleset-name-or-instance)
+      (if initargs
+          (progn
+            (unless (find-class class-sym nil)
+              (rule:require-ruleset class-sym))
+            (apply #'make-instance class-sym initargs))
+        (ruleset-default-object class-sym))))
+   (t #+comment (typep ruleset-name-or-instance *base-ruleset-class-name*)
     (when initargs
-      (warn "Initargs ~S are ignored since a ruleset-instance is suplied."
-            initargs))
+      (warn "Initargs ~S are ignored." initargs))
     ruleset-name-or-instance)))
 
 ;; 適用中のrulesetを変更
@@ -105,12 +107,24 @@
 
 ;; default-handlerを呼び出す
 (defun do-otherwise (x &optional (ruleset *current-ruleset*))
-  (funcall (slot-value (ensure-ruleset-instance ruleset) 'rule:default-handler) x))
+  (funcall (slot-value (the #.*base-ruleset-class-name* (ensure-ruleset-instance ruleset))
+                       'rule:default-handler)
+           x))
 
 ;; ruleset名 -> class名
 (defun ruleset-class-symbol (sym)
+  (declare (symbol sym))
   (immigrate-package sym *rule-class-package*))
-  
+
+;; (ruleset-class-symbol適用済)ruleset名 -> デフォルトのruleset object
+;; memoizeにより，動的ロードのチェックとmake-instanceの複数回実行を回避
+(defun ruleset-default-object (class-sym)
+  (declare (symbol class-sym))
+  (rule:require-ruleset class-sym)
+  (make-instance class-sym))
+(setf (symbol-function 'ruleset-default-object) 
+  (memoize #'ruleset-default-object :test #'eq :size 50 :rehash-size 2))
+
 ;; rule名 -> method名
 (defun rule-method-symbol (sym)
   (intern (string+ "<" (symbol-name sym) ">")
