@@ -243,7 +243,6 @@
     (fn int (ptr (struct thread-data)) (ptr (enum node)) (enum node))
   (def rcmd (struct cmd))
   (def delay long 1000)     ; none が返ってきたとき待つ時間[nsec]
-  (def delay-max long (* 40 1000 1000))
   (def tx (ptr (struct task)) thr->task-top)
 
   ;; treqコマンド
@@ -288,18 +287,20 @@
             (return 0)))
        (if (!= tx->stat TASK-ALLOCATED) (break))
        ;; tx->statまたは thr->sub->statの変化を待つ
-       #+busywait (if thr->sub
-                      (pthread-cond-busywait (and (== (xread (enum task-stat) tx->stat) TASK-ALLOCATED)
-                                                  (!= (xread (enum task-home-stat) thr->sub->stat) TASK-HOME-DONE))
-                                             (ptr thr->mut))
-                      (pthread-cond-busywait (== (xread (enum task-stat) tx->stat) TASK-ALLOCATED)
-                                             (ptr thr->mut)))
-       #-busywait (csym::pthread-cond-wait (ptr thr->cond) (ptr thr->mut))
+       (%ifdef* BUSYWAIT
+         (if thr->sub
+             (pthread-cond-busywait (and (== (xread (enum task-stat) tx->stat) TASK-ALLOCATED)
+                                         (!= (xread (enum task-home-stat) thr->sub->stat) TASK-HOME-DONE))
+                                    (ptr thr->mut))
+             (pthread-cond-busywait (== (xread (enum task-stat) tx->stat) TASK-ALLOCATED)
+                                    (ptr thr->mut)))
+         %else
+         (csym::pthread-cond-wait (ptr thr->cond) (ptr thr->mut)))
        )
     (if (== tx->stat TASK-NONE)
         (begin
          ;; 外への取り返しに失敗したのならしばらく待つ
-         (if #+busywait 1 #-busywait (and thr->sub (== req-to OUTSIDE))
+         (if (%ifdef* BUSYWAIT 1 %else (and thr->sub (== req-to OUTSIDE)))
              (let ((t-until (struct timespec))
                    (now (struct timeval)))
                (csym::gettimeofday (ptr now) 0)
@@ -308,7 +309,7 @@
                                              (ptr thr->mut)
                                              (ptr t-until))
                (+= delay delay)         ; 次回の待ち時間を増やす
-               (if (> delay delay-max) (= delay delay-max))
+               (if (> delay DELAY-MAX) (= delay DELAY-MAX))
                ))
          ;; rsltが到着していたらtreqリトライせず，そちらの処理を優先
          (if (and thr->sub
@@ -616,8 +617,8 @@
   (csym::pthread-mutex-lock (ptr thr->rack-mut))
   (if (and (== thr->w-rack 0)           ; rack待ちならだめ
            (or #+comment (and (== ANY pcmd->node) ; 弟からのANY要求ならとりあえず受理して待たせておく
-                              (< id from-head)    ; 「弟から」の制限はデッドロック防止のため
-                              (== TERM (aref from-addr 1)))     
+                    (< id from-head)    ; 「弟から」の制限は，お互いにtreq受理の場合のデッドロック防止
+                    (== TERM (aref from-addr 1)))
                (and thr->task-top       ; 仕事中なら普通に受理
                     (or (== thr->task-top->stat TASK-STARTED)
                         (== thr->task-top->stat TASK-INITIALIZED)))))

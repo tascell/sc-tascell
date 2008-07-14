@@ -34,7 +34,7 @@
   (:export :*sc-system-path* :*auto-compile* :require :*cl-implementation*))
 
 (in-package "SC-REQUIRE")
-(defvar *sc-system-path* (truename *default-pathname-defaults*))
+(defvar *sc-system-path* (make-pathname :directory (pathname-directory *load-pathname*)))
 (defvar *auto-compile* t)
 (defconstant *lisp-file-type* "lsp")
 (defconstant *fasl-file-type* (pathname-type (compile-file-pathname "dummy")))
@@ -48,36 +48,36 @@
      (do-require ,@args)))
 
 (defun do-require (module-name &optional 
-           (path-list (remove nil (list *load-truename*
-                        *compile-file-truename*
-                        *sc-system-path*)))
-           (lisp-file-type *lisp-file-type*)
-           (fasl-file-type *fasl-file-type*))
+                               (path-list (delete nil (list *load-pathname*
+                                                            *compile-file-pathname*
+                                                            *sc-system-path*)))
+                               (lisp-file-type *lisp-file-type*)
+                               (fasl-file-type *fasl-file-type*))
   (when (atom path-list) (setq path-list (list path-list)))
   (let* ((dir-list (mapcar #'pathname-directory path-list))
-     (lisp-file (string-downcase (string module-name))))
+         (lisp-file (string-downcase (string module-name))))
     (dolist (dir dir-list
-          (error "Source file for module ~S does not exist."
-             module-name))
+              (error "Source file for module ~S does not exist."
+                     module-name))
       (let* ((lisp-path (make-pathname
-             :name lisp-file :directory dir 
+                         :name lisp-file :directory dir 
                          :type lisp-file-type))
-         (lisp-date (if (probe-file lisp-path)
-                (file-write-date lisp-path) -1))
-         (fasl-path (make-pathname
-             :name lisp-file :directory dir
+             (lisp-date (if (probe-file lisp-path)
+                            (file-write-date lisp-path) -1))
+             (fasl-path (make-pathname
+                         :name lisp-file :directory dir
                          :type fasl-file-type))
-         (fasl-date (if (probe-file fasl-path)
-                (file-write-date fasl-path) -1)))
-    (cond 
-     ((> fasl-date lisp-date)
-      (return (cl:require module-name fasl-path)))
-     ((> lisp-date fasl-date)
-      (return (if *auto-compile*
-              (cl:load 
-               (compile-file lisp-path :output-file fasl-path))
-              (cl:require module-name lisp-path))))
-     (t nil))))))
+             (fasl-date (if (probe-file fasl-path)
+                            (file-write-date fasl-path) -1)))
+        (cond 
+         ((> fasl-date lisp-date)
+          (return (cl:require module-name fasl-path)))
+         ((> lisp-date fasl-date)
+          (return (if *auto-compile*
+                      (cl:load 
+                       (compile-file lisp-path :output-file fasl-path))
+                    (cl:require module-name lisp-path))))
+         (t nil))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Define packages, dynamic variables, constants, and features

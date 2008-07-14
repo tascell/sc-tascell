@@ -241,17 +241,18 @@
 ;;; path-list および現在のディレクトリ(current-directory=tの時)
 ;;; からファイルを検索
 (defun path-search (filespec path-list 
-                    &optional 
+                    &key
                     (current-directory t)
                     (error-when-unfound nil))
-  (setq path-list (mapcar #'pathname (mklist path-list)))
+  (setq path-list (mapcar #'(lambda (x)
+                              (make-pathname :directory (pathname-directory x)))
+                          (mklist path-list)))
   (when current-directory
     (push (make-pathname :directory '(:relative)) path-list))
   (dolist (path path-list
             (when error-when-unfound
               (error "~S was not found in ~S" filespec path-list)))
-    (let ((candidate
-           (merge-pathnames path filespec)))
+    (let ((candidate (merge-pathnames filespec path)))
       (when (probe-file candidate)
         (return candidate)))))
 

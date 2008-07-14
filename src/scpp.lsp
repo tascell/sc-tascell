@@ -62,7 +62,7 @@
 
 (defparameter *cinclude-h-file* "cinclude_tmp") ; Cのヘッダをincludeする一時ヘッダ
 (defparameter *delete-c2sc-intermediate* nil) ; cinclude_tmp.h, *.se, *.se? を削除するか
-(defparameter *input-file-directory* "./") ; 入力ファイルの場所
+(defparameter *input-file-path* "./")   ; 入力ファイルの場所
                                         ; cinclude_tmp.h の生成場所であり，
                                         ; #include "..." のファイルの探索場所に影響する
 (defparameter *include-path-list* '("./")) ; %includeのヘッダファイルを探す場所
@@ -95,7 +95,7 @@
                ((:rule-modifier *rule-modifier*) *rule-modifier*)
                ((:sc2c-modifier *sc2c-modifier*) *sc2c-modifier*)
                ((:ofile-modifier *ofile-modifier*) *ofile-modifier*)
-               ((:input-file-directory *input-file-directory*) *input-file-directory*)
+               ((:input-file-path *input-file-path*) *input-file-path*)
                ((:include-path *include-path-list*) *include-path-list*))
   (initialize)
   (when (or (pathnamep x) (stringp x))
@@ -129,6 +129,7 @@
        (scpp-list (sc-file:read-sc-file 
                    (path-search (car (scpp-list (cdr x)))
                                 *include-path-list*
+                                :current-directory nil
                                 :error-when-unfound t))) )
       ((sc::%cinclude)
        (multiple-value-bind (filenames options)
@@ -226,7 +227,7 @@
 (defun make-cinclude-h (header-list
                         &optional (output-filename *cinclude-h-file*))
   (let ((output-file (make-pathname :name output-filename
-                                    :directory (pathname-directory *input-file-directory*)
+                                    :directory (pathname-directory *input-file-path*)
                                     :type "h")))
     (write-file output-file
                 (apply #'string+

@@ -1811,18 +1811,17 @@
 ;; input : input-stream or string
 (defun parser-main (input
                     &key
+                    (filename "input-stream")
                     (initiator #'translation-unit)
                     (symtab-list (list (make-symbol-table))))
-  (the (or string pathname stream) input)
   (cond
    ((or (stringp input)
         (pathnamep input))
     (with-open-file (istream input :direction :input)
-      (parser-main istream :initiator initiator :symtab-list symtab-list)))
-   ((streamp input)
-    (let* ((*lex-env* (make-lex-env
-                       :filename (write-to-string input)
-                       :stream input))
+      (parser-main istream :filename (namestring input)
+                   :initiator initiator :symtab-list symtab-list)))
+   ((input-stream-p input)
+    (let* ((*lex-env* (make-lex-env :filename filename :stream input))
            (*level* *level-global*)
            (*cursymtab* symtab-list)
            (*gensym-num* 0)
@@ -1956,7 +1955,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;; MCPP
-(defparameter *cpp-command* "c2scpp/src/c2sc_cpp")
+(defparameter *cpp-command* (namestring (merge-pathnames "c2scpp/src/c2sc_cpp" scr:*sc-system-path*)))
 (defparameter *cpp-option*
     (append
      '("-D__complex__"

@@ -1,0 +1,4 @@
+#!/bin/sh
+LISP=/usr/local/acl81/alisp                 # path/to/alisp
+SC_CMDLINE=$HOME/work/sc/src/sc-cmdline.lsp # path/to/sc-cmdline.lsp
+exec $LISP -L $SC_CMDLINE -- $*

@@ -40,9 +40,7 @@
   (defconstant *base-ruleset-class-name* (intern "RULESET" *rule-class-package*)))
 
 ;; .rule ファイルが置いてあるディレクトリ
-(defvar *rule-path*
-  (list (let ((*default-pathname-defaults* scr:*sc-system-path*))
-          (truename "rule/"))))
+(defvar *rule-path* (merge-pathnames "rule/" scr:*sc-system-path*))
 
 ;;; default-handler指定用関数
 (defun rule:return-no-match (x)

@@ -24,17 +24,6 @@
 
 ;;; init.lsp: set Lisp environments and load the SC lanauge system
 
-;;; Printer settings
-(setq *print-case* :downcase)
-(setq *print-circle* nil)
-(setq *print-right-margin* 120)
-;; (setq *compile-print* t)
-;; (setq *load-print* t)
-#+allegro (progn (setq top-level:*print-level* nil)
-                 (setq top-level:*print-length* nil))
-
-;;; Avoid name conflict with rule:declaration
-(shadow 'cl:declaration)
 
 ;;; Optimization settings: referred ACL reference manual
 ;; The most debuggable (and yet reasonably fast) code, use
@@ -50,9 +39,27 @@
 #+(and allegro mswindows) (setq *locale* (find-locale "japan.EUC"))
 ;; #+(and composer allegro) (wt:start-composer)
 
+;;; Printer settings
+(setq *print-case* :downcase)
+(setq *print-circle* nil)
+(setq *print-right-margin* 120)
+;; (setq *compile-print* t)
+;; (setq *load-print* t)
+#+allegro (progn (setq top-level:*print-level* nil)
+                 (setq top-level:*print-length* nil)
+                 (setq *print-nickname* t))
+
 ;;; Compile and load the SC system.
+
+;; Avoid name conflict with rule:declaration
+(shadow 'cl:declaration)
+(pushnew :sc-system *features*)
+(load (make-pathname :name "sc-decl" :type "lsp"
+                     :directory (pathname-directory *load-pathname*)))
 (with-compilation-unit ()
-  (load "sc.lsp"))
+  (scr:require "SC-MAIN")
+  (scr:require "C2SC"))
+
 
 ;;; Typical sequences of transformation rule-sets
 (defconstant *mt-sc* '(:multithread-sc1 :multithread-type :multithread-temp :multithread :untype))
@@ -82,7 +89,7 @@
 (defun sc2c-c (filename &rest args)
   (apply #'sc-main:sc2c filename :predefinitions ~((%defconstant NF-TYPE RAWC)) args))
 
-;;; Settings for REPL
+;;; REPL settings
 
 ;; packages
 #+clisp (unuse-package :ext)
@@ -92,6 +99,12 @@
 (use-package "SC-MISC")
 (use-package "C2SC")
 
+;; print SC code without "sc::" prefix
+(defun scprint (x)
+  (with-package sc-file:*code-package*
+    (print x)
+    nil))
+
 ;; exit command
 #+(or allegro cmu sbcl clisp)
 (setf (symbol-function 'bye)
@@ -99,14 +112,7 @@
       #+(or cmu sbcl) #'quit
       #+clisp #'ext::bye)
 
-
-;;; print SC code without "sc::" prefix
-(defun scprint (x)
-  (with-package sc-file:*code-package*
-    (print x)
-    nil))
-
-;;; Settings for macroexpand-rec (defined in "sc-misc.lsp")
+;; Settings for macroexpand-rec (defined in "sc-misc.lsp")
 (sc-misc:recexpand 'sct::matching-exp 'sct::matching-exp-for-list 'sct::matching-exp-for-commaat 'rule::if-match
                    'rule::cond-match)
 (sc-misc:recexpand-abbrev 'macrolet)

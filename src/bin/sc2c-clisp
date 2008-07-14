@@ -1,0 +1,4 @@
+#!/bin/sh
+LISP=/usr/local/bin/clisp                   # path/to/clisp
+SC_CMDLINE=$HOME/work/sc/src/sc-cmdline.lsp # path/to/sc-cmdline.lsp
+exec $LISP $SC_CMDLINE $*

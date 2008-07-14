@@ -106,7 +106,7 @@
              (indent *indent-command*)  ; Cコードのインデントを揃える外部コマンド
              &aux
              (input-file nil)
-             (input-file-directory "./"))
+             (input-file-path "./"))
   "Args: (x &key (rule nil)
                  (intermediate nil)
                  (output-file nil)
@@ -120,7 +120,7 @@ X is an S-expression or a filespec."
                                  (let ((sc-file (change-extension x "sc")))
                                    (and (probe-file sc-file) sc-file))))
       (error "Input file ~S not found." x))
-    (setq input-file-directory
+    (setq input-file-path
       (make-pathname :directory (pathname-directory input-file)))
     (setq x (sc-file:read-sc-file input-file)))
   ;; 出力ファイル名
@@ -134,7 +134,7 @@ X is an S-expression or a filespec."
   ;; 変換実行
   (rule:with-setup-generate-id          ; prepare a table of used variables
       ;; sc2c
-      (let* ((include-path (list input-file-directory))
+      (let* ((include-path (list input-file-path scr:*sc-system-path*))
              (rule-modifier (if rulelist-specified ; コマンドラインで指定されていたら
                                 #'identity ; 変更を認めない
                               #'(lambda (rlist) (setq rule-list rlist))) )
@@ -146,7 +146,7 @@ X is an S-expression or a filespec."
                                #'(lambda (newo)
                                    (setq output-file
                                      (make-output-filename newo input-file)))))
-             (common-scpp-args (list :input-file-directory input-file-directory
+             (common-scpp-args (list :input-file-path input-file-path
                                      :include-path include-path
                                      :sc2c-modifier sc2c-modifier
                                      :ofile-modifier ofile-modifier)))
