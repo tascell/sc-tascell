@@ -33,7 +33,8 @@
 
 ;;; Implementation-dependent settings
 #+cmu (setq ext:*gc-verbose* nil)
-#+clisp (setq custom:*default-file-encoding* charset:euc-jp)
+#+clisp (progn (setq custom:*default-file-encoding* charset:euc-jp)
+               (unuse-package :ext))
 #+allegro (progn (setq comp:*cltl1-compile-file-toplevel-compatibility-p* t)
                  (require :osi))
 #+(and allegro mswindows) (setq *locale* (find-locale "japan.EUC"))
@@ -49,17 +50,26 @@
                  (setq top-level:*print-length* nil)
                  (setq *print-nickname* t))
 
+;; exit command
+#+(or allegro cmu sbcl clisp)
+(setf (symbol-function 'bye)
+      #+allegro #'exit
+      #+(or cmu sbcl) #'quit
+      #+clisp #'ext::bye)
+
 ;;; Compile and load the SC system.
 
-;; Avoid name conflict with rule:declaration
-(shadow 'cl:declaration)
 (pushnew :sc-system *features*)
-(load (make-pathname :name "sc-decl" :type "lsp"
-                     :directory (pathname-directory *load-pathname*)))
+(shadow 'cl:declaration)                ; Avoid name conflict with rule:declaration
+(unless
+    (catch :sc-decl-exception
+      (load (make-pathname :name "sc-decl" :type "lsp"
+                           :directory (pathname-directory *load-pathname*)))
+      t)
+  (bye 1))
 (with-compilation-unit ()
   (scr:require "SC-MAIN")
   (scr:require "C2SC"))
-
 
 ;;; Typical sequences of transformation rule-sets
 (defconstant *mt-sc* '(:multithread-sc1 :multithread-type :multithread-temp :multithread :untype))
@@ -92,7 +102,6 @@
 ;;; REPL settings
 
 ;; packages
-#+clisp (unuse-package :ext)
 (use-package "SC-MAIN")
 (use-package "SC-TRANSFORMER")
 (use-package "RULE")   ; == sct-user
@@ -104,13 +113,6 @@
   (with-package sc-file:*code-package*
     (print x)
     nil))
-
-;; exit command
-#+(or allegro cmu sbcl clisp)
-(setf (symbol-function 'bye)
-      #+allegro #'exit
-      #+(or cmu sbcl) #'quit
-      #+clisp #'ext::bye)
 
 ;; Settings for macroexpand-rec (defined in "sc-misc.lsp")
 (sc-misc:recexpand 'sct::matching-exp 'sct::matching-exp-for-list 'sct::matching-exp-for-commaat 'rule::if-match

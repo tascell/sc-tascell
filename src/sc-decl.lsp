@@ -31,13 +31,83 @@
   (:nicknames "SCR")
   (:use "CL")
   (:shadow cl:require)
-  (:export :*sc-system-path* :*auto-compile* :require :*cl-implementation*))
+  (:export :*sc-system-path* :*auto-compile* :require :*cl-implementation* :*cl-version*))
 
 (in-package "SC-REQUIRE")
+
+;;;;;;
+(defconstant *cl-implementation* 
+  (progn "unknown"
+     #+allegro "acl"
+     #+cmu     "cmucl"
+     #+sbcl    "sbcl"
+     #+clisp   "clisp"))
+(defconstant *cl-version*
+    (with-output-to-string (s)
+      (loop for ch across (lisp-implementation-version)
+          if (char= #\Space ch) do (return)
+          else do (write-char ch s))))
+
+#+clisp
+(progn
+  (ffi:def-call-out gethostname0
+      (:name "gethostname")
+      (:arguments (name (FFI:C-PTR (FFI:C-ARRAY-MAX character 256))
+                        :out :alloca)
+                  (length ffi:int))
+    (:language :stdc) (:library :default)
+    (:return-type ffi:int))
+  (defun gethostname () (second (multiple-value-list (gethostname0 256)))))
+#+(and allegro (not mswindows))
+(defun gethostname () (excl.osi:gethostname))
+#+(and allegro mswindows)
+(defun gethostname () (sys:getenv "COMPUTERNAME"))
+
+#+(or clisp (and allegro (not mswindows)))
+(defun user-savepath () (user-homedir-pathname))
+#+(and allegro mswindows)
+(defun user-savepath () (format nil "~A\\" (sys:getenv "APPDATA")))
+
 (defvar *sc-system-path* (make-pathname :directory (pathname-directory *load-pathname*)))
 (defvar *auto-compile* t)
 (defconstant *lisp-file-type* "lsp")
 (defconstant *fasl-file-type* (pathname-type (compile-file-pathname "dummy")))
+(defconstant *fasl-path-base*                ; コンパイル済Lispファイルの置き場所
+    (merge-pathnames (format nil ".sc-fasl/~A/~A/~A/"
+                             (gethostname) *cl-implementation* *cl-version*)
+                     (truename (user-savepath))))
+#+comment (defconstant *fasl-path-base* "/") ; fasls are saved in sc-system-path
+(defconstant *fasl-dir-base* (pathname-directory *fasl-path-base*))
+(assert (eq :absolute (car *fasl-dir-base*)))
+
+(when (and (not (equal "/" *fasl-path-base*))
+           #+clisp (not (ext:probe-directory *fasl-path-base*))
+           #+allegro (not (excl:probe-directory *fasl-path-base*)))
+  (unless (yes-or-no-p "This system makes a directory ~S and saves compiled lisp files there. OK? (if you would like to change the location, type \"no\" and modify *fasl-path-base* defined in sc-decl.lsp) (Yes/No) "
+                       *fasl-path-base*)
+    (throw :sc-decl-exception nil)))
+
+;; dirがdir-baseのサブディレクトリか？
+(defun subdirectory-p (dir dir-base)
+  (and (>= (length dir) (length dir-base))
+       (loop
+           for x in dir
+           as y in dir-base
+           always (equal x y))))
+
+;; (or lsp fasl)の保存場所->faslの保存場所
+(defun lspdir2fasldir (dir)
+  (assert (eq :absolute (car dir)))
+  (if (subdirectory-p dir *fasl-dir-base*)
+      dir
+    (append *fasl-dir-base* (cdr dir))))
+   
+;; (or lsp fasl)の保存場所->lspの保存場所
+(defun fasldir2lspdir (dir)
+  (assert (eq :absolute (car dir)))
+  (if (subdirectory-p dir *fasl-dir-base*)
+      `(:absolute ,@(nthcdr (length *fasl-dir-base*) dir))
+    dir))
 
 ;;; require for SC system
 ;;; module-name を string-downcase したものに .lsp 拡張子をつけたファイルを
@@ -52,20 +122,24 @@
                                                             *compile-file-pathname*
                                                             *sc-system-path*)))
                                (lisp-file-type *lisp-file-type*)
-                               (fasl-file-type *fasl-file-type*))
+                               (fasl-file-type *fasl-file-type*)
+                               (fasl-path-base *fasl-path-base*))
   (when (atom path-list) (setq path-list (list path-list)))
-  (let* ((dir-list (mapcar #'pathname-directory path-list))
+  (let* ((dir-list (mapcar #'(lambda (x) (pathname-directory (truename x)))
+                           path-list))
          (lisp-file (string-downcase (string module-name))))
     (dolist (dir dir-list
-              (error "Source file for module ~S does not exist."
-                     module-name))
-      (let* ((lisp-path (make-pathname
-                         :name lisp-file :directory dir 
+              (error "Source file for module ~S does not exist." module-name))
+      (assert (eq :absolute (car dir)))
+      (let* ((lsp-dir (fasldir2lspdir dir))
+             (fasl-dir (lspdir2fasldir dir))
+             (lisp-path (make-pathname
+                         :name lisp-file :directory lsp-dir 
                          :type lisp-file-type))
              (lisp-date (if (probe-file lisp-path)
                             (file-write-date lisp-path) -1))
              (fasl-path (make-pathname
-                         :name lisp-file :directory dir
+                         :name lisp-file :directory fasl-dir
                          :type fasl-file-type))
              (fasl-date (if (probe-file fasl-path)
                             (file-write-date fasl-path) -1)))
@@ -73,20 +147,14 @@
          ((> fasl-date lisp-date)
           (return (cl:require module-name fasl-path)))
          ((> lisp-date fasl-date)
+          (ensure-directories-exist (make-pathname :directory fasl-dir))
           (return (if *auto-compile*
-                      (cl:load 
-                       (compile-file lisp-path :output-file fasl-path))
+                      (cl:load (compile-file lisp-path :output-file fasl-path))
                     (cl:require module-name lisp-path))))
          (t nil))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Define packages, dynamic variables, constants, and features
-(defconstant *cl-implementation* 
-  (progn "unknown"
-     #+allegro "acl"
-     #+cmu     "cmucl"
-     #+sbcl    "sbcl"
-     #+clisp   "clisp"))
 
 (when (find-symbol "READTABLE-CASE" "CL")
   (pushnew :readtable-case *features*))
@@ -103,7 +171,7 @@
    "FIND-PACKAGE2" "IMMIGRATE-PACKAGE"
    "*EOL-CONVENTION*" "READ-FILE" "READ-FILE-AS-STRING" "WRITE-FILE" "DO-TEXT-LINE"
    "DO-INPUT-STREAM-BUFFER" "INPUT-BUFFER-TO-OUTPUT" "INPUT-BUFFER-TO-STRING"
-   "PATH-SEARCH" "CHANGE-FILENAME" "CHANGE-EXTENSION" "GET-EXTENSION" "FILE-NEWER"
+   "DIRECTORY+" "PATH-SEARCH" "CHANGE-FILENAME" "CHANGE-EXTENSION" "GET-EXTENSION" "FILE-NEWER"
    "NAME-NAMESTRING"
    "STRING-BEGIN-WITH" "STRING+" "STRING+-REC" "STRCAT"
    "MEMBER-FROM-TAIL" "ADD-ELEMENT" "STRING-REF" "ADD-STRING" "ADD-PAREN"

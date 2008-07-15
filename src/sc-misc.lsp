@@ -238,23 +238,41 @@
   (with-output-to-string (os)
     (input-buffer-to-output istream os)))
 
+;; ディレクトリの合成
+(defun directory+ (&rest pathname-or-directories)
+  (cond
+   ((endp pathname-or-directories) '(:relative))
+   ((endp (cdr pathname-or-directories))
+    (let ((pd (car pathname-or-directories)))
+      (if (or (pathnamep pd) (stringp pd)) (pathname-directory pd) pd)))
+   (t
+    (destructuring-bind (pd1 pd2 &rest rest-args) pathname-or-directories
+      (when (or (pathnamep pd1) (stringp pd1)) (setq pd1 (pathname-directory pd1)))
+      (when (or (pathnamep pd2) (stringp pd2)) (setq pd2 (pathname-directory pd2)))
+      (cond
+       ((eq :absolute (car pd2)) (apply #'directory+ pd2 rest-args))
+       ((eq :relative (car pd2)) (apply #'directory+ (append pd1 (cdr pd2)) rest-args))
+       (t (error "Unexpected value of pd2: ~S" (second pathname-or-directories))))))))
+
 ;;; path-list および現在のディレクトリ(current-directory=tの時)
 ;;; からファイルを検索
 (defun path-search (filespec path-list 
                     &key
                     (current-directory t)
                     (error-when-unfound nil))
-  (setq path-list (mapcar #'(lambda (x)
-                              (make-pathname :directory (pathname-directory x)))
-                          (mklist path-list)))
-  (when current-directory
-    (push (make-pathname :directory '(:relative)) path-list))
-  (dolist (path path-list
-            (when error-when-unfound
-              (error "~S was not found in ~S" filespec path-list)))
-    (let ((candidate (merge-pathnames filespec path)))
-      (when (probe-file candidate)
-        (return candidate)))))
+  (setq path-list (mklist path-list))
+  (when current-directory (push "./" path-list))
+  (let ((name (pathname-name filespec))
+        (type (pathname-type filespec))
+        (fspec-dir (or (pathname-directory filespec) '(:relative)))
+        (dir-list (mapcar #'pathname-directory path-list)))
+    (dolist (dir dir-list
+              (when error-when-unfound
+                (error "~S was not found in ~S" filespec path-list)))
+      (let ((candidate (make-pathname :name name :type type
+                                      :directory (directory+ dir fspec-dir))))
+        (when (probe-file candidate)
+          (return candidate))))))
 
 ;;; （ディレクトリを換えずに）ファイル名を変換
 (defun change-filename (pathname newfilename)
