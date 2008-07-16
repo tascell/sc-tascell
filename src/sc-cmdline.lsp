@@ -61,12 +61,12 @@
                  ((#\s)                 ; sc2c-rule
                   (with1 elm (read-from-string (car rest))
                     (setq sc2c-rule (if (symbolp elm) (eval (car rest)) elm))))
-                 ((#\i)                 ; intermediate
+                 ((#\m)                 ; intermediate
                   (with1 elm (read-from-string parm)
                     (setq intermediate (and elm (not (eql 0 elm))))))
-                 ((#\m)                 ; indent command
+                 ((#\i)                 ; indent command
                   (with1 elm (read-from-string parm)
-                    (setq indnet (if elm parm nil))))
+                    (setq indent (if elm parm nil))))
                  ((#\D)                 ; predefinitions (constant only)
                   (destructuring-bind (symstr valstr) (split-string-1 parm '(#\=))
                     (when (eq predefinitions default) (setq predefinitions nil))

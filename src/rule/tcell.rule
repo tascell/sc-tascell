@@ -165,8 +165,8 @@
   ;;   <stat1>が終わり，sendした仕事の結果が返ってきたら，:get 以下を実行．
   (#?(do-two ,stat1 ,stat2 (,id (:put ,@put-body) (:get ,@get-body)))
    (when (ruleset-param 'no-nestfunc)
-     (return-from statement ~(begin ,@(block-item stat1)
-                                    ,@(block-item stat2)) ))
+     (return-from statement ~(begin ,(block-item stat1)
+                                    ,(block-item stat2)) ))
    (tcell:with-task id
      (let* ((spn-id  (generate-id "spawned"))
             (tdat-id (generate-id "st"))
