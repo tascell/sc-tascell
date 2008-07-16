@@ -83,7 +83,7 @@
 (when (and (not (equal "/" *fasl-path-base*))
            #+clisp (not (ext:probe-directory *fasl-path-base*))
            #+allegro (not (excl:probe-directory *fasl-path-base*)))
-  (unless (yes-or-no-p "This system makes a directory ~S and saves compiled lisp files there. OK? (if you would like to change the location, type \"no\" and modify *fasl-path-base* defined in sc-decl.lsp) (Yes/No) "
+  (unless (yes-or-no-p "This system makes a directory ~S and saves compiled lisp files there. OK? (if you would like to change the location, type \"no\" and modify *fasl-path-base* defined in sc-decl.lsp) "
                        *fasl-path-base*)
     (throw :sc-decl-exception nil)))
 

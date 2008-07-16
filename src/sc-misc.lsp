@@ -250,13 +250,14 @@
       (when (or (pathnamep pd1) (stringp pd1)) (setq pd1 (pathname-directory pd1)))
       (when (or (pathnamep pd2) (stringp pd2)) (setq pd2 (pathname-directory pd2)))
       (cond
+       ((endp pd1)               (apply #'directory+ pd2 rest-args))
        ((eq :absolute (car pd2)) (apply #'directory+ pd2 rest-args))
        ((eq :relative (car pd2)) (apply #'directory+ (append pd1 (cdr pd2)) rest-args))
        (t (error "Unexpected value of pd2: ~S" (second pathname-or-directories))))))))
 
 ;;; path-list および現在のディレクトリ(current-directory=tの時)
 ;;; からファイルを検索
-(defun path-search (filespec path-list 
+(defun path-search (filespec path-list
                     &key
                     (current-directory t)
                     (error-when-unfound nil))
