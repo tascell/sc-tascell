@@ -42,42 +42,44 @@
                  intermediate default
                  predefinitions default
                  indent default)
-        (loop for rest on args
-            with hd = (car rest)
-            do (case (string-ref hd 0)
-                 ((#\-)
-                  (pop args)
-                  (unless args
-                    (format *error-output* "~&Insufficient number of arguments: ~S~%" args)
-                    (bye exit-status))
-                  (with1 parm (car args)
-                    (case (string-ref hd 1)
-                      ((#\r)            ; add rule-set
-                       (when (eq rule default) (setq rule nil))
-                       (setq rule (append1 rule (read-from-string parm))))
-                      ((#\o)            ; output-file
-                       (setq output-file parm))
-                      ((#\s)            ; sc2c-rule
-                       (with1 elm (read-from-string (car args))
-                         (setq sc2c-rule (if (symbolp elm) (eval (car args)) elm))))
-                      ((#\i)            ; intermediate
-                       (with1 elm (read-from-string parm)
-                         (setq intermediate (and elm (not (eql 0 elm))))))
-                      ((#\m)            ; indent command
-                       (with1 elm (read-from-string parm)
-                         (setq indnet (if elm parm nil))))
-                      ((#\D)            ; predefinitions (constant only)
-                       (destructuring-bind (symstr valstr) (split-string-1 parm '(#\=))
-                         (when (eq predefinitions default) (setq predefinitions nil))
-                         (setq predefinitions
-                           (append1 predefinitions ~(%defconstant
-                                                        ,(read-from-string symstr)
-                                                      ,(read-from-string valstr))))))
-                      (otherwise
-                       (format *error-output* "~&Unknow option: ~S~%" hd)
-                       (bye exit-status)))))
+        (do* ((rest args (cdr rest))
+              (hd (car rest) (car rest)))
+            ((endp rest))
+          (case (string-ref hd 0)
+            ((#\-)
+             (pop rest)
+             (unless rest
+               (format *error-output* "~&Insufficient number of arguments: ~S~%" args)
+               (bye exit-status))
+             (with1 parm (car rest)
+               (case (string-ref hd 1)
+                 ((#\r)                 ; add rule-set
+                  (when (eq rule default) (setq rule nil))
+                  (setq rule (append1 rule (read-from-string parm))))
+                 ((#\o)                 ; output-file
+                  (setq output-file parm))
+                 ((#\s)                 ; sc2c-rule
+                  (with1 elm (read-from-string (car rest))
+                    (setq sc2c-rule (if (symbolp elm) (eval (car rest)) elm))))
+                 ((#\i)                 ; intermediate
+                  (with1 elm (read-from-string parm)
+                    (setq intermediate (and elm (not (eql 0 elm))))))
+                 ((#\m)                 ; indent command
+                  (with1 elm (read-from-string parm)
+                    (setq indnet (if elm parm nil))))
+                 ((#\D)                 ; predefinitions (constant only)
+                  (destructuring-bind (symstr valstr) (split-string-1 parm '(#\=))
+                    (when (eq predefinitions default) (setq predefinitions nil))
+                    (setq predefinitions
+                      (append1 predefinitions
+                               (sc-file:with-sc-read-environment
+                                   ~(%defconstant ,(read-from-string symstr)
+                                      ,(read-from-string valstr)))))))
                  (otherwise
-                  (setq input-file hd))))
+                  (format *error-output* "~&Unknow option: ~S~%" hd)
+                  (bye exit-status)))))
+            (otherwise
+             (setq input-file hd))))
         (unless input-file
           (format *error-output* "~&No input file.~%")
           (bye exit-status))
