@@ -23,6 +23,7 @@
 ;;; SUCH DAMAGE.
 
 ;;; Transforms in such a way that no function call appears as a subexpression.
+;;; (A-normalization)
 
 (define-ruleset temp (sc0t-to-sc0t)
   (ignore-cfn t)                        ; csymの関数呼出し，csymの関数定義は変形しない

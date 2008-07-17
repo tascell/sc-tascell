@@ -124,7 +124,7 @@
 
   ;; function
   (#?(,scs[storage-class-specifier] (,@id-list[identifier])
-           (,fn-tag[function-tag] ,@texp-list) ,@body)
+       (,fn-tag[function-tag] ,@texp-list) ,@body)
    (with1 ret (hst:with-new-func
                   (with1 body-ret (function-body body)
                     ~(,scs (,@id-list) (,fn-tag ,@texp-list)
@@ -140,6 +140,15 @@
        (progn
          (hst:finfo-add-decl ret)
          ~(%splice)))))
+  )
+
+(defrule function-body hoist
+  (#?({:attr ,f-attr} { ,r-decl[register-declarator] } ,@bi-list)
+   (if-pattern-variable f-attr
+                        (progn (hst:finfo-add-decl :attr)
+                               (hst:finfo-add-decl (function-attribute f-attr))))
+   (if-pattern-variable r-decl (hst:finfo-add-decl (get-retval r-decl)))
+   (mapcar #'block-item bi-list) )
   )
 
 (defrule struct-declaration hoist

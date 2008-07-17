@@ -1955,7 +1955,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;; MCPP
-(defparameter *cpp-command* (namestring (merge-pathnames "c2scpp/src/c2sc_cpp" scr:*sc-system-path*)))
+(defparameter *cpp-command* (namestring (merge-pathnames "c2scpp/src/c2sc_cpp" 
+                                                         (truename scr:*sc-system-path*))))
 (defparameter *cpp-option*
     (append
      '("-D__complex__"

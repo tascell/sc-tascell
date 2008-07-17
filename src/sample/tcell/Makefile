@@ -59,13 +59,12 @@ WORKER_CLOS=$(addsuffix -clos.c,$(WORKER_LIBS))
 WORKER_XCC=$(addsuffix -xcc.c,$(WORKER_LIBS))
 WORKER_XCCCL=$(addsuffix -xcccl.c,$(WORKER_LIBS))
 
-
-# RAWC version (can't divide task)
+# RAWC version (can't divide task; only for evaluation)
 $(addsuffix .c,$(C_PROGS)): %-c.c: %.tcell
 	$(SC2C) -D NF-TYPE=RAWC $<
 $(C_PROGS): %: $(WORKER_GCC) $(LIBS) %.c
 	$(GCC) $(OPT) $(LIBOPTS) $+ -o $@
-# ICC: RAWC version (can't divide task)
+# ICC: RAWC version (can't divide task; only for evaluation)
 $(ICC_C_PROGS): %: $(WORKER_GCC) $(LIBS) %.c
 	$(ICC) $(OPT) $(LIBOPTS) $+ -o $@
 

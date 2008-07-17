@@ -102,7 +102,7 @@
 
 (defrule function-body sc0-to-sc0
   ((#?({:attr ,f-attr} { ,r-decl[register-declarator] } ,@bi-list))
-   ~(,.(if-pattern-variable f-attr (list ~(:attr ,(function-attribute f-attr))))
+   ~(,.(if-pattern-variable f-attr (list :attr (function-attribute f-attr)))
        ,.(if-pattern-variable r-decl (list (get-retval r-decl)))
        ,@(mapcar #'block-item bi-list))))
 
