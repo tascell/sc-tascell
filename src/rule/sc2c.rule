@@ -527,12 +527,12 @@
 
 (defrule selection-statement sc2c
   ;; [trick] 余分なbeginをとる（↓のtrickが使えるパターンを増やすため）
-  ((#?(if ,exp (begin (,stag[statement-tag] ,@rem))))
+  (#?(if ,exp (begin (,stag[statement-tag] ,@rem)))
    (statement ~(if ,exp (,stag ,@rem))))
   ;;
   (#?(cond ,@clauses)
    (statement (sc2c:cond->if clauses)))
-  ((#?(if ,exp[expression] ,stat1[statement] {,stat2[statement]}))
+  (#?(if ,exp[expression] ,stat1[statement] {,stat2[statement]})
    ;; [trick] sc1.ruleでできた if + do-while を while, forにできればする
    (when (and (not (pattern-variable-p stat2))
               (consp stat1)
@@ -549,8 +549,9 @@
    (list* "if(" (get-retval exp) " )" #\Newline
           (get-retval stat1)
           (if-pattern-variable stat2
-              (list " else " (get-retval stat2)))) )
-  ((#?(switch ,exp[expression] ,@bi-list[block-item]))
+                               (list " else " (get-retval stat2))
+                               "else;")) )
+  (#?(switch ,exp[expression] ,@bi-list[block-item])
    (list "switch( " (get-retval exp) " )" #\Newline
          "{" #\Newline (get-retval bi-list) "}" #\Newline) )
   )

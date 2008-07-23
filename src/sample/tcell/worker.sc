@@ -724,7 +724,7 @@
            (return)))))
    ;; 取り返し(leapfrogging)
    (else
-    (if (not (and (< 0 dst0) (< dst0 num-thrs)))
+    (if (not (and (<= 0 dst0) (< dst0 num-thrs)))
         (csym::proto-error "Wrong task-head" pcmd))
     (if (csym::try-treq pcmd dst0 (aref pcmd->v 0)) ; treqできた
         (begin
