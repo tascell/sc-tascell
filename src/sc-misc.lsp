@@ -116,13 +116,24 @@
            (acond ,@(cdr clauses)))))))
 
 ;;; コマンドラインの実行（実装依存部分を吸収）
+#+(and allegro mswindows) (defparameter *sh-command* "\\cygwin\\bin\\sh.exe")
 #+(or allegro kcl ecl cmu clisp)
 (defun command-line (command &key args verbose other-options)
   (declare (simple-string command) (list verbose) (list other-options))
-  (let ((cat-string (strcat (cons command args) #\Space)))
+  (let* ((quoted-cmd-args (mapcar #'(lambda (x) (add-paren
+                                                (substitute-string "'\''" #\' x)
+                                                #\'))
+                                 (cons command args)))
+         (cat-string
+          #+(and allegro mswindows)
+          (string+ *sh-command* " -c "
+                   (strcat quoted-cmd-args #\Space #\" #\"))
+          #-(and allegro mswindows)
+          (strcat quoted-cmd-args #\Space)))
     (prin1 cat-string verbose)
     (fresh-line verbose)
-    #+allegro(multiple-value-bind (sout eout rval)
+    #+allegro
+    (multiple-value-bind (sout eout rval)
                  (apply #'excl.osi:command-output cat-string :whole t
                         other-options)
                (when sout (format *error-output* "~&~A" sout))
@@ -132,7 +143,7 @@
     #+ecl(apply #'si::system cat-string other-options)
     #+(or cmu clisp)
     (apply #'ext:run-program command
-           :arguments args
+           #+clisp :arguments args
            :wait t
            other-options)
     ))

@@ -1957,6 +1957,9 @@
 ;;;; MCPP
 (defparameter *cpp-command* (namestring (merge-pathnames "c2scpp/src/c2sc_cpp" 
                                                          (truename scr:*sc-system-path*))))
+#+(and allegro mswindows)
+(setq *cpp-command* (car (excl.osi:command-output (string+ "\\cygwin\\bin\\cygpath " *cpp-command*))))
+
 (defparameter *cpp-option*
     (append
      '("-D__complex__"
@@ -1968,7 +1971,6 @@
      #+(or cygwin mingw mswindows) '("-I" "/lib/gcc/i686-pc-cygwin/3.4.4/include/"
                                      "-I" "/usr/lib/gcc/i686-pc-cygwin/3.4.4/include/")
      ))
-#+mswindows (defparameter *sh-command* "\\cygwin\\bin\\sh.exe")
 
 ;;(defparameter *cpp-command* "gcc -E -P")
 ;;(defparameter *cpp-option* 
@@ -1982,20 +1984,9 @@
      &key (option '())
      &aux (outfile (change-extension infile "se")))
   (let ((inname (unix-namestring infile)))
-    #-mswindows
     (command-line *cpp-command*
-                  :args (mapcar #'(lambda (x) (add-paren x #\'))
-                                `(,inname ,@*cpp-option* ,@option))
+                  :args`(,inname ,@*cpp-option* ,@option)
                   :verbose *error-output*)
-    #+mswindows                         ; cygwin sh.exe required
-    (let ((command-string
-           (strcat
-            (mapcar #'(lambda (x) (add-paren x #\'))
-                    `(,*cpp-command* ,inname ,@*cpp-option* ,@option))
-            #\Space #\" #\")))
-      (command-line *sh-command*
-                    :args `("-c" ,command-string)
-                    :verbose *error-output*))
     )
   outfile)
 

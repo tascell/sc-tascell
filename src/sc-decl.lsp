@@ -72,8 +72,9 @@
 (defvar *auto-compile* t)
 (defconstant *lisp-file-type* "lsp")
 (defconstant *fasl-file-type* (pathname-type (compile-file-pathname "dummy")))
-(defconstant *fasl-path-base*                ; コンパイル済Lispファイルの置き場所
-    (merge-pathnames (format nil ".sc-fasl/~A/~A/~A/"
+(defconstant *fasl-path-base*           ; コンパイル済Lispファイルの置き場所
+    (merge-pathnames (format nil (concatenate 'string #-(and allegro mswindows)"." "sc-fasl"
+                                              "/~A/~A/~A/")
                              (gethostname) *cl-implementation* *cl-version*)
                      (truename (user-savepath))))
 #+comment (defconstant *fasl-path-base* "/") ; fasls are saved in sc-system-path
