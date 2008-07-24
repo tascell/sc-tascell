@@ -2,8 +2,7 @@ SC2C=sc2c
 XCC=xcc
 GCC=gcc #$(XCC)
 ICC=icc
-OPT=-O2 $(MOPT)
-# OPT=-g
+OPT=-O2 -g $(MOPT)
 XCCOPT=-DCT=lightweight
 XCCCLOPT=-DCT=closure
 
