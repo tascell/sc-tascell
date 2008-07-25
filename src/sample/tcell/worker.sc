@@ -366,6 +366,7 @@
        (= thr->ndiv old-ndiv)))
 
   ;; タスクstackをpopしてフリーリストに返す
+  (= tx->stat TASK-DONE)                ; 現状，必須ではないがデバッグ出力で有効
   (csym::deallocate-task thr)
   )
 
