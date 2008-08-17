@@ -68,7 +68,8 @@
 ;; (enum node)の値が配列添字に対応
 ;; ここを変えると deserilalize-cmdname の「ゆるい文字列比較」も変える必要があるので注意
 (def cmd-strings (array (ptr char))
-  (array "task" "rslt" "treq" "none" "back" "rack" "stat" "verb" "exit" 0))
+  (array "task" "rslt" "treq" "none" "back" "rack" "dreq" "data"
+         "stat" "verb" "exit" 0))
 
 ;; コマンド->文字列 (retruns 書いた文字数)
 (def (csym::serialize-cmdname buf w) (fn int (ptr char) (enum command))
@@ -95,6 +96,13 @@
      (switch (mref (inc p))
        (case #\a) (= (mref buf) TASK) (break)
        (case #\r) (= (mref buf) TREQ) (break)
+       (default) (= (mref buf) WRNG) (return 0))
+     (break)
+
+     (case #\d)
+     (switch (mref (inc p))
+       (case #\r) (= (mref buf) DREQ) (break)
+       (case #\a) (= (mref buf) DATA) (break)
        (default) (= (mref buf) WRNG) (return 0))
      (break)
      

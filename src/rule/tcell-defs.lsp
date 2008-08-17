@@ -36,7 +36,9 @@
            :task-add-field :task-add-input-var :task-add-output-var
            :task-field-p
            :sender-and-receiver-functions-all
-           :nestfunc-type))
+           :nestfunc-type
+           :add-defined-func-name :func-name-exists-p
+           ))
 (in-package "TCELL")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -300,10 +302,22 @@
      ,@body))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 定義された関数名リスト
+(defvar *defined-func-names* ())
+
+(defun add-defined-func-name (id)
+  (pushnew id *defined-func-names*))
+
+(defun func-name-exists-p (id)
+  (member id *defined-func-names*))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defmacro with-environment-bound (&body body)
   `(let ((*tasks* ())
          (*current-task* nil)
-         (*latest-bk* nil))
+         (*latest-bk* nil)
+         (*defined-func-names* ()))
      ,@body))
 
 (defmacro with-task (task-or-scid &body body)

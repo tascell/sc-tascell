@@ -33,8 +33,8 @@
   (when (featurep :mswindows)
     (setq *locale* (find-locale "japan.EUC")))
   ;; The most debuggable (and yet reasonably fast) code, use
-  (proclaim '(optimize (speed 3) (safety 1) (space 1))); (debug 3)))
-  ;; (proclaim '(optimize (speed 3) (safety 0) (space 1)))
+  ;; (proclaim '(optimize (speed 3) (safety 1) (space 1))); (debug 3)))
+  (proclaim '(optimize (speed 3) (safety 0) (space 1)))
   (load (compile-file-if-needed (or (probe-file "sc-misc.lsp")
                                     "../../sc-misc.lsp")
                                 :output-file "sc-misc.fasl"))

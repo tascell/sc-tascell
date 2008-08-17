@@ -54,6 +54,7 @@
   (put '%ifdef* tag '(like when))
   (put '%ifndef* tag '(like when))
   (put 'static-def tag '(like def))
+  (put 'begin tag 0)
   (put 'for tag 1)
   (put 'switch tag 1)
   (put 'cast tag 1)

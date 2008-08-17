@@ -62,7 +62,7 @@
   (def arg (ptr void) (fref x -> arg))
   (def ret (ptr void))
   (def new-esp (ptr char))
-  (def estack (array char 8192))
+  (def estack (array char 65536))
   (def esp (ptr char) estack)
 
   (pthread-cleanup-push free farg)

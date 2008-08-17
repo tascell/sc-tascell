@@ -43,11 +43,23 @@
                                         (ptr ,(tcell:nestfunc-type))
                                         (ptr (struct thread-data)))) )
           pg
+          ;; データ系の関数が定義されてなければ空定義の関数を追加する
+          (unless (tcell:func-name-exists-p ~csym::data-allocate)
+            (list ~(def (csym::data-allocate n1) (csym::fn void int))))
+          (unless (tcell:func-name-exists-p ~csym::data-send)
+            (list ~(def (csym::data-send n1 n2) (csym::fn void int int))))
+          (unless (tcell:func-name-exists-p ~csym::data-receive)
+            (list ~(def (csym::data-receive n1 n2) (csym::fn void int int))))
+          ;; sender/receiver関数およびその配列
           (tcell:sender-and-receiver-functions-all)
           (tcell:task-maps)))))
   )
 
 (extendrule inlined-declaration tcell
+  ;; 定義・宣言された関数名を記憶（判定は適当だが）
+  (#?(,scs[storage-class-specifier] (,id[identifier] ,@id-list) ,@rest)
+   (tcell:add-defined-func-name id)
+   (next-pattern))
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;; def task
   ;; * task-data -> struct
@@ -288,6 +300,15 @@
   )
 
 (extendrule expression tcell
+  ;; dreq, data関連
+  (#?(the ,texp (call (the ,ftexp setup-data) ,@exp-list))
+   ~(the ,texp (call (the ,ftexp csym::-setup-data) ,@(mapcar #'expression exp-list))) )
+  (#?(the ,texp (call (the ,ftexp request-data) ,@exp-list))
+   ~(the ,texp (call (the ,ftexp csym::-request-data) -thr ,@(mapcar #'expression exp-list))) )
+  (#?(the ,texp (call (the ,ftexp wait-data) ,@exp-list))
+   ~(the ,texp (call (the ,ftexp csym::-wait-data) ,@(mapcar #'expression exp-list))) )
+  (#?(the ,texp (call (the ,ftexp set-exist-flag) ,@exp-list))
+   ~(the ,texp (call (the ,ftexp csym::-set-exist-flag) ,@(mapcar #'expression exp-list))) )
   ;; wfn関数呼び出し
   ;; * 引数の追加 
   (#?(the ,texp (call (the (ptr (wfn ,@texp-list)) ,exp-f) ,@exp-list))

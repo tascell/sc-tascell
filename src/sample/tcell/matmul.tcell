@@ -1,0 +1,351 @@
+;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; All rights reserved.
+
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+;;; 1. Redistributions of source code must retain the above copyright
+;;;    notice, this list of conditions and the following disclaimer.
+;;; 2. Redistributions in binary form must reproduce the above copyright
+;;;    notice, this list of conditions and the following disclaimer in the
+;;;    documentation and/or other materials provided with the distribution.
+
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE
+;;; FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+;;; OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+;;; LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+;;; SUCH DAMAGE.
+
+;;; Matrix multiplier
+
+;; task 0 0 0 1
+;; <n>
+
+(c-exp "#include<sys/time.h>")
+
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
+(%include "rule/tcell-setrule.sh")
+
+(%include "clib.sh")
+(%include "dprint.sh")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(%defconstant QUEUE-SIZE 4)
+(%defconstant THRESHOLD 12)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (csym::elapsed-time tp) 
+    (fn double (array (struct timeval) 2))
+  (return (+ (- (fref (aref tp 1) tv-sec)
+                (fref (aref tp 0) tv-sec))
+             (* 0.000001
+                (- (fref (aref tp 1) tv-usec)
+                   (fref (aref tp 0) tv-usec))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (csym::genmat n a nx) (csym::fn void int (ptr double) int)
+  (defs int i j)
+  (for ((= i 0) (< i n) (inc i))
+    (for ((= j 0) (< j n) (inc j))
+      (= (aref a (+ (* i nx) j))
+         (- n (if-exp (>= (- i j) 0) (- i j) (- j i)))))))
+
+(def (csym::zero-mat n a nx) (csym::fn void int (ptr double) int)
+  (defs int i j)
+  (for ((= i 0) (< i n) (inc i))
+    (for ((= j 0) (< j n) (inc j))
+      (= (aref a (+ (* i nx) j)) 0))))
+
+(def (csym::diffmat n c1 c2 nx) (csym::fn double int (ptr double) (ptr double) int)
+  (defs int i j)
+  (def d double 0.0)
+  (for ((= i 0) (< i n) (inc i))
+    (for ((= j 0) (< j n) (inc j))
+      (defs double s1 s2)
+      (= s1 (aref c1 (+ (* i nx) j)))
+      (= s2 (aref c2 (+ (* i nx) j)))
+      (+= d (if-exp (> s1 s2) (- s1 s2) (- s2 s1)))))
+  (return d))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 要求時取得データ
+(defs (ptr double) A B C)               ; C = A B
+(def N int)                             ; size of matrices
+(def NX int)                            ; distance between a(i,j) and a(i+1,j)
+
+(def (csym::data-allocate n) (csym::fn void int)
+  (= N (/ n 2))
+  (= NX N)
+  (= A (cast (ptr double) (csym::malloc (* N N (sizeof double)))))
+  (= B (cast (ptr double) (csym::malloc (* N N (sizeof double)))))
+  (= C (cast (ptr double) (csym::malloc (* N N (sizeof double)))))
+  ;; (csym::zero-mat N C N)
+  )
+
+(def (csym::data-send n1 n2) (csym::fn void int int)
+  (def p (ptr double))
+  (if (> n1 N)
+      (begin (-= n1 N) (-= n2 N) (= p B))
+    (= p A))
+  ;; assume that N=NX
+  (csym::send-doubles (+ p (* n1 N)) (* (- n2 n1) N)))
+  
+(def (csym::data-receive n1 n2) (csym::fn void int int)
+  (def p (ptr double))
+  (if (> n1 N)
+      (begin (-= n1 N) (-= n2 N) (= p B))
+    (= p A))
+  ;; assume that N=NX
+  (csym::recv-doubles (+ p (* n1 N)) (* (- n2 n1) N)))
+        
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def (struct mm-subtask)
+  (def fl int)                        ; filled element?
+  (defs int i0 i1 j0 j1)
+  )
+        
+(def (task tmatmul)
+  (def n int :in)
+  (def i0 int :in)
+  (def i1 int :in)
+  (def j0 int :in)
+  (def j1 int :in)
+  (def head int)
+  (def queue (array (struct mm-subtask) QUEUE-SIZE))
+  )
+
+(decl (matmul-1)
+      (wfn void int int int int int (ptr double) (ptr double) (ptr double) int (ptr (struct tmatmul))))
+(decl (csym::matmul-2)
+      (csym::fn void int int int int int int (ptr double) (ptr double) (ptr double) int))
+(decl (flush-subtask-queue)
+      (wfn void int (ptr double) (ptr double) (ptr double) int (ptr (struct tmatmul))))
+
+(def (task-body tmatmul)
+  (def i int)
+  (= this.head 0)
+  (setup-data (* 2 this.n))
+  (for ((= i 0) (< i QUEUE-SIZE) (inc i))
+    (= (fref (aref this.queue i) fl) 0))
+  (DEBUG-PRINT 1 "sub-matmul(%d %d %d %d)~%" this.i0 this.i1 this.j0 this.j1)
+  (matmul-1 this.i0 this.i1 this.j0 this.j1 this.n A B C this.n (ptr this))
+  (flush-subtask-queue this.n A B C this.n (ptr this))
+  )
+  
+(def (task matmul-start)
+  (def n int :in))
+
+(def (task-body matmul-start)
+  (decl tp (array (struct timeval) 2))
+  (def mtask (struct tmatmul))
+  (def i int)
+  (csym::fprintf stderr "start matmul(%d)~%" this.n)
+  (setup-data (* 2 this.n))
+  ;; initialzie input data
+  (begin
+    (csym::genmat this.n A this.n)
+    (csym::genmat this.n B this.n)
+    (set-exist-flag 0 (* 2 this.n)))
+  ;; initialize the tmatmul task object
+  (= mtask.n this.n) 
+  (= mtask.i0 0) (= mtask.i1 this.n)
+  (= mtask.j0 0) (= mtask.j1 this.n)
+  (= mtask.head 0)
+  (for ((= i 0) (< i QUEUE-SIZE) (inc i))
+    (= (fref (aref mtask.queue i) fl) 0))
+  ;; start!
+  (csym::gettimeofday tp 0)
+  (matmul-1 mtask.i0 mtask.i1 mtask.j0 mtask.j1 mtask.n A B C mtask.n (ptr mtask))
+  (flush-subtask-queue mtask.n A B C mtask.n (ptr mtask))
+  (csym::gettimeofday (+ tp 1) 0)
+  ;; end!
+  (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp))
+  
+  ;; check
+  (DEBUG-STMTS 1
+               (def c2 (ptr double))
+               (= c2 (cast (ptr double) (csym::malloc (* (sizeof double) this.n this.n))))
+               (csym::matmul-2 0 this.n 0 this.n 0 this.n A B c2 this.n)
+               (csym::fprintf stderr "diff: %lf~%" (csym::diffmat this.n C c2 this.n))
+               (csym::free c2))
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (task-receiver tmatmul)
+    )
+
+(def (task-sender tmatmul)
+    )
+
+;;; Cのうち，計算した範囲を送受信する
+(def (rslt-sender tmatmul)
+  (defs int i j)
+  (defs int idiff jdiff)
+  (DEBUG-PRINT 2 "rslt-sender-start~%")
+  (= idiff (- this.i1 this.i0))
+  (= jdiff (- this.j1 this.j0))
+  (csym::send-binary-header (sizeof double) (* idiff jdiff))
+  (for ((= i this.i0) (< i this.i1) (inc i))
+    (csym::send-double-seq (+ C (* i NX) this.j0) jdiff))
+  (csym::send-binary-terminator)
+  (DEBUG-PRINT 2 "rslt-sender-end~%")
+  )
+
+(def (rslt-receiver tmatmul)
+  (defs int i)
+  (defs int idiff jdiff)
+  (def swp int)
+  (DEBUG-PRINT 2 "rslt-receiver-start~%")
+  (= idiff (- this.i1 this.i0))
+  (= jdiff (- this.j1 this.j0))
+  (= swp (csym::recv-binary-header (sizeof double) (* idiff jdiff)))
+  (for ((= i this.i0) (< i this.i1) (inc i))
+    (csym::recv-double-seq (+ C (* i NX) this.j0) jdiff))
+  (csym::recv-binary-terminator)
+  (if swp
+      (for ((= i this.i0) (< i this.i1) (inc i))
+        (csym::swap-doubles (+ C (* i NX) this.j0) jdiff)))
+  (DEBUG-PRINT 2 "rslt-receiver-end~%")
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; part of C = part of A * part of B
+;;; input:  A[i,*]  (i0 <= i < i1) and transposed-B[*,j]  (j0 <= j < j1)
+;;; ('*' means k0 <= k < k1.)
+;;; output: C[i,j]  (i0 <= i < i1 and j0 <= j < j1)
+;;; (if k0 > 0 added to C[i,j])
+(def (csym::matmul-2 i0 i1 j0 j1 k0 k1 a b c nx)
+    (csym::fn void int int int int int int (ptr double) (ptr double) (ptr double) int)
+  (defs int i j k)
+  (def s double)
+  (DEBUG-PRINT 2 "2: %d %d %d~%" (- i1 i0) (- j1 j0) (- k1 k0))
+  (DEBUG-PRINT 2 "m: %d %d %d %d %d %d~%" i0 i1 j0 j1 k0 k1)
+  (for ((= i i0) (< i i1) (inc i))
+    (for ((= j j0) (< j j1) (inc j))
+      (= s 0.0)
+      (for ((= k k0) (< k k1) (inc k))
+        (+= s (* (aref a (+ (* i nx) k)) (aref b (+ (* j nx) k))))
+        (if (== k0 0)
+            (= (aref c (+ (* i nx) j)) 0.0)
+          (+= (aref c (+ (* i nx) j)) s)))))
+  (return))
+            
+;;; the same input/outoput as matmul_2
+(def (csym::matmul-m i0 i1 j0 j1 k0 k1 a b c nx)
+    (csym::fn void int int int int int int (ptr double) (ptr double) (ptr double) int)
+  (DEBUG-PRINT 2 "m: %d %d %d~%"  (- i1 i0) (- j1 j0) (- k1 k0))
+  (DEBUG-PRINT 2 "m: %d %d %d %d %d %d~%" i0 i1 j0 j1 k0 k1)
+  (def half int)
+  (cond
+   ((and (<= (- i1 i0) THRESHOLD)
+         (<= (- j1 j0) THRESHOLD))
+    (csym::matmul-2 i0 i1 j0 j1 k0 k1 a b c nx))
+   ((> (>> (- k1 k0) 13) (- j1 j0))
+    (= half (/ (+ k0 k1) 2))
+    (csym::matmul-m i0 i1 j0 j1 k0 half a b c nx)
+    (csym::matmul-m i0 i1 j0 j1 half k1 a b c nx))
+   ((> (- i1 i0) (- j1 j0))
+    (= half (/ (+ i0 i1) 2))
+    (csym::matmul-m i0 half j0 j1 k0 k1 a b c nx)
+    (csym::matmul-m half i1 j0 j1 k0 k1 a b c nx))
+   (else
+    (= half (/ (+ j0 j1) 2))
+    (csym::matmul-m i0 i1 j0 half k0 k1 a b c nx)
+    (csym::matmul-m i0 i1 half j1 k0 k1 a b c nx))
+   ))
+  
+;;; the same input/outoput as matmul_2 except "n = k1 - k0 (k0=0, k1=n)"
+(def (matmul-s i0 i1 j0 j1 n a b c nx tsk)
+    (wfn void int int int int int (ptr double) (ptr double) (ptr double) int (ptr (struct tmatmul)))
+  (def sq (ptr (struct mm-subtask)) tsk->queue)
+  (def head int tsk->head)
+  (defs int h-i0 h-i1 h-j0 h-j1)
+  (DEBUG-PRINT 2 "s: %d %d %d~%"(- i1 i0) (- j1 j0) n)
+  (DEBUG-PRINT 2 "s: %d %d %d %d~%" i0 i1 j0 j1)
+  (request-data i0 i1)
+  (request-data j0 j1)
+
+  ;; キューにタスクがあれば実行
+  (if (fref (aref sq head) fl)
+      (begin
+        (= h-i0 (fref (aref sq head) i0))
+        (= h-i1 (fref (aref sq head) i1))
+        (= h-j0 (fref (aref sq head) j0))
+        (= h-j1 (fref (aref sq head) j1))
+        (= (fref (aref sq head) fl) 0)
+        (wait-data h-i0 h-i1)
+        (wait-data h-j0 h-j1)
+        (csym::matmul-m h-i0 h-i1 h-j0 h-j1 0 n a b c nx)))
+
+  ;; キューにタスクを書き込む
+  (= (fref (aref sq head) i0) i0)
+  (= (fref (aref sq head) i1) i1)
+  (= (fref (aref sq head) j0) j0)
+  (= (fref (aref sq head) j1) j1)
+  (= (fref (aref sq head) fl) 1)
+  (inc head)
+  (if (>= head QUEUE-SIZE) (= head 0))
+  (= tsk->head head))                
+
+(def (flush-subtask-queue n a b c nx tsk)
+    (wfn void int (ptr double) (ptr double) (ptr double) int (ptr (struct tmatmul)))
+  (def m int)
+  (def head int tsk->head)
+  (def sq (ptr (struct mm-subtask)) tsk->queue)
+  (defs int h-i0 h-i1 h-j0 h-j1)
+
+  (for ((= m 0) (< m QUEUE-SIZE) (inc m))
+    (if (aref (fref (aref sq head) fl))
+        (begin
+          (= h-i0 (fref (aref sq head) i0))
+          (= h-i1 (fref (aref sq head) i1))
+          (= h-j0 (fref (aref sq head) j0))
+          (= h-j1 (fref (aref sq head) j1))
+          (= (fref (aref sq head) fl) 0)
+          (wait-data h-i0 h-i1)
+          (wait-data h-j0 h-j1)
+          (csym::matmul-m h-i0 h-i1 h-j0 h-j1 0 n a b c nx)))
+    (inc head)
+    (if (>= head QUEUE-SIZE) (= head 0))
+  ))
+
+;;; the same input/outoput as matmul_2 except "n = k1 - k0 (k0=0, k1=n)"
+(def (matmul-1 i0 i1 j0 j1 n a b c nx tsk)
+    (wfn void int int int int int (ptr double) (ptr double) (ptr double) int (ptr (struct tmatmul)))
+  (DEBUG-PRINT 2 "1: %d %d %d~%" (- i1 i0) (- j1 j0) n)
+  (def half int)
+  (cond
+   ((or (and (<= (- i1 i0) THRESHOLD)
+             (<= (- j1 j0) THRESHOLD))
+        (> (>> n 13) (- j1 j0)))
+    (matmul-s i0 i1 j0 j1 n a b c nx tsk))
+   ((> (- i1 i0) (- j1 j0))
+    (= half (/ (+ i0 i1) 2))
+    (do-two
+        (matmul-1 i0 half j0 j1 n a b c nx tsk)
+      (matmul-1 half i1 j0 j1 n a b c nx tsk)
+      (tmatmul
+       (:put (= this.n n)
+             (= this.i0 half) (= this.i1 i1) (= this.j0 j0) (= this.j1 j1))
+       (:get ;; Cに書き込む処理はreceiveにて
+        ))) )
+   (else
+    (= half (/ (+ j0 j1) 2))
+    (do-two
+        (matmul-1 i0 i1 j0 half n a b c nx tsk)
+      (matmul-1 i0 i1 half j1 n a b c nx tsk)
+      (tmatmul
+       (:put (= this.n n)
+             (= this.i0 half) (= this.i1 i1) (= this.j0 j0) (= this.j1 j1))
+       (:get ;; Cに書き込む処理はreceiveにて
+        ))) )
+   )
+  (return))

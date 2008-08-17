@@ -136,7 +136,7 @@
   (csym::serialize-cmd send-buf pcmd)
   (csym::send-string send-buf sv-socket)
   (csym::write-eol)
-  ;; task, rsltのbody
+  ;; TASK, RSLT, DATAのbody送信関数（Tascellプログラマ定義）を呼び出す
   (if body
       (cond
        ((== w TASK)
@@ -144,7 +144,10 @@
         (csym::write-eol))
        ((== w RSLT)
         ((aref rslt-senders task-no) body)
-        (csym::write-eol))))
+        (csym::write-eol))
+       ((== w DATA)
+        ;; write once なデータをreadするだけだからロックはしなくていいか
+        (csym::data-send (aref pcmd->v 1 0) (aref pcmd->v 1 1)))))
   (csym::flush-send)
   (csym::pthread-mutex-unlock (ptr send-mut))
   ;; ---> sender-lock --->
@@ -163,6 +166,8 @@
    (case NONE) (csym::recv-none pcmd) (break)
    (case BACK) (csym::recv-back pcmd) (break)
    (case RACK) (csym::recv-rack pcmd) (break)
+   (case DREQ) (csym::recv-dreq pcmd) (break)
+   (case DATA) (csym::recv-data pcmd) (break)
    (case STAT) (csym::print-status pcmd) (break)
    (case VERB) (csym::set-verbose-level pcmd) (break)
    (case EXIT) (csym::exit 0) (break)
@@ -537,7 +542,9 @@
   (if (not (= hx (csym::search-task-home-by-id tsk-id thr->sub)))
       (begin
        (csym::proto-error "Wrong rslt-head (specified task not exists)" pcmd)
-       (csym::print-status 0)))
+       (csym::print-status 0)
+       (csym::exit 1)
+       ))
   (= tx thr->task-top) (= hx thr->sub)
   (= tx->task-no hx->task-no)
   (= tx->body hx->body)
@@ -570,7 +577,7 @@
       (csym::proto-error "wrong rslt-head" pcmd))
   (= sid (aref pcmd->v 0 1))
   (if (== TERM sid)
-      (csym::proto-error "Wrong rslt-head (no task-id)" pcmd))
+      (csym::proto-error "Wrong rslt-head (no task-home-id)" pcmd))
   (= thr (+ threads tid))
   
   (csym::pthread-mutex-lock (ptr thr->mut))
@@ -719,10 +726,12 @@
            (csym::recv-treq pcmd)
            (return)))
       ;; (!= pcmd->node OUTSIDE): 内部ワーカからprefetchedタスクの要求
-      (if (csym::pop-prefetched-task (+ threads (aref pcmd->v 0 0)))
-          (begin
-           (DEBUG-PRINT 2 "Thread %d popped prefetched task.~%" (aref pcmd->v 0 0))
-           (return)))))
+      (begin
+       (DEBUG-PRINT 2 "Thread %d trying to pop prefetched task.~%" (aref pcmd->v 0 0))
+       (if (csym::pop-prefetched-task (+ threads (aref pcmd->v 0 0)))
+           (begin
+            (DEBUG-PRINT 2 "Thread %d popped prefetched task.~%" (aref pcmd->v 0 0))
+            (return))))))
    ;; 取り返し(leapfrogging)
    (else
     (if (not (and (<= 0 dst0) (< dst0 num-thrs)))
@@ -783,6 +792,231 @@
   (csym::pthread-mutex-unlock (ptr thr->rack-mut)))
 
 
+;; 存在フラグの配列の先頭：初期化は-setup-dataにて
+(def data-flags (ptr (enum DATA-FLAG)) 0)
+;; ロック，条件変数
+(def data-mutex pthread-mutex-t)
+(def data-cond  pthread-cond-t)
+
+;; Tascellへの提供機能：dataを初期化 (n: size)
+(def (csym::-setup-data n) (csym::fn void int)
+  (def i int)
+  (def tmp (ptr (enum DATA-FLAG)))
+
+  (if data-flags (return))
+  (csym::pthread-mutex-lock (ptr data-mutex))
+  ;; data-flagsの初期化
+  (if (not data-flags)
+      (begin
+       (= tmp (cast (ptr (enum DATA-FLAG)) (csym::malloc (* n (sizeof (enum DATA-FLAG))))))
+       (for ((= i 0) (< i n) (inc i))
+            (= (aref tmp i) DATA-NONE))
+       (= data-flags tmp)))
+  ;; dataの領域確保（Tascellプログラマ定義関数を呼出す）
+  (csym::data-allocate n)
+  (csym::pthread-mutex-unlock (ptr data-mutex))
+  (return))
+
+;; 要求時取得データのうち，NONEなものについてdreqを送信
+;; data-mutexのロックはこの中でする．
+;; pcmd: データ範囲（3つめのパラメータ）以外がセットされたcmdへのポインタ
+(def (csym::send-dreq-for-required-range start end pcmd) (csym::fn void int int (ptr (struct cmd)))
+  (defs int i j)
+  (csym::pthread-mutex-lock (ptr data-mutex))
+  (for ((= i start) (< i end) (inc i))
+    (if (== (aref data-flags i) DATA-NONE)
+        (begin
+          (= (aref data-flags i) DATA-REQUESTING)
+          (for ((= j (+ i 1)) (and (< j end) (== (aref data-flags j) DATA-NONE)) (inc j))
+            (= (aref data-flags j) DATA-REQUESTING))
+          ;; iからjまで要求を出す
+          (= (aref pcmd->v 2 0) i)  (= (aref pcmd->v 2 1) j)
+          (= (aref pcmd->v 2 2) TERM)
+          (csym::send-command pcmd 0 0)
+          (= i j)                       ; 要求を出した範囲の次からチェック再開
+          )))
+  (csym::pthread-mutex-unlock (ptr data-mutex))
+  )
+
+;; thread-id=tid, id=sidのtask-homeを持つtaskから見て，
+;; 最初の外部ノードにある祖先のtask-homeのアドレスをheadにコピー
+(def (csym::get-first-outside-ancestor-task-address head tid sid) (csym::fn int (ptr (enum node)) int int)
+  (def thr (ptr (struct thread-data)))
+  (def hx (ptr (struct task-home)))
+  (def ok int)
+  (do-while 1
+    (= thr (+ threads tid))
+    (csym::pthread-mutex-lock (ptr thr->mut))
+    ;; hx = データ要求先のtask-home（.id==sid）を探す
+    (if (not (= hx (csym::search-task-home-by-id sid thr->sub)))
+        (csym::fprintf stderr "Error in get-first-outside-ancestor-task-address (specified task not exists)~%"))
+    (csym::pthread-mutex-unlock (ptr thr->mut))
+    
+    (cond
+     ((not hx->owner)                   ; 親がいなければエラー
+      (csym::fprintf stderr "error in get-first-outside-ancestor-task-address: no owner found.~%")
+      (csym::print-status 0)
+      (csym::exit 1))
+     ((== hx->owner->rslt-to OUTSIDE)   ; 次の親が外部ノードなら，そこが次の要求先
+      (csym::copy-address head hx->owner->rslt-head)
+      (break)))
+    ;; 次の親が内部ノードなら，さらに親タスクをたどる
+    (= tid (aref hx->owner->rslt-head 0))
+    (= sid (aref hx->owner->rslt-head 1)))
+  (return ok))
+
+;; Tascellへの提供機能：dataを親タスクに要求 (start, end: データ範囲)
+(def (csym::-request-data thr start end) (csym::fn void (ptr (struct thread-data)) int int)
+  (def cmd (struct cmd))
+  (def tx (ptr (struct task)))
+  (DEBUG-PRINT 2 "request-data: %d--%d start~%" start end)
+  (csym::pthread-mutex-lock (ptr thr->mut)) ; ロックは念のため
+  (= tx thr->task-top)                  ; 今実行中のタスク
+  (csym::pthread-mutex-unlock (ptr thr->mut))
+  ;; コマンドの種類，引数の数
+  (= cmd.w DREQ)
+  (= cmd.c 3)
+  ;; 要求元（thread番号は関係ないのでダミー番号でよい）
+  (= (aref cmd.v 0 0) 0)  (= (aref cmd.v 0 1) TERM)
+  ;; 要求先：直接の親が外部でなければ，さらに祖先を辿る
+  (if (== OUTSIDE tx->rslt-to)
+      (csym::copy-address (aref cmd.v 1) tx->rslt-head)
+    (csym::get-first-outside-ancestor-task-address
+     (aref cmd.v 1) (aref tx->rslt-head 0) (aref tx->rslt-head 1)))
+  (= cmd.node OUTSIDE)
+
+  (DEBUG-STMTS 2
+               (= (aref cmd.v 2 0) TERM)
+               (csym::proto-error "dreq template" (ptr cmd)))
+  
+  ;; 必要な範囲についてdreqを送信
+  (csym::send-dreq-for-required-range start end (ptr cmd))
+  (DEBUG-PRINT 2 "request-data: %d--%d end~%" start end)
+  (return)
+  )
+
+;; Tascellへの提供機能：dataが揃うまで待機 (start, end: データ範囲)
+(def (csym::-wait-data start end) (csym::fn void int int)
+  (def i int)
+  (DEBUG-PRINT 2 "wait-data: %d--%d start~%" start end)
+  (csym::pthread-mutex-lock (ptr data-mutex))
+  (for ((= i start) (< i end) (inc i))
+    (while (!= (aref data-flags i) DATA-EXIST)
+      (csym::pthread-cond-wait (ptr data-cond) (ptr data-mutex))))
+  (csym::pthread-mutex-unlock (ptr data-mutex))
+  (DEBUG-PRINT 2 "wait-data: %d--%d end~%" start end)
+  )
+
+;; 指定された範囲のdata-flagsをDATA-EXISTにする（仕事開始ノード用）
+(def (csym::-set-exist-flag start end) (csym::fn void int int)
+  (def i int)
+  (csym::pthread-mutex-lock (ptr data-mutex))
+  (for ((= i start) (< i end) (inc i))
+    (= (aref data-flags i) DATA-EXIST))
+  (csym::pthread-mutex-unlock (ptr data-mutex))
+  )
+
+
+;; recv-dreqで作られるスレッドが実行する関数
+(def (csym::dreq-handler parg0) (csym::fn (ptr void) (ptr void))
+  (def parg (ptr (struct dhandler-arg)) parg0)
+  (def start int parg->start)
+  (def end int parg->end)
+  (def pcmd (ptr (struct cmd)) (ptr parg->dreq-cmd))
+  (def data-cmd (struct cmd))
+  (defs int i j)
+  
+  ;; NONEな範囲について，さらに親に要求を出す
+  (csym::send-dreq-for-required-range start end pcmd)
+  
+  ;; INSIDEからのdreqならデータを送る必要はないのでここで終わり
+  (if (== parg->data-to INSIDE) (return))
+
+  ;; DATAコマンドの雛形を設定
+  (= data-cmd.w DATA)
+  (= data-cmd.c 2)
+  (= data-cmd.node parg->data-to)       ; data送信先(OUTSIDE)
+  (csym::copy-address (aref data-cmd.v 0) parg->head) ; data送信先
+  
+  ;; dataが送られてくるのをcond-waitで待って，順次要求元に送る
+  (csym::pthread-mutex-lock (ptr data-mutex))
+  (for ((= i start) (< i end) (inc i))
+    (while (!= (aref data-flags i) DATA-EXIST)
+      (csym::pthread-cond-wait (ptr data-cond) (ptr data-mutex)))
+    (for ((= j (+ j 1)) (and (< j end) (== (aref data-flags j) DATA-EXIST)) (inc j))
+      ;; iからjまで送る（本体は，send-out-commandで送られる）
+      (= (aref data-cmd.v 1 0) i)  (= (aref data-cmd.v 1 1) j)
+      (= (aref data-cmd.v 1 2) TERM)
+      (csym::send-command (ptr data-cmd) 0 0))
+    (= i (- j 1)))
+  (csym::pthread-mutex-unlock (ptr data-mutex))
+  
+  (csym::free parg)
+  (return))
+  
+;; dreq <data要求元header> <data要求先(<thread-id>:<task-home-id>)> <data要求範囲(<data-start>:<data-end>)>
+(def (csym::recv-dreq pcmd) (csym::fn void (ptr (struct cmd)))
+  (def tx (ptr (struct task)))
+  (def tid (enum node))
+  (def sid int)
+  (def parg (ptr (struct dhandler-arg)))
+  (def len size-t)
+  ;; 引数の数チェック
+  (if (< pcmd->c 3) (csym::proto-error "Wrong dreq" pcmd))
+  
+  ;; ;; dreq-handlerに渡す引数の設定
+  ;; ;; ここで，dreq-cmdについては最後の引数（要求範囲）以外は設定しておく．
+  (= parg (cast (ptr (struct dhandler-arg)) (csym::malloc (sizeof (struct dhandler-arg)))))
+  (= parg->data-to pcmd->node)          ; data送信先（INSIDE|OUTSIDE)
+  (csym::copy-address parg->head (aref pcmd->v 0)) ; data送信先（INSIDE|OUTSIDE)
+  (= parg->dreq-cmd.w DREQ)
+  (= parg->dreq-cmd.c 3)
+  (= (aref parg->dreq-cmd.v 0 0) 0)     ; 要求元：ダミーの値
+  (= (aref parg->dreq-cmd.v 0 1) TERM)  ; 要求元：ダミーの値
+  ;; さらなるdreq要求をどこに出すか決定
+  (begin
+   (= tid (aref pcmd->v 1 0))
+   (if (not (< tid num-thrs)) (csym::proto-error "wrong dreq-head" pcmd))
+   (= sid (aref pcmd->v 1 1))
+   (if (== TERM sid) (csym::proto-error "Wrong dreq-head (no task-home-id)" pcmd))
+   ;; 最初の外部ノードのtask-homeのアドレスを獲得
+   (csym::get-first-outside-ancestor-task-address (aref parg->dreq-cmd.v 1) tid sid)
+   (= parg->dreq-cmd.node OUTSIDE)
+   )
+  ;; 要求範囲
+  (= parg->start (aref pcmd->v 2 0))
+  (= parg->end   (aref pcmd->v 2 1))
+  
+  ;; 別スレッドでdreq-handlerを呼出し
+  (begin
+    (def tid pthread-t)
+    (csym::pthread-create (ptr tid) 0 csym::dreq-handler parg))
+  (return))
+
+
+;; data <data送信先header> <data範囲(<data-start>:<data-end>)>
+(def (csym::recv-data pcmd) (csym::fn void (ptr (struct cmd)))
+  ;; 引数の数チェック
+  (if (< pcmd->c 2) (csym::proto-error "Wrong data" pcmd))
+  ;; （起こらないはずだが）内部からのdataであれば無視
+  (if (== pcmd->node INSIDE) (return))
+  ;; データ受信関数（Tascellプログラマ定義）を呼び出す
+  (csym::pthread-mutex-lock (ptr data-mutex))
+  (csym::data-receive (aref pcmd->v 1 0) (aref pcmd->v 1 1))
+  (csym::pthread-cond-broadcast (ptr data-cond))
+  (csym::pthread-mutex-unlock (ptr data-mutex))
+  (return))
+
+
+;;; Tascellプログラマに提供する関数
+
+;; 親タスクに指定された範囲のデータのdreqを発行する
+(decl (csym::request-data) (csym::fn void (ptr (struct thread-data)) int int))
+;; 指定された範囲のデータが揃うまで待つ
+(decl (csym::wait-data) (csym::fn void int int))
+
+
+
 ;;; taskの情報を出力
 (def task-stat-strings (array (ptr char)) ; enum task-statに対応
   (array "TASK-ALLOCTED" "TASK-INITIALIZED" "TASK-STARTED" "TASK-DONE" "TASK-NONE" "TASK-SUSPENDED"))
@@ -815,8 +1049,8 @@
   (defs (array char BUFSIZE) buf1 buf2)
   (csym::fprintf stderr "%s= {" name)
   (for ((= cur treq-top) cur (= cur cur->next))
-    (csym::fprintf stderr "{stat=%s, id=%d, task-no=%d, body=%p, req-from=%s, task-head=%s}, "
-                   (aref task-home-stat-strings cur->stat) cur->id cur->task-no cur->body
+    (csym::fprintf stderr "{stat=%s, id=%d, owner=%p, task-no=%d, body=%p, req-from=%s, task-head=%s}, "
+                   (aref task-home-stat-strings cur->stat) cur->id cur->owner cur->task-no cur->body
                    (exps (csym::node-to-string buf1 cur->req-from) buf1)
                    (exps (csym::serialize-arg buf2 cur->task-head) buf2)))
   (csym::fprintf stderr "}, ")
@@ -874,7 +1108,7 @@
   (csym::pthread-mutex-unlock (ptr -thr->mut)))
 
 ;; ワーカスレッドがput時に呼ぶ
-;; -thr->mut ロック済み
+;; thr->mut ロック済み
 (def (csym::make-and-send-task thr task-no body) ; task-noをtcell追加
     (csym::fn void (ptr (struct thread-data)) int (ptr void))
   (def tcmd (struct cmd))
@@ -888,6 +1122,7 @@
   (= hx->id (if-exp hx->next            ; サブタスクID = 底から何番目か
                     (+  hx->next->id 1)
                     0))
+  (= hx->owner thr->task-top)           ; 親タスク
   (= hx->stat TASK-HOME-INITIALIZED)
   (= tcmd.c 4)
   (= tcmd.node hx->req-from)
@@ -1117,6 +1352,10 @@
   ;; send-mut（外部送信ロック）の初期化
   (csym::pthread-mutex-init (ptr send-mut) 0)
 
+  ;; data-mut, data-cond（必要時データのロック，条件変数）の初期化
+  (csym::pthread-mutex-init (ptr data-mutex) 0)
+  (csym::pthread-cond-init (ptr data-cond) 0)
+  
   ;; thread-data の初期化, task の 双方向list も
   ;; 冬季treqがonなら，それ用のスレッドをnum-thrs+1番目として作って初期化する
   (= num-thrs option.num-thrs)

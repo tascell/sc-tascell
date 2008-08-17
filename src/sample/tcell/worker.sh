@@ -14,8 +14,11 @@
 
 (%cinclude "sock.h" (:macro))           ; 通信関係
 
+;; 0以上の数はthread-idに相当するので，enum idには負の数を割り当てる
 (def (enum node) (OUTSIDE -1) (INSIDE -2) (ANY -3) (PARENT -4) (TERM -5))
-(def (enum command) TASK RSLT TREQ NONE BACK RACK STAT VERB EXIT WRNG)
+(def (enum command)
+    TASK RSLT TREQ NONE BACK RACK DREQ DATA
+    STAT VERB EXIT WRNG)
 (extern-decl cmd-strings (array (ptr char))) ; ↑に対応する文字列．cmd-serial.scで定義．
 
 ;; treq any の相手選択方法
@@ -42,17 +45,8 @@
 (decl (struct task))
 (decl (struct thread-data))
 
-;; (decl (do-task-body)
-;;   (fn void (ptr (struct thread-data)) (ptr void)))
-;; (decl (send-task-body)
-;;   (fn void (ptr (struct thread-data)) (ptr void)))
-;; (decl (csym::recv-task-body)
-;;   (fn (ptr void) (ptr (struct thread-data))))
-;; (decl (send-rslt-body)
-;;   (fn void (ptr (struct thread-data)) (ptr void)))
-;; (decl (recv-rslt-body)
-;;   (fn void (ptr (struct thread-data)) (ptr void)))
 ;;; ☆ do_task_body 以外は，thread_data 引数が不要では?
+;;; Tascellプログラム側で（自動）定義するtask objectのsender/receiver
 (decl task-doers
       (array (ptr (fn void (ptr (struct thread-data)) (ptr void))) TASK-MAX))
 (decl task-senders
@@ -63,6 +57,26 @@
       (array (ptr (csym::fn void (ptr void))) TASK-MAX))
 (decl rslt-receivers
       (array (ptr (csym::fn void (ptr void))) TASK-MAX))
+
+;;; Tascellプログラム側で定義する要求時取得データのallocator/sender/receiver．
+;; 引数はデータのサイズ＝data-flagの数
+;; -init-data が data-flagsの初期化後に呼出す
+(decl (csym::data-allocate) (csym::fn void int))
+;; 引数の整数は送受信するデータの範囲（data-flagsの添字に対応する整数）
+(decl (csym::data-send) (csym::fn void int int))
+(decl (csym::data-receive) (csym::fn void int int))
+
+;;; Tascellプログラマに提供する機能 (worker.scで定義)
+;;; （Tascellでは最初の 'csym::-' を除いた名前．request-dataの先頭引数thrはtcell.ruleが追加）
+;; データ領域の確保およびフラグを初期化（引数はデータのサイズ＝data-flagの数）
+;; 複数回呼出しても一度しか実行されない
+(decl (csym::-setup-data) (csym::fn void int))
+;; 親タスクに指定された範囲のデータのdreqを発行する
+(decl (csym::-request-data) (csym::fn void (ptr (struct thread-data)) int int))
+;; 指定された範囲のデータが揃うまで待つ
+(decl (csym::-wait-data) (csym::fn void int int))
+;; 指定された範囲のdata-flagsをDATA-EXISTにする（仕事開始ノード用）
+(decl (csym::-set-exist-flag) (csym::fn void int int))
 
 (def (enum task-stat)
   TASK-ALLOCATED   ; 領域のみ．未初期化
@@ -97,6 +111,7 @@
 (def (struct task-home)
   (def stat (enum task-home-stat))      ; 状態
   (def id int)                          ; 初期化時に割当てられるID（各ワーカで一意）
+  (def owner (ptr (struct task)))       ; このサブタスクをspawnしたタスク
   (def task-no int)                     ; 実行するタスク番号（tcell追加）
   (def req-from (enum node))            ; 仕事送信先の種別（別ノード or ノード内 or any）
   (def next (ptr (struct task-home)))   ; リンク（次の空きセル or スタックの1コ下）
@@ -128,6 +143,22 @@
   (def cond-r pthread-cond-t)           ; rslt待ちで眠らせるときの条件変数
   )
 
+;;;; 必要時データ要求関連
+
+;; 存在フラグの種類
+(def (enum DATA-FLAG) DATA-NONE DATA-REQUESTING DATA-EXIST)
+
+;; dreq処理関数に渡す引数
+(def (struct dhandler-arg)
+  (def data-to (enum node))                   ; データのrequester (INSIDE|OUTSIDE)
+  (def head (array (enum node) ARG-SIZE-MAX)) ; データのrequester
+  (def dreq-cmd (struct cmd))         ; さらに親にdreqを投げる際の雛形
+  (def start int)                     ; データの要求範囲
+  (def end int)                       ; データの要求範囲
+  )
+
+
+;;;; worker.sc の関数プロトタイプ宣言
 (decl (csym::make-and-send-task thr task-no body)
       (csym::fn void (ptr (struct thread-data)) int (ptr void)))
 (decl (wait-rslt thr) (fn (ptr void) (ptr (struct thread-data))))
@@ -135,10 +166,14 @@
 (decl (csym::proto-error str pcmd) (csym::fn void (ptr (const char)) (ptr (struct cmd))))
 (decl (csym::read-to-eol) (csym::fn void void))
 
+(decl (csym::init-data-flag) (csym::fn void int))
+
 (decl (csym::recv-rslt) (csym::fn void (ptr (struct cmd)) (ptr void)))
 (decl (csym::recv-task) (csym::fn void (ptr (struct cmd)) (ptr void)))
 (decl (csym::recv-treq) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-rack) (csym::fn void (ptr (struct cmd))))
+(decl (csym::recv-dreq) (csym::fn void (ptr (struct cmd))))
+(decl (csym::recv-data) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-none) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-back) (csym::fn void (ptr (struct cmd))))
 (decl (csym::print-task-list task-top name) (csym::fn void (ptr (struct task)) (ptr char)))
@@ -146,6 +181,17 @@
 (decl (csym::print-thread-status thr) (csym::fn void (ptr (struct thread-data))))
 (decl (csym::print-status) (csym::fn void (ptr (struct cmd))))
 (decl (csym::set-verbose-level) (csym::fn void (ptr (struct cmd))))
+
+;;;; cmd-serial.sc の関数プロトタイプ宣言
+(decl (csym::serialize-cmdname buf w) (fn int (ptr char) (enum command)))
+(decl (csym::deserialize-cmdname buf str) (fn int (ptr (enum command)) (ptr char)))
+(decl (csym::serialize-arg buf arg) (fn int (ptr char) (ptr (enum node))))
+(decl (csym::deserialize-node str) (fn (enum node) (ptr char)))
+(decl (csym::deserialize-arg buf str) (fn int (ptr (enum node)) (ptr char)))
+(decl (csym::serialize-cmd buf pcmd) (fn int (ptr char) (ptr (struct cmd))))
+(decl (csym::deserialize-cmd pcmd str) (fn int (ptr (struct cmd)) (ptr char)))
+(decl (csym::copy-address dst src) (fn int (ptr (enum node)) (ptr (enum node))))
+(decl (csym::address-equal adr1 adr2) (fn int (ptr (enum node)) (ptr (enum node))))
 
 ;;;; Command line options
 (%defconstant HOSTNAME-MAXSIZE 256)
@@ -158,14 +204,3 @@
   (def verbose int)                     ; verbose level
   )
 (extern-decl option (struct runtime-option))
-
-;;;; cmd-serial.sc
-(decl (csym::serialize-cmdname buf w) (fn int (ptr char) (enum command)))
-(decl (csym::deserialize-cmdname buf str) (fn int (ptr (enum command)) (ptr char)))
-(decl (csym::serialize-arg buf arg) (fn int (ptr char) (ptr (enum node))))
-(decl (csym::deserialize-node str) (fn (enum node) (ptr char)))
-(decl (csym::deserialize-arg buf str) (fn int (ptr (enum node)) (ptr char)))
-(decl (csym::serialize-cmd buf pcmd) (fn int (ptr char) (ptr (struct cmd))))
-(decl (csym::deserialize-cmd pcmd str) (fn int (ptr (struct cmd)) (ptr char)))
-(decl (csym::copy-address dst src) (fn int (ptr (enum node)) (ptr (enum node))))
-(decl (csym::address-equal adr1 adr2) (fn int (ptr (enum node)) (ptr (enum node))))
