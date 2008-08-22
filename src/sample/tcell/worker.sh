@@ -15,7 +15,7 @@
 (%cinclude "sock.h" (:macro))           ; 通信関係
 
 ;; 0以上の数はthread-idに相当するので，enum idには負の数を割り当てる
-(def (enum node) (OUTSIDE -1) (INSIDE -2) (ANY -3) (PARENT -4) (TERM -5))
+(def (enum node) (OUTSIDE -1) (INSIDE -2) (ANY -3) (PARENT -4) (FORWARD -5) (TERM -99))
 (def (enum command)
     TASK RSLT TREQ NONE BACK RACK DREQ DATA
     STAT VERB EXIT WRNG)
@@ -152,9 +152,10 @@
 (def (struct dhandler-arg)
   (def data-to (enum node))                   ; データのrequester (INSIDE|OUTSIDE)
   (def head (array (enum node) ARG-SIZE-MAX)) ; データのrequester
-  (def dreq-cmd (struct cmd))         ; さらに親にdreqを投げる際の雛形
-  (def start int)                     ; データの要求範囲
-  (def end int)                       ; データの要求範囲
+  (def dreq-cmd (struct cmd))           ; さらに親にdreqを投げる際の雛形 (for DATA-NONE)
+  (def dreq-cmd-fwd (struct cmd))       ; さらに親にdreqを投げる際の雛形 (for DATA-REQUESTING)
+  (def start int)                       ; データの要求範囲
+  (def end int)                         ; データの要求範囲
   )
 
 

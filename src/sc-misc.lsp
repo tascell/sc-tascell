@@ -535,10 +535,10 @@
     `(let ((,exp-var ,exp))
        (declare (simple-string ,exp-var))
        (cond
-        ,@(loop for clause in case-clauses 
+        ,@(loop for clause in case-clauses
               collect
-                (cond 
-                 ((eq 'cl:otherwise (car clause))
+                (cond
+                 ((symbol-of-name "otherwise" (car clause))
                   `(t ,@(cdr clause)))
                  (t
                   `((or ,@(mapcar
@@ -548,6 +548,57 @@
                            (mklist (car clause))))
                     ,@(cdr clause)))))))))
 
+;; string-caseの高速版：expが与えらえた文字列のどれかであることを仮定し，
+;; 先頭部分だけで判断することで高速に判定
+(defmacro string-case-eager (exp &body case-clauses)
+  (with-fresh-variables (x-var len-var bl-var otw-tag)
+    (let* ((otw-action (list `(error "No string matched ~S." ,x-var)))
+           (strs-tag-action-list
+            (loop for cl in case-clauses
+                until (and (symbol-of-name "otherwise" (car cl))
+                           (setq otw-action (cdr cl))
+                           t)
+                collect (cond
+                         ((stringp (car cl))
+                          (list (list (car cl)) (gensym (string+ "tag-" (car cl))) (cdr cl)))
+                         ((every #'stringp (car cl))
+                           (list (car cl) (gensym (string+ "tag-" (strcat (car cl) "/"))) (cdr cl)))
+                         (t
+                          (error "syntax error in string-case-opt."))))))
+      (labels ((iter (i str-tag-list)   ; list of ("..." . <goto-tag>)
+                 ;; (print `(iter ,i ,str-tag-list))
+                 (if (with1 tag1 (cdar str-tag-list) ; 全てのタグが同じ
+                       (every #'(lambda (x) (eq tag1 (cdr x)))
+                              (cdr str-tag-list)))
+                     `(go ,(cdar str-tag-list))
+                   (destructuring-bind (sht-sts lng-sts)
+                       (stable-assort-bool str-tag-list 
+                                           :test #'(lambda (x) (<= (length (car x)) i)))
+                     (let ((grps (stable-assort lng-sts
+                                                :key #'(lambda (x) (aref (car x) i)) :test #'char=)))
+                       `(if (<= ,len-var ,i)
+                            (go ,(if sht-sts (cdar sht-sts) otw-tag))
+                          (case (aref ,x-var ,i)
+                            ,@(loop for str-tag-list2 in grps
+                                  collect `(,(aref (caar str-tag-list2) i)
+                                            ,(iter (1+ i) str-tag-list2)))
+                            )))))))
+        `(let* ((,x-var ,exp) (,len-var (length ,x-var)))
+           (block ,bl-var
+             (tagbody
+               ,(iter 0 (loop for strs-tag-action in strs-tag-action-list
+                            nconc (loop for str in (car strs-tag-action)
+                                      with tag = (second strs-tag-action)
+                                      collect (cons str tag))))
+               (go ,otw-tag)
+               ,@(loop for strs-tag-action in strs-tag-action-list
+                     as tag = (second strs-tag-action)
+                     and action = (third strs-tag-action)
+                     nconc (list tag
+                                 `(return-from ,bl-var (progn ,@action))))
+               ,otw-tag
+               (return-from ,bl-var (progn ,@otw-action)))))))))
+                 
 ;;;;;; multiple-value 関連
 (defmacro nth-multiple-value (n form)
   `(nth ,n (multiple-value-list ,form)))
@@ -599,6 +650,12 @@
    (symbolp sym1)
    (symbolp sym2)
    (string= (symbol-name sym1) (symbol-name sym2))))
+
+
+;;; symbolp <and> symbol-name
+(defun symbol-of-name (name x &optional (test #'string-equal))
+  (and (symbolp x)
+       (funcall test name (symbol-name x))))
 
 ;;;;;; リスト操作
 
@@ -694,6 +751,7 @@
           (push (cons keyval (list elm)) retval))))))
 
 ;; リストの順番を保存するassort
+;; assortの実装に依存する実装なので注意
 ;; > (stable-assort '((1 2) (1 3) (3 4) (2 5) (9 3) (3 2)) :key #'car)
 ;; (((1 2) (1 3)) ((3 4) (3 2)) ((2 5)) ((9 3)))
 (defun stable-assort (lst &key (test #'eql) (key #'identity))
@@ -701,6 +759,20 @@
   (nreverse (mapcar #'nreverse (assort lst :test test :key key))))
 
 
+;;; リストの各要素を :testで判定して (非nilになったもののリスト nilになったもののリスト）
+;;; を返す
+(defun assort-bool (lst &key (test #'identity) (key #'identity))
+  (loop for x in lst
+      as tf = (funcall test (funcall key x))
+      if tf
+      collecting x into pool-t
+      else
+      collecting x into pool-f
+      finally (return (list pool-t pool-f))))
+
+(setf (symbol-function 'stable-assort-bool) #'assort-bool)
+  
+ 
 ;; リストの中から与えられた基準での最高要素を見付ける
 (defun find-max (lst &key (test #'>) (key #'identity))
   (declare (list lst) (function test key))

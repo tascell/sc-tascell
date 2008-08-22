@@ -39,7 +39,7 @@
                                     "../../sc-misc.lsp")
                                 :output-file "sc-misc.fasl"))
   ;; Uncomment to ignore logging code
-  (push :tcell-no-transfer-log *features*)
+  ;; (push :tcell-no-transfer-log *features*)
   )
 #+sc-system (use-package "SC-MISC")
 (use-package :socket)
@@ -69,6 +69,8 @@
 ;;; read-lineで読み込める長さの最大
 (defconstant *max-line-length* 128)
 
+;;; コマンドに続いてデータをともなうコマンド
+(defconstant *commands-with-data* '(:|task| :|rslt| :|data|))
 
 (defparameter *retry* 20)
 
@@ -112,7 +114,7 @@
    ))
 
 (defclass child (host)
-  ((id :accessor child-id :type fixnum)
+  ((id :accessor child-id :type fixnum :initform -999)
    (diff-task-rslt :accessor child-diff-task-rslt :type fixnum :initform 0)
                                         ; <taskを送った回数>-<rsltが返ってきた回数>
    (work-size :accessor child-wsize :type fixnum :initform 0)
@@ -188,11 +190,15 @@
 ;;; Finalizers
 (defmethod finalize ((sdr sender))
   (when (send-process sdr)
+    (mp:process-wait "Wait until send buffer becomes empty"
+                     #'empty-buffer-p (send-buffer sdr))
     (mp:process-kill (send-process sdr))
     (setf (send-process sdr) nil)))
 
 (defmethod finalize ((rcvr receiver))
   (when (receive-process rcvr)
+    ;; (mp:process-wait "Wait until receive buffer becomes empty"
+    ;;                  #'empty-buffer-p (receive-buffer rcvr))
     (mp:process-kill (receive-process rcvr))
     (setf (receive-process rcvr) nil)))
 
@@ -211,6 +217,9 @@
 (defmethod finalize ((hst host))
   (finalize (host-sender hst))
   (finalize (host-receiver hst)))
+
+(defmethod finalize :before ((hst child))
+  (send-exit hst))
 
 (defmethod finalize ((hst (eql nil))))
 
@@ -385,7 +394,7 @@
                       (let ((msg0 (split-string getstr)))
                         (rplaca msg0 (intern (car msg0) :keyword))
                         msg0))))
-          (if (or (eq :|task| (car msg)) (eq :|rslt| (car msg)))
+          (if (member (car msg) *commands-with-data*)
               (rplacd (last msg) (read-body stream)))
           #-tcell-no-transfer-log
           (when *transfer-log*          ; debug print
@@ -615,7 +624,10 @@
 
 ;;; アドレスhead-stringの先頭にhstのidを追加したものを返す
 (defmethod head-push ((hst host) head-string)
-  (string+ (hostid hst) ":" head-string))
+  (let ((sp-head (split-string-1 head-string #\:)))
+    (if (string= "f" (first sp-head))   ; forward => 追加せず，f以降のアドレスを返す
+        (second sp-head)
+      (string+ (hostid hst) ":" head-string))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; メッセージ送信
@@ -716,11 +728,20 @@
 (defmethod send-rack (to task-head)
   (send to (list "rack " task-head #\Newline)))
 
+(defmethod send-dreq (to data-head dreq-head range)
+  (send to (list "dreq " data-head #\Space dreq-head #\Space range #\Newline)))
+
+(defmethod send-data (to data-head range data-body)
+  (send to (list "data " data-head #\Space range #\Newline data-body #\Newline)))
+
 (defmethod send-stat (to task-head)
   (send to (list "stat " task-head #\Newline)))
 
 (defmethod send-verb (to task-head)
   (send to (list "verb " task-head #\Newline)))
+
+(defmethod send-exit (to)
+  (send to (list "exit" #\Newline)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Dispatch
@@ -732,6 +753,8 @@
     (:|back| (proc-back sv from cmd))
     (:|rslt| (proc-rslt sv from cmd))
     (:|rack| (proc-rack sv from cmd))
+    (:|dreq| (proc-dreq sv from cmd))
+    (:|data| (proc-data sv from cmd))
     (:|eof|  (remove-child sv from))
     (:|log|  (proc-log sv from cmd))
     (:|stat| (proc-stat sv from cmd))
@@ -865,6 +888,22 @@
       (head-shift sv (second cmd))      ; rack送信先
     (send-rack to s-task-head)))
 
+;;; dreq
+(defmethod proc-dreq ((sv tcell-server) (from host) cmd)
+  (let ((p-data-head (head-push from (second cmd))) ; データ要求者
+        (range (fourth cmd)))           ; データ要求範囲
+    (destructuring-bind (hst0 s-dreq-head) ; データ要求先
+        (head-shift sv (third cmd))
+      (send-dreq hst0 p-data-head s-dreq-head range))))
+
+;;; data
+(defmethod proc-data ((sv tcell-server) (from host) cmd)
+  (destructuring-bind (to s-data-head)  ; data送信先
+      (head-shift sv (second cmd))
+    (let ((range (third cmd))           ; データ要求範囲
+          (data-body (cdddr cmd)))      ; データ本体
+      (send-data to s-data-head range data-body))))
+      
 ;;; stat: サーバ／ワーカの状態を出力
 (defmethod proc-stat ((sv tcell-server) (from host) cmd)
   (if (cdr cmd)
@@ -935,4 +974,4 @@
 
 ;; geroでの評価用
 (defun gs ()
-  (make-and-start-server :auto-resend-task 4 :local-host "gero00"))
+  (make-and-start-server :auto-resend-task 0 :local-host "gero00"))

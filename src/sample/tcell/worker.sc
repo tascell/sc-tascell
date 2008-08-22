@@ -26,6 +26,9 @@
 ;;;; Tascell worker
 (%include "rule/nestfunc-setrule.sh")
 
+;; (c-exp "#define NDEBUG")
+(c-exp "#include<assert.h>")
+
 (c-exp "#include<stdio.h>")
 (c-exp "#include<stdlib.h>")
 (c-exp "#include<string.h>")
@@ -137,17 +140,20 @@
   (csym::send-string send-buf sv-socket)
   (csym::write-eol)
   ;; TASK, RSLT, DATAのbody送信関数（Tascellプログラマ定義）を呼び出す
-  (if body
-      (cond
-       ((== w TASK)
-        ((aref task-senders task-no) body)
-        (csym::write-eol))
-       ((== w RSLT)
-        ((aref rslt-senders task-no) body)
-        (csym::write-eol))
-       ((== w DATA)
-        ;; write once なデータをreadするだけだからロックはしなくていいか
-        (csym::data-send (aref pcmd->v 1 0) (aref pcmd->v 1 1)))))
+  (cond
+   (body
+    (cond
+     ((== w TASK)
+      ((aref task-senders task-no) body)
+      (csym::write-eol))
+     ((== w RSLT)
+      ((aref rslt-senders task-no) body)
+      (csym::write-eol))))
+   ((== w DATA)
+    ;; data-mutはロック済
+    (csym::data-send (aref pcmd->v 1 0) (aref pcmd->v 1 1))
+    (csym::write-eol)))
+
   (csym::flush-send)
   (csym::pthread-mutex-unlock (ptr send-mut))
   ;; ---> sender-lock --->
@@ -817,24 +823,39 @@
   (csym::pthread-mutex-unlock (ptr data-mutex))
   (return))
 
-;; 要求時取得データのうち，NONEなものについてdreqを送信
+;; 要求時取得データのうち，NONEなものについてpcmd，REQUESTINGなものについてpcmd-fwdを送信
+;; NONEをREQUESTING に更新する
 ;; data-mutexのロックはこの中でする．
-;; pcmd: データ範囲（3つめのパラメータ）以外がセットされたcmdへのポインタ
-(def (csym::send-dreq-for-required-range start end pcmd) (csym::fn void int int (ptr (struct cmd)))
+;; pcmdとpcmd-fwdは データ範囲（3つめのパラメータ）以外がセットされたDREQコマンド
+;; （送らなくていい場合はNULLを与える）
+(def (csym::send-dreq-for-required-range start end pcmd pcmd-fwd)
+    (csym::fn void int int (ptr (struct cmd)) (ptr (struct cmd)))
   (defs int i j)
   (csym::pthread-mutex-lock (ptr data-mutex))
   (for ((= i start) (< i end) (inc i))
-    (if (== (aref data-flags i) DATA-NONE)
-        (begin
-          (= (aref data-flags i) DATA-REQUESTING)
-          (for ((= j (+ i 1)) (and (< j end) (== (aref data-flags j) DATA-NONE)) (inc j))
-            (= (aref data-flags j) DATA-REQUESTING))
-          ;; iからjまで要求を出す
-          (= (aref pcmd->v 2 0) i)  (= (aref pcmd->v 2 1) j)
-          (= (aref pcmd->v 2 2) TERM)
-          (csym::send-command pcmd 0 0)
-          (= i j)                       ; 要求を出した範囲の次からチェック再開
-          )))
+    (cond
+     ((== (aref data-flags i) DATA-NONE)
+      (= (aref data-flags i) DATA-REQUESTING)
+      (for ((= j (+ i 1)) (and (< j end) (== (aref data-flags j) DATA-NONE)) (inc j))
+        (= (aref data-flags j) DATA-REQUESTING))
+      ;; iからjまで要求 (pcmd) を出す
+      (if pcmd
+          (begin
+            (= (aref pcmd->v 2 0) i)  (= (aref pcmd->v 2 1) j)
+            (= (aref pcmd->v 2 2) TERM)
+            (csym::send-command pcmd 0 0)))
+      (= i (- j 1)))                    ; 要求を出した範囲の次からチェック再開
+     ((== (aref data-flags i) DATA-REQUESTING)
+      (for ((= j (+ i 1)) (and (< j end) (== (aref data-flags j) DATA-REQUESTING)) (inc j))
+        )
+      ;; iからjまで要求 (pcmd-fwd) を出す
+      (if pcmd-fwd
+          (begin
+            (= (aref pcmd-fwd->v 2 0) i)  (= (aref pcmd-fwd->v 2 1) j)
+            (= (aref pcmd-fwd->v 2 2) TERM)
+            (csym::send-command pcmd-fwd 0 0)))
+      (= i (- j 1)))                    ; 要求を出した範囲の次からチェック再開
+     ))
   (csym::pthread-mutex-unlock (ptr data-mutex))
   )
 
@@ -890,7 +911,7 @@
                (csym::proto-error "dreq template" (ptr cmd)))
   
   ;; 必要な範囲についてdreqを送信
-  (csym::send-dreq-for-required-range start end (ptr cmd))
+  (csym::send-dreq-for-required-range start end (ptr cmd) 0)
   (DEBUG-PRINT 2 "request-data: %d--%d end~%" start end)
   (return)
   )
@@ -923,11 +944,17 @@
   (def start int parg->start)
   (def end int parg->end)
   (def pcmd (ptr (struct cmd)) (ptr parg->dreq-cmd))
+  (def pcmd-fwd (ptr (struct cmd)) (ptr parg->dreq-cmd-fwd))
   (def data-cmd (struct cmd))
   (defs int i j)
   
+  (DEBUG-STMTS 1 (= (aref pcmd->v 2 0) TERM)
+               (csym::fprintf stderr "dreq-handler: %d %d~%" start end)
+               (csym::proto-error "template" pcmd))
+  
   ;; NONEな範囲について，さらに親に要求を出す
-  (csym::send-dreq-for-required-range start end pcmd)
+  ;; REQUESTINGな範囲について，要求をforwardする
+  (csym::send-dreq-for-required-range start end pcmd pcmd-fwd)
   
   ;; INSIDEからのdreqならデータを送る必要はないのでここで終わり
   (if (== parg->data-to INSIDE) (return))
@@ -943,17 +970,19 @@
   (for ((= i start) (< i end) (inc i))
     (while (!= (aref data-flags i) DATA-EXIST)
       (csym::pthread-cond-wait (ptr data-cond) (ptr data-mutex)))
-    (for ((= j (+ j 1)) (and (< j end) (== (aref data-flags j) DATA-EXIST)) (inc j))
-      ;; iからjまで送る（本体は，send-out-commandで送られる）
-      (= (aref data-cmd.v 1 0) i)  (= (aref data-cmd.v 1 1) j)
-      (= (aref data-cmd.v 1 2) TERM)
-      (csym::send-command (ptr data-cmd) 0 0))
+    (for ((= j (+ i 1)) (and (< j end) (== (aref data-flags j) DATA-EXIST)) (inc j))
+      )
+    ;; iからjまで送る（本体は，send-out-commandで送られる）
+    (csym::assert (< i j))
+    (= (aref data-cmd.v 1 0) i)  (= (aref data-cmd.v 1 1) j)
+    (= (aref data-cmd.v 1 2) TERM)
+    (csym::send-command (ptr data-cmd) 0 0)
     (= i (- j 1)))
   (csym::pthread-mutex-unlock (ptr data-mutex))
   
   (csym::free parg)
   (return))
-  
+
 ;; dreq <data要求元header> <data要求先(<thread-id>:<task-home-id>)> <data要求範囲(<data-start>:<data-end>)>
 (def (csym::recv-dreq pcmd) (csym::fn void (ptr (struct cmd)))
   (def tx (ptr (struct task)))
@@ -969,20 +998,29 @@
   (= parg (cast (ptr (struct dhandler-arg)) (csym::malloc (sizeof (struct dhandler-arg)))))
   (= parg->data-to pcmd->node)          ; data送信先（INSIDE|OUTSIDE)
   (csym::copy-address parg->head (aref pcmd->v 0)) ; data送信先（INSIDE|OUTSIDE)
+  ;; parg->dreq-cmd: 自分のとこにもない(DATA-NONE)場合に出すDREQコマンドの雛形
   (= parg->dreq-cmd.w DREQ)
   (= parg->dreq-cmd.c 3)
   (= (aref parg->dreq-cmd.v 0 0) 0)     ; 要求元：ダミーの値
   (= (aref parg->dreq-cmd.v 0 1) TERM)  ; 要求元：ダミーの値
-  ;; さらなるdreq要求をどこに出すか決定
-  (begin
+  (begin                                ; さらなるdreq要求をどこに出すか決定
    (= tid (aref pcmd->v 1 0))
    (if (not (< tid num-thrs)) (csym::proto-error "wrong dreq-head" pcmd))
    (= sid (aref pcmd->v 1 1))
    (if (== TERM sid) (csym::proto-error "Wrong dreq-head (no task-home-id)" pcmd))
    ;; 最初の外部ノードのtask-homeのアドレスを獲得
    (csym::get-first-outside-ancestor-task-address (aref parg->dreq-cmd.v 1) tid sid)
-   (= parg->dreq-cmd.node OUTSIDE)
    )
+  (= parg->dreq-cmd.node OUTSIDE)
+  ;; parg->dreq-cmd: 自分のとこにもない(DATA-REQUESTING)場合に出すDREQコマンドの雛形
+  (= parg->dreq-cmd-fwd.w DREQ)
+  (= parg->dreq-cmd-fwd.c 3)
+  (= (aref parg->dreq-cmd-fwd.v 0 0) FORWARD) ; 要求元：受け取ったDREQの要求元に偽装
+  (csym::copy-address (ptr (aref parg->dreq-cmd-fwd.v 0 1))
+                      (aref pcmd->v 0))
+  (csym::copy-address (aref parg->dreq-cmd-fwd.v 1) ; 要求先：上で求めたものと同じ
+                      (aref parg->dreq-cmd.v 1))
+  (= parg->dreq-cmd-fwd.node OUTSIDE)
   ;; 要求範囲
   (= parg->start (aref pcmd->v 2 0))
   (= parg->end   (aref pcmd->v 2 1))
@@ -996,13 +1034,19 @@
 
 ;; data <data送信先header> <data範囲(<data-start>:<data-end>)>
 (def (csym::recv-data pcmd) (csym::fn void (ptr (struct cmd)))
+  (def i int)
+  (def start int (aref pcmd->v 1 0))
+  (def end int (aref pcmd->v 1 1))
   ;; 引数の数チェック
   (if (< pcmd->c 2) (csym::proto-error "Wrong data" pcmd))
   ;; （起こらないはずだが）内部からのdataであれば無視
   (if (== pcmd->node INSIDE) (return))
   ;; データ受信関数（Tascellプログラマ定義）を呼び出す
   (csym::pthread-mutex-lock (ptr data-mutex))
-  (csym::data-receive (aref pcmd->v 1 0) (aref pcmd->v 1 1))
+  (csym::data-receive start end)
+  (csym::read-to-eol)
+  (for ((= i start) (< i end) (inc i))
+    (= (aref data-flags i) DATA-EXIST))
   (csym::pthread-cond-broadcast (ptr data-cond))
   (csym::pthread-mutex-unlock (ptr data-mutex))
   (return))

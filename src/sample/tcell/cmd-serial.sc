@@ -62,7 +62,6 @@
        (csym::fprintf stderr "~%"))
   )
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;
 ;; (enum node)の値が配列添字に対応
@@ -150,6 +149,8 @@
          (+= p 3))
         ((== PARENT node)
          (= (mref (inc p)) #\p))
+        ((== FORWARD node)
+         (= (mref (inc p)) #\f))
         (else
          (+= p (csym::sprintf p "%d" node))))
        (= (mref (inc p)) #\:))
@@ -162,6 +163,8 @@
   (cond
    ((== #\p (aref str 0))
     (return PARENT))
+   ((== #\f (aref str 0))
+    (return FORWARD))
    ((== 0 (csym::strncmp str "any" 3))
     (return ANY))
    (else

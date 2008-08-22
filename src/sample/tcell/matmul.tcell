@@ -27,7 +27,9 @@
 ;; task 0 0 0 1
 ;; <n>
 
+;; (c-exp "#define NDEBUG")
 (c-exp "#include<sys/time.h>")
+(c-exp "#include<assert.h>")
 
 (%ifndef* NF-TYPE
   (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
@@ -94,6 +96,7 @@
   (if (> n1 N)
       (begin (-= n1 N) (-= n2 N) (= p B))
     (= p A))
+  (csym::assert (> n2 n1))
   ;; assume that N=NX
   (csym::send-doubles (+ p (* n1 N)) (* (- n2 n1) N)))
   
@@ -192,6 +195,7 @@
   (DEBUG-PRINT 2 "rslt-sender-start~%")
   (= idiff (- this.i1 this.i0))
   (= jdiff (- this.j1 this.j0))
+  (csym::assert (> (* idiff jdiff) 0))
   (csym::send-binary-header (sizeof double) (* idiff jdiff))
   (for ((= i this.i0) (< i this.i1) (inc i))
     (csym::send-double-seq (+ C (* i NX) this.j0) jdiff))
@@ -206,7 +210,7 @@
   (DEBUG-PRINT 2 "rslt-receiver-start~%")
   (= idiff (- this.i1 this.i0))
   (= jdiff (- this.j1 this.j0))
-  (= swp (csym::recv-binary-header (sizeof double) (* idiff jdiff)))
+  (= swp (csym::recv-binary-header 0 0))
   (for ((= i this.i0) (< i this.i1) (inc i))
     (csym::recv-double-seq (+ C (* i NX) this.j0) jdiff))
   (csym::recv-binary-terminator)
