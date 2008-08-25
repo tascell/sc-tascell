@@ -41,6 +41,17 @@
   ;; Uncomment to ignore logging code
   ;; (push :tcell-no-transfer-log *features*)
   )
+
+#-tcell-no-transfer-log
+(defmacro tcell-server-dprint (format-string &rest args)
+  `(when *transfer-log*                 ; *transfer-log* is defined below
+     (format *error-output* ,format-string ,@args)
+     (force-output *error-output*)))
+#+tcell-no-transfer-log
+(defmacro tcell-server-dprint (&rest args)
+  (declare (ignore args))
+  '(progn))
+
 #+sc-system (use-package "SC-MISC")
 (use-package :socket)
 
@@ -70,7 +81,12 @@
 (defconstant *max-line-length* 128)
 
 ;;; コマンドに続いてデータをともなうコマンド
-(defconstant *commands-with-data* '(:|task| :|rslt| :|data|))
+;;; These constants are referred to in compile time with #. reader macros.
+(eval-when (:execute :load-toplevel :compile-toplevel)
+  (defconstant *commands* '("treq" "task" "none" "back" "rslt" "rack" "dreq" "data" "eof" "log"
+                            "stat" "verb" "eval"))
+  (defconstant *commands-with-data* '("task" "rslt" "data"))
+  (defconstant *commands-without-data* (set-difference *commands* *commands-with-data* :test #'string=)))
 
 (defparameter *retry* 20)
 
@@ -375,9 +391,9 @@
     (write-msg-log obj s)))
 
 (defun write-msg-log (obj dest)
-  (typecase obj
+  (etypecase obj
     (list (mapc #'(lambda (ob) (write-msg-log ob dest)) obj))
-    (symbol (write-string (symbol-name obj) dest))
+    ;; (symbol (write-string (symbol-name obj) dest))
     (character (write-char obj dest))
     (string (write-string obj dest))
     (array (format dest "#<Binary data: SIZE=~D>" (length obj)))))
@@ -390,17 +406,12 @@
         (let* ((n-char (setf (fill-pointer getstr)
                          (excl:read-line-into getstr stream nil 0)))
                (eof-p (= 0 n-char))
-               (msg (if eof-p '(:|eof|)
-                      (let ((msg0 (split-string getstr)))
-                        (rplaca msg0 (intern (car msg0) :keyword))
-                        msg0))))
-          (if (member (car msg) *commands-with-data*)
-              (rplacd (last msg) (read-body stream)))
-          #-tcell-no-transfer-log
-          (when *transfer-log*          ; debug print
-            (format *error-output* "Received ~S from ~S~%"
-              getstr (hostinfo hst))
-            (force-output *error-output*))
+               (msg (if eof-p '("eof") (split-string getstr))))
+          (string-case-eager (car msg)
+            (#.*commands-with-data* (rplacd (last msg) (read-body stream)))
+            (#.*commands-without-data* nil)
+            (otherwise (error "Unknown command ~S from ~S." msg (hostinfo hst))))
+          (tcell-server-dprint "Received ~S from ~S~%" getstr (hostinfo hst))
           (values (cons hst msg) eof-p))
         )))
 
@@ -412,31 +423,21 @@
              (len (length pre)))
         ;; 空行で終了
         (when (= len 0) (return))
-        (push pre ret)
-        (push #\Newline ret)
-        #-tcell-no-transfer-log
-        (when *transfer-log*            ; debug print
-          (write-string pre *error-output*)
-          (write-char #\Newline *error-output*))
+        (pushs pre #\Newline ret)
+        (tcell-server-dprint "~A~%" pre)
         ;; 最初の行が#\(でおわっていたら次の行はbyte-header，次いでbyte-data
         (when (and (>= len 1)
                    (char= #\( (aref pre (- len 1))))
-          #-tcell-no-transfer-log
-          (when *transfer-log* (terpri *error-output*)) ; debug print
+          (tcell-server-dprint "~%")
           (let* ((byte-header (read-line stream t))
                  (whole-size (parse-integer byte-header :junk-allowed t)))
-            (push byte-header ret)
-            (push #\Newline ret)
-            #-tcell-no-transfer-log
-            (when *transfer-log*        ; debug print
-              (write-string byte-header *error-output*)
-              (terpri *error-output*))
+            (pushs byte-header #\Newline ret)
+            (tcell-server-dprint "~A~%" byte-header)
             (let ((byte-data (make-array whole-size)))
               (read-sequence byte-data stream :end whole-size)
               (push byte-data ret)
-              #-tcell-no-transfer-log
-              (when *transfer-log*      ; debug print
-                (write-msg-log byte-data *error-output*))
+              #-tcell-no-transfer-log   ; debug print
+              (when *transfer-log* (write-msg-log byte-data *error-output*))
               )))))
     (nreverse ret)))
 
@@ -746,20 +747,20 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Dispatch
 (defmethod proc-cmd ((sv tcell-server) (from host) cmd)
-  (case (car cmd)
-    (:|treq| (proc-treq sv from cmd))
-    (:|task| (proc-task sv from cmd))
-    (:|none| (proc-none sv from cmd))
-    (:|back| (proc-back sv from cmd))
-    (:|rslt| (proc-rslt sv from cmd))
-    (:|rack| (proc-rack sv from cmd))
-    (:|dreq| (proc-dreq sv from cmd))
-    (:|data| (proc-data sv from cmd))
-    (:|eof|  (remove-child sv from))
-    (:|log|  (proc-log sv from cmd))
-    (:|stat| (proc-stat sv from cmd))
-    (:|verb| (proc-verb sv from cmd))
-    (:|eval| (print (eval (read-from-string (strcat (cdr cmd) #\Space)))))
+  (string-case-eager (car cmd)
+    ("treq" (proc-treq sv from cmd))
+    ("task" (proc-task sv from cmd))
+    ("none" (proc-none sv from cmd))
+    ("back" (proc-back sv from cmd))
+    ("rslt" (proc-rslt sv from cmd))
+    ("rack" (proc-rack sv from cmd))
+    ("dreq" (proc-dreq sv from cmd))
+    ("data" (proc-data sv from cmd))
+    ("eof"  (remove-child sv from))
+    ("log"  (proc-log sv from cmd))
+    ("stat" (proc-stat sv from cmd))
+    ("verb" (proc-verb sv from cmd))
+    ("eval" (print (eval (read-from-string (strcat (cdr cmd) #\Space)))))
     (otherwise (warn "Unknown Command:~S" cmd))))
 
 ;;; treq

@@ -36,6 +36,7 @@
   (put 'aif tag '(like if))
   (put 'error-indent tag '(like when))
   (put 'string-case tag '(like case))
+  (put 'string-case-eager tag '(like case))
   (put 'with-fresh-variables tag '(like let))
   ;; .rule
   (put 'defrule tag '((1 (3 t) ((1 0 quote) (0 t nil))) (0 t 2)))
