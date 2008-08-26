@@ -39,7 +39,7 @@
                                     "../../sc-misc.lsp")
                                 :output-file "sc-misc.fasl"))
   ;; Uncomment to ignore logging code
-  ;; (push :tcell-no-transfer-log *features*)
+  (push :tcell-no-transfer-log *features*)
   )
 
 #-tcell-no-transfer-log
@@ -77,13 +77,15 @@
 ;;; send/recvのログを出力する長さ
 (defparameter *transfer-log-length* 70)
 
-;;; read-lineで読み込める長さの最大
+;;; read-lineで読み込める長さ（許されるコマンド行の長さ）の最大
 (defconstant *max-line-length* 128)
+;;; task, rslt, dataのバッファを転送するときのバッファのサイズ
+(defconstant *body-buffer-size* 4096)
 
 ;;; コマンドに続いてデータをともなうコマンド
 ;;; These constants are referred to in compile time with #. reader macros.
 (eval-when (:execute :load-toplevel :compile-toplevel)
-  (defconstant *commands* '("treq" "task" "none" "back" "rslt" "rack" "dreq" "data" "eof" "log"
+  (defconstant *commands* '("treq" "task" "none" "back" "rslt" "rack" "dreq" "data" "exit" "log"
                             "stat" "verb" "eval"))
   (defconstant *commands-with-data* '("task" "rslt" "data"))
   (defconstant *commands-without-data* (set-difference *commands* *commands-with-data* :test #'string=)))
@@ -206,15 +208,17 @@
 ;;; Finalizers
 (defmethod finalize ((sdr sender))
   (when (send-process sdr)
-    (mp:process-wait "Wait until send buffer becomes empty"
-                     #'empty-buffer-p (send-buffer sdr))
+    (mp:process-wait-with-timeout "Wait until send buffer becomes empty"
+                                  5
+                                  #'empty-buffer-p (send-buffer sdr))
     (mp:process-kill (send-process sdr))
     (setf (send-process sdr) nil)))
 
 (defmethod finalize ((rcvr receiver))
   (when (receive-process rcvr)
-    ;; (mp:process-wait "Wait until receive buffer becomes empty"
-    ;;                  #'empty-buffer-p (receive-buffer rcvr))
+    ;; (mp:process-wait-with-timeout "Wait until receive buffer becomes empty"
+    ;;                               5
+    ;;                               #'empty-buffer-p (receive-buffer rcvr))
     (mp:process-kill (receive-process rcvr))
     (setf (receive-process rcvr) nil)))
 
@@ -284,7 +288,8 @@
           `(treq-any-list ,@(mapcar #'ta-entry-info (ts-talist sv)))
           `(retry ,(ts-retry sv)))
           *error-output*)
-  (terpri *error-output*))
+  (terpri *error-output*)
+  (force-output *error-output*))
 
 (defmethod wait-and-add-child ((sv tcell-server))
   (let ((next-child (make-instance 'child :server sv)))
@@ -384,38 +389,90 @@
     (list (mapc #'(lambda (ob) (sender-writer ob dest)) obj))
     (character (write-char obj dest))
     (string (write-string obj dest))
+    (function (funcall obj dest))
     (array (write-sequence obj dest))))
 
-(defun msg-log-string (obj)
+(defun msg-log-string (obj &optional (separator #\Space))
   (with-output-to-string (s)
-    (write-msg-log obj s)))
+    (write-msg-log obj s separator)))
 
-(defun write-msg-log (obj dest)
-  (etypecase obj
-    (list (mapc #'(lambda (ob) (write-msg-log ob dest)) obj))
+(defun write-msg-log (obj dest &optional (separator #\Space))
+  (typecase obj
+    (list (write-msg-log (car obj) dest separator)
+          (mapc #'(lambda (ob)
+                    (when separator (write-char separator dest))
+                    (write-msg-log ob dest separator))
+                (cdr obj)))
     ;; (symbol (write-string (symbol-name obj) dest))
     (character (write-char obj dest))
     (string (write-string obj dest))
+    (function (write-string "#<data body>" dest))
     (array (format dest "#<Binary data: SIZE=~D>" (length obj)))))
 
 (defmethod make-receiver-reader ((hst host))
-  (let ((getstr (make-array *max-line-length*
-                            :element-type 'character :fill-pointer *max-line-length*)))
+  (let ((line-buffer (make-array *max-line-length*
+                                 :element-type 'standard-char :fill-pointer *max-line-length*))
+        (body-buffer (make-array *body-buffer-size* :element-type 'unsigned-byte))
+        (gate (mp:make-gate t)))
     #'(lambda (stream)
-        (setf (fill-pointer getstr) *max-line-length*)
-        (let* ((n-char (setf (fill-pointer getstr)
-                         (excl:read-line-into getstr stream nil 0)))
+        (mp:process-wait "Waiting for finishing reading body of the previous message."
+                         #'mp:gate-open-p gate)
+        (setf (fill-pointer line-buffer) *max-line-length*)
+        (let* ((n-char (setf (fill-pointer line-buffer)
+                         (excl:read-line-into line-buffer stream nil 0)))
                (eof-p (= 0 n-char))
-               (msg (if eof-p '("eof") (split-string getstr))))
+               (msg (if eof-p '("exit") (split-string line-buffer))))
           (string-case-eager (car msg)
-            (#.*commands-with-data* (rplacd (last msg) (read-body stream)))
+            (#.*commands-with-data*
+             (mp:close-gate gate)
+             (setq msg (nconc msg (list #'(lambda (ostream)
+                                            (forward-body stream ostream line-buffer body-buffer
+                                                          *max-line-length* *body-buffer-size*)
+                                            (mp:open-gate gate))))))
             (#.*commands-without-data* nil)
             (otherwise (error "Unknown command ~S from ~S." msg (hostinfo hst))))
-          (tcell-server-dprint "Received ~S from ~S~%" getstr (hostinfo hst))
+          (tcell-server-dprint "Received ~S from ~S~%" (msg-log-string msg) (hostinfo hst))
           (values (cons hst msg) eof-p))
         )))
 
-;;; task, rsltのbody部の読み込み
+;;; "task", "rslt", "data" のbody部をistreamから読み込んでostreamに送る
+(defun forward-body (istream ostream
+                     &optional (line-buffer (make-array *max-line-length*
+                                                        :element-type 'standard-char :fill-pointer *max-line-length*))
+                               (buffer (make-array *body-buffer-size* :element-type 'unsigned-byte))
+                               (line-bufsize (length line-buffer))
+                               (bufsize (length buffer)))
+  (loop
+    (setf (fill-pointer line-buffer) line-bufsize)
+    (let* ((len (setf (fill-pointer line-buffer)
+                  (excl:read-line-into line-buffer istream nil 0))))
+      ;; 空行で終了
+      (when (= len 0) (return))
+      (write-string line-buffer ostream)
+      (terpri ostream)
+      (tcell-server-dprint "~A~%" line-buffer)
+      ;; #\(でおわっていたら次の行はbyte-header，次いでbyte-data
+      (when (char= #\( (aref line-buffer (- len 1)))
+        (setf (fill-pointer line-buffer) line-bufsize)
+        ;; ヘッダread: <whole-size> <elm-size> <endian(0|1)>
+        (setf (fill-pointer line-buffer)
+                  (excl:read-line-into line-buffer istream nil 0))
+        (let* ((whole-size (parse-integer line-buffer :junk-allowed t)))
+          (write-string line-buffer ostream)
+          (terpri ostream)
+          (tcell-server-dprint "Binary data header: ~A~%" line-buffer)
+          ;; バイナリ本体
+          (loop for rem-size from whole-size downto 1 by bufsize
+              as rd-size = (if (> rem-size bufsize) bufsize rem-size)
+              do (read-sequence buffer istream :end rd-size)
+                 (write-sequence buffer ostream :end rd-size))
+          (tcell-server-dprint "#<byte-data size=~D>~%" whole-size)
+          ;; この後，terminator ")\n" がくるが，
+          ;; 次のiterationで，単に他の文字列データと同様に処理
+          )))))
+
+;;; "task", "rslt", "data" のbody部を読み込み
+#+comment
 (defun read-body (stream)
   (let ((ret '()))
     (loop
@@ -425,14 +482,13 @@
         (when (= len 0) (return))
         (pushs pre #\Newline ret)
         (tcell-server-dprint "~A~%" pre)
-        ;; 最初の行が#\(でおわっていたら次の行はbyte-header，次いでbyte-data
-        (when (and (>= len 1)
-                   (char= #\( (aref pre (- len 1))))
-          (tcell-server-dprint "~%")
+        ;; #\(でおわっていたら次の行はbyte-header，次いでbyte-data
+        (when (char= #\( (aref pre (- len 1)))
+          ;; ヘッダ: <whole-size> <elm-size> <endian(0|1)>
           (let* ((byte-header (read-line stream t))
                  (whole-size (parse-integer byte-header :junk-allowed t)))
             (pushs byte-header #\Newline ret)
-            (tcell-server-dprint "~A~%" byte-header)
+            (tcell-server-dprint "Binary data header: ~A~%" byte-header)
             (let ((byte-data (make-array whole-size)))
               (read-sequence byte-data stream :end whole-size)
               (push byte-data ret)
@@ -636,14 +692,14 @@
   (add-buffer obj (send-buffer (host-sender to))))
 
 (defmethod send ((to (eql nil)) obj)
-  (format *error-output* "Failed to send ~S~%" (msg-log-string obj)))
+  (format *error-output* "Failed to send ~S~%" (msg-log-string obj nil)))
 
 ;; debug print
 #-tcell-no-transfer-log
 (defmethod send :after ((to host) obj)
   (when *transfer-log*
     (format *error-output* "~&Sent ~S to ~S~%"
-      (string-right-trim-space (msg-log-string obj)) (hostinfo to))))
+      (string-right-trim-space (msg-log-string obj nil)) (hostinfo to))))
 
 (defmethod send-treq (to task-head treq-head)
   (send to (list "treq " task-head #\Space treq-head #\Newline)))
@@ -756,7 +812,7 @@
     ("rack" (proc-rack sv from cmd))
     ("dreq" (proc-dreq sv from cmd))
     ("data" (proc-data sv from cmd))
-    ("eof"  (remove-child sv from))
+    ("exit" (remove-child sv from))
     ("log"  (proc-log sv from cmd))
     ("stat" (proc-stat sv from cmd))
     ("verb" (proc-verb sv from cmd))
@@ -942,7 +998,8 @@
                             #+tcell-no-transfer-log :invalidated-by-features)
             (*connection-log* ,*connection-log*))
           *error-output*)
-  (terpri *error-output*))
+  (terpri *error-output*)
+  (force-output *error-output*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun make-and-start-server (&key 

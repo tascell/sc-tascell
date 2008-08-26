@@ -182,6 +182,7 @@
 (decl (csym::print-thread-status thr) (csym::fn void (ptr (struct thread-data))))
 (decl (csym::print-status) (csym::fn void (ptr (struct cmd))))
 (decl (csym::set-verbose-level) (csym::fn void (ptr (struct cmd))))
+(decl (csym::recv-exit) (csym::fn void (ptr (struct cmd))))
 
 ;;;; cmd-serial.sc の関数プロトタイプ宣言
 (decl (csym::serialize-cmdname buf w) (fn int (ptr char) (enum command)))

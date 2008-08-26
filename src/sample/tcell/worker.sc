@@ -176,7 +176,7 @@
    (case DATA) (csym::recv-data pcmd) (break)
    (case STAT) (csym::print-status pcmd) (break)
    (case VERB) (csym::set-verbose-level pcmd) (break)
-   (case EXIT) (csym::exit 0) (break)
+   (case EXIT) (csym::recv-exit pcmd) (break)
    (default) (csym::proto-error "wrong cmd" pcmd) (break))
   )
 
@@ -947,7 +947,8 @@
   (def pcmd-fwd (ptr (struct cmd)) (ptr parg->dreq-cmd-fwd))
   (def data-cmd (struct cmd))
   (defs int i j)
-  
+
+  #+comment
   (DEBUG-STMTS 1 (= (aref pcmd->v 2 0) TERM)
                (csym::fprintf stderr "dreq-handler: %d %d~%" start end)
                (csym::proto-error "template" pcmd))
@@ -1139,6 +1140,14 @@
       (csym::proto-error "Wrong verb" pcmd))
   (= option.verbose (aref pcmd->v 0 0))
   (return))
+
+
+
+;;; exitコマンド -> 終了
+(def (csym::recv-exit pcmd) (csym::fn void (ptr (struct cmd)))
+  (csym::fprintf stderr "Recived \"exit\"... terminate.~%")
+  (csym::exit 0))
+
 
 
 ;; ワーカスレッドが仕事分割開始時に呼ぶ

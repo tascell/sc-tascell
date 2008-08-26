@@ -883,9 +883,8 @@
 (defun list-until-if (test list &key (key #'identity))
   (declare (function test key) (list list))
   (list-until list t 
-              :test #'(lambda (x y)
-                        (declare (ignore y))
-                        (funcall test x))
+              :test #'(lambda (x y) (declare (ignore y))
+                              (funcall test x))
               :key key))
 
 ;;; (a b) (1 2) (x y z) => (a 1 x) (a 1 y) (a 1 z) (a 2 x) ... (b 2 z)
