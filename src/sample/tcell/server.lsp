@@ -39,21 +39,35 @@
                                     "../../sc-misc.lsp")
                                 :output-file "sc-misc.fasl"))
   ;; Uncomment to ignore logging code
-  (push :tcell-no-transfer-log *features*)
+  ;; (push :tcell-no-transfer-log *features*)
   )
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (use-package "MISC")
+  (use-package :socket))
+
+
+;;; logging, debug print
+(defvar *log-lock* (mp:make-process-lock))
+
+(defun tcell-print-log (format-string &rest args)
+  (mp:with-process-lock (*log-lock*)
+    (apply #'format *error-output* format-string args)
+    (force-output *error-output*)))
 
 #-tcell-no-transfer-log
 (defmacro tcell-server-dprint (format-string &rest args)
   `(when *transfer-log*                 ; *transfer-log* is defined below
-     (format *error-output* ,format-string ,@args)
-     (force-output *error-output*)))
+     (mp:with-process-lock (*log-lock*)
+       (format *error-output* ,format-string ,@args)
+       ;; (force-output *error-output*)
+       )))
 #+tcell-no-transfer-log
 (defmacro tcell-server-dprint (&rest args)
   (declare (ignore args))
   '(progn))
 
-#+sc-system (use-package "SC-MISC")
-(use-package :socket)
+
 
 (deftype gate () (type-of (mp:make-gate nil)))
 
@@ -92,6 +106,7 @@
 
 (defparameter *retry* 20)
 
+
 (defclass host ()
   ((server :accessor host-server :type tcell-server :initarg :server)
    (host :accessor host-hostname :type string :initarg :host)
@@ -132,7 +147,7 @@
    ))
 
 (defclass child (host)
-  ((id :accessor child-id :type fixnum :initform -999)
+  ((id :accessor child-id :type fixnum)
    (diff-task-rslt :accessor child-diff-task-rslt :type fixnum :initform 0)
                                         ; <taskを送った回数>-<rsltが返ってきた回数>
    (work-size :accessor child-wsize :type fixnum :initform 0)
@@ -146,23 +161,23 @@
    (head :accessor tae-head :type string :initarg :head)
    ))
 
-(defclass buffer ()
-  ((body :accessor buf-body :type list :initform (make-queue))))
+(defclass queue ()
+  ((body :accessor queue-body :type list :initform (misc:make-queue))))
    
-(defclass shared-buffer (buffer)
-  ((lock :accessor sbuf-lock :type mp:process-lock :initform (mp:make-process-lock))
-   (gate :accessor sbuf-gate :type gate :initform (mp:make-gate nil)))) ; to notify addition
+(defclass shared-queue (queue)
+  ((lock :accessor sq-lock :type mp:process-lock :initform (mp:make-process-lock))
+   (gate :accessor sq-gate :type gate :initform (mp:make-gate nil)))) ; to notify addition
 
 (defclass sender ()
-  ((buffer :accessor send-buffer :type shared-buffer
-           :initform (make-instance 'shared-buffer) :initarg :buffer)
+  ((queue :accessor send-queue :type shared-queue
+           :initform (make-instance 'shared-queue) :initarg :queue)
    (writer :accessor writer :type function ; obj stream -> (write to stream)
            :initform #'write-string :initarg :writer)
    (send-process :accessor send-process :type mp:process :initform nil)
    (destination :accessor sender-dest :type stream :initform nil :initarg :dest)))
 (defclass receiver ()
-  ((buffer :accessor receive-buffer :type shared-buffer
-           :initform (make-instance 'shared-buffer) :initarg :buffer)
+  ((queue :accessor receive-queue :type shared-queue
+           :initform (make-instance 'shared-queue) :initarg :queue)
    (reader :accessor reader :type function ; stream -> <obj,eof-p>
            :initform #'(lambda (strm) (aif (read-line strm nil nil) (values it nil)
                                         (values nil t)))
@@ -172,8 +187,8 @@
 
 (defclass tcell-server ()
   ((host :accessor ts-hostname :initform *server-host* :initarg :local-host)
-   (message-buffer :accessor ts-buffer :type shared-buffer
-                   :initform (make-instance 'shared-buffer))
+   (message-queue :accessor ts-queue :type shared-queue
+                   :initform (make-instance 'shared-queue))
    (proc-cmd-process :accessor ts-proc-cmd-process :type mp:process :initform nil)
    (parent :accessor ts-parent :type parent)
    (children-port :accessor ts-chport :initform *children-port* :initarg :children-port)
@@ -188,37 +203,38 @@
    (retry :accessor ts-retry :type fixnum :initform *retry* :initarg :retry)
    ))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Initializers
 (defmethod initialize-instance :after ((sdr sender) &rest initargs)
   (declare (ignore initargs))
   (setf (send-process sdr)
     (mp:process-run-function "SEND-PROCESS"
-      #'monitor-and-send-buffer
-      (send-buffer sdr) (sender-dest sdr) (writer sdr))))
+      #'monitor-and-send-queue
+      (send-queue sdr) (sender-dest sdr) (writer sdr))))
 
 (defmethod initialize-instance :after ((rcvr receiver) &rest initargs)
   (declare (ignore initargs))
   (setf (receive-process rcvr)
     (mp:process-run-function "RECEIVE-PROCESS"
-      #'receive-and-add-to-buffer
-      (receive-buffer rcvr) (receiver-src rcvr) (reader rcvr))))
+      #'receive-and-add-to-queue
+      (receive-queue rcvr) (receiver-src rcvr) (reader rcvr))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Finalizers
 (defmethod finalize ((sdr sender))
   (when (send-process sdr)
-    (mp:process-wait-with-timeout "Wait until send buffer becomes empty"
+    (mp:process-wait-with-timeout "Wait until send queue becomes empty"
                                   5
-                                  #'empty-buffer-p (send-buffer sdr))
+                                  #'empty-queue-p (send-queue sdr))
     (mp:process-kill (send-process sdr))
     (setf (send-process sdr) nil)))
 
 (defmethod finalize ((rcvr receiver))
   (when (receive-process rcvr)
-    ;; (mp:process-wait-with-timeout "Wait until receive buffer becomes empty"
+    ;; (mp:process-wait-with-timeout "Wait until receive queue becomes empty"
     ;;                               5
-    ;;                               #'empty-buffer-p (receive-buffer rcvr))
+    ;;                               #'empty-queue-p (receive-queue rcvr))
     (mp:process-kill (receive-process rcvr))
     (setf (receive-process rcvr) nil)))
 
@@ -264,7 +280,7 @@
         ;; メッセージ処理用プロセス起動
         (activate-proc-cmd-process sv)
         ;; 標準入力からの入力待ち
-        (let* ((msg-buf (ts-buffer sv))
+        (let* ((msg-q (ts-queue sv))
                (prnt (ts-parent sv))
                (terminal-parent-p (typep prnt 'terminal-parent))
                (reader (make-receiver-reader prnt))
@@ -272,7 +288,7 @@
           (loop
             (multiple-value-bind (msg eof-p) (funcall reader src)
               (when terminal-parent-p
-                (add-buffer msg msg-buf))
+                (add-queue msg msg-q))
               (when eof-p (return))))
           ))
     (finalize sv)))
@@ -304,17 +320,17 @@
 (defmethod activate-proc-cmd-process ((sv tcell-server))
   (setf (ts-proc-cmd-process sv)
     (mp:process-run-function "PROC-CMD"
-      #'(lambda (msg-buf &aux (msg-gate (sbuf-gate msg-buf)))
+      #'(lambda (msg-q &aux (msg-gate (sq-gate msg-q)))
           (loop
             ;; 親または子からの入力待ち
-            (mp:process-wait "Waiting for a message to T-Cell server."
+            (mp:process-wait "Waiting for a message to Tascell server."
                              #'mp:gate-open-p msg-gate)
             ;; メッセージ処理
             (while (mp:gate-open-p msg-gate)
-              (destructuring-bind (host . message) (delete-buffer msg-buf)
+              (destructuring-bind (host . message) (delete-queue msg-q)
                 (proc-cmd sv host message))
               (retry-treq sv))))
-      (ts-buffer sv))))
+      (ts-queue sv))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod host-name-port ((hst host))
@@ -344,7 +360,7 @@
 
 (defmethod connect-from ((hst host) sock0 &key (wait t))
   (let ((sock (setf (host-socket hst)
-                (accept-connection sock0 :wait wait))))
+                (socket:accept-connection sock0 :wait wait))))
     (if sock
         (progn
           (initialize-connection hst)
@@ -355,14 +371,13 @@
   (declare (ignorable sock0 wait))
   (when (host-socket hst)
     (when *connection-log*
-      (format *error-output*
-        "~&Accept connection from ~A.~%" (host-name-port hst)))))
+      (tcell-print-log "~&Accept connection from ~A.~%" (host-name-port hst)))))
 
 (defmethod initialize-connection ((hst host) &aux (sock (host-socket hst)))
-  (setf (host-hostname hst) (ipaddr-to-hostname (remote-host sock)))
-  (setf (host-port hst) (remote-port sock))
-  (initialize-sender hst)
-  (initialize-receiver hst)
+  (setf (host-hostname hst) (with1 ipaddr (socket:remote-host sock)
+                              (or (socket:ipaddr-to-hostname ipaddr)
+                                  (socket:ipaddr-to-dotted ipaddr))))
+  (setf (host-port hst) (socket:remote-port sock))
   hst)
 
 (defmethod initialize-connection ((hst terminal-parent))
@@ -380,7 +395,7 @@
   (setf (host-receiver hst)
     (make-instance 'receiver
       :src sock :reader (make-receiver-reader hst)
-      :buffer (ts-buffer (host-server hst)))) ; readしたものは共有のバッファに入れる
+      :queue (ts-queue (host-server hst)))) ; readしたものは共有のバッファに入れる
   hst)
 
 ;;;
@@ -404,7 +419,9 @@
                     (write-msg-log ob dest separator))
                 (cdr obj)))
     ;; (symbol (write-string (symbol-name obj) dest))
-    (character (write-char obj dest))
+    (character (if (char= #\Newline obj)
+                   (write-string "_" dest)
+                 (write-char obj dest)))
     (string (write-string obj dest))
     (function (write-string "#<data body>" dest))
     (array (format dest "#<Binary data: SIZE=~D>" (length obj)))))
@@ -499,22 +516,22 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; バッファ監視->送信
-(defmethod monitor-and-send-buffer ((sbuf shared-buffer) dest
+(defmethod monitor-and-send-queue ((sq shared-queue) dest
                                     &optional (writer #'write-string))
-  (let ((gate (sbuf-gate sbuf)))
+  (let ((gate (sq-gate sq)))
     (loop
-      (mp:process-wait "Waiting for something is added to the buffer"
+      (mp:process-wait "Waiting for something is added to the queue"
                        #'mp:gate-open-p gate)
       (while (mp:gate-open-p gate)
-        (funcall writer (delete-buffer sbuf) dest))
+        (funcall writer (delete-queue sq) dest))
       (force-output dest))))
 
 ;; 受信->バッファに追加
-(defmethod receive-and-add-to-buffer ((sbuf shared-buffer) src
+(defmethod receive-and-add-to-queue ((sq shared-queue) src
                                       &optional (reader #'read-line))
   (loop
     (multiple-value-bind (obj eof-p) (funcall reader src)
-      (add-buffer obj sbuf)
+      (add-queue obj sq)
       (when eof-p (return)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -522,10 +539,15 @@
 
 ;;; 子の追加・削除
 (defmethod add-child ((sv tcell-server) (chld child))
+  ;; 子の情報の初期化．senderとreceiverの起動．
   (setf (child-id chld)	(ts-child-next-id sv))
+  (initialize-sender chld)
+  (initialize-receiver chld)
+  ;; server状態の更新
   (incf (ts-child-next-id sv))
   (incf (ts-n-children sv))
   (push chld (ts-children sv))
+  (tcell-print-log "~&Added a new child (~D children in total).~%" (ts-n-children sv))
   (unless (ts-eldest-child sv)
     (setf (ts-eldest-child sv) chld)))
 
@@ -607,52 +629,58 @@
   `((from ,(hostinfo (tae-from tae)))
     (head ,(tae-head tae))))
 
-;; bufferへの追加
-(defmethod add-buffer (elm (buf buffer))
-  (insert-queue elm (buf-body buf)))
+;; queueへの追加
+(defmethod add-queue (elm (q queue))
+  (misc:insert-queue elm (queue-body q)))
 
-(defmethod add-buffer :around (elm (sbuf shared-buffer))
+(defmethod add-queue :around (elm (sq shared-queue))
   (declare (ignorable elm))
-  (mp:with-process-lock ((sbuf-lock sbuf))
+  (mp:with-process-lock ((sq-lock sq))
     (prog1 (call-next-method)
-      (mp:open-gate (sbuf-gate sbuf)))))
+      (mp:open-gate (sq-gate sq)))))
 
-;; 空buffer
-(defmethod empty-buffer-p ((buf buffer))
-  (empty-queue-p (buf-body buf)))
+;; sc-misc.lsp のキュー関連の関数との衝突を防ぐ
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (shadow :empty-queue-p)
+  (shadow :delete-queue)
+  (shadow :find-delete-queue))
 
-;; bufferから取り出し
-(defmethod delete-buffer ((buf buffer))
-  (delete-queue (buf-body buf)))
+;; 空queue
+(defmethod empty-queue-p ((q queue))
+  (misc:empty-queue-p (queue-body q)))
 
-(defmethod delete-buffer :around ((sbuf shared-buffer))
-  (mp:with-process-lock ((sbuf-lock sbuf))
+;; queueから取り出し
+(defmethod delete-queue ((q queue))
+  (misc:delete-queue (queue-body q)))
+
+(defmethod delete-queue :around ((sq shared-queue))
+  (mp:with-process-lock ((sq-lock sq))
     (prog1 (call-next-method)
-      (when (empty-buffer-p sbuf)
-        (mp:close-gate (sbuf-gate sbuf))))))
+      (when (empty-queue-p sq)
+        (mp:close-gate (sq-gate sq))))))
 
-;; bufferから検索して取り出し
-(defmethod find-delete-buffer ((buf buffer) test &key (key #'identity))
-  (find-delete-queue (buf-body buf) test :key key))
+;; queueから検索して取り出し
+(defmethod find-delete-queue ((q queue) test &key (key #'identity))
+  (misc:find-delete-queue (queue-body q) test :key key))
 
-(defmethod find-delete-buffer :around ((sbuf shared-buffer) test
+(defmethod find-delete-queue :around ((sq shared-queue) test
                                        &key (key #'identity)
                                             (wait nil))
   (declare (ignore test key))
   (block :end
     (tagbody
       :retry
-      (mp:with-process-lock ((sbuf-lock sbuf))
+      (mp:with-process-lock ((sq-lock sq))
         (let ((item (call-next-method)))
           (when item
-            (when (empty-buffer-p sbuf)
-              (mp:close-gate (sbuf-gate sbuf)))
+            (when (empty-queue-p sq)
+              (mp:close-gate (sq-gate sq)))
             (return-from :end item))
           (unless wait
             (return-from :end nil))
-          (mp:close-gate (sbuf-gate sbuf))))
-      (mp:process-wait "FIND-DELETE-BUFFER-WAIT"
-                       #'mp:gate-open-p (sbuf-gate sbuf))
+          (mp:close-gate (sq-gate sq))))
+      (mp:process-wait "FIND-DELETE-QUEUE-WAIT"
+                       #'mp:gate-open-p (sq-gate sq))
       (go :retry))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -689,7 +717,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; メッセージ送信
 (defmethod send ((to host) obj)
-  (add-buffer obj (send-buffer (host-sender to))))
+  (add-queue obj (send-queue (host-sender to))))
 
 (defmethod send ((to (eql nil)) obj)
   (format *error-output* "Failed to send ~S~%" (msg-log-string obj nil)))
@@ -697,9 +725,8 @@
 ;; debug print
 #-tcell-no-transfer-log
 (defmethod send :after ((to host) obj)
-  (when *transfer-log*
-    (format *error-output* "~&Sent ~S to ~S~%"
-      (string-right-trim-space (msg-log-string obj nil)) (hostinfo to))))
+  (tcell-server-dprint "~&Sent ~S to ~S~%"
+                       (msg-log-string obj nil) (hostinfo to)))
 
 (defmethod send-treq (to task-head treq-head)
   (send to (list "treq " task-head #\Space treq-head #\Newline)))

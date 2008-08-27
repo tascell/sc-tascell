@@ -348,7 +348,7 @@
       (matmul-1 i0 i1 half j1 n a b c nx tsk)
       (tmatmul
        (:put (= this.n n)
-             (= this.i0 half) (= this.i1 i1) (= this.j0 j0) (= this.j1 j1))
+             (= this.i0 i0) (= this.i1 i1) (= this.j0 half) (= this.j1 j1))
        (:get ;; Cに書き込む処理はreceiveにて
         ))) )
    )

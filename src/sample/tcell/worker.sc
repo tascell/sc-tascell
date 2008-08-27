@@ -39,6 +39,14 @@
 #+tcell-gtk (c-exp "#include<gtk/gtk.h>")
 (%include "worker.sh")
 
+;;; デバッグ情報出力用の変数
+(%ifdef* VERBOSE
+         (static ext-cmd-status (array char 128) "") ; 外部メッセージ受信スレッドの状態
+         (static n-dreq-handler int 0)  ; 起動しているdreq-handlerの数
+         (static n-sending-dreq int 0)  ; うち send-dreq-for-required-range中（含ロック獲得待ち）
+         (static n-sending-data int 0)  ; うち data送信中（含ロック獲得待ち）
+         (static n-waiting-data int 0)) ; sending-dataのうち data待ち中
+
 
 (%defmacro xread (tp exp)
   `(mref (cast (ptr (volatile ,tp)) (ptr ,exp))))
@@ -938,6 +946,7 @@
   )
 
 
+
 ;; recv-dreqで作られるスレッドが実行する関数
 (def (csym::dreq-handler parg0) (csym::fn (ptr void) (ptr void))
   (def parg (ptr (struct dhandler-arg)) parg0)
@@ -948,6 +957,8 @@
   (def data-cmd (struct cmd))
   (defs int i j)
 
+  (%ifdef* VERBOSE (inc n-dreq-handler))
+   
   #+comment
   (DEBUG-STMTS 1 (= (aref pcmd->v 2 0) TERM)
                (csym::fprintf stderr "dreq-handler: %d %d~%" start end)
@@ -955,10 +966,15 @@
   
   ;; NONEな範囲について，さらに親に要求を出す
   ;; REQUESTINGな範囲について，要求をforwardする
+  (%ifdef* VERBOSE (inc n-sending-dreq))
   (csym::send-dreq-for-required-range start end pcmd pcmd-fwd)
+  (%ifdef* VERBOSE (dec n-sending-dreq))
   
   ;; INSIDEからのdreqならデータを送る必要はないのでここで終わり
-  (if (== parg->data-to INSIDE) (return))
+  (if (== parg->data-to INSIDE)
+      (begin
+       (%ifdef* VERBOSE (dec n-dreq-handler))
+       (return)))
 
   ;; DATAコマンドの雛形を設定
   (= data-cmd.w DATA)
@@ -967,10 +983,13 @@
   (csym::copy-address (aref data-cmd.v 0) parg->head) ; data送信先
   
   ;; dataが送られてくるのをcond-waitで待って，順次要求元に送る
+  (%ifdef* VERBOSE (inc n-sending-data))
   (csym::pthread-mutex-lock (ptr data-mutex))
   (for ((= i start) (< i end) (inc i))
     (while (!= (aref data-flags i) DATA-EXIST)
-      (csym::pthread-cond-wait (ptr data-cond) (ptr data-mutex)))
+      (%ifdef* VERBOSE (inc n-waiting-data))
+      (csym::pthread-cond-wait (ptr data-cond) (ptr data-mutex))
+      (%ifdef* VERBOSE (dec n-waiting-data)) )
     (for ((= j (+ i 1)) (and (< j end) (== (aref data-flags j) DATA-EXIST)) (inc j))
       )
     ;; iからjまで送る（本体は，send-out-commandで送られる）
@@ -980,8 +999,10 @@
     (csym::send-command (ptr data-cmd) 0 0)
     (= i (- j 1)))
   (csym::pthread-mutex-unlock (ptr data-mutex))
+  (%ifdef* VERBOSE (dec n-sending-data))
   
   (csym::free parg)
+  (%ifdef* VERBOSE (dec n-dreq-handler))
   (return))
 
 ;; dreq <data要求元header> <data要求先(<thread-id>:<task-home-id>)> <data要求範囲(<data-start>:<data-end>)>
@@ -1125,6 +1146,14 @@
   (csym::fprintf stderr "num-thrs: %d~%" num-thrs)
   (csym::fprintf stderr "prefetches: %d~%" option.prefetch)
   (csym::fprintf stderr "verbose-level: %d~%" option.verbose)
+  (%ifdef* VERBOSE
+    (csym::fprintf stderr
+                   "active dreq-handlers: %d (%d sending dreq, %d sending data (%d waiting data))~%"
+                   n-dreq-handler n-sending-dreq n-sending-data n-waiting-data)
+    ;; よく考えたらstat処理中に決まっているので出力する意味がない
+    ;; でもgdbのデバッグには有用なので変数自体は残す
+    #+comment (csym::fprintf stderr "external command handler: %s~%" ext-cmd-status))
+
   (if option.prefetch 
       (begin (csym::print-task-list prefetch-thr->task-top "prefetched tasks")
              (csym::fputc #\Newline stderr)))
@@ -1145,7 +1174,7 @@
 
 ;;; exitコマンド -> 終了
 (def (csym::recv-exit pcmd) (csym::fn void (ptr (struct cmd)))
-  (csym::fprintf stderr "Recived \"exit\"... terminate.~%")
+  (csym::fprintf stderr "Received \"exit\"... terminate.~%")
   (csym::exit 0))
 
 
@@ -1461,6 +1490,11 @@
 
   ;; 本スレッドはOUTSIDEからのメッセージ処理
   (while 1
+    (%ifdef* VERBOSE
+             (csym::sprintf ext-cmd-status "Waiting for an external message."))
     (= pcmd (csym::read-command))
+    (%ifdef* VERBOSE
+             (csym::sprintf ext-cmd-status "Processing a %s command."
+                            (aref cmd-strings pcmd->w)))
     (csym::proc-cmd pcmd 0))
   (csym::exit 0))
