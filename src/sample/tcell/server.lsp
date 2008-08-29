@@ -35,12 +35,16 @@
   ;; The most debuggable (and yet reasonably fast) code, use
   ;; (proclaim '(optimize (speed 3) (safety 1) (space 1))); (debug 3)))
   (proclaim '(optimize (speed 3) (safety 0) (space 1)))
+
+  ;; compile and load external lisp modules
+  (deftype gate () (type-of (mp:make-gate nil)))
   (use-package :socket)
   (load (compile-file-if-needed (or (probe-file "sc-misc.lsp")
                                     "../../sc-misc.lsp")
                                 :output-file "sc-misc.fasl"))
   (use-package "MISC")
   (load (compile-file-if-needed "queue.lsp"))
+
   ;; Uncomment to ignore logging code
   ;; (push :tcell-no-transfer-log *features*)
   )
@@ -68,8 +72,6 @@
 
 
 
-(deftype gate () (type-of (mp:make-gate nil)))
-
 ;;; 強制的に待ち受けポート再利用
 (defparameter *reuse-address* t)
 
@@ -93,6 +95,7 @@
 ;;; read-lineで読み込める長さ（許されるコマンド行の長さ）の最大
 (defconstant *max-line-length* 128)
 ;;; task, rslt, dataのバッファを転送するときのバッファのサイズ
+;;; 十分大きくしないとデッドロックの原因
 (defconstant *body-buffer-size* 4096)
 
 ;;; コマンドに続いてデータをともなうコマンド
