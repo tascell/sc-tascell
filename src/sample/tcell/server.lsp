@@ -424,11 +424,9 @@
 (defmethod make-receiver-reader ((hst host))
   (let ((line-buffer (make-array *max-line-length*
                                  :element-type 'standard-char :fill-pointer *max-line-length*))
-        (body-buffer (make-array *body-buffer-size* :element-type 'unsigned-byte))
-        (gate (mp:make-gate t)))
+        (body-buffer (make-array *body-buffer-size* :element-type 'unsigned-byte :adjustable t))
+        (gate (mp:make-gate t)))        ; body-buffer の使用許可
     #'(lambda (stream)
-        (mp:process-wait "Waiting for finishing reading body of the previous message."
-                         #'mp:gate-open-p gate)
         (setf (fill-pointer line-buffer) *max-line-length*)
         (let* ((n-char (setf (fill-pointer line-buffer)
                          (excl:read-line-into line-buffer stream nil 0)))
@@ -436,7 +434,13 @@
                (msg (if eof-p '("exit") (split-string line-buffer))))
           (string-case-eager (car msg)
             (#.*commands-with-data*
+             (mp:process-wait "Waiting for finishing reading body from the buffer"
+                              #'mp:gate-open-p gate)
              (mp:close-gate gate)
+             (setq msg (nconc msg (read-body-into-buffer stream body-buffer) ; read-body-into-buffer用
+                              (list #'(lambda (dummy) (declare (ignore dummy))
+                                              (mp:open-gate gate)))))
+             #+comment                  ;forward-body用
              (setq msg (nconc msg (list #'(lambda (ostream)
                                             (forward-body stream ostream line-buffer body-buffer
                                                           *max-line-length* *body-buffer-size*)
@@ -447,7 +451,42 @@
           (values (cons hst msg) eof-p))
         )))
 
+;;; "task", "rslt", "data" のbody部を読み込み，リストにして返す
+;;; バイナリ部分はbufferに書き込み，読み出すための関数を用意する
+(defun read-body-into-buffer (stream buffer)
+  (let ((ret '())
+        (buf-used 0))
+    (declare (fixnum buf-used))
+    (loop
+      (let* ((pre (read-line stream t))
+             (len (length pre)))
+        ;; 空行で終了
+        (when (= len 0) (return))
+        (pushs pre #\Newline ret)
+        (tcell-server-dprint "~A~%" pre)
+        ;; #\(でおわっていたら次の行はbyte-header，次いでbyte-data
+        (when (char= #\( (aref pre (- len 1)))
+          ;; ヘッダ: <whole-size> <elm-size> <endian(0|1)>
+          (let* ((byte-header (read-line stream t))
+                 (whole-size (parse-integer byte-header :junk-allowed t)))
+            (declare (fixnum whole-size))
+            (pushs byte-header #\Newline ret)
+            (tcell-server-dprint "Binary data header: ~A~%" byte-header)
+            (let ((start buf-used) (end (+ buf-used whole-size)))
+              (when (> end (length buffer))
+                (adjust-array buffer (* 2 (length buffer))))
+              (read-sequence buffer stream :start start :end end)
+              (push #'(lambda (ostream)
+                        (write-sequence buffer ostream :start start :end end)))
+                    ret)
+            (tcell-server-dprint "#<byte-data size=~D>~%" whole-size)
+            ;; この後，terminator ")\n" がくるが，
+            ;; 次のiterationで，単に他の文字列データと同様に処理
+            ))))
+    (nreverse ret)))
+
 ;;; "task", "rslt", "data" のbody部をistreamから読み込んでostreamに送る
+#+comment                               ; write-* の実行がブロックして，デッドロックの可能性
 (defun forward-body (istream ostream
                      &optional (line-buffer (make-array *max-line-length*
                                                         :element-type 'standard-char :fill-pointer *max-line-length*))
@@ -483,7 +522,7 @@
           ;; 次のiterationで，単に他の文字列データと同様に処理
           )))))
 
-;;; "task", "rslt", "data" のbody部を読み込み
+;;; "task", "rslt", "data" のbody部を読み込み，リストにして返す
 #+comment
 (defun read-body (stream)
   (let ((ret '()))
