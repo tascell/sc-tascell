@@ -474,11 +474,17 @@
             (tcell-server-dprint "Binary data header: ~A~%" byte-header)
             (let ((start buf-used) (end (+ buf-used whole-size)))
               (when (> end (length buffer))
-                (adjust-array buffer (* 2 (length buffer))))
+                (with1 newsize
+                    (loop
+                        for sz from (* 2 (length buffer)) by #'(lambda (x) (* 2 x))
+                        while (> end sz)
+                        finally (return sz))
+                  (adjust-array buffer newsize)
+                  (tcell-server-dprint "Extended buffer size to ~D~%" newsize)))
               (read-sequence buffer stream :start start :end end)
               (push #'(lambda (ostream)
-                        (write-sequence buffer ostream :start start :end end)))
-                    ret)
+                        (write-sequence buffer ostream :start start :end end))
+                    ret))
             (tcell-server-dprint "#<byte-data size=~D>~%" whole-size)
             ;; この後，terminator ")\n" がくるが，
             ;; 次のiterationで，単に他の文字列データと同様に処理
