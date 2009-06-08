@@ -738,12 +738,10 @@
 (defmethod send-treq (to task-head treq-head)
   (send to (list "treq " task-head #\Space treq-head #\Newline)))
 
-;; treqへの応答として，前に送ったtaskを自動再送信（性能評価用）
-;; funcallのfunction は send-rslt (to terminal-parent) でセットしている
+;; treqへの応答として，task，またはexitを自動再送信（バッチ実行用）
 (defmethod send-treq :after ((to terminal-parent) task-head treq-head)
-  (declare (ignore task-head treq-head))
   (awhen (parent-auto-treq-response-func to)
-    (funcall it)
+    (funcall it to task-head treq-head)
     (setf (parent-auto-treq-response-func to) nil)))
 
 (defmethod send-task (to wsize-str rslt-head task-head task-no task-body)
@@ -794,7 +792,8 @@
                   (setf (caddr cmd) new-rslt-head)
                   ;; treqがきたら自動的にtaskを再送信するように関数をセット
                   (setf (parent-auto-treq-response-func to)
-                    #'(lambda ()
+                    #'(lambda (&rest args)
+                        (declare (ignore args))
                         (sleep 1)
                         (excl:gc t)
                         (format *error-output* "~&auto-resend-task~%")
@@ -809,7 +808,8 @@
                 ;; exitを自動送信するように関数をセット
                 (when (parent-auto-exit to)
                   (setf (parent-auto-treq-response-func to)
-                    #'(lambda ()
+                    #'(lambda (&rest args)
+                        (declare (ignore args))
                         (format *error-output* "~&auto-send-exit~%")
                         (proc-cmd (host-server to) to '("exit"))))))
               ))
@@ -1071,6 +1071,10 @@
                               (retry *retry*)
                               (terminal-parent t)
                               (auto-rack t) ; for terminal parent
+                              (auto-initial-task nil)
+                                        ; 最初に自動的に送信するtask
+                                        ; "<task-no> <param1> <param2> ..." の文字列で指定
+                                        ; （param間の改行や最後の改行および空行不要）
                               (auto-resend-task 0) ; for terminal-parent
                               (auto-exit nil) ; for terminal parent
                               (parent-host *parent-host* ph-given)
@@ -1090,8 +1094,22 @@
                  (make-instance 'parent :server sv
                                 :host parent-host
                                 :port parent-port))))
+    ;; auto-initial-task のセット
+    (when (and terminal-parent auto-initial-task)
+      (when (stringp auto-initial-task)
+        (setq auto-initial-task (split-string auto-initial-task)))
+      (with (task-no (car auto-initial-task)
+             task-body (strcat (cdr auto-initial-task) #\Newline "" #\Newline))
+        (setf (parent-auto-treq-response-func prnt)
+          #'(lambda (to task-head treq-head &rest args)
+              (declare (ignore treq-head args))
+              (sleep 1)
+              (excl:gc t)
+              (format *error-output* "~&auto-send-initial-task~%")
+              (with1 msg (list* "task" "0" "0" task-head task-no task-body)
+                (add-queue (cons to msg) (ts-queue sv)))))))
+    ;; サーバ起動
     (start-server sv prnt)))
-
 
 ;; 略記
 (defun ms (&rest args)
