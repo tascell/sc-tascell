@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; Copyright (c) 2009 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -1439,7 +1439,7 @@
   (csym::pthread-cond-init (ptr data-cond) 0)
   
   ;; thread-data の初期化, task の 双方向list も
-  ;; 冬季treqがonなら，それ用のスレッドをnum-thrs+1番目として作って初期化する
+  ;; 投機treqがonなら，それ用のスレッドをnum-thrs+1番目として作って初期化する
   (= num-thrs option.num-thrs)
   (for ((= i 0) (< i (+ num-thrs (if-exp option.prefetch 1 0))) (inc i))
     (let ((thr (ptr (struct thread-data)) (+ threads i))

@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; Copyright (c) 2009 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -101,8 +101,8 @@
 ;;; コマンドに続いてデータをともなうコマンド
 ;;; These constants are referred to in compile time with #. reader macros.
 (eval-when (:execute :load-toplevel :compile-toplevel)
-  (defconstant *commands* '("treq" "task" "none" "back" "rslt" "rack" "dreq" "data" "exit" "log"
-                            "stat" "verb" "eval"))
+  (defconstant *commands* '("treq" "task" "none" "back" "rslt" "rack" "dreq" "data" "leav" "log"
+                            "stat" "verb" "eval" "exit"))
   (defconstant *commands-with-data* '("task" "rslt" "data"))
   (defconstant *commands-without-data* (set-difference *commands* *commands-with-data* :test #'string=)))
 
@@ -142,8 +142,10 @@
                                         ; 自動的にrackを返す
    (auto-resend-task :accessor parent-auto-resend-task :type fixnum :initarg :auto-resend-task :initform 0)
                                         ; auto-rack後，自動的に同じtaskを再送信する回数
-   (auto-resend-func :accessor parent-auto-resend-func :type function :initform #'(lambda ()))
-                                        ; treqを送ったら自動的に実行する send実行コマンド
+   (auto-exit :accessor parent-auto-exit :type boolean :initarg :auto-exit :initform nil)
+                                        ; auto-rack後，かつauto-resend-taskが尽きていたら自動でexitを送る
+   (auto-treq-response-func :accessor parent-auto-treq-response-func :type function :initform nil)
+                                        ; treqを送ったら自動的に実行される関数
    (task-home :accessor parent-task-home :type list :initform ())
                                         ; ↑を実現するために親から送られたtaskを覚えておくリスト
    ))
@@ -165,14 +167,14 @@
 
 (defclass sender ()
   ((queue :accessor send-queue :type shared-queue
-           :initform (make-instance 'shared-queue) :initarg :queue)
+          :initform (make-instance 'shared-queue) :initarg :queue)
    (writer :accessor writer :type function ; obj stream -> (write to stream)
            :initform #'write-string :initarg :writer)
    (send-process :accessor send-process :type mp:process :initform nil)
    (destination :accessor sender-dest :type stream :initform nil :initarg :dest)))
 (defclass receiver ()
   ((queue :accessor receive-queue :type shared-queue
-           :initform (make-instance 'shared-queue) :initarg :queue)
+          :initform (make-instance 'shared-queue) :initarg :queue)
    (reader :accessor reader :type function ; stream -> <obj,eof-p>
            :initform #'(lambda (strm) (aif (read-line strm nil nil) (values it nil)
                                         (values nil t)))
@@ -183,15 +185,19 @@
 (defclass tcell-server ()
   ((host :accessor ts-hostname :initform *server-host* :initarg :local-host)
    (message-queue :accessor ts-queue :type shared-queue
-                   :initform (make-instance 'shared-queue))
+                  :initform (make-instance 'shared-queue))
    (proc-cmd-process :accessor ts-proc-cmd-process :type mp:process :initform nil)
+   (read-cmd-process :accessor ts-read-cmd-process :type mp:process :initform nil)
    (parent :accessor ts-parent :type parent)
    (children-port :accessor ts-chport :initform *children-port* :initarg :children-port)
    (children-sock0 :accessor ts-chsock0 :type stream) ; 待ち受け
    (children :accessor ts-children :type list :initform '())
    (eldest-child :accessor ts-eldest-child :type child :initform nil)
    (n-children :accessor ts-n-children :type fixnum :initform 0)
+   (n-wait-children :accessor ts-n-wait-children :type fixnum :initform 0 :initarg :n-wait-children)
+                                        ; この数のchildが接続するまでメッセージ処理を行わない
    (child-next-id :accessor ts-child-next-id :type fixnum :initform 0)
+   (exit-gate :accessor ts-exit-gate :type gate :initform (mp:make-gate nil))
    (treq-any-list :accessor ts-talist :type list :initform '()) ;; treq-anyを出せていないリスト
    (accept-connection-process :accessor ts-accept-connection-process
                               :type mp:process :initform nil)
@@ -240,6 +246,9 @@
   (when (ts-proc-cmd-process sv)
     (mp:process-kill (ts-proc-cmd-process sv))
     (setf (ts-proc-cmd-process sv) nil))
+  (when (ts-read-cmd-process sv)
+    (mp:process-kill (ts-read-cmd-process sv))
+    (setf (ts-read-cmd-process sv) nil))
   (finalize (ts-parent sv))
   (loop for chld in (ts-children sv)
       do (finalize chld))
@@ -272,32 +281,28 @@
         (wait-and-add-child sv)
         ;; 子からの接続受け付け用プロセス起動
         (activate-accept-connection-process sv)
+        ;; 必要数の子が接続してくるのを待つ（n-wait-childrenオプション）
+        (wait-children-connections sv)
         ;; メッセージ処理用プロセス起動
         (activate-proc-cmd-process sv)
-        ;; 標準入力からの入力待ち
-        (let* ((msg-q (ts-queue sv))
-               (prnt (ts-parent sv))
-               (terminal-parent-p (typep prnt 'terminal-parent))
-               (reader (make-receiver-reader prnt))
-               (src (host-socket prnt)))
-          (loop
-            (multiple-value-bind (msg eof-p) (funcall reader src)
-              (when terminal-parent-p
-                (add-queue msg msg-q))
-              (when eof-p (return))))
-          ))
+        ;; 親の入力ストリームからの入力待ちプロセス起動
+        (activate-read-cmd-process sv prnt)
+        ;; exitコマンドによってexit-gateがopenになるまでここで停止
+        (with1 gate (ts-exit-gate sv)
+          (mp:process-wait "Wait for exit command" #'mp:gate-open-p gate))
+        )
     (finalize sv)))
 
 (defmethod print-server-status ((sv tcell-server))
   (fresh-line *error-output*)
   (pprint (list `(parent ,(hostinfo (ts-parent sv)))
-          `(children ,@(mapcar #'hostinfo (ts-children sv)))
-          `(eldest-child ,(awhen (ts-eldest-child sv) (hostinfo it)))
-          `(n-children ,(ts-n-children sv))
-          `(child-next-id ,(ts-child-next-id sv))
-          `(children-port ,(ts-chport sv))
-          `(treq-any-list ,@(mapcar #'ta-entry-info (ts-talist sv)))
-          `(retry ,(ts-retry sv)))
+                `(children ,@(mapcar #'hostinfo (ts-children sv)))
+                `(eldest-child ,(awhen (ts-eldest-child sv) (hostinfo it)))
+                `(n-children ,(ts-n-children sv))
+                `(child-next-id ,(ts-child-next-id sv))
+                `(children-port ,(ts-chport sv))
+                `(treq-any-list ,@(mapcar #'ta-entry-info (ts-talist sv)))
+                `(retry ,(ts-retry sv)))
           *error-output*)
   (terpri *error-output*)
   (force-output *error-output*))
@@ -307,11 +312,16 @@
     (awhen (connect-from next-child (ts-chsock0 sv) :wait t)
       (add-child sv it))))
 
+(defmethod wait-children-connections ((sv tcell-server))
+  (mp:process-wait "Wait for connections of children."
+                   #'(lambda () (<= (ts-n-wait-children sv) (ts-n-children sv)))))
+
 (defmethod activate-accept-connection-process ((sv tcell-server))
   (setf (ts-accept-connection-process sv)
     (mp:process-run-function "ACCEPT-CHILD-CONNECTION"
       #'(lambda () (loop (wait-and-add-child sv))))))
 
+;;; サーバのメッセージ処理プロセスを起動
 (defmethod activate-proc-cmd-process ((sv tcell-server))
   (setf (ts-proc-cmd-process sv)
     (mp:process-run-function "PROC-CMD"
@@ -326,6 +336,21 @@
                 (proc-cmd sv host message))
               (retry-treq sv))))
       (ts-queue sv))))
+
+;;; サーバのメッセージ読み込みプロセス起動
+(defmethod activate-read-cmd-process ((sv tcell-server) (prnt parent))
+  (setf (ts-read-cmd-process sv)
+    (mp:process-run-function "READ-FROM-PARENT"
+      #'(lambda ()
+          (let* ((msg-q (ts-queue sv))
+                 (prnt (ts-parent sv))
+                 (reader (make-receiver-reader prnt))
+                 (src (host-socket prnt)))
+            (loop
+              (multiple-value-bind (msg eof-p) (funcall reader src)
+                (add-queue msg msg-q)
+                (when eof-p (return))))
+            )))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod host-name-port ((hst host))
@@ -343,8 +368,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod connect-to ((hst host))
   (setf (host-socket hst)
-	(make-socket :remote-host (host-hostname hst)
-                     :remote-port (host-port hst)))
+    (make-socket :remote-host (host-hostname hst)
+                 :remote-port (host-port hst)))
   (initialize-connection hst)
   hst)
 
@@ -431,7 +456,7 @@
         (let* ((n-char (setf (fill-pointer line-buffer)
                          (excl:read-line-into line-buffer stream nil 0)))
                (eof-p (= 0 n-char))
-               (msg (if eof-p '("exit") (split-string line-buffer))))
+               (msg (if eof-p '("leav") (split-string line-buffer))))
           (string-case-eager (car msg)
             (#.*commands-with-data*
              (mp:process-wait "Waiting for finishing reading body from the buffer"
@@ -513,7 +538,7 @@
         (setf (fill-pointer line-buffer) line-bufsize)
         ;; ヘッダread: <whole-size> <elm-size> <endian(0|1)>
         (setf (fill-pointer line-buffer)
-                  (excl:read-line-into line-buffer istream nil 0))
+          (excl:read-line-into line-buffer istream nil 0))
         (let* ((whole-size (parse-integer line-buffer :junk-allowed t)))
           (write-string line-buffer ostream)
           (terpri ostream)
@@ -557,7 +582,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; バッファ監視->送信
 (defmethod monitor-and-send-queue ((sq shared-queue) dest
-                                    &optional (writer #'write-string))
+                                   &optional (writer #'write-string))
   (let ((gate (sq-gate sq)))
     (loop
       (mp:process-wait "Waiting for something is added to the queue"
@@ -568,7 +593,7 @@
 
 ;; 受信->バッファに追加
 (defmethod receive-and-add-to-queue ((sq shared-queue) src
-                                      &optional (reader #'read-line))
+                                     &optional (reader #'read-line))
   (loop
     (multiple-value-bind (obj eof-p) (funcall reader src)
       (add-queue obj sq)
@@ -590,10 +615,6 @@
   (tcell-print-log "~&Added a new child (~D children in total).~%" (ts-n-children sv))
   (unless (ts-eldest-child sv)
     (setf (ts-eldest-child sv) chld)))
-
-(defmethod remove-child ((sv tcell-server) (prnt parent))
-  ;; do nothing
-  )
 
 (defmethod remove-child ((sv tcell-server) (chld child))
   (finalize chld)
@@ -717,11 +738,13 @@
 (defmethod send-treq (to task-head treq-head)
   (send to (list "treq " task-head #\Space treq-head #\Newline)))
 
-;; 前に送ったtaskを再送信（性能評価用）
+;; treqへの応答として，前に送ったtaskを自動再送信（性能評価用）
 ;; funcallのfunction は send-rslt (to terminal-parent) でセットしている
 (defmethod send-treq :after ((to terminal-parent) task-head treq-head)
   (declare (ignore task-head treq-head))
-  (funcall (parent-auto-resend-func to)))
+  (awhen (parent-auto-treq-response-func to)
+    (funcall it)
+    (setf (parent-auto-treq-response-func to) nil)))
 
 (defmethod send-task (to wsize-str rslt-head task-head task-no task-body)
   (send to (list "task "
@@ -745,45 +768,52 @@
 
 (defmethod send-rslt :after ((to terminal-parent) rslt-head rslt-body)
   (declare (ignore rslt-body))
-  ;; rack自動送信およびtask自動送信の準備（task再送信は性能評価用）
+  ;; rack，task，exit自動送信の設定（task再送信は性能評価用）
   (when (parent-auto-rack to)
     (let ((end-time (get-internal-real-time)))
       (aif (find rslt-head (parent-task-home to) :test #'string=
                  :key #'(lambda (x) (third (task-home-task-cmd x))))
-           (let* ((cmd (task-home-task-cmd it))
-                  (rslt-head (third cmd))
-                  (rslt-no (parse-integer rslt-head :junk-allowed t))
-                  (rack-to (task-home-rack-to it))
-                  (rack-task-head (task-home-rack-task-head it))
-                  (start-time (task-home-start-time it)))
-             ;; rack返信
-             (format *error-output*
-               "~&Time: ~S~%~
+          (let* ((cmd (task-home-task-cmd it))
+                 (rslt-head (third cmd))
+                 (rslt-no (parse-integer rslt-head :junk-allowed t))
+                 (rack-to (task-home-rack-to it))
+                 (rack-task-head (task-home-rack-task-head it))
+                 (start-time (task-home-start-time it)))
+            ;; rack返信
+            (format *error-output*
+                "~&Time: ~S~%~
                 Auto-send \"rack ~A\" to ~S~%"
-               (/ (- end-time start-time)
-                  internal-time-units-per-second 1.0)
-               rack-task-head (hostinfo rack-to))
-             (send-rack rack-to rack-task-head)
-             ;; n-resendチェック→task自動再送信関数をセット
-             ;; rslt-no（rslt-headの最後の数字）が送った回数のカウントの役割
-             (if (< rslt-no (parent-auto-resend-task to))
-                 (let ((new-rslt-head (format nil "~D" (1+ rslt-no))))
-                   (setf (caddr cmd) new-rslt-head)
-                   ;; treqがきたら自動的にtaskを再送信するように関数をセット
-                   (setf (parent-auto-resend-func to)
-                     #'(lambda ()
-                         (sleep 1)
-                         (excl:gc t)
-                         (format *error-output* "~&auto-resend-task~%")
-                         (setf (task-home-start-time it) (get-internal-real-time))
-                         (incf (parent-diff-task-rslt to))
-                         (send-task rack-to ; rackの送り先と同じでよいことを仮定
-                                    (second cmd) (head-push to new-rslt-head)
-                                    rack-task-head (fifth cmd) (nthcdr 5 cmd))
-                         (setf (parent-auto-resend-func to) #'(lambda ())))))
-               ;; task-homeのエントリ削除
-               (delete it (parent-task-home to) :count 1)))
-           (warn "No task-home corresponding to rslt ~S" rslt-head)))))
+              (/ (- end-time start-time)
+                 internal-time-units-per-second 1.0)
+              rack-task-head (hostinfo rack-to))
+            (send-rack rack-to rack-task-head)
+            ;; n-resendチェック→task自動再送信関数をセット
+            ;; rslt-no（rslt-headの最後の数字）が送った回数のカウントの役割
+            (if (< rslt-no (parent-auto-resend-task to))
+                (let ((new-rslt-head (format nil "~D" (1+ rslt-no))))
+                  (setf (caddr cmd) new-rslt-head)
+                  ;; treqがきたら自動的にtaskを再送信するように関数をセット
+                  (setf (parent-auto-treq-response-func to)
+                    #'(lambda ()
+                        (sleep 1)
+                        (excl:gc t)
+                        (format *error-output* "~&auto-resend-task~%")
+                        (setf (task-home-start-time it) (get-internal-real-time))
+                        (incf (parent-diff-task-rslt to))
+                        (send-task rack-to ; rackの送り先と同じでよいことを仮定
+                                   (second cmd) (head-push to new-rslt-head)
+                                   rack-task-head (fifth cmd) (nthcdr 5 cmd)))))
+              (progn
+                ;; task-homeのエントリ削除
+                (delete it (parent-task-home to) :count 1)
+                ;; exitを自動送信するように関数をセット
+                (when (parent-auto-exit to)
+                  (setf (parent-auto-treq-response-func to)
+                    #'(lambda ()
+                        (format *error-output* "~&auto-send-exit~%")
+                        (proc-cmd (host-server to) to '("exit"))))))
+              ))
+        (warn "No task-home corresponding to rslt ~S" rslt-head)))))
 
 (defmethod send-none (to task-head)
   (send to (list "none " task-head #\Newline)))
@@ -803,6 +833,9 @@
 
 (defmethod send-data (to data-head range data-body)
   (send to (list "data " data-head #\Space range #\Newline data-body #\Newline)))
+
+(defmethod send-leav (to)
+  (send to (list "leav" #\Newline)))
 
 (defmethod send-stat (to task-head)
   (send to (list "stat " task-head #\Newline)))
@@ -825,11 +858,12 @@
     ("rack" (proc-rack sv from cmd))
     ("dreq" (proc-dreq sv from cmd))
     ("data" (proc-data sv from cmd))
-    ("exit" (remove-child sv from))
+    ("leav" (proc-leav sv from cmd))
     ("log"  (proc-log sv from cmd))
     ("stat" (proc-stat sv from cmd))
     ("verb" (proc-verb sv from cmd))
     ("eval" (print (eval (read-from-string (strcat (cdr cmd) #\Space)))))
+    ("exit" (proc-exit sv from cmd))
     (otherwise (warn "Unknown Command:~S" cmd))))
 
 ;;; treq
@@ -973,7 +1007,17 @@
     (let ((range (third cmd))           ; データ要求範囲
           (data-body (cdddr cmd)))      ; データ本体
       (send-data to s-data-head range data-body))))
-      
+
+;;; leav
+;; 子から→登録を外す．親から→無視
+(defmethod proc-leav ((sv tcell-server) (from child) cmd)
+  (declare (ignore cmd))
+  (remove-child sv from))
+
+(defmethod proc-leav ((sv tcell-server) (from parent) cmd)
+  (declare (ignore cmd))
+  )
+
 ;;; stat: サーバ／ワーカの状態を出力
 (defmethod proc-stat ((sv tcell-server) (from host) cmd)
   (if (cdr cmd)
@@ -1000,6 +1044,11 @@
       do (funcall setter mode))
   (show-log-mode))
 
+;;; exit: サーバを終了
+(defmethod proc-exit ((sv tcell-server) (from host) cmd)
+  (declare (ignore cmd))
+  (mp:open-gate (ts-exit-gate sv)))
+
 (defun toggle-transfer-log (mode)
   (setq *transfer-log* (not (not mode))))
 
@@ -1018,21 +1067,26 @@
 (defun make-and-start-server (&key 
                               (local-host *server-host*)
                               (children-port *children-port*)
+                              (n-wait-children 0)
                               (retry *retry*)
                               (terminal-parent t)
-                              (auto-rack t) ; for terminal paren
+                              (auto-rack t) ; for terminal parent
                               (auto-resend-task 0) ; for terminal-parent
+                              (auto-exit nil) ; for terminal parent
                               (parent-host *parent-host* ph-given)
-                              (parent-port *parent-port*))
+                              (parent-port *parent-port*)
+                              )
   (when ph-given (setq terminal-parent nil))
   (let* ((sv (make-instance 'tcell-server
                :local-host local-host
                :children-port children-port
+               :n-wait-children n-wait-children
                :retry retry))
          (prnt (if terminal-parent
                    (make-instance 'terminal-parent
                      :server sv :auto-rack auto-rack
-                     :auto-resend-task auto-resend-task)
+                     :auto-resend-task auto-resend-task
+                     :auto-exit auto-exit)
                  (make-instance 'parent :server sv
                                 :host parent-host
                                 :port parent-port))))
@@ -1044,5 +1098,5 @@
   (apply #'make-and-start-server args))
 
 ;; geroでの評価用
-(defun gs ()
-  (make-and-start-server :auto-resend-task 0 :local-host "gero00"))
+(defun gs (&rest args)
+  (apply #'make-and-start-server :auto-resend-task 0 :local-host "gero00" args))
