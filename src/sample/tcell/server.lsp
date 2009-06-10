@@ -39,11 +39,17 @@
   ;; compile and load external lisp modules
   (deftype gate () (type-of (mp:make-gate nil)))
   (use-package :socket)
-  (load (compile-file-if-needed (or (probe-file "sc-misc.lsp")
-                                    "../../sc-misc.lsp")
-                                :output-file "sc-misc.fasl"))
+  (load (compile-file-if-needed
+         (or (probe-file (make-pathname 
+                          :name "sc-misc" :type "lsp"
+                          :directory (pathname-directory *load-pathname*)))
+             "../../sc-misc.lsp")
+         :output-file "sc-misc.fasl"))
   (use-package "MISC")
-  (load (compile-file-if-needed "queue.lsp"))
+  (load (compile-file-if-needed
+         (or (probe-file (make-pathname 
+                          :name "queue" :type "lsp"
+                          :directory (pathname-directory *load-pathname*))))))
 
   ;; Uncomment to ignore logging code
   ;; (push :tcell-no-transfer-log *features*)

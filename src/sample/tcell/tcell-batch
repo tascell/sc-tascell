@@ -1,6 +1,7 @@
 #!/bin/sh
-# ALISP=`which alisp`
-ALISP='/cygdrive/c/Program Files/acl81/alisp'           # path/to/alisp
+
+#ALISP='/cygdrive/c/Program Files/acl81/alisp'           # path/to/alisp
+ALISP=/usr/local/acl81/alisp
 
 SERVER_CMDLINE="server-cmdline.lsp"
 
@@ -25,8 +26,8 @@ sleep 5
 
 i=1
 while [ $i -lt $NNODE ]; do
-    $WORKER_CMD &
+    ../tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD &
     sleep 1
     i=`expr $i + 1`
 done
-$WORKER_CMD
+../tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD
