@@ -264,7 +264,7 @@
   (def delay long 1000)     ; none が返ってきたとき待つ時間[nsec]
   (def tx (ptr (struct task)) thr->task-top)
 
-  ;; treqコマンド
+  ;; Treqコマンド
   (= rcmd.c 2)
   (= rcmd.node req-to) ; 取り返しであれば取り返し先，そうでなければANY
   (= rcmd.w TREQ)
@@ -318,8 +318,8 @@
        )
     (if (== tx->stat TASK-NONE)
         (begin
-         ;; 外への取り返しに失敗したのならしばらく待つ
-         (if (%ifdef* BUSYWAIT 1 %else (and thr->sub (== req-to OUTSIDE)))
+         ;; 取り返し失敗ならしばらく待つ
+         (if (%ifdef* BUSYWAIT 1 %else thr->sub)
              (let ((t-until (struct timespec))
                    (now (struct timeval)))
                (csym::gettimeofday (ptr now) 0)
@@ -626,6 +626,7 @@
   (csym::send-command (ptr rcmd) 0 0))  ;rack送信
 
 
+(decl task-stat-strings (array (ptr char)))
 ;;; threads[id] にtreqを試みる
 (def (csym::try-treq pcmd id from-addr)
     (csym::fn int (ptr (struct cmd)) (enum node) (ptr (enum node)))
@@ -644,7 +645,22 @@
                (and thr->task-top       ; 仕事中なら普通に受理
                     (or (== thr->task-top->stat TASK-STARTED)
                         (== thr->task-top->stat TASK-INITIALIZED)))))
-      (= avail 1))
+      (= avail 1)
+      (DEBUG-STMTS 2
+                   (let ((buf1 (array char BUFSIZE)))
+                     (csym::fprintf 
+                      stderr "Thread %d refused treq from %s because of %s.~%"
+                      id
+                      (exps (csym::serialize-arg buf1 from-addr) buf1)
+                      (if-exp (> thr->w-rack 0)
+                              "w-rack"
+                              (if-exp (not thr->task-top)
+                                      "having no task"
+                                      (if-exp  (not (or (== thr->task-top->stat TASK-STARTED)
+                                                        (== thr->task-top->stat TASK-INITIALIZED)))
+                                               (aref task-stat-strings thr->task-top->stat)
+                                               "unexpected reason"))))))
+      )
   (csym::pthread-mutex-unlock (ptr thr->rack-mut))
 
   ;; 成功ならtask-home（仕事の結果待ち） スタックにpush
