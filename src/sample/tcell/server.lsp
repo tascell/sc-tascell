@@ -507,10 +507,8 @@
             (let ((start buf-used) (end (+ buf-used whole-size)))
               (when (> end (length buffer))
                 (with1 newsize
-                    (loop
-                        for sz from (* 2 (length buffer)) by #'(lambda (x) (* 2 x))
-                        while (> end sz)
-                        finally (return sz))
+                    (do ((sz (* 2 (length buffer)) (+ sz sz)))
+                        ((>= sz end) sz))
                   (adjust-array buffer newsize)
                   (tcell-server-dprint "Extended buffer size to ~D~%" newsize)))
               (read-sequence buffer stream :start start :end end)
