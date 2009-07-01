@@ -80,12 +80,18 @@
   (csym::fputs str stderr)
   (csym::fputc #\Newline stderr))
 
+;;; 現在の絶対時刻をマイクロ秒単位の整数で得る
+(def (csym::get-universal-real-time) (csym::fn int)
+  (def now (struct timeval))
+  (csym::gettimeofday (ptr now) 0)
+  (return (+ (* 1000 1000 now.tv-sec) now.tv-usec)))
+
 ;;; エラーメッセージstrとコマンドをstderrに出力
 (def (csym::proto-error str pcmd) (csym::fn void (ptr (const char)) (ptr (struct cmd)))
   (def i int)
   (def buf (array char BUFSIZE))
   (csym::serialize-cmd buf pcmd)
-  (csym::fprintf stderr "%s> %s~%" str buf))
+  (csym::fprintf stderr "(%d): %s> %s~%" (csym::get-universal-real-time) str buf))
 
 ;; 外部への送信ロック
 (def send-mut pthread-mutex-t)
@@ -128,7 +134,7 @@
 
   (csym::receive-line b BUFSIZE sv-socket)
   (= cmd-buf.node OUTSIDE)
-  (DEBUG-PRINT 1 "RECEIVED> %s" b)
+  (DEBUG-PRINT 1 "(%d): RECEIVED> %s" (csym::get-universal-real-time) b)
   ;; p:一個前の文字，c:現在の文字
   (csym::deserialize-cmd (ptr cmd-buf) b)
   (return (ptr cmd-buf)))
@@ -368,9 +374,11 @@
        (= old-ndiv thr->ndiv)
        (= thr->ndiv tx->ndiv)
        (csym::pthread-mutex-unlock (ptr thr->mut))
-       (DEBUG-PRINT 1 "(Thread %d) start %d<%p>.~%" thr->id tx->task-no tx->body)
+       (DEBUG-PRINT 1 "(%d): (Thread %d) start %d<%p>.~%"
+                    (csym::get-universal-real-time) thr->id tx->task-no tx->body)
        ((aref task-doers tx->task-no) thr tx->body) ; タスク実行
-       (DEBUG-PRINT 1 "(Thread %d) end %d<%p>.~%" thr->id tx->task-no tx->body)
+       (DEBUG-PRINT 1 "(%d): (Thread %d) end %d<%p>.~%"
+                    (csym::get-universal-real-time) thr->id tx->task-no tx->body)
        ;; taskの処理完了後は，そのtask-homeにsend-rsltする
        (= rcmd.w RSLT)
        (= rcmd.c 1)
@@ -649,7 +657,8 @@
       (DEBUG-STMTS 2
                    (let ((buf1 (array char BUFSIZE)))
                      (csym::fprintf 
-                      stderr "Thread %d refused treq from %s because of %s.~%"
+                      stderr "(%d): Thread %d refused treq from %s because of %s.~%"
+                      (csym::get-universal-real-time)
                       id
                       (exps (csym::serialize-arg buf1 from-addr) buf1)
                       (if-exp (> thr->w-rack 0)
@@ -740,9 +749,11 @@
             (continue))                 ; 自分自身には要求を出さない
         (if (csym::try-treq pcmd id (aref pcmd->v 0))
             (begin
-             (DEBUG-PRINT 2 "treq(any) %d->%d... accepted.~%" myid id)
+             (DEBUG-PRINT 2 "(%d): treq(any) %d->%d... accepted.~%"
+                          (csym::get-universal-real-time) myid id)
              (break)))
-        (DEBUG-PRINT 4 "treq(any) %d->%d... refused.~%" myid id)
+        (DEBUG-PRINT 4 "(%d): treq(any) %d->%d... refused.~%"
+                     (csym::get-universal-real-time) myid id)
         )
       (if (!= d num-thrs)               ; treqできた
           (return))))
@@ -770,12 +781,14 @@
         (begin
          (DEBUG-STMTS 2
                       (let ((buf1 (array char BUFSIZE)))
-                        (csym::fprintf stderr "treq %s->%d (stealing back)... accepted.~%"
+                        (csym::fprintf stderr "(%d): treq %s->%d (stealing back)... accepted.~%"
+                                       (csym::get-universal-real-time)
                                        (exps (csym::serialize-arg buf1 (aref pcmd->v 0)) buf1) dst0)))
          (return)))
     (DEBUG-STMTS 2
                  (let ((buf1 (array char BUFSIZE)))
-                   (csym::fprintf stderr "treq %s->%d (stealing back)... refused.~%"
+                   (csym::fprintf stderr "(%d): treq %s->%d (stealing back)... refused.~%"
+                                  (csym::get-universal-real-time)
                                   (exps (csym::serialize-arg buf1 (aref pcmd->v 0)) buf1) dst0))))
    )
   ;; 内部のワーカが，渡せる仕事がなかった場合のみここに来る

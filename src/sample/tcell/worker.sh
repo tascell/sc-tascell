@@ -7,7 +7,7 @@
 (%defconstant TASK-LIST-LENGTH 1024)    ; スレッドごとのTASK, TASK-HOMEリストの長さ
 (%defconstant TASK-MAX 256)             ; プログラマが定義できるタスクの最大数
 
-(%defconstant DELAY-MAX (* 40 1000 1000))          ; none時->treq再送信までの時間の上限 [nsec]
+(%defconstant DELAY-MAX (* 1 1000 1000 1000))          ; none時->treq再送信までの時間の上限 [nsec]
 ; (%defconstant BUSYWAIT)                 ; ワーカがtreqの返事をbusywaitで待つならuncomment
 
 (%defconstant clsc)

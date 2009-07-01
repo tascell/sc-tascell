@@ -59,7 +59,7 @@
      "SEPARATE-LIST" "PUSHS" "INSERT" "INSERT1" "FIRSTN" "SUBSTITUTE-N"
      "POSITION-REC" "ASSORT" "STABLE-ASSORT" "ASSORT-BOOL" "STABLE-ASSORT-BOOL"
      "FIND-MAX" "FIND-POP" "MEDIAN" "MKLIST" "APPEND1" "NCONC1"
-     "LIST-LENGTH>=" "LIST-LENGTH=" "POWER-SET"
+     "LIST-LENGTH>=" "LIST-LENGTH=" "LIST-RANDOM-SELECT" "POWER-SET"
      "LIST-UNTIL" "LIST-UNTIL-IF" "HEAD-INTERSECTION" "INTEGER-LIST"
      "MAKE-ALL-COMB"
      "MEMBER-REC" "COMBINE-EACH-NTH" "CMPD-LIST"
@@ -881,6 +881,10 @@
         thereis (and (= i n)
                      (return (endp (cdr rest)))))))
 
+
+;;; リストからランダムで一要素選択
+(defun list-random-select (list &optional (len (length list)))
+  (nth (random len) list))
 
 ;;;;; 集合演算
 

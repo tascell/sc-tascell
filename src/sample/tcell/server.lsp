@@ -51,7 +51,6 @@
            (or (probe-file (make-pathname 
                             :name "queue" :type "lsp"
                             :directory (pathname-directory pathname)))))))
-
   ;; Uncomment to ignore logging code
   ;; (push :tcell-no-transfer-log *features*)
   )
@@ -122,7 +121,12 @@
    (port :accessor host-port :type fixnum :initarg :port)
    (sock :accessor host-socket :type stream :initarg :sock)
    (sender :accessor host-sender :type sender :initform nil)
-   (receiver :accessor host-receiver :type receiver :initform nil)))
+   (receiver :accessor host-receiver :type receiver :initform nil)
+   (last-none-time :accessor host-none-time :type fixnum :initform -1)
+                                        ; 最後にnoneを受け取った時刻（get-internal-real-timeで獲得）
+                                        ; taskを送った相手に対してはリセットする
+   ))
+  
 
 (defclass parent (host)
   ((host :initform *parent-host*)
@@ -130,7 +134,6 @@
    (n-treq-sent :accessor parent-n-treq-sent :type fixnum :initform 0)
    (diff-task-rslt :accessor parent-diff-task-rslt :type fixnum :initform 0)
                                         ; <taskをもらった回数>-<rsltを送った回数> (childとは違うので注意)
-   (last-none-time :accessor parent-last-none-time :type integer :initform -1)
    ))
 
 ;; terminal-parentのauto-rack, auto-resend-taskを実現するために
@@ -479,7 +482,9 @@
                                             (mp:open-gate gate))))))
             (#.*commands-without-data* nil)
             (otherwise (error "Unknown command ~S from ~S." msg (hostinfo hst))))
-          (tcell-server-dprint "Received ~S from ~S~%" (msg-log-string msg) (hostinfo hst))
+          (tcell-server-dprint "(~D): Received ~S from ~S~%"
+                               (get-internal-real-time)
+                               (msg-log-string msg) (hostinfo hst))
           (values (cons hst msg) eof-p))
         )))
 
@@ -638,14 +643,29 @@
 
 ;;; 一番仕事が残ってそうな子
 (defmethod most-divisible-child ((sv tcell-server) (from host))
-  (let ((max nil) (maxchld nil))
-    (loop for chld in (ts-children sv)
-        do (when (and (> (child-diff-task-rslt chld) 0)
-                      (not (eq chld from))
-                      (or (null max) (> (child-wsize chld) max)))
-             (setq max (child-wsize chld))
-             (setq maxchld chld)))
-    maxchld))
+  (with* (cur-time (get-internal-real-time)
+          limit (* 0 internal-time-units-per-second)
+          candidates (remove-if-not #'(lambda (x)
+                                        (and (> (child-diff-task-rslt x) 0)
+                                             (not (eq x from))
+                                             (>= (- cur-time (host-none-time x)) limit)))
+                                    (ts-children sv)))
+    ;; Strategy1: （送ったtaskの数-受け取ったrsltの数）>0 かつ 最後に送ったtaskのndivが最小
+    #+comment
+    (let ((max nil) (maxchld nil))
+      (loop for chld in candidates
+          do (when (or (null max)
+                       (> (child-wsize chld) max))
+               (setq max (child-wsize chld))
+               (setq maxchld chld)))
+      #-tcell-no-transfer-log
+      (when maxchld
+        (tcell-server-dprint "~&Most-divisible-child selected ~S: (child-diff-task-rslt ~D), (child-wsize ~D)~%"
+                             (hostinfo maxchld) (child-diff-task-rslt maxchld) (child-wsize maxchld)))
+      maxchld)
+    ;; Strategy2: （送ったtaskの数-受け取ったrsltの数）>0 のものからランダム
+    (if candidates (list-random-select candidates) nil))
+    )
 
 ;;; 子のwork-size を更新
 (defmethod renew-work-size ((chld child) wsize)
@@ -737,7 +757,8 @@
 ;; debug print
 #-tcell-no-transfer-log
 (defmethod send :after ((to host) obj)
-  (tcell-server-dprint "~&Sent ~S to ~S~%"
+  (tcell-server-dprint "~&(~D): Sent ~S to ~S~%"
+                       (get-internal-real-time)
                        (msg-log-string obj nil) (hostinfo to)))
 
 (defmethod send-treq (to task-head treq-head)
@@ -756,6 +777,8 @@
                  task-head #\Space
                  task-no #\Newline
                  task-body #\Newline)))
+(defmethod send-task :after ((to host) wsize-str rslt-head task-head task-no task-body)
+  (setf (host-none-time to) -1))
 (defmethod send-task :after ((to child) wsize-str rslt-head task-head task-no task-body)
   (declare (ignore rslt-head task-head task-no task-body))
   (incf (child-diff-task-rslt to))
@@ -967,6 +990,11 @@
   (destructuring-bind (to s-task-head)
       (head-shift sv (second cmd))      ; none送信先
     (send-none to s-task-head)))
+
+(defmethod proc-none :after ((sv tcell-server) (from host) cmd)
+  ;; noneを受け取った時刻を記憶
+  (declare (ignorable sv cmd))
+  (setf (host-none-time from) (get-internal-real-time)))
 
 ;;; back
 (defmethod proc-back ((sv tcell-server) (from host) cmd)
