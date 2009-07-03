@@ -29,6 +29,7 @@
 
 (c-exp "#include<sys/time.h>")
 
+;; ワーカごとに処理したタスクの数をカウントして表示
 (%defconstant COUNT-NTASK 1)
 
 (%ifndef* NF-TYPE
