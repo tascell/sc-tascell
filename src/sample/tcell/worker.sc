@@ -401,6 +401,8 @@
 ;;; ワーカのループ
 (def (worker arg) (fn (ptr void) (ptr void))
   (def thr (ptr (struct thread-data)) arg)
+  (= thr->wdptr (csym::malloc (sizeof (struct thread-data))))
+  (csym::worker-init thr)
   (csym::pthread-mutex-lock (ptr thr->mut))
   (loop
     (recv-exec-send thr (init (array (enum node) 2) (array ANY TERM)) ANY))

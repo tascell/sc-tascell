@@ -72,7 +72,7 @@
                                              ,.(mapcar #'type-expression! texp-list)
                                              ,.(if-pattern-variable va-arg
                                                  (list (get-retval va-arg))))
-                       ,@(function-body fbody))
+                       ,@(function-body! fbody))
    )
   ;; struct/union definitions/declarations
   ((#?(,dd[def-or-decl] ,su-spec[struct-or-union-specifier] ,@sdcl-list))
@@ -324,7 +324,7 @@
 
 (defrule compound-statement sc0-to-sc0
   (#?(begin ,@bi-list)
-   ~(begin ,@(function-body bi-list)))
+   ~(begin ,@(function-body! bi-list)))
   )
 
 (defrule labeled-statement sc0-to-sc0

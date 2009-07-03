@@ -6,6 +6,7 @@
 (%defconstant ARG-SIZE-MAX 16)          ; コマンドの各引数の許される長さ
 (%defconstant TASK-LIST-LENGTH 1024)    ; スレッドごとのTASK, TASK-HOMEリストの長さ
 (%defconstant TASK-MAX 256)             ; プログラマが定義できるタスクの最大数
+(%defconstant DUMMY-SIZE 1000)          ; false-sharing防止のためのpaddingサイズ
 
 (%defconstant DELAY-MAX (* 1 1000 1000 1000))          ; none時->treq再送信までの時間の上限 [nsec]
 ; (%defconstant BUSYWAIT)                 ; ワーカがtreqの返事をbusywaitで待つならuncomment
@@ -66,6 +67,10 @@
 (decl (csym::data-send) (csym::fn void int int))
 (decl (csym::data-receive) (csym::fn void int int))
 
+;;; worker local storage の構造体および初期化関数（定義はユーザプログラムで）
+(decl (struct worker-data))
+(decl (csym::worker-init) (csym::fn void (ptr (struct thread-data))))
+
 ;;; Tascellプログラマに提供する機能 (worker.scで定義)
 ;;; （Tascellでは最初の 'csym::-' を除いた名前．request-dataの先頭引数thrはtcell.ruleが追加）
 ;; データ領域の確保およびフラグを初期化（引数はデータのサイズ＝data-flagの数）
@@ -96,7 +101,7 @@
   ;;  結果待ちは？ taskのほうでわかる？
   TASK-HOME-DONE)        ; 結果が求まっている
 
-;; 計算するプロセッサにまで移動してきたタスク
+;; 計算するworkerにまで移動してきたタスク
 (def (struct task)
   (def stat (enum task-stat))       ; タスクの状態
   (def next (ptr (struct task)))    ; 双方向リスト......
@@ -141,6 +146,8 @@
   (def rack-mut pthread-mutex-t)        ; rack mutex
   (def cond pthread-cond-t)             ; task, none待ちで眠らせるときの条件変数
   (def cond-r pthread-cond-t)           ; rslt待ちで眠らせるときの条件変数
+  (def wdptr (ptr void))                ; worker local storage構造体（ユーザが定義）へのポインタ
+  (def dummy (array char DUMMY-SIZE)) ; false sharing防止のpadding
   )
 
 ;;;; 必要時データ要求関連

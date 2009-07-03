@@ -22,6 +22,8 @@
 ;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 ;;; SUCH DAMAGE.
 
+;;; Tascell with SC1 extension => Tascell
+
 (require-ruleset :tcell)
 (define-ruleset tcell-sc1 (sc1-to-sc0))
 
@@ -39,8 +41,13 @@
   ;; * recv_task_body
   ;; * recv_rslt_body
   ((#?(def (,task-tag[~(task-body task-sender task-receiver rslt-sender rslt-receiver)]
-		       ,id[identifier]) ,@body))
-   ~(def (,task-tag ,id) ,@(function-body body)))
+                     ,id[identifier]) ,@body))
+   ~(def (,task-tag ,id) ,@(function-body! body)))
+  ;; worker local storage
+  (#?(def worker-data ,@sdecl)
+   ~(def worker-data ,@(mapcar #'struct-declaration! sdecl)))
+  (#?(def worker-init ,@body)
+   ~(def worker-init ,@(function-body! body)) )
   )
 
 (extendrule statement tcell-sc1

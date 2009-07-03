@@ -61,6 +61,16 @@
    (error-indent (format nil "In ~S of ~S" task-tag id)
      (tcell-type:with-task id
        ~(def (,task-tag ,id) ,@(function-body body)))) )
+  ;; worker local storage
+  (#?(def worker-data ,@sdeclist)
+   (multiple-value-bind (member-alist sdecl-with-type)
+       (type:get-struct-member-info sdeclist)
+     (type:add-struct ~worker-data member-alist)
+     ~(def worker-data ,@sdecl-with-type) ))
+  (#?(def worker-init ,@body)
+   (type:with-new-environment
+       (tcell:with-worker-data
+           ~(def worker-init ,@(function-body! body)) )))
   )
 
 (extendrule block-item tcell-type
@@ -96,4 +106,15 @@
       (:before ,@(type:with-new-environment (function-body bef-body)))
       (:body ,@(type:with-new-environment (function-body body)))
       (:after ,@(type:with-new-environment (function-body aft-body)))) )
+  )
+
+(extendrule expression tcell-type
+  (#?WDATA
+   (if (tcell:wdata-accessible-p)
+       ~(the (struct worker-data) WDATA)
+     (next-pattern)))
+  (#?WORKER-ID
+   (if (tcell:wdata-accessible-p)
+       ~(the int WORKER-ID)
+     (next-pattern)))
   )

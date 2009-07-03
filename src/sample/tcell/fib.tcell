@@ -29,6 +29,8 @@
 
 (c-exp "#include<sys/time.h>")
 
+(%defconstant COUNT-NTASK 1)
+
 (%ifndef* NF-TYPE
   (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
 (%include "rule/tcell-setrule.sh")
@@ -45,6 +47,15 @@
                    (fref (aref tp 0) tv-usec))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(%ifdef* COUNT-NTASK
+  (def worker-data
+      (def n-task int))
+  (def worker-init
+      (= WDATA.n-task 0))
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (decl (fib n) (wfn int int))
 
 (def (task fib)
@@ -53,8 +64,12 @@
 
 (def (task-body fib)
     ;;(csym::fprintf stderr "start fib(%d)~%" (fref this n))
+  (%ifdef* COUNT-NTASK
+    (++ WDATA.n-task)
+    (csym::fprintf stderr "%d starts %d-th task.~%" WORKER-ID WDATA.n-task))
   (= (fref this r)
-     (fib (fref this n))))
+     (fib (fref this n)))
+  )
 
 (def (task fib-start)
   (def n int :in)
@@ -63,6 +78,9 @@
 (def (task-body fib-start)
   (decl tp (array (struct timeval) 2))
   (csym::fprintf stderr "start fib(%d)~%" (fref this n))
+  (%ifdef* COUNT-NTASK
+    (++ WDATA.n-task)
+    (csym::fprintf stderr "%d starts %d-th task.~%" WORKER-ID WDATA.n-task))
   (csym::gettimeofday tp 0)
   (= (fref this r)
      (fib (fref this n)))

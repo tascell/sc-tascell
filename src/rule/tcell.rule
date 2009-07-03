@@ -29,6 +29,7 @@
   (ignore-cfunc t)
   (nestfunc-tag ~fn)
   (no-nestfunc nil)                     ; 入れ子関数を持たないコードを生成（比較評価用）
+  (padding-size 1000)
   )
 
 (scr:require "TCELL-DEFS")
@@ -52,7 +53,10 @@
             (list ~(def (csym::data-receive n1 n2) (csym::fn void int int))))
           ;; sender/receiver関数およびその配列
           (tcell:sender-and-receiver-functions-all)
-          (tcell:task-maps)))))
+          (tcell:task-maps)
+          ;; worker local storage
+          (tcell:make-dummy-worker-data-if-needed)
+          ))))
   )
 
 (extendrule inlined-declaration tcell
@@ -68,35 +72,49 @@
    (tcell:with-task id
      (let ((task-mems (mapcar #'task-member! rest)))
         ~(def (struct ,(tcell:task-struct-id))
-              ,@task-mems))))
+             ,@task-mems
+           (def -dummy- (array char ,(ruleset-param 'padding-size))) )
+        )))
   ;; * do_task_body
   (#?(def (task-body ,id) ,@body)
    (tcell:with-task id
      (tcell:task-body-function
-      (tcell:with-new-bk ~-bk (function-body body))) ))
+      (tcell:with-new-bk ~-bk (function-body! body))) ))
   ;;; 以下はtaskに登録しておくだけ．最後にまとめてコードを作る
   ;; * send_task_body
   (#?(def (task-sender ,id) ,@body)
    (tcell:with-task id
-     (tcell:set-task-send (function-body body))
+     (tcell:set-task-send (function-body! body))
      (list ~%splice) ))
   ;; * send_rslt_body
   (#?(def (task-receiver ,id) ,@body)
    (tcell:with-task id
-     (tcell:set-task-recv (function-body body))
+     (tcell:set-task-recv (function-body! body))
      (list ~%splice) ))
   ;; * recv_task_body
   (#?(def (rslt-sender ,id) ,@body)
    (tcell:with-task id
-     (tcell:set-rslt-send (function-body body))
+     (tcell:set-rslt-send (function-body! body))
      (list ~%splice) ))
   ;; * recv_rslt_body
   (#?(def (rslt-receiver ,id) ,@body)
    (tcell:with-task id
-     (tcell:set-rslt-recv (function-body body))
+     (tcell:set-rslt-recv (function-body! body))
      (list ~%splice) ))
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; worker local storage
+  (#?(def worker-data ,@sdecl)
+   (tcell:entry-worker-data)
+   ~(def (struct worker-data)
+        ,@(mapcar #'struct-declaration! sdecl)
+        (def -dummy- (array char ,(ruleset-param 'padding-size)))) )
+  ;; initializer of worker local storage
+  (#?(def worker-init ,@body)
+   (tcell:entry-worker-init)
+   ~(def (csym::worker-init ,@tcell:*worker-init-args*) ,tcell:*worker-init-type*
+      ,@(function-body! body)))
 
+  ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; task-work用の関数定義/宣言
   (#?(,scs[storage-class-specifier] (,@id-list[identifier])
            (wfn ,@texp-list) ,@body)
@@ -314,6 +332,14 @@
   (#?(the ,texp (call (the (ptr (wfn ,@texp-list)) ,exp-f) ,@exp-list))
    ~(the ,texp (call ,@(wfn-add-argids ~((the (ptr ,(type-expression! ~(wfn ,@texp-list))) ,exp-f)
                                          ,@(mapcar #'expression! exp-list))))) )
+  ;; access to worker local storage
+  (#?(the ,texp WDATA)
+   (if (tcell:wdata-accessible-p)
+       ~(mref (cast (ptr (struct worker-data)) (fref (mref -thr) wdptr))) ))
+  ;; get WORKER-ID
+  (#?(the ,texp WORKER-ID)
+   (if (tcell:wdata-accessible-p)
+       ~(fref (mref -thr) id) ))
   ;; this -> (mref pthis)
   (#?(the ,texp this)
    (if (tcell:current-task)

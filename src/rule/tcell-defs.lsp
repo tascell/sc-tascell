@@ -36,6 +36,9 @@
            :task-add-field :task-add-input-var :task-add-output-var
            :task-field-p
            :sender-and-receiver-functions-all
+           :entry-worker-data :entry-worker-init :*worker-init-args* :*worker-init-type*
+           :with-worker-data :wdata-accessible-p
+           :make-dummy-worker-data-if-needed
            :nestfunc-type
            :add-defined-func-name :func-name-exists-p
            ))
@@ -269,6 +272,34 @@
     (error "Default receiver for ~S is not prepeared." texp)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; worker-data管理
+(defvar *defined-worker-data* nil)
+(defvar *defined-worker-init* nil)
+(defvar *wdata-accessible* nil)
+(defconstant *worker-init-args* ~(-thr))
+(defconstant *worker-init-type* ~(csym::fn void (ptr (struct thread-data))))
+
+(defun entry-worker-data ()
+  (setq *defined-worker-data* t))
+(defun entry-worker-init ()
+  (setq *defined-worker-init* t))
+
+(defun make-dummy-worker-data-if-needed ()
+  (append
+   (unless *defined-worker-data*
+     (list ~(def (struct worker-data))) )
+   (unless *defined-worker-init*
+     (list ~(def (csym::worker-init ,@*worker-init-args*) ,*worker-init-type*)) ) )
+  )
+
+(defmacro with-worker-data (&body body)
+  `(let ((*wdata-accessible* t))
+     ,@body))
+
+(defun wdata-accessible-p ()
+  *wdata-accessible*)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; 入れ子関数の型
 (defun nestfunc-type (&optional (fn-tag (ruleset-param 'rule::nestfunc-tag)))
@@ -317,12 +348,14 @@
   `(let ((*tasks* ())
          (*current-task* nil)
          (*latest-bk* nil)
-         (*defined-func-names* ()))
+         (*defined-func-names* ())
+         (*worker-init-data* t) (*worker-init-body* t) (*wdata-accessible* nil))
      ,@body))
 
 (defmacro with-task (task-or-scid &body body)
   `(let ((*current-task* (get-task ,task-or-scid)))
-     ,@body))
+     (with-worker-data
+         ,@body)))
 
 (defun current-task ()
   *current-task*)
