@@ -111,9 +111,9 @@
   ;; initializer of worker local storage
   (#?(def worker-init ,@body)
    (tcell:entry-worker-init)
-   ~(def (csym::worker-init ,@tcell:*worker-init-args*) ,tcell:*worker-init-type*
-      ,@(function-body! body)))
-
+   (tcell:with-worker-data
+       ~(def (csym::worker-init ,@tcell:*worker-init-args*) ,tcell:*worker-init-type*
+          ,@(function-body! body))))
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; task-work用の関数定義/宣言
   (#?(,scs[storage-class-specifier] (,@id-list[identifier])
@@ -335,7 +335,8 @@
   ;; access to worker local storage
   (#?(the ,texp WDATA)
    (if (tcell:wdata-accessible-p)
-       ~(mref (cast (ptr (struct worker-data)) (fref (mref -thr) wdptr))) ))
+       ~(mref (cast (ptr (struct worker-data)) (fref (mref -thr) wdptr)))
+       x))
   ;; get WORKER-ID
   (#?(the ,texp WORKER-ID)
    (if (tcell:wdata-accessible-p)
