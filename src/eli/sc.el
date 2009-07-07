@@ -59,6 +59,9 @@
   (put 'for tag 1)
   (put 'switch tag 1)
   (put 'cast tag 1)
+  ;; Tascell
+  (put 'do-many tag 6)
+  (put 'do-two tag 2)
   )
 
 ;; (defadvice fi::lisp-invoke-method (around sharp-question

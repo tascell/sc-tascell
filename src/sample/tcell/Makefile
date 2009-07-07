@@ -6,7 +6,7 @@ OPT=-O2 -g $(MOPT)
 XCCOPT=-DCT=lightweight
 XCCCLOPT=-DCT=closure
 
-APPS=fib lu cmp pen pen6x17 nq grav matmul
+APPS=fib lu cmp pen pen6x17 nq grav matmul spanning
 
 C_PROGS=$(addsuffix -c,$(APPS))
 GCC_PROGS=$(addsuffix -gcc,$(APPS))
