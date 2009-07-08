@@ -320,9 +320,8 @@ static void     init_main( void)
     errors = src_col = 0;
     warn_level = -1;
     infile = NULL;
-    in_directive = in_define = in_getarg = in_include = FALSE;
-    in_asm = 0L;
-    macro_line = 0L;
+    in_directive = in_define = in_getarg = in_include = in_if = FALSE;
+    src_line = macro_line = in_asm = 0L;
     mcpp_debug = mkdep = no_output = keep_comments = keep_spaces = 0;
     include_nest = 0;
     insert_sep = NO_SEP;
@@ -354,8 +353,10 @@ int     main
     char *  out_file = NULL;
     char *  stdin_name = "<stdin>";
 
-    if (setjmp( error_exit) == -1)
+    if (setjmp( error_exit) == -1) {
+        errors++;
         goto  fatal_error_exit;
+    }
 
 #if MCPP_LIB
     /* Initialize global and static variables.  */
@@ -385,6 +386,7 @@ int     main
     if (in_file != NULL && ! str_eq( in_file, "-")) {
         if ((fp_in = fopen( in_file, "r")) == NULL) {
             mcpp_fprintf( ERR, "Can't open input file \"%s\".\n", in_file);
+            errors++;
 #if MCPP_LIB
             goto  fatal_error_exit;
 #else
@@ -398,15 +400,18 @@ int     main
     if (out_file != NULL && ! str_eq( out_file, "-")) {
         if ((fp_out = fopen( out_file, "w")) == NULL) {
             mcpp_fprintf( ERR, "Can't open output file \"%s\".\n", out_file);
+            errors++;
 #if MCPP_LIB
             goto  fatal_error_exit;
 #else
             return( IO_ERROR);
 #endif
         }
+        fp_debug = fp_out;
     }
     if (option_flags.q) {                   /* Redirect diagnostics */
         if ((fp_err = fopen( "mcpp.err", "a")) == NULL) {
+            errors++;
             mcpp_fprintf( OUT, "Can't open \"mcpp.err\"\n");
 #if MCPP_LIB
             goto  fatal_error_exit;
@@ -458,7 +463,7 @@ fatal_error_exit:
                 errors, (errors == 1) ? "" : "s");
         return  IO_ERROR;
     }
-    return  IO_SUCCESS;             /* No errors or -E option set   */
+    return  IO_SUCCESS;                             /* No errors    */
 }
 
 /*
@@ -473,12 +478,6 @@ typedef struct pre_set {
 
 static PRESET   preset[] = {
 
-#ifdef  CPU_OLD
-        { CPU_OLD, "1"},
-#endif
-#ifdef  CPU_SP_OLD
-        { CPU_SP_OLD, "1"},
-#endif
 #ifdef  SYSTEM_OLD
         { SYSTEM_OLD, "1"},
 #endif
@@ -494,15 +493,6 @@ static PRESET   preset[] = {
 
         { NULL, NULL},  /* End of macros beginning with alphabet    */
 
-#ifdef  CPU_STD
-        { CPU_STD, "1"},
-#endif
-#ifdef  CPU_STD1
-        { CPU_STD1, "1"},
-#endif
-#ifdef  CPU_STD2
-        { CPU_STD2, "1"},
-#endif
 #ifdef  SYSTEM_STD
         { SYSTEM_STD, "1"},
 #endif
@@ -548,9 +538,6 @@ static PRESET   preset[] = {
 #endif
 #ifdef  COMPILER_SP3
         { COMPILER_SP3, COMPILER_SP3_VAL},
-#endif
-#ifdef  COMPILER_SP4
-        { COMPILER_SP4, COMPILER_SP4_VAL},
 #endif
 #ifdef  COMPILER_CPLUS
         { COMPILER_CPLUS, COMPILER_CPLUS_VAL},
