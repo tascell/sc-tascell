@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; Copyright (c) 2009 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,9 @@
 ;; <n>
 
 (c-exp "#include<sys/time.h>")
+(c-exp "#include\"xccmem.h\"")
 
-;; ƒ[ƒJ‚²‚Æ‚Éˆ—‚µ‚½ƒ^ƒXƒN‚Ì”‚ğƒJƒEƒ“ƒg‚µ‚Ä•\¦
+;; ¥ï¡¼¥«¤´¤È¤Ë½èÍı¤·¤¿¥¿¥¹¥¯¤Î¿ô¤ò¥«¥¦¥ó¥È¤·¤ÆÉ½¼¨
 (%defconstant COUNT-NTASK 1)
 
 (%ifndef* NF-TYPE
@@ -49,6 +50,9 @@
                    (fref (aref tp 0) tv-usec))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(%defmacro when (exp &body body)
+  `(if ,exp (begin ,@body)))
+
 (%ifdef* COUNT-NTASK
   (def worker-data
       (def n-task int))
@@ -64,34 +68,36 @@
 ;; (%defconstant V-LIST-ALLOC-SIZE 200)
 
 ;;
-(def v-length int)
+(def v-length int)                      ; ¥°¥é¥Õ¤ÎÁ´ÄºÅÀ¿ô
 
 (def (struct vertex)
-    (def degree int)
-  (def first-e int)
-  (def parent int))
+    (def degree int)                    ; ÀÜÂ³¤·¤Æ¤¤¤ë»Ş¤Î¿ô
+  (def first-e int)                     ; »Ş¤Î¤¦¤Á¤Î1¤Ä¡Ê»Ä¤ê¤Ïnext-e¤ÇÃ©¤ë¡Ë
+  (def parent int))                     ; spanning tree¤Î¿Æ¤ÎÄºÅÀID+1¡¤Ì¤Äê¤Î¾ì¹ç¤Ï0¡¤root¤Ï¼«Ê¬¼«¿È¤ò»Ø¤¹
 
 (def vv (array (struct vertex) MAX-V))
 
 ;;
-(def e-length int)
+(def e-length int)                      ; ¥°¥é¥Õ¤ÎÁ´»Ş¿ô
 
 (def (struct edge)
-    (def next-v int)
-  (def next-e int))
+  (def next-v int)                      ; »Ş¤¬»Ø¤·¤Æ¤¤¤ëÄºÅÀ
+  (def next-e int))                     ; ¼¡¤Î»Ş
 
 (def ee (array (struct edge) MAX-E))
 
 ;; list of arrays of vertices
-(def v-list-length int)
+;; ¡Êºî¶È¥¹¥¿¥Ã¥¯¡Ë
+(def v-list-length int)                 ; ¥¹¥¿¥Ã¥¯¤ÎÄ¹¤µ
 
 (def (struct v-list-body)
-    (def next (ptr (struct v-list-body)))
-  (def i int)
-  (def v (array int V-LIST-ALLOC-SIZE)))
+  (def next (ptr (struct v-list-body)))   ; ¼¡¤ÎÍ×ÁÇ
+  (def i int)                             ; ¥¹¥¿¥Ã¥¯¥İ¥¤¥ó¥¿¡Ê(== i V-LIST-ALLOC-SIZE)¤¬Äì¡Ë
+  (def v (array int V-LIST-ALLOC-SIZE)))  ; ÄºÅÀID¤Î¥ê¥¹¥È
 
 (def v-list (ptr (struct v-list-body)))
 
+;; v-list-body¤ò1¸Äpush
 (def (csym::alloc-v-list next) (csym::fn (ptr (struct v-list-body)) (ptr (struct v-list-body)))
   (def a (ptr (struct v-list-body)))
   (= a (cast (ptr (struct v-list-body))
@@ -100,22 +106,60 @@
   (= a->i V-LIST-ALLOC-SIZE)
   (return a))
 
+;; v-list-body¤ò1¸Äpop
 (def (csym::dealloc-v-list a) (csym::fn (ptr (struct v-list-body)) (ptr (struct v-list-body)))
   (def next (ptr (struct v-list-body)))
   (= next a->next)
   (csym::free a)
   (return next))
 
+;;;;;;;;;;
+
+;; serial DF search with v_list
+(def (search-s2 fv) (wfn int int)
+  (def my-v-list (ptr (struct v-list-body)))
+  (def my-v-list-length int)            ; ºî¶ÈÃæ¤Îv-list-body
+  (def vi int)                          ; ¥í¡¼¥«¥ë¤Ê¥¹¥¿¥Ã¥¯¥İ¥¤¥ó¥¿¡Ê(== vi V-LIST-ALLOC-SIZE)¤¬Äì¡Ë
+  (= (fref (aref vv fv) parent) (+ fv 1))
+  (= my-v-list (csym::alloc-v-list 0))
+  (= my-v-list-length 1)
+  (= vi my-v-list->i)
+  (= (aref my-v-list->v (-- vi)) fv)    ; ¥¹¥¿¥Ã¥¯¤ËºÇ½é¤ÎÍ×ÁÇÄÉ²Ã
+  (while (< vi V-LIST-ALLOC-SIZE)
+    (def v int (aref my-v-list->v (inc vi))) ; ¥¹¥¿¥Ã¥¯¤«¤é°ìÍ×ÁÇ¼è¤ê½Ğ¤¹
+    (def i int)
+    (def d int (fref (aref vv v) degree))
+    (def e int (fref (aref vv v) first-e))
+    (for ((= i 0) (< i d) (exps (inc i) (= e (fref (aref ee e) next-e))))
+      (def nv int (fref (aref ee e) next-v))
+      (when (== (fref (aref vv nv) parent) 0)
+        (when (csym::cas-int (fref (aref vv nv) parent) 0 (+ v 1)) ; »Ş¤ÎÀè¤ÎÄºÅÀ¤Î¿Æ¤ò¼«Ê¬¤Ë¥»¥Ã¥È¡¥À®¸ù¤·¤¿¤é0
+          (continue))                   ; ¤¹¤Ç¤Ë¥Á¥§¥Ã¥¯ºÑ¤Ê¤é¤È¤Ğ¤¹
+        (when (<= vi 0)                 ; ÇÛÎó¤¬°ìÇÕ¤Ë¤Ê¤Ã¤¿¤év-list-body¤òpush
+          (= my-v-list->i vi)           ; ¥¹¥¿¥Ã¥¯¥İ¥¤¥ó¥¿¤ò¹½Â¤ÂÎ¤ËÈ¿±Ç
+          (= my-v-list (csym::alloc-v-list my-v-list))
+          (inc my-v-list-length)
+          (= vi my-v-list->i))
+        (= (aref my-v-list->v (-- vi)) nv))) ; »Ş¤ÎÀè¤ÎÄºÅÀ¤ò¥¹¥¿¥Ã¥¯¤ËÄÉ²Ã
+    (while (and (== vi V-LIST-ALLOC-SIZE) ; ¥¹¥¿¥Ã¥¯¤¬¶õ¤Ë¤Ê¤Ã¤¿¤év-list-body¤òpop
+                (> my-v-list-length 1))
+      (= my-v-list (csym::dealloc-v-list my-v-list))
+      (dec my-v-list-length)
+      (= vi my-v-list->i)))
+  (= my-v-list->i vi))                  ; ¥¹¥¿¥Ã¥¯¥İ¥¤¥ó¥¿¤ò¹½Â¤ÂÎ¤ËÈ¿±Ç¡Ê°ì±ş¡Ë
+
+;;;;;;;;;;
+
 ;; recursive DF search with a bound "b" spilling into v_list
 (def (search1 v b) (wfn int int int)
   (def i int)
   (def d int (fref (aref vv v) degree))
   (def e int (fref (aref vv v) first-e))
-  ;; ‚¤‚Ü‚­do-many‚É‚Å‚«‚é‚©H
+  ;; ¤¦¤Ş¤¯do-many¤Ë¤Ç¤­¤ë¤«¡©
   (for ((= i 0) (< i d) (exps (inc i) (= e (fref (aref ee e) next-e))))
     (def nv int (fref (aref ee e) next-v))
     (when (== (fref (aref vv nv) parent) 0)
-      (when (csym::xcc-cas-int (fref (aref vv nv) parent) 0 (+ v 1))
+      (when (csym::cas-int (fref (aref vv nv) parent) 0 (+ v 1)) ; À®¸ù¤·¤¿¤é0
         (continue))
       (if (> b 0)
           (search1 nv (- b 1))
@@ -124,39 +168,6 @@
             (= v-list (csym::alloc-v-list v-list))
             (inc v-list-length))
           (= (aref v-list->v (-- v-list->i)) nv))))))
-
-;; serial DF search with v_list
-(def (search-s2 fv) (wfn int int)
-  (def my-v-list (ptr (struct v-list-body)))
-  (def my-v-list-length int)
-  (def vi int)
-  (= (fref (aref vv fv) parent) (+ fv 1))
-  (= my-v-list (csym::alloc-v-list 0))
-  (= my-v-list-length 1)
-  (= vi my-v-list->i)
-  (= (aref my-v-list->v (-- vi)) fv)
-  (while (< vi V-LIST-ALLOC-SIZE)
-    (def v int (aref my-v-list->v (inc vi)))
-    (def i int)
-    (def d int (fref (aref vv v) degree))
-    (def e int (fref (aref vv v) first-e))
-    (for ((= i 0) (< i d) (exps (inc i) (= e (fref (aref ee e) next-e))))
-      (def nv int (fref (aref ee e) next-v))
-      (when (== (fref (aref vv nv) parent) 0)
-        (when (csym::xcc-cas-int (fref (aref vv nv) parent) 0 (+ v 1))
-          (continue))
-        (when (<= vi 0)
-          (= my-v-list->i vi)
-          (= my-v-list (csym::alloc-v-list my-v-list))
-          (inc my-v-list-length)
-          (= vi my-v-list->i))
-        (= (aref my-v-list->v (-- vi)) nv)))
-    (while (and (== vi V-LIST-ALLOC-SIZE)
-                (> my-v-list-length 1))
-      (= my-v-list (csym::dealloc-v-list my-v-list))
-      (dec my-v-list-length)
-      (= vi my-v-list->i)))
-  (= my-v-list->i vi))
 
 ;; employing DF search1 for each vertex in v_list.
 ;; repeat until the "next" v_list is empty.
@@ -182,37 +193,45 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; for graph construction
+;; v1->v2¤Î»Ş¤òºî¤Ã¤Æe¤Î°ÌÃÖ¤Ë³ÊÇ¼¡¥ÊÖ¤êÃÍ¤Ï¼¡¤Î»Ş¤Î³ÊÇ¼¾ì½ê
 (def (csym::make-edge1 v1 v2 e) (csym::fn int int int int)
   (= (fref (aref ee e) next-v) v2)
   (= (fref (aref ee e) next-e) (fref (aref vv v1) first-e))
-  (= (fref (aref vv v1) first-e) (inc e))
+  (= (fref (aref vv v1) first-e) (inc e)) ; v1¤Î»Ş¥ê¥¹¥È¤Ëpush
   (inc (fref (aref vv v1) degree))
   (return e))
 
+;; v1->v2¤Î»Ş¤¬¤¢¤ì¤Ğ1¡¤¤½¤¦¤Ç¤Ê¤±¤ì¤Ğ0¤òÊÖ¤¹
 (def (csym::check-dup1 v1 v2) (csym::fn int int int)
   (def i int)
   (def d int (fref (aref vv v1) degree))
   (def e int (fref (aref vv v1) first-e))
-  (for ((= i 0) (< i d) (exps (inc i) (= e (fref (aref ee e next-e)))))
+  (for ((= i 0) (< i d) (exps (inc i) (= e (fref (aref ee e) next-e))))
     (def nv int (fref (aref ee e) next-v))
     (when (== nv v2)
       (return 0)))
   (return 1))
 
+;; v1->v2¤Î»Ş¤¬¤Ê¤±¤ì¤Ğºî¤ë¡¥ÊÖ¤êÃÍ¤Ï¼¡¤Î»Ş¤Î³ÊÇ¼¾ì½ê
 (def (csym::check-make-edge1 v1 v2 e) (csym::fn int int int int)
   (when (csym::check-dup1 v1 v2)
     (= e (csym::make-edge1 v1 v2 e)))
   (return e))
 
-(def (csym::make-edge v1 v2 e) (csym::fn int int int)
+;; v1<->v2¤ÎÎ¾Êı¸ş¤Î»Ş¤òºî¤ë¡¥ÊÖ¤êÃÍ¤Ï¼¡¤Î»Ş¤Î³ÊÇ¼¾ì½ê
+(def (csym::make-edge v1 v2 e) (csym::fn int int int int)
   (= e (csym::make-edge1 v1 v2 e))
   (= e (csym::make-edge1 v2 v1 e))
   (return e))
 
+;; v1<->v2¤ÎÎ¾Êı¸ş¤Î»Ş¤ò¡¤´û¤Ë»Ş¤¬¤Ê¤¤¤«¤½¤ì¤¾¤ì³ÎÇ§¤·¤Æ¤«¤éºî¤ë¡¥
+;; ÊÖ¤êÃÍ¤Ï¼¡¤Î»Ş¤Î³ÊÇ¼¾ì½ê
 (def (csym::check-make-edge v1 v2 e) (csym::fn int int int int)
   (= e (csym::check-make-edge1 v1 v2 e))
   (= e (csym::check-make-edge1 v2 v1 e))
   (return e))
+
+;;;;;;;;;;
 
 ;; 2D-torus
 (def (csym::make-2dt n) (csym::fn void int)
@@ -276,7 +295,7 @@
   (for ((= i 0) (< i s) (inc i))
     (%if* 1
       (defs int p q)
-      (def v (ptr int) (cat (ptr int) (csym::malloc (* n (sizeof int)))))
+      (def v (ptr int) (cast (ptr int) (csym::malloc (* n (sizeof int)))))
       (for ((= j 0) (< j n) (inc j))
         (= (aref v j) (bit-xor i (<< 1 j))))
       (= next (+ (* next 1103515245) 12345))
@@ -315,7 +334,10 @@
   (= v-length n)
   (= e-length e))
 
+;;;;;;;;;;
+
 ;; graph utils
+;; "ÄºÅÀÈÖ¹æ[¿Æ¤ÎÄºÅÀÈÖ¹æ] (ÀÜÂ³¤µ¤ì¤Æ¤¤¤ëÄºÅÀÈÖ¹æ¤Î¥ê¥¹¥È)" ¤ò½ĞÎÏ
 (def (csym::show-graph) (csym::fn void)
   (defs int v e i)
   (for ((= v 0) (< v v-length) (inc v))
@@ -330,6 +352,7 @@
           (csym::fprintf stderr ",%d" (fref (aref ee e) next-v)))))
     (csym::fprintf stderr ")~%")))
 
+;; Ã±½ã¤ËÄºÅÀ¤È»Ş¤Î¾ğÊó¤Î¥ê¥¹¥È¤ò½ĞÎÏ
 (def (csym::show-graph2) (csym::fn void)
   (defs int v e i)
   (for ((= v 0) (< v v-length) (inc v))
@@ -337,18 +360,20 @@
   (for ((= e 0) (< e e-length) (inc e))
     (csym::fprintf stderr "%9d => %d -> e: %d~%" e (fref (aref ee e) next-v) (fref (aref ee e) next-e))))
 
+;; parent¤ÎÃÍ¤¬ÁÛÄê³°¤Î¤â¤Î¤Ë¤Ê¤Ã¤Æ¤¤¤Ê¤¤¤«¥Á¥§¥Ã¥¯
 (def (csym::check-graph) (csym::fn void)
   (def v int)
   (for ((= v 0) (< v v-length) (inc v))
-    (when (or (- (fref (aref vv v) parent) 1)
+    (when (or (< (- (fref (aref vv v) parent) 1) 0)
               (>= (- (fref (aref vv v) parent) 1) v-length))
       (csym::fprintf stderr "%9d[%d]~%" v (- (fref (aref vv v) parent) 1)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (def (task spanning-start)
+    (def graph int :in)                 ; 1: random, 2: 2D-torus, 3: hyper-cube
     )
 
-(def (task-body spanning)
+(def (task-body spanning-start)
   (def tp (array (struct timeval) 2))
 
   (%ifdef* COUNT-NTASK
@@ -357,13 +382,13 @@
 
   ;; constructing graph
   (csym::gettimeofday tp 0)
-  ;; (csym::make-random (* 2000 2000) 2)
-  ;; (csym::make-2dt 2000)
-  ;; (csym::make-ncube 20)
-  (csym::make-2dt 2000)
+  (switch this.graph
+    (case 1) (csym::make-random (* 2000 2000) 2) (break)
+    (case 2) (csym::make-2dt 2000)               (break)
+    (case 3) (csym::make-ncube 20)               (break)
+    (default) (csym::make-random (* 2000 2000) 2) (break))
   (csym::gettimeofday (+ tp 1) 0)
-  (csym::fprintf stderr "Graph constuction time: %lf~%"
-                 (csym::elapsed-time tp))
+  (csym::fprintf stderr "Graph constuction time: %lf~%" (csym::elapsed-time tp))
   (csym::fprintf stderr "v: %d e: %d~%" v-length e-length)
 
   ;; (csym::show-graph)
@@ -374,21 +399,26 @@
   ;; (search 0)
   (search-s2 0)
   (csym::gettimeofday (+ tp 1) 0)
-  (csym::fprintf "time: %lf~%" (csym::elapsed-time tp))
+  (csym::fprintf stderr "time: %lf~%" (csym::elapsed-time tp))
 
   (csym::show-graph)
   (csym::check-graph)
   )
-
-(def (task-receiver spanning)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (task spanning)
     )
 
-(def (task-sender spanning)
+(def (task-body spanning)
     )
 
-(def (rslt-sender spanning)
+(def (task-receiver spanning-start)
     )
 
-(def (rslt-receiver spanning)
+(def (task-sender spanning-start)
     )
-    ;;(csym::fprintf stderr "receive spanning(%d)=%d~%" (fref this n) (fref this r))
+
+(def (rslt-sender spanning-start)
+    )
+
+(def (rslt-receiver spanning-start)
+    )

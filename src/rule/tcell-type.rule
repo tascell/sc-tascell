@@ -31,9 +31,10 @@
 (in-package :tcell-type)
 (defmacro with-task (task-id &body body)
   `(type:with-new-environment
-     (type:add-variable ~this (list ~struct ,task-id))
-     (type:add-variable ~pthis (list ~ptr (list ~struct ,task-id)))
-     ,@body))
+       (tcell:with-worker-data
+         (type:add-variable ~this (list ~struct ,task-id))
+         (type:add-variable ~pthis (list ~ptr (list ~struct ,task-id)))
+         ,@body)))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :rule)
 
