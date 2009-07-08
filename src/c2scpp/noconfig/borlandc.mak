@@ -1,5 +1,5 @@
 # makefile to compile MCPP version 2.7.1 and later for Borland C / BC make
-#       2008/05 kmatsui
+#       2008/11 kmatsui
 # You must first edit BINDIR, INCDIR, LIBDIR and LINKER according to your
 #		system.
 # To make compiler-independent-build of MCPP do:
@@ -35,14 +35,9 @@ CPPFLAGS = -DCOMPILER=BORLANDC
 #	for Borland C V.5.5
 CFLAGS = $(CFLAGS) -Oi
 BINDIR = \PUB\COMPILERS\BCC55\BIN
-#	for Borland C V.4.0
-#BINDIR = E:\BC4\BIN
 !else
 BINDIR = \PUB\BIN
 !endif
-
-# '-N -D__BORLANDC__=0x0452' to work around bugs of bcc32 V.4.0
-#CFLAGS = $(CFLAGS) -N -D__BORLANDC__=0x0452
 
 !if 	$d( KMMALLOC)
 MEM_MACRO = -DKMMALLOC=1 -D_MEM_DEBUG=1 -DXMALLOC=1
@@ -63,7 +58,7 @@ $(NAME).exe : $(OBJS)
 !if 	$d( PREPROCESSED)
 # Make a "pre-preprocessed" header file to recompile MCPP with MCPP.
 mcpp.H	: system.H noconfig.H internal.H
-	$(NAME) $(CPPFLAGS) $(MEM_MACRO) preproc.c mcpp.H
+	$(BINDIR)\$(NAME) $(CPPFLAGS) $(MEM_MACRO) preproc.c mcpp.H
 $(OBJS) : mcpp.H
 !else
 main.obj directive.obj eval.obj expand.obj support.obj system.obj mbchar.obj: \
@@ -72,7 +67,7 @@ main.obj directive.obj eval.obj expand.obj support.obj system.obj mbchar.obj: \
 
 !if 	$d( PREPROCESSED)
 .c.obj	:
-	$(NAME) -DPREPROCESSED=1 $(CPPFLAGS) $< $(<B).i
+	$(BINDIR)\$(NAME) -DPREPROCESSED=1 $(CPPFLAGS) $< $(<B).i
 	$(CC) $(CFLAGS) $(<B).i
 !else
 .c.obj	:
@@ -90,8 +85,7 @@ clean	:
 CFLAGS = $(CFLAGS) -DMCPP_LIB=1
 LIBDIR = \PUB\COMPILERS\BCC55\LIB
 INCDIR = \PUB\COMPILERS\BCC55\INCLUDE
-#LINKER = tlink32   # BCC40
-LINKER = ilink32   # BCC55
+LINKER = ilink32
 ADD_OBJS = +main +directive +eval +expand +support +system +mbchar
 
 mcpplib:	mcpplib_lib mcpplib_dll
