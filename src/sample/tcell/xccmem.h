@@ -1,5 +1,5 @@
 /* GCC macros for XC-cube primitives for the XC-cube shared memory model.
-   version 0.43
+   version 0.44
    Copyright (C) 2001-2004,2009 Masahiro Yasugi.
 
    Supported platforms:
@@ -121,10 +121,12 @@ typedef union { long long ll; double d; } xcc_long_long_double;
 #ifdef __i386__
 
 /* or lock add $0,(%esp) ? */
-#define xcc_slbar() do{\
-  int _tmp1, _tmp2;\
-  __asm__ __volatile__("xchgl %1,%0": "=m"(_tmp1), "=r"(_tmp2) :: "memory"); \
-}while(0)
+#define xcc_slbar __xcc_slbar
+extern __inline__ void
+__xcc_slbar(){
+  int _tmp1, _tmp2;
+  __asm__ __volatile__("xchgl %1,%0": "=m"(_tmp1), "=r"(_tmp2) :: "memory"); 
+}
 
 #define xcc_sabar xcc_slbar
 #define xcc_albar xcc_slbar
@@ -652,11 +654,6 @@ DEF_xcc_cas_DI(ptr,void *);
 #define xcc_start_read_after_lock  xcc_nnbar
 #define xcc_start_write_after_lock  xcc_nnbar
 
-
-
-
-
-
 #define DEF_xcc_rawcas_DI(TPN,TP) \
 extern __inline__ int \
 __xcc_rawcas_##TPN(TP *loc, TP ov, TP nv){\
@@ -1142,16 +1139,25 @@ __xcc_spin_wlock(int *loc){ while(xcc_try_wlock(loc)) ; }
 #endif
 
 #ifndef xcc_release_lock_to_finish_access
-#define xcc_release_lock_to_finish_access(loc) \
- do{ xcc_finish_access_before_unlock(); xcc_release_lock(loc); }while(0)
+#define xcc_release_lock_to_finish_access __xcc_release_lock_to_finish_access
+extern __inline__ void
+__xcc_release_lock_to_finish_access(int *loc){ 
+  xcc_finish_access_before_unlock(); xcc_release_lock(loc);
+}
 #endif
 #ifndef xcc_release_lock_to_finish_read
-#define xcc_release_lock_to_finish_read(loc) \
- do{ xcc_finish_read_before_unlock(); xcc_release_lock(loc); }while(0)
+#define xcc_release_lock_to_finish_read __xcc_release_lock_to_finish_read
+extern __inline__ void
+__xcc_release_lock_to_finish_read(int *loc){ 
+  xcc_finish_read_before_unlock(); xcc_release_lock(loc);
+}
 #endif
 #ifndef xcc_release_lock_to_finish_write
-#define xcc_release_lock_to_finish_write(loc) \
- do{ xcc_finish_write_before_unlock(); xcc_release_lock(loc); }while(0)
+#define xcc_release_lock_to_finish_write __xcc_release_lock_to_finish_write
+extern __inline__ void
+__xcc_release_lock_to_finish_write(int *loc){ 
+  xcc_finish_write_before_unlock(); xcc_release_lock(loc);
+}
 #endif
 
 #ifndef xcc_spin_rlock_to_start_read
@@ -1160,8 +1166,11 @@ __xcc_spin_wlock(int *loc){ while(xcc_try_wlock(loc)) ; }
 #endif
 
 #ifndef xcc_release_rlock_to_finish_read
-#define xcc_release_rlock_to_finish_read(loc) \
- do{ xcc_finish_read_before_unlock(); xcc_release_rlock(loc); }while(0)
+#define xcc_release_rlock_to_finish_read __xcc_release_rlock_to_finish_read
+extern __inline__ void
+__xcc_release_rlock_to_finish_read(int *loc){ 
+  xcc_finish_read_before_unlock(); xcc_release_rlock(loc);
+}
 #endif
 
 #ifndef xcc_spin_wlock_to_start_write
@@ -1170,8 +1179,11 @@ __xcc_spin_wlock(int *loc){ while(xcc_try_wlock(loc)) ; }
 #endif
 
 #ifndef xcc_release_wlock_to_finish_write
-#define xcc_release_wlock_to_finish_write(loc) \
- do{ xcc_finish_write_before_unlock(); xcc_release_wlock(loc); }while(0)
+#define xcc_release_wlock_to_finish_write __xcc_release_wlock_to_finish_write
+extern __inline__ void
+__xcc_release_wlock_to_finish_write(int *loc){ 
+  xcc_finish_write_before_unlock(); xcc_release_wlock(loc);
+}
 #endif
 
 /* atomic_read_TP_to_.... */
@@ -1305,103 +1317,133 @@ DEF_xcc_comp_RB(float,float,write,xcc_lsbar);
 DEF_xcc_comp_RB(double,double,write,xcc_lsbar);
 #endif
 
+#define DEF_xcc_comp_RB2(TPN,TP,BN,B) \
+extern __inline__ TP \
+__xcc_atomic_read_##TPN##_to_finish_##BN (TP *loc){\
+  B(); return xcc_atomic_read_##TPN(loc);\
+} EODEF
+
 #ifndef xcc_atomic_read_char_to_finish_access
-#define xcc_atomic_read_char_to_finish_access(loc) \
- ({ xcc_albar(); xcc_atomic_read_char(loc); })
+#define xcc_atomic_read_char_to_finish_access \
+ __xcc_atomic_read_char_to_finish_access
+DEF_xcc_comp_RB2(char,char,access,xcc_albar);
 #endif
 #ifndef xcc_atomic_read_short_to_finish_access
-#define xcc_atomic_read_short_to_finish_access(loc) \
- ({ xcc_albar(); xcc_atomic_read_short(loc); })
+#define xcc_atomic_read_short_to_finish_access \
+ __xcc_atomic_read_short_to_finish_access
+DEF_xcc_comp_RB2(short,short,access,xcc_albar);
 #endif
 #ifndef xcc_atomic_read_int_to_finish_access
-#define xcc_atomic_read_int_to_finish_access(loc) \
- ({ xcc_albar(); xcc_atomic_read_int(loc); })
+#define xcc_atomic_read_int_to_finish_access \
+ __xcc_atomic_read_int_to_finish_access
+DEF_xcc_comp_RB2(int,int,access,xcc_albar);
 #endif
 #ifndef xcc_atomic_read_long_to_finish_access
-#define xcc_atomic_read_long_to_finish_access(loc) \
- ({ xcc_albar(); xcc_atomic_read_long(loc); })
+#define xcc_atomic_read_long_to_finish_access \
+ __xcc_atomic_read_long_to_finish_access
+DEF_xcc_comp_RB2(long,long,access,xcc_albar);
 #endif
 #ifndef xcc_atomic_read_long_long_to_finish_access
-#define xcc_atomic_read_long_long_to_finish_access(loc) \
- ({ xcc_albar(); xcc_atomic_read_long_long(loc); })
+#define xcc_atomic_read_long_long_to_finish_access \
+ __xcc_atomic_read_long_long_to_finish_access
+DEF_xcc_comp_RB2(long_long,long long,access,xcc_albar);
 #endif
 #ifndef xcc_atomic_read_ptr_to_finish_access
-#define xcc_atomic_read_ptr_to_finish_access(loc) \
- ({ xcc_albar(); xcc_atomic_read_ptr(loc); })
+#define xcc_atomic_read_ptr_to_finish_access \
+ __xcc_atomic_read_ptr_to_finish_access
+DEF_xcc_comp_RB2(ptr,void *,access,xcc_albar);
 #endif
 #ifndef xcc_atomic_read_float_to_finish_access
-#define xcc_atomic_read_float_to_finish_access(loc) \
- ({ xcc_albar(); xcc_atomic_read_float(loc); })
+#define xcc_atomic_read_float_to_finish_access \
+ __xcc_atomic_read_float_to_finish_access
+DEF_xcc_comp_RB2(float,float,access,xcc_albar);
 #endif
 #ifndef xcc_atomic_read_double_to_finish_access
-#define xcc_atomic_read_double_to_finish_access(loc) \
- ({ xcc_albar(); xcc_atomic_read_double(loc); })
+#define xcc_atomic_read_double_to_finish_access \
+ __xcc_atomic_read_double_to_finish_access
+DEF_xcc_comp_RB2(double,double,access,xcc_albar);
 #endif
 
 #ifndef xcc_atomic_read_char_to_finish_read
-#define xcc_atomic_read_char_to_finish_read(loc) \
- ({ xcc_llbar(); xcc_atomic_read_char(loc); })
+#define xcc_atomic_read_char_to_finish_read \
+ __xcc_atomic_read_char_to_finish_read
+DEF_xcc_comp_RB2(char,char,read,xcc_llbar);
 #endif
 #ifndef xcc_atomic_read_short_to_finish_read
-#define xcc_atomic_read_short_to_finish_read(loc) \
- ({ xcc_llbar(); xcc_atomic_read_short(loc); })
+#define xcc_atomic_read_short_to_finish_read \
+ __xcc_atomic_read_short_to_finish_read
+DEF_xcc_comp_RB2(short,short,read,xcc_llbar);
 #endif
 #ifndef xcc_atomic_read_int_to_finish_read
-#define xcc_atomic_read_int_to_finish_read(loc) \
- ({ xcc_llbar(); xcc_atomic_read_int(loc); })
+#define xcc_atomic_read_int_to_finish_read \
+ __xcc_atomic_read_int_to_finish_read
+DEF_xcc_comp_RB2(int,int,read,xcc_llbar);
 #endif
 #ifndef xcc_atomic_read_long_to_finish_read
-#define xcc_atomic_read_long_to_finish_read(loc) \
- ({ xcc_llbar(); xcc_atomic_read_long(loc); })
+#define xcc_atomic_read_long_to_finish_read \
+ __xcc_atomic_read_long_to_finish_read
+DEF_xcc_comp_RB2(long,long,read,xcc_llbar);
 #endif
 #ifndef xcc_atomic_read_long_long_to_finish_read
-#define xcc_atomic_read_long_long_to_finish_read(loc) \
- ({ xcc_llbar(); xcc_atomic_read_long_long(loc); })
+#define xcc_atomic_read_long_long_to_finish_read \
+ __xcc_atomic_read_long_long_to_finish_read
+DEF_xcc_comp_RB2(long_long,long long,read,xcc_llbar);
 #endif
 #ifndef xcc_atomic_read_ptr_to_finish_read
-#define xcc_atomic_read_ptr_to_finish_read(loc) \
- ({ xcc_llbar(); xcc_atomic_read_ptr(loc); })
+#define xcc_atomic_read_ptr_to_finish_read \
+ __xcc_atomic_read_ptr_to_finish_read
+DEF_xcc_comp_RB2(ptr,void *,read,xcc_llbar);
 #endif
 #ifndef xcc_atomic_read_float_to_finish_read
-#define xcc_atomic_read_float_to_finish_read(loc) \
- ({ xcc_llbar(); xcc_atomic_read_float(loc); })
+#define xcc_atomic_read_float_to_finish_read \
+ __xcc_atomic_read_float_to_finish_read
+DEF_xcc_comp_RB2(float,float,read,xcc_llbar);
 #endif
 #ifndef xcc_atomic_read_double_to_finish_read
-#define xcc_atomic_read_double_to_finish_read(loc) \
- ({ xcc_llbar(); xcc_atomic_read_double(loc); })
+#define xcc_atomic_read_double_to_finish_read \
+ __xcc_atomic_read_double_to_finish_read
+DEF_xcc_comp_RB2(double,double,read,xcc_llbar);
 #endif
 
 #ifndef xcc_atomic_read_char_to_finish_write
-#define xcc_atomic_read_char_to_finish_write(loc) \
- ({ xcc_slbar(); xcc_atomic_read_char(loc); })
+#define xcc_atomic_read_char_to_finish_write \
+ __xcc_atomic_read_char_to_finish_write
+DEF_xcc_comp_RB2(char,char,write,xcc_slbar);
 #endif
 #ifndef xcc_atomic_read_short_to_finish_write
-#define xcc_atomic_read_short_to_finish_write(loc) \
- ({ xcc_slbar(); xcc_atomic_read_short(loc); })
+#define xcc_atomic_read_short_to_finish_write \
+ __xcc_atomic_read_short_to_finish_write
+DEF_xcc_comp_RB2(short,short,write,xcc_slbar);
 #endif
 #ifndef xcc_atomic_read_int_to_finish_write
-#define xcc_atomic_read_int_to_finish_write(loc) \
- ({ xcc_slbar(); xcc_atomic_read_int(loc); })
+#define xcc_atomic_read_int_to_finish_write \
+ __xcc_atomic_read_int_to_finish_write
+DEF_xcc_comp_RB2(int,int,write,xcc_slbar);
 #endif
 #ifndef xcc_atomic_read_long_to_finish_write
-#define xcc_atomic_read_long_to_finish_write(loc) \
- ({ xcc_slbar(); xcc_atomic_read_long(loc); })
+#define xcc_atomic_read_long_to_finish_write \
+ __xcc_atomic_read_long_to_finish_write
+DEF_xcc_comp_RB2(long,long,write,xcc_slbar);
 #endif
 #ifndef xcc_atomic_read_long_long_to_finish_write
-#define xcc_atomic_read_long_long_to_finish_write(loc) \
- ({ xcc_slbar(); xcc_atomic_read_long_long(loc); })
+#define xcc_atomic_read_long_long_to_finish_write \
+ __xcc_atomic_read_long_long_to_finish_write
+DEF_xcc_comp_RB2(long_long,long long,write,xcc_slbar);
 #endif
 #ifndef xcc_atomic_read_ptr_to_finish_write
-#define xcc_atomic_read_ptr_to_finish_write(loc) \
- ({ xcc_slbar(); xcc_atomic_read_ptr(loc); })
+#define xcc_atomic_read_ptr_to_finish_write \
+ __xcc_atomic_read_ptr_to_finish_write
+DEF_xcc_comp_RB2(ptr,void *,write,xcc_slbar);
 #endif
 #ifndef xcc_atomic_read_float_to_finish_write
-#define xcc_atomic_read_float_to_finish_write(loc) \
- ({ xcc_slbar(); xcc_atomic_read_float(loc); })
+#define xcc_atomic_read_float_to_finish_write \
+ __xcc_atomic_read_float_to_finish_write
+DEF_xcc_comp_RB2(float,float,write,xcc_slbar);
 #endif
 #ifndef xcc_atomic_read_double_to_finish_write
-#define xcc_atomic_read_double_to_finish_write(loc) \
- ({ xcc_slbar(); xcc_atomic_read_double(loc); })
+#define xcc_atomic_read_double_to_finish_write \
+ __xcc_atomic_read_double_to_finish_write
+DEF_xcc_comp_RB2(double,double,write,xcc_slbar);
 #endif
 
 /* atomic_swap_TP_to_.... */
@@ -1535,103 +1577,133 @@ DEF_xcc_comp_SB(float,float,write,xcc_start_write_after_lock);
 DEF_xcc_comp_SB(double,double,write,xcc_start_write_after_lock);
 #endif
 
+#define DEF_xcc_comp_SB2(TPN,TP,BN,B) \
+extern __inline__ TP \
+__xcc_atomic_swap_##TPN##_to_finish_##BN (TP *loc, TP ov){\
+  B(); return xcc_atomic_swap_##TPN(loc, ov); \
+} EODEF
+
 #ifndef xcc_atomic_swap_char_to_finish_access
-#define xcc_atomic_swap_char_to_finish_access(loc,ov) \
- ({ xcc_asbar(); xcc_atomic_swap_char((loc),(ov)); })
+#define xcc_atomic_swap_char_to_finish_access \
+ __xcc_atomic_swap_char_to_finish_access
+DEF_xcc_comp_SB2(char,char,access,xcc_asbar);
 #endif
 #ifndef xcc_atomic_swap_short_to_finish_access
-#define xcc_atomic_swap_short_to_finish_access(loc,ov) \
- ({ xcc_asbar(); xcc_atomic_swap_short((loc),(ov)); })
+#define xcc_atomic_swap_short_to_finish_access \
+ __xcc_atomic_swap_short_to_finish_access
+DEF_xcc_comp_SB2(short,short,access,xcc_asbar);
 #endif
 #ifndef xcc_atomic_swap_int_to_finish_access
-#define xcc_atomic_swap_int_to_finish_access(loc,ov) \
- ({ xcc_asbar(); xcc_atomic_swap_int((loc),(ov)); })
+#define xcc_atomic_swap_int_to_finish_access \
+ __xcc_atomic_swap_int_to_finish_access
+DEF_xcc_comp_SB2(int,int,access,xcc_asbar);
 #endif
 #ifndef xcc_atomic_swap_long_to_finish_access
-#define xcc_atomic_swap_long_to_finish_access(loc,ov) \
- ({ xcc_asbar(); xcc_atomic_swap_long((loc),(ov)); })
+#define xcc_atomic_swap_long_to_finish_access \
+ __xcc_atomic_swap_long_to_finish_access
+DEF_xcc_comp_SB2(long,long,access,xcc_asbar);
 #endif
 #ifndef xcc_atomic_swap_long_long_to_finish_access
-#define xcc_atomic_swap_long_long_to_finish_access(loc,ov) \
- ({ xcc_asbar(); xcc_atomic_swap_long_long((loc),(ov)); })
+#define xcc_atomic_swap_long_long_to_finish_access \
+ __xcc_atomic_swap_long_long_to_finish_access
+DEF_xcc_comp_SB2(long_long,long long,access,xcc_asbar);
 #endif
 #ifndef xcc_atomic_swap_ptr_to_finish_access
-#define xcc_atomic_swap_ptr_to_finish_access(loc,ov) \
- ({ xcc_asbar(); xcc_atomic_swap_ptr((loc),(ov)); })
+#define xcc_atomic_swap_ptr_to_finish_access \
+ __xcc_atomic_swap_ptr_to_finish_access
+DEF_xcc_comp_SB2(ptr,void *,access,xcc_asbar);
 #endif
 #ifndef xcc_atomic_swap_float_to_finish_access
-#define xcc_atomic_swap_float_to_finish_access(loc,ov) \
- ({ xcc_asbar(); xcc_atomic_swap_float((loc),(ov)); })
+#define xcc_atomic_swap_float_to_finish_access \
+ __xcc_atomic_swap_float_to_finish_access
+DEF_xcc_comp_SB2(float,float,access,xcc_asbar);
 #endif
 #ifndef xcc_atomic_swap_double_to_finish_access
-#define xcc_atomic_swap_double_to_finish_access(loc,ov) \
- ({ xcc_asbar(); xcc_atomic_swap_double((loc),(ov)); })
+#define xcc_atomic_swap_double_to_finish_access \
+ __xcc_atomic_swap_double_to_finish_access
+DEF_xcc_comp_SB2(double,double,access,xcc_asbar);
 #endif
 
 #ifndef xcc_atomic_swap_char_to_finish_read
-#define xcc_atomic_swap_char_to_finish_read(loc,ov) \
- ({ xcc_lsbar(); xcc_atomic_swap_char((loc),(ov)); })
+#define xcc_atomic_swap_char_to_finish_read \
+ __xcc_atomic_swap_char_to_finish_read
+DEF_xcc_comp_SB2(char,char,read,xcc_lsbar);
 #endif
 #ifndef xcc_atomic_swap_short_to_finish_read
-#define xcc_atomic_swap_short_to_finish_read(loc,ov) \
- ({ xcc_lsbar(); xcc_atomic_swap_short((loc),(ov)); })
+#define xcc_atomic_swap_short_to_finish_read \
+ __xcc_atomic_swap_short_to_finish_read
+DEF_xcc_comp_SB2(short,short,read,xcc_lsbar);
 #endif
 #ifndef xcc_atomic_swap_int_to_finish_read
-#define xcc_atomic_swap_int_to_finish_read(loc,ov) \
- ({ xcc_lsbar(); xcc_atomic_swap_int((loc),(ov)); })
+#define xcc_atomic_swap_int_to_finish_read \
+ __xcc_atomic_swap_int_to_finish_read
+DEF_xcc_comp_SB2(int,int,read,xcc_lsbar);
 #endif
 #ifndef xcc_atomic_swap_long_to_finish_read
-#define xcc_atomic_swap_long_to_finish_read(loc,ov) \
- ({ xcc_lsbar(); xcc_atomic_swap_long((loc),(ov)); })
+#define xcc_atomic_swap_long_to_finish_read \
+ __xcc_atomic_swap_long_to_finish_read
+DEF_xcc_comp_SB2(long,long,read,xcc_lsbar);
 #endif
 #ifndef xcc_atomic_swap_long_long_to_finish_read
-#define xcc_atomic_swap_long_long_to_finish_read(loc,ov) \
- ({ xcc_lsbar(); xcc_atomic_swap_long_long((loc),(ov)); })
+#define xcc_atomic_swap_long_long_to_finish_read \
+ __xcc_atomic_swap_long_long_to_finish_read
+DEF_xcc_comp_SB2(long_long,long long,read,xcc_lsbar);
 #endif
 #ifndef xcc_atomic_swap_ptr_to_finish_read
-#define xcc_atomic_swap_ptr_to_finish_read(loc,ov) \
- ({ xcc_lsbar(); xcc_atomic_swap_ptr((loc),(ov)); })
+#define xcc_atomic_swap_ptr_to_finish_read \
+ __xcc_atomic_swap_ptr_to_finish_read
+DEF_xcc_comp_SB2(ptr,void *,read,xcc_lsbar);
 #endif
 #ifndef xcc_atomic_swap_float_to_finish_read
-#define xcc_atomic_swap_float_to_finish_read(loc,ov) \
- ({ xcc_lsbar(); xcc_atomic_swap_float((loc),(ov)); })
+#define xcc_atomic_swap_float_to_finish_read \
+ __xcc_atomic_swap_float_to_finish_read
+DEF_xcc_comp_SB2(float,float,read,xcc_lsbar);
 #endif
 #ifndef xcc_atomic_swap_double_to_finish_read
-#define xcc_atomic_swap_double_to_finish_read(loc,ov) \
- ({ xcc_lsbar(); xcc_atomic_swap_double((loc),(ov)); })
+#define xcc_atomic_swap_double_to_finish_read \
+ __xcc_atomic_swap_double_to_finish_read
+DEF_xcc_comp_SB2(double,double,read,xcc_lsbar);
 #endif
 
 #ifndef xcc_atomic_swap_char_to_finish_write
-#define xcc_atomic_swap_char_to_finish_write(loc,ov) \
- ({ xcc_ssbar(); xcc_atomic_swap_char((loc),(ov)); })
+#define xcc_atomic_swap_char_to_finish_write \
+ __xcc_atomic_swap_char_to_finish_write
+DEF_xcc_comp_SB2(char,char,write,xcc_ssbar);
 #endif
 #ifndef xcc_atomic_swap_short_to_finish_write
-#define xcc_atomic_swap_short_to_finish_write(loc,ov) \
- ({ xcc_ssbar(); xcc_atomic_swap_short((loc),(ov)); })
+#define xcc_atomic_swap_short_to_finish_write \
+ __xcc_atomic_swap_short_to_finish_write
+DEF_xcc_comp_SB2(short,short,write,xcc_ssbar);
 #endif
 #ifndef xcc_atomic_swap_int_to_finish_write
-#define xcc_atomic_swap_int_to_finish_write(loc,ov) \
- ({ xcc_ssbar(); xcc_atomic_swap_int((loc),(ov)); })
+#define xcc_atomic_swap_int_to_finish_write \
+ __xcc_atomic_swap_int_to_finish_write
+DEF_xcc_comp_SB2(int,int,write,xcc_ssbar);
 #endif
 #ifndef xcc_atomic_swap_long_to_finish_write
-#define xcc_atomic_swap_long_to_finish_write(loc,ov) \
- ({ xcc_ssbar(); xcc_atomic_swap_long((loc),(ov)); })
+#define xcc_atomic_swap_long_to_finish_write \
+ __xcc_atomic_swap_long_to_finish_write
+DEF_xcc_comp_SB2(long,long,write,xcc_ssbar);
 #endif
 #ifndef xcc_atomic_swap_long_long_to_finish_write
-#define xcc_atomic_swap_long_long_to_finish_write(loc,ov) \
- ({ xcc_ssbar(); xcc_atomic_swap_long_long((loc),(ov)); })
+#define xcc_atomic_swap_long_long_to_finish_write \
+ __xcc_atomic_swap_long_long_to_finish_write
+DEF_xcc_comp_SB2(long_long,long long,write,xcc_ssbar);
 #endif
 #ifndef xcc_atomic_swap_ptr_to_finish_write
-#define xcc_atomic_swap_ptr_to_finish_write(loc,ov) \
- ({ xcc_ssbar(); xcc_atomic_swap_ptr((loc),(ov)); })
+#define xcc_atomic_swap_ptr_to_finish_write \
+ __xcc_atomic_swap_ptr_to_finish_write
+DEF_xcc_comp_SB2(ptr,void *,write,xcc_ssbar);
 #endif
 #ifndef xcc_atomic_swap_float_to_finish_write
-#define xcc_atomic_swap_float_to_finish_write(loc,ov) \
- ({ xcc_ssbar(); xcc_atomic_swap_float((loc),(ov)); })
+#define xcc_atomic_swap_float_to_finish_write \
+ __xcc_atomic_swap_float_to_finish_write
+DEF_xcc_comp_SB2(float,float,write,xcc_ssbar);
 #endif
 #ifndef xcc_atomic_swap_double_to_finish_write
-#define xcc_atomic_swap_double_to_finish_write(loc,ov) \
- ({ xcc_ssbar(); xcc_atomic_swap_double((loc),(ov)); })
+#define xcc_atomic_swap_double_to_finish_write \
+ __xcc_atomic_swap_double_to_finish_write
+DEF_xcc_comp_SB2(double,double,write,xcc_ssbar);
 #endif
 
 /* atomic_write_TP_to_.... */
@@ -1735,103 +1807,133 @@ DEF_xcc_comp_SB(double,double,write,xcc_start_write_after_lock);
  do{ xcc_atomic_write_double((loc),(val)); xcc_ssbar(); }while(0)
 #endif
 
+#define DEF_xcc_comp_WB2(TPN,TP,BN,B) \
+extern __inline__ TP \
+ __xcc_atomic_write_##TPN##_to_finish_##BN (TP *loc, TP ov){	\
+  B(); xcc_atomic_write_##TPN(loc, ov);				\
+} EODEF
+
 #ifndef xcc_atomic_write_char_to_finish_access
-#define xcc_atomic_write_char_to_finish_access(loc,val) \
- do{ xcc_asbar(); xcc_atomic_write_char((loc),(val)); }while(0)
+#define xcc_atomic_write_char_to_finish_access \
+ __xcc_atomic_write_char_to_finish_access
+DEF_xcc_comp_WB2(char,char,access,xcc_asbar);
 #endif
 #ifndef xcc_atomic_write_short_to_finish_access
-#define xcc_atomic_write_short_to_finish_access(loc,val) \
- do{ xcc_asbar(); xcc_atomic_write_short((loc),(val)); }while(0)
+#define xcc_atomic_write_short_to_finish_access \
+ __xcc_atomic_write_short_to_finish_access
+DEF_xcc_comp_WB2(short,short,access,xcc_asbar);
 #endif
 #ifndef xcc_atomic_write_int_to_finish_access
-#define xcc_atomic_write_int_to_finish_access(loc,val) \
- do{ xcc_asbar(); xcc_atomic_write_int((loc),(val)); }while(0)
+#define xcc_atomic_write_int_to_finish_access \
+ __xcc_atomic_write_int_to_finish_access
+DEF_xcc_comp_WB2(int,int,access,xcc_asbar);
 #endif
 #ifndef xcc_atomic_write_long_to_finish_access
-#define xcc_atomic_write_long_to_finish_access(loc,val) \
- do{ xcc_asbar(); xcc_atomic_write_long((loc),(val)); }while(0)
+#define xcc_atomic_write_long_to_finish_access \
+ __xcc_atomic_write_long_to_finish_access
+DEF_xcc_comp_WB2(long,long,access,xcc_asbar);
 #endif
 #ifndef xcc_atomic_write_long_long_to_finish_access
-#define xcc_atomic_write_long_long_to_finish_access(loc,val) \
- do{ xcc_asbar(); xcc_atomic_write_long_long((loc),(val)); }while(0)
+#define xcc_atomic_write_long_long_to_finish_access \
+ __xcc_atomic_write_long_long_to_finish_access
+DEF_xcc_comp_WB2(long_long,long long,access,xcc_asbar);
 #endif
 #ifndef xcc_atomic_write_ptr_to_finish_access
-#define xcc_atomic_write_ptr_to_finish_access(loc,val) \
- do{ xcc_asbar(); xcc_atomic_write_ptr((loc),(val)); }while(0)
+#define xcc_atomic_write_ptr_to_finish_access \
+ __xcc_atomic_write_ptr_to_finish_access
+DEF_xcc_comp_WB2(ptr,void *,access,xcc_asbar);
 #endif
 #ifndef xcc_atomic_write_float_to_finish_access
-#define xcc_atomic_write_float_to_finish_access(loc,val) \
- do{ xcc_asbar(); xcc_atomic_write_float((loc),(val)); }while(0)
+#define xcc_atomic_write_float_to_finish_access \
+ __xcc_atomic_write_float_to_finish_access
+DEF_xcc_comp_WB2(float,float,access,xcc_asbar);
 #endif
 #ifndef xcc_atomic_write_double_to_finish_access
-#define xcc_atomic_write_double_to_finish_access(loc,val) \
- do{ xcc_asbar(); xcc_atomic_write_double((loc),(val)); }while(0)
+#define xcc_atomic_write_double_to_finish_access \
+ __xcc_atomic_write_double_to_finish_access
+DEF_xcc_comp_WB2(double,double,access,xcc_asbar);
 #endif
 
 #ifndef xcc_atomic_write_char_to_finish_read
-#define xcc_atomic_write_char_to_finish_read(loc,val) \
- do{ xcc_lsbar(); xcc_atomic_write_char((loc),(val)); }while(0)
+#define xcc_atomic_write_char_to_finish_read \
+ __xcc_atomic_write_char_to_finish_read
+DEF_xcc_comp_WB2(char,char,read,xcc_lsbar);
 #endif
 #ifndef xcc_atomic_write_short_to_finish_read
-#define xcc_atomic_write_short_to_finish_read(loc,val) \
- do{ xcc_lsbar(); xcc_atomic_write_short((loc),(val)); }while(0)
+#define xcc_atomic_write_short_to_finish_read \
+ __xcc_atomic_write_short_to_finish_read
+DEF_xcc_comp_WB2(short,short,read,xcc_lsbar);
 #endif
 #ifndef xcc_atomic_write_int_to_finish_read
-#define xcc_atomic_write_int_to_finish_read(loc,val) \
- do{ xcc_lsbar(); xcc_atomic_write_int((loc),(val)); }while(0)
+#define xcc_atomic_write_int_to_finish_read \
+ __xcc_atomic_write_int_to_finish_read
+DEF_xcc_comp_WB2(int,int,read,xcc_lsbar);
 #endif
 #ifndef xcc_atomic_write_long_to_finish_read
-#define xcc_atomic_write_long_to_finish_read(loc,val) \
- do{ xcc_lsbar(); xcc_atomic_write_long((loc),(val)); }while(0)
+#define xcc_atomic_write_long_to_finish_read \
+ __xcc_atomic_write_long_to_finish_read
+DEF_xcc_comp_WB2(long,long,read,xcc_lsbar);
 #endif
 #ifndef xcc_atomic_write_long_long_to_finish_read
-#define xcc_atomic_write_long_long_to_finish_read(loc,val) \
- do{ xcc_lsbar(); xcc_atomic_write_long_long((loc),(val)); }while(0)
+#define xcc_atomic_write_long_long_to_finish_read \
+ __xcc_atomic_write_long_long_to_finish_read
+DEF_xcc_comp_WB2(long_long,long long,read,xcc_lsbar);
 #endif
 #ifndef xcc_atomic_write_ptr_to_finish_read
-#define xcc_atomic_write_ptr_to_finish_read(loc,val) \
- do{ xcc_lsbar(); xcc_atomic_write_ptr((loc),(val)); }while(0)
+#define xcc_atomic_write_ptr_to_finish_read \
+ __xcc_atomic_write_ptr_to_finish_read
+DEF_xcc_comp_WB2(ptr,void *,read,xcc_lsbar);
 #endif
 #ifndef xcc_atomic_write_float_to_finish_read
-#define xcc_atomic_write_float_to_finish_read(loc,val) \
- do{ xcc_lsbar(); xcc_atomic_write_float((loc),(val)); }while(0)
+#define xcc_atomic_write_float_to_finish_read \
+ __xcc_atomic_write_float_to_finish_read
+DEF_xcc_comp_WB2(float,float,read,xcc_lsbar);
 #endif
 #ifndef xcc_atomic_write_double_to_finish_read
-#define xcc_atomic_write_double_to_finish_read(loc,val) \
- do{ xcc_lsbar(); xcc_atomic_write_double((loc),(val)); }while(0)
+#define xcc_atomic_write_double_to_finish_read \
+ __xcc_atomic_write_double_to_finish_read
+DEF_xcc_comp_WB2(double,double,read,xcc_lsbar);
 #endif
 
 #ifndef xcc_atomic_write_char_to_finish_write
-#define xcc_atomic_write_char_to_finish_write(loc,val) \
- do{ xcc_ssbar(); xcc_atomic_write_char((loc),(val)); }while(0)
+#define xcc_atomic_write_char_to_finish_write \
+ __xcc_atomic_write_char_to_finish_write
+DEF_xcc_comp_WB2(char,char,write,xcc_ssbar);
 #endif
 #ifndef xcc_atomic_write_short_to_finish_write
-#define xcc_atomic_write_short_to_finish_write(loc,val) \
- do{ xcc_ssbar(); xcc_atomic_write_short((loc),(val)); }while(0)
+#define xcc_atomic_write_short_to_finish_write \
+ __xcc_atomic_write_short_to_finish_write
+DEF_xcc_comp_WB2(short,short,write,xcc_ssbar);
 #endif
 #ifndef xcc_atomic_write_int_to_finish_write
-#define xcc_atomic_write_int_to_finish_write(loc,val) \
- do{ xcc_ssbar(); xcc_atomic_write_int((loc),(val)); }while(0)
+#define xcc_atomic_write_int_to_finish_write \
+ __xcc_atomic_write_int_to_finish_write
+DEF_xcc_comp_WB2(int,int,write,xcc_ssbar);
 #endif
 #ifndef xcc_atomic_write_long_to_finish_write
-#define xcc_atomic_write_long_to_finish_write(loc,val) \
- do{ xcc_ssbar(); xcc_atomic_write_long((loc),(val)); }while(0)
+#define xcc_atomic_write_long_to_finish_write \
+ __xcc_atomic_write_long_to_finish_write
+DEF_xcc_comp_WB2(long,long,write,xcc_ssbar);
 #endif
 #ifndef xcc_atomic_write_long_long_to_finish_write
-#define xcc_atomic_write_long_long_to_finish_write(loc,val) \
- do{ xcc_ssbar(); xcc_atomic_write_long_long((loc),(val)); }while(0)
+#define xcc_atomic_write_long_long_to_finish_write \
+ __xcc_atomic_write_long_long_to_finish_write
+DEF_xcc_comp_WB2(long_long,long long,write,xcc_ssbar);
 #endif
 #ifndef xcc_atomic_write_ptr_to_finish_write
-#define xcc_atomic_write_ptr_to_finish_write(loc,val) \
- do{ xcc_ssbar(); xcc_atomic_write_ptr((loc),(val)); }while(0)
+#define xcc_atomic_write_ptr_to_finish_write \
+ __xcc_atomic_write_ptr_to_finish_write
+DEF_xcc_comp_WB2(ptr,void *,write,xcc_ssbar);
 #endif
 #ifndef xcc_atomic_write_float_to_finish_write
-#define xcc_atomic_write_float_to_finish_write(loc,val) \
- do{ xcc_ssbar(); xcc_atomic_write_float((loc),(val)); }while(0)
+#define xcc_atomic_write_float_to_finish_write \
+ __xcc_atomic_write_float_to_finish_write
+DEF_xcc_comp_WB2(float,float,write,xcc_ssbar);
 #endif
 #ifndef xcc_atomic_write_double_to_finish_write
-#define xcc_atomic_write_double_to_finish_write(loc,val) \
- do{ xcc_ssbar(); xcc_atomic_write_double((loc),(val)); }while(0)
+#define xcc_atomic_write_double_to_finish_write \
+ __xcc_atomic_write_double_to_finish_write
+DEF_xcc_comp_WB2(double,double,write,xcc_ssbar);
 #endif
 
 /* cas_TP_to_.... */
@@ -1965,103 +2067,133 @@ DEF_xcc_comp_CB(float,float,write,xcc_start_write_after_lock);
 DEF_xcc_comp_CB(double,double,write,xcc_start_write_after_lock);
 #endif
 
+#define DEF_xcc_comp_CB2(TPN,TP,BN,B) \
+extern __inline__ int \
+__xcc_cas_##TPN##_to_finish_##BN (TP *loc, TP ov, TP nv){\
+  B(); return xcc_cas_##TPN(loc, ov, nv);\
+} EODEF
+
 #ifndef xcc_cas_char_to_finish_access
-#define xcc_cas_char_to_finish_access(loc,ov,nv) \
- ({ xcc_asbar(); xcc_cas_char((loc),(ov),(nv)); })
+#define xcc_cas_char_to_finish_access \
+ __xcc_cas_char_to_finish_access
+DEF_xcc_comp_CB2(char,char,access,xcc_asbar);
 #endif
 #ifndef xcc_cas_short_to_finish_access
-#define xcc_cas_short_to_finish_access(loc,ov,nv) \
- ({ xcc_asbar(); xcc_cas_short((loc),(ov),(nv)); })
+#define xcc_cas_short_to_finish_access \
+ __xcc_cas_short_to_finish_access
+DEF_xcc_comp_CB2(short,short,access,xcc_asbar);
 #endif
 #ifndef xcc_cas_int_to_finish_access
-#define xcc_cas_int_to_finish_access(loc,ov,nv) \
- ({ xcc_asbar(); xcc_cas_int((loc),(ov),(nv)); })
+#define xcc_cas_int_to_finish_access \
+ __xcc_cas_int_to_finish_access
+DEF_xcc_comp_CB2(int,int,access,xcc_asbar);
 #endif
 #ifndef xcc_cas_long_to_finish_access
-#define xcc_cas_long_to_finish_access(loc,ov,nv) \
- ({ xcc_asbar(); xcc_cas_long((loc),(ov),(nv)); })
+#define xcc_cas_long_to_finish_access \
+ __xcc_cas_long_to_finish_access
+DEF_xcc_comp_CB2(long,long,access,xcc_asbar);
 #endif
 #ifndef xcc_cas_long_long_to_finish_access
-#define xcc_cas_long_long_to_finish_access(loc,ov,nv) \
- ({ xcc_asbar(); xcc_cas_long_long((loc),(ov),(nv)); })
+#define xcc_cas_long_long_to_finish_access \
+ __xcc_cas_long_long_to_finish_access
+DEF_xcc_comp_CB2(long_long,long long,access,xcc_asbar);
 #endif
 #ifndef xcc_cas_ptr_to_finish_access
-#define xcc_cas_ptr_to_finish_access(loc,ov,nv) \
- ({ xcc_asbar(); xcc_cas_ptr((loc),(ov),(nv)); })
+#define xcc_cas_ptr_to_finish_access \
+ __xcc_cas_ptr_to_finish_access
+DEF_xcc_comp_CB2(ptr,void *,access,xcc_asbar);
 #endif
 #ifndef xcc_cas_float_to_finish_access
-#define xcc_cas_float_to_finish_access(loc,ov,nv) \
- ({ xcc_asbar(); xcc_cas_float((loc),(ov),(nv)); })
+#define xcc_cas_float_to_finish_access \
+ __xcc_cas_float_to_finish_access
+DEF_xcc_comp_CB2(float,float,access,xcc_asbar);
 #endif
 #ifndef xcc_cas_double_to_finish_access
-#define xcc_cas_double_to_finish_access(loc,ov,nv) \
- ({ xcc_asbar(); xcc_cas_double((loc),(ov),(nv)); })
+#define xcc_cas_double_to_finish_access \
+ __xcc_cas_double_to_finish_access
+DEF_xcc_comp_CB2(double,double,access,xcc_asbar);
 #endif
 
 #ifndef xcc_cas_char_to_finish_read
-#define xcc_cas_char_to_finish_read(loc,ov,nv) \
- ({ xcc_lsbar(); xcc_cas_char((loc),(ov),(nv)); })
+#define xcc_cas_char_to_finish_read \
+ __xcc_cas_char_to_finish_read
+DEF_xcc_comp_CB2(char,char,read,xcc_lsbar);
 #endif
 #ifndef xcc_cas_short_to_finish_read
-#define xcc_cas_short_to_finish_read(loc,ov,nv) \
- ({ xcc_lsbar(); xcc_cas_short((loc),(ov),(nv)); })
+#define xcc_cas_short_to_finish_read \
+ __xcc_cas_short_to_finish_read
+DEF_xcc_comp_CB2(short,short,read,xcc_lsbar);
 #endif
 #ifndef xcc_cas_int_to_finish_read
-#define xcc_cas_int_to_finish_read(loc,ov,nv) \
- ({ xcc_lsbar(); xcc_cas_int((loc),(ov),(nv)); })
+#define xcc_cas_int_to_finish_read \
+ __xcc_cas_int_to_finish_read
+DEF_xcc_comp_CB2(int,int,read,xcc_lsbar);
 #endif
 #ifndef xcc_cas_long_to_finish_read
-#define xcc_cas_long_to_finish_read(loc,ov,nv) \
- ({ xcc_lsbar(); xcc_cas_long((loc),(ov),(nv)); })
+#define xcc_cas_long_to_finish_read \
+ __xcc_cas_long_to_finish_read
+DEF_xcc_comp_CB2(long,long,read,xcc_lsbar);
 #endif
 #ifndef xcc_cas_long_long_to_finish_read
-#define xcc_cas_long_long_to_finish_read(loc,ov,nv) \
- ({ xcc_lsbar(); xcc_cas_long_long((loc),(ov),(nv)); })
+#define xcc_cas_long_long_to_finish_read \
+ __xcc_cas_long_long_to_finish_read
+DEF_xcc_comp_CB2(long_long,long long,read,xcc_lsbar);
 #endif
 #ifndef xcc_cas_ptr_to_finish_read
-#define xcc_cas_ptr_to_finish_read(loc,ov,nv) \
- ({ xcc_lsbar(); xcc_cas_ptr((loc),(ov),(nv)); })
+#define xcc_cas_ptr_to_finish_read \
+ __xcc_cas_ptr_to_finish_read
+DEF_xcc_comp_CB2(ptr,void *,read,xcc_lsbar);
 #endif
 #ifndef xcc_cas_float_to_finish_read
-#define xcc_cas_float_to_finish_read(loc,ov,nv) \
- ({ xcc_lsbar(); xcc_cas_float((loc),(ov),(nv)); })
+#define xcc_cas_float_to_finish_read \
+ __xcc_cas_float_to_finish_read
+DEF_xcc_comp_CB2(float,float,read,xcc_lsbar);
 #endif
 #ifndef xcc_cas_double_to_finish_read
-#define xcc_cas_double_to_finish_read(loc,ov,nv) \
- ({ xcc_lsbar(); xcc_cas_double((loc),(ov),(nv)); })
+#define xcc_cas_double_to_finish_read \
+ __xcc_cas_double_to_finish_read
+DEF_xcc_comp_CB2(double,double,read,xcc_lsbar);
 #endif
 
 #ifndef xcc_cas_char_to_finish_write
-#define xcc_cas_char_to_finish_write(loc,ov,nv) \
- ({ xcc_ssbar(); xcc_cas_char((loc),(ov),(nv)); })
+#define xcc_cas_char_to_finish_write \
+ __xcc_cas_char_to_finish_write
+DEF_xcc_comp_CB2(char,char,write,xcc_ssbar);
 #endif
 #ifndef xcc_cas_short_to_finish_write
-#define xcc_cas_short_to_finish_write(loc,ov,nv) \
- ({ xcc_ssbar(); xcc_cas_short((loc),(ov),(nv)); })
+#define xcc_cas_short_to_finish_write \
+ __xcc_cas_short_to_finish_write
+DEF_xcc_comp_CB2(short,short,write,xcc_ssbar);
 #endif
 #ifndef xcc_cas_int_to_finish_write
-#define xcc_cas_int_to_finish_write(loc,ov,nv) \
- ({ xcc_ssbar(); xcc_cas_int((loc),(ov),(nv)); })
+#define xcc_cas_int_to_finish_write \
+ __xcc_cas_int_to_finish_write
+DEF_xcc_comp_CB2(int,int,write,xcc_ssbar);
 #endif
 #ifndef xcc_cas_long_to_finish_write
-#define xcc_cas_long_to_finish_write(loc,ov,nv) \
- ({ xcc_ssbar(); xcc_cas_long((loc),(ov),(nv)); })
+#define xcc_cas_long_to_finish_write \
+ __xcc_cas_long_to_finish_write
+DEF_xcc_comp_CB2(long,long,write,xcc_ssbar);
 #endif
 #ifndef xcc_cas_long_long_to_finish_write
-#define xcc_cas_long_long_to_finish_write(loc,ov,nv) \
- ({ xcc_ssbar(); xcc_cas_long_long((loc),(ov),(nv)); })
+#define xcc_cas_long_long_to_finish_write \
+ __xcc_cas_long_long_to_finish_write
+DEF_xcc_comp_CB2(long_long,long long,write,xcc_ssbar);
 #endif
 #ifndef xcc_cas_ptr_to_finish_write
-#define xcc_cas_ptr_to_finish_write(loc,ov,nv) \
- ({ xcc_ssbar(); xcc_cas_ptr((loc),(ov),(nv)); })
+#define xcc_cas_ptr_to_finish_write \
+ __xcc_cas_ptr_to_finish_write
+DEF_xcc_comp_CB2(ptr,void *,write,xcc_ssbar);
 #endif
 #ifndef xcc_cas_float_to_finish_write
-#define xcc_cas_float_to_finish_write(loc,ov,nv) \
- ({ xcc_ssbar(); xcc_cas_float((loc),(ov),(nv)); })
+#define xcc_cas_float_to_finish_write \
+ __xcc_cas_float_to_finish_write
+DEF_xcc_comp_CB2(float,float,write,xcc_ssbar);
 #endif
 #ifndef xcc_cas_double_to_finish_write
-#define xcc_cas_double_to_finish_write(loc,ov,nv) \
- ({ xcc_ssbar(); xcc_cas_double((loc),(ov),(nv)); })
+#define xcc_cas_double_to_finish_write \
+ __xcc_cas_double_to_finish_write
+DEF_xcc_comp_CB2(double,double,write,xcc_ssbar);
 #endif
 
 /* end of Instructions */
