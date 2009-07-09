@@ -265,11 +265,11 @@
 (defun make-send-var-unit (id make-aref texp)
   (aif (assoc texp *var-sender*)
       ~(,(cdr it) ,(funcall make-aref ~(fref (mref pthis) ,id)))
-    (error "Default sender for ~S is not prepeared." texp)))
+    (warn "Default sender for ~S is not prepeared." texp)))
 (defun make-recv-var-unit (id make-aref texp)
   (aif (assoc texp *var-receiver*)
       ~(= ,(funcall make-aref ~(fref (mref pthis) ,id)) (,(cdr it)))
-    (error "Default receiver for ~S is not prepeared." texp)))
+    (warn "Default receiver for ~S is not prepeared." texp)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; worker-data´ÉÍý

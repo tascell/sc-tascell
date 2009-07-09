@@ -74,6 +74,13 @@
            ~(def worker-init ,@(function-body! body)) )))
   )
 
+(extendrule inlined-declaration tcell-type
+  ;; worker function
+  (#?(,scs[storage-class-specifier] (,@id-list)
+          (wfn ,@texp-list {,va-arg[vaarg-tag]}) ,@body)
+     (tcell:with-worker-data (call-next-rule)))
+  )
+
 (extendrule block-item tcell-type
   ((#?(do-two ,stat1 ,stat2
               (,id[identifier] (:put ,@put-body) (:get ,@get-body))))

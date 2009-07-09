@@ -117,10 +117,11 @@
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; task-work用の関数定義/宣言
   (#?(,scs[storage-class-specifier] (,@id-list[identifier])
-           (wfn ,@texp-list) ,@body)
-   ~(,scs ,(wfn-add-argids-decl id-list)
-          ,(type-expression! ~(wfn ,@texp-list))
-          ,@(tcell:with-new-bk ~-bk (function-body! body))) )
+          (wfn ,@texp-list) ,@body)
+   (tcell:with-worker-data
+       ~(,scs ,(wfn-add-argids-decl id-list)
+              ,(type-expression! ~(wfn ,@texp-list))
+              ,@(tcell:with-new-bk ~-bk (function-body! body))) ))
   ;; 通常の関数定義/宣言
   (#?(,scs[storage-class-specifier] (,fid[identifier] ,@id-list[identifier])
           (,fn-tag[function-tag] ,@texp-list) ,@body)
