@@ -75,7 +75,13 @@
 
 ; replace all identifier in s-expression
 (defun repl-id (x)
-  (map-all-atoms #'assoc-replacement-id x))
+  (cond
+   ((atom x)
+    (assoc-replacement-id x))
+   ((tagged-p ~fref x)
+    ~(fref ,(repl-id (second x)) ,@(cddr x)))
+   (t
+    (cons (repl-id (car x)) (repl-id (cdr x))))))
 
 ; entry id (list) and bind *id-alist* *replace-alist* 
 ; Returns replacement id (list)

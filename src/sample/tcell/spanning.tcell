@@ -27,6 +27,8 @@
 ;; task 0 0 0 3
 ;; <graph-type>
 ;; <algorithm>
+;; <show-graph-p>
+;; <show-tree-p>
 
 (c-exp "#include<sys/time.h>")
 (c-exp "#include\"xccmem.h\"")
@@ -182,11 +184,11 @@
   (def i int)
   (def d int (fref (aref VV v) degree))
   (def e int (fref (aref VV v) first-e))
-  (DEBUG-PRINT 2 "search1 v:%d b:%d d:%d~%" v b d)
+  ;; (DEBUG-PRINT 1 "search1 v:%d b:%d d:%d~%" v b d)
   ;; うまくdo-manyにできるか？
   (for ((= i 0) (< i d) (exps (inc i) (= e (fref (aref EE e) next-e))))
     (def nv int (fref (aref EE e) next-v))
-    ;; (DEBUG-PRINT 2 "nv: %d~%" nv)
+    ;; (DEBUG-PRINT 1 "nv: %d~%" nv)
     (when (== (fref (aref VV nv) parent) 0)
       (unless (csym::cas-int (fref (aref VV nv) parent) 0 (+ v 1)) ; 成功したら0
         (if (> b 0)
@@ -202,12 +204,12 @@
 (def (csym::search v) (csym::fn void int)
   (defs (ptr (struct v-list-body)) my-v-list mlist next)
   (defs int i j my-v-list-length mlist-length)
-  (DEBUG-PRINT 2 "search v:%d~%" v)
+  (DEBUG-PRINT 1 "search v:%d~%" v)
   (= (fref (aref VV v) parent) (+ v 1))
   (= V-List (csym::alloc-v-list 0))
   (= V-List-Length 1)
   (csym::search1 v 30)
-  (DEBUG-PRINT 2 "V-List-Length: %d~%" V-List-Length)
+  (DEBUG-PRINT 1 "V-List-Length: %d~%" V-List-Length)
   (do-while (or (> V-List-Length 1)
                 (< V-List->i V-LIST-ALLOC-SIZE))
     ;; V-Listをmy-v-listに移す
@@ -219,7 +221,9 @@
       (for ((= j  my-v-list->i) (< j V-LIST-ALLOC-SIZE) (inc j))
         (csym::search1 (aref my-v-list->v j) 30)))
     (for ((= i 0) (< i mlist-length) (inc i))
-      (= mlist (csym::dealloc-v-list mlist)))))
+      (= mlist (csym::dealloc-v-list mlist)))
+    (DEBUG-PRINT 1 "V-List-Length: %d~%" V-List-Length)
+    ))
 
 ;;;;;;;;;;
 ;;; Parallel version
@@ -252,16 +256,16 @@
   (def i int)
   (def e int (fref (aref VV v) first-e))
   (def nv int)
-  (DEBUG-PRINT 2 "search1-p v:%d b:%d %d %d~%" v b k0 k1)
+  ;; (DEBUG-PRINT 1 "[%2d] search1-p v:%d b:%d %d %d~%" WORKER-ID v b k0 k1)
   (for ((= i 0) (< i k0) (inc i))
     (= e (fref (aref EE e) next-e)))
   (do-many for i from k0 to k1
     (= nv (fref (aref EE e) next-v))
-    ;; (DEBUG-PRINT 2 "nv: %d~%" nv)
+    ;; (DEBUG-PRINT 1 "nv: %d~%" nv)
     (when (== (fref (aref VV nv) parent) 0)
-      ;; (DEBUG-PRINT 2 "try cas~%")
+      ;; (DEBUG-PRINT 1 "try cas~%")
       (unless (csym::cas-int (fref (aref VV nv) parent) 0 (+ v 1)) ; 成功したら0
-        ;; (DEBUG-PRINT 2 "cas succeeded~%")
+        ;; (DEBUG-PRINT 1 "cas succeeded~%")
         (if (> b 0)                     ; boundaryに達していなければ深さ優先
             (search1-p nv (- b 1) 0 (fref (aref VV nv) degree))
           (begin                        ; boundaryに達していればスタックに積んで幅優先
@@ -282,12 +286,12 @@
 (def (search-p v) (wfn void int)
   (defs (ptr (struct v-list-body)) my-v-list mlist)
   (defs int i my-v-list-length mlist-length)
-  (DEBUG-PRINT 2 "search-p v:%d~%" v)
+  (DEBUG-PRINT 1 "[%2d] search-p v:%d~%" WORKER-ID v)
   (= (fref (aref VV v) parent) (+ v 1))
   (search1-p v 30 0 (fref (aref VV v) degree))
-  (DEBUG-PRINT 2 "V-List-Length: %d~%" WDATA.V-List-Length)
+  (DEBUG-PRINT 1 "V-List-Length: %d~%" WDATA.V-List-Length)
   (do-while (or (> WDATA.V-List-Length 1)
-                (< V-List->i V-LIST-ALLOC-SIZE))
+                (< WDATA.V-List->i V-LIST-ALLOC-SIZE))
     ;; WDATA.V-Listをmy-v-listに移す
     (= my-v-list WDATA.V-List) (= mlist my-v-list)
     (= my-v-list-length WDATA.V-List-Length) (= mlist-length my-v-list-length)
@@ -297,7 +301,11 @@
     (search-p-b my-v-list 0 my-v-list-length)
     ;; 処理済みのmy-v-listを解放
     (for ((= i 0) (< i mlist-length) (inc i))
-      (= mlist (csym::dealloc-v-list mlist)))))
+      (= mlist (csym::dealloc-v-list mlist)))
+    (DEBUG-PRINT 1 "V-List-Length: %d~%" WDATA.V-List-Length)
+    )
+  (DEBUG-PRINT 1 "search-p finishing.~%")
+  )
 ;;;
 (def (task t-search-b)
   (def my-v-list (ptr (struct v-list-body)) :in)
@@ -320,15 +328,18 @@
 ;;
 (def (search-p-b my-v-list i0 i1) (wfn void (ptr (struct v-list-body)) int int)
   (def i int)
-  (DEBUG-PRINT 2 "search-p-b %p %d %d~%" my-v-list i0 i1)
+  (def my-v-list0 (ptr (struct v-list-body)))
+  (DEBUG-PRINT 1 "[%2d] search-p-b %p %d %d~%" WORKER-ID my-v-list i0 i1)
   (for ((= i 0) (< i i0) (inc i))
     (= my-v-list my-v-list->next))
+  (-= i1 i0) (= i0 0)
+  (= my-v-list0 my-v-list)
   (do-many for i from i0 to i1
     (search-p-c my-v-list my-v-list->i V-LIST-ALLOC-SIZE)
     (= my-v-list my-v-list->next)
-    (t-search-b                           ; my-v-listの半分を渡す
+    (t-search-b                           ; my-v-list0の i0-2~i1-2 の範囲を渡す
      (:put from i0-2 to i1-2
-           (= this.my-v-list my-v-list)
+           (= this.my-v-list my-v-list0)
            (= this.i0 i0-2) (= this.i1 i1-2))
      (:get (= WDATA.V-List (csym::nconc-v-list this.v-list WDATA.V-List))
            (+= WDATA.V-List-Length this.v-list-length)))
@@ -355,7 +366,7 @@
 ;;;
 (def (search-p-c my-v-list j0 j1) (wfn void (ptr (struct v-list-body)) int int)
   (def j int)
-  (DEBUG-PRINT 2 "search-p-c %p %d %d~%" my-v-list j0 j1)
+  (DEBUG-PRINT 1 "[%2d] search-p-c %p %d %d~%" WORKER-ID my-v-list j0 j1)
   (do-many for j from j0 to j1
     (search1-p (aref my-v-list->v j) 30 0 (fref (aref VV (aref my-v-list->v j)) degree))
     (t-search-c
@@ -547,6 +558,8 @@
 (def (task spanning-start)
   (def graph int :in)                   ; 1: random, 2: 2D-torus, 3: hyper-cube
   (def algorithm int :in)               ; 1: sequential (search-s2), 2: sequential (search), 3: parallel (search-p)
+  (def show-graph-p int :in)            ; 0: no, 1: show by show-graph, 2: show by show-graph2
+  (def show-tree-p int :in)              ; 0: no, 1: show by show-graph, 2: show by show-graph2
   )
 
 (def (task-body spanning-start)
@@ -567,8 +580,10 @@
   (csym::fprintf stderr "Graph constuction time: %lf~%" (csym::elapsed-time tp))
   (csym::fprintf stderr "v: %d e: %d~%" V-Length E-Length)
 
-  ;; (csym::show-graph)
-  ;; (csym::show-graph2)
+  (switch this.show-graph-p
+    (case 1) (csym::show-graph)  (break)
+    (case 2) (csym::show-graph2) (break)
+    )
 
   (csym::gettimeofday tp 0)
   ;; making a spanning tree
@@ -580,7 +595,11 @@
   (csym::gettimeofday (+ tp 1) 0)
   (csym::fprintf stderr "time: %lf~%" (csym::elapsed-time tp))
 
-  ;; (csym::show-graph)
+  (switch this.show-tree-p
+    (case 1) (csym::show-graph)  (break)
+    (case 2) (csym::show-graph2) (break)
+    )
+
   (csym::check-graph)
   )
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
