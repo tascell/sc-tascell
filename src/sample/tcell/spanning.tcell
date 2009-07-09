@@ -276,7 +276,7 @@
     (= e (fref (aref EE e) next-e))
     (t-search1
      (:put from k0-2 to k1-2
-           (= this.v nv)  (= this.b b)
+           (= this.v v)  (= this.b b)
            (= this.k0 k0-2) (= this.k1 k1-2))
      (:get (= WDATA.V-List (csym::nconc-v-list this.v-list WDATA.V-List))
            (+= WDATA.V-List-Length this.v-list-length)))
