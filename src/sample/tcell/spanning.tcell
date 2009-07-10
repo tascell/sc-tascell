@@ -36,6 +36,9 @@
 ;;; ワーカごとに処理したタスクの数をカウントして表示
 (%defconstant COUNT-NTASK 1)
 
+;;; 時々v-listの整合性をチェック
+;; (%defconstant CHECK 1)
+
 (%ifndef* NF-TYPE
   (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
 (%include "rule/tcell-setrule.sh")
@@ -101,7 +104,9 @@
     (%ifdef* COUNT-NTASK
       (def n-task int))
   (def V-List-Length int)
-  (def V-List (ptr (struct v-list-body))))
+  (def V-List (ptr (struct v-list-body)))
+  (def V-List-Last (ptr (struct v-list-body)))
+  ) 
 
 (decl (csym::alloc-v-list next) (csym::fn (ptr (struct v-list-body)) (ptr (struct v-list-body))))
 
@@ -109,6 +114,7 @@
     (%ifdef* COUNT-NTASK
       (= WDATA.n-task 0))
   (= WDATA.V-List (csym::alloc-v-list 0))
+  (= WDATA.V-List-Last WDATA.V-List)
   (= WDATA.V-List-Length 1)
   )
 
@@ -131,16 +137,47 @@
   (csym::free a)
   (return next))
 
-;;; v-list aの後ろにbを連結（破壊的）
-;;; lengthの値は別途処理する必要があるので注意
-(def (csym::nconc-v-list a b) (csym::fn (ptr (struct v-list-body)) (ptr (struct v-list-body)) (ptr (struct v-list-body)))
+;;; （デバッグ用）v-list-lastがv-listの最後かチェック
+(def (csym::check-last v-list v-list-last info)
+    (csym::fn void (ptr (struct v-list-body)) (ptr (struct v-list-body)) (ptr char))
   (def cur (ptr (struct v-list-body)))
-  (if a
-      (begin
-        (for ((= cur a) cur->next (= cur cur->next)))
-        (= cur->next b)
-        (return a))
-    (return b)))
+  (unless v-list (return))
+  (for ((= cur v-list) cur->next (= cur cur->next)))
+  (when (!= cur v-list-last)
+    (csym::fprintf stderr "!! last is incorrect. %s ~%" info)))
+
+;;; （デバッグ用）v-listの長さがlen-expectであるかチェック
+(def (csym::check-length v-list len-expect info) (csym::fn void (ptr (struct v-list-body)) int (ptr char))
+  (def cur (ptr (struct v-list-body)))
+  (def len int 0)
+  (for ((= cur v-list) cur (= cur cur->next))
+    (inc len))
+  (when (!= len len-expect)
+    (csym::fprintf stderr "!! Unexpected length len:%d expect:%d %s~%" len len-expect info)))
+
+;;; （デバッグ用）check-last and check-length
+(def (csym::check-v-list v-list v-list-last len-expect info)
+    (csym::fn void (ptr (struct v-list-body)) (ptr (struct v-list-body)) int (ptr char))
+  (csym::check-length v-list len-expect info)
+  (csym::check-last v-list v-list-last info))
+
+;;; v-list aの後ろにbを連結（破壊的）
+;;; a-lastがわかる場合は与えておくと前からたどらない
+;;; lengthの値は別途処理する必要があるので注意
+(def (csym::nconc-v-list a a-last b)
+    (csym::fn (ptr (struct v-list-body)) (ptr (struct v-list-body)) (ptr (struct v-list-body)) (ptr (struct v-list-body)))
+  (def cur (ptr (struct v-list-body)))
+  (cond
+   (a-last
+    (%ifdef CHECK (csym::check-last a a-last "in nconc-v-list"))
+    (= a-last->next b)
+    (return a))
+   (a
+    (for ((= cur a) cur->next (= cur cur->next)))
+    (= cur->next b)
+    (return a))
+    (else
+     (return b))))
 
 ;;;;;;;;;;
 
@@ -238,18 +275,30 @@
   (def k0 int :in)
   (def k1 int :in)
   (def v-list (ptr (struct v-list-body)) :out)
+  (def v-list-last (ptr (struct v-list-body)) :out)
   (def v-list-length int :out)
   )
 ;;
 (def (task-body t-search1)
     (%ifdef* COUNT-NTASK
       (++ WDATA.n-task)
-      (csym::fprintf stderr "Worker %d starts %d-th task (t-search1)~%" WORKER-ID WDATA.n-task))
+      (DEBUG-PRINT 1 "Worker %d starts %d-th task (t-search1)~%" WORKER-ID WDATA.n-task))
   (search1-p this.v this.b this.k0 this.k1)
-  (= this.v-list WDATA.V-List)
-  (= this.v-list-length WDATA.V-List-Length)
-  (= WDATA.V-List (csym::alloc-v-list 0))
-  (= WDATA.V-List-Length 1)
+  (%ifdef CHECK (csym::check-v-list WDATA.V-List WDATA.V-List-Last WDATA.V-List-Length "in task-body t-search1"))
+  ;;
+  (if (or (> WDATA.V-List-Length 1)
+          (< WDATA.V-List->i V-LIST-ALLOC-SIZE))
+      (begin
+       (= this.v-list WDATA.V-List)
+       (= this.v-list-last WDATA.V-List-Last)
+       (= this.v-list-length WDATA.V-List-Length)
+       (= WDATA.V-List (csym::alloc-v-list 0))
+       (= WDATA.V-List-Last WDATA.V-List)
+       (= WDATA.V-List-Length 1))
+      (begin
+       (= this.v-list 0)
+       (= this.v-list-last 0)
+       (= this.v-list-length 0)))
   )
 ;;
 (def (search1-p v b k0 k1) (wfn void int int int int)
@@ -271,15 +320,22 @@
           (begin                        ; boundaryに達していればスタックに積んで幅優先
             (when (<= WDATA.V-List->i 0)
               (= WDATA.V-List (csym::alloc-v-list WDATA.V-List))
-              (inc WDATA.V-List-Length))
+              (inc WDATA.V-List-Length)
+              (%ifdef CHECK (csym::check-v-list WDATA.V-List WDATA.V-List-Last WDATA.V-List-Length "in search1-p"))
+              )
             (= (aref WDATA.V-List->v (-- WDATA.V-List->i)) nv)))))
     (= e (fref (aref EE e) next-e))
     (t-search1
      (:put from k0-2 to k1-2
            (= this.v v)  (= this.b b)
            (= this.k0 k0-2) (= this.k1 k1-2))
-     (:get (= WDATA.V-List (csym::nconc-v-list this.v-list WDATA.V-List))
-           (+= WDATA.V-List-Length this.v-list-length)))
+     (:get (%ifdef CHECK (csym::check-length WDATA.V-List WDATA.V-List-Length "in search-p :get (WDATA)"))
+           (%ifdef CHECK (csym::check-length this.v-list this.v-list-length "in search-p :get (this)"))
+           (= WDATA.V-List (csym::nconc-v-list this.v-list this.v-list-last WDATA.V-List))
+           (+= WDATA.V-List-Length this.v-list-length)
+           (%ifdef CHECK (csym::check-v-list WDATA.V-List WDATA.V-List-Last WDATA.V-List-Length
+                                             "in search-p :get (nconc)"))
+           ))
      ))
 
 ;;; parallel version of search
@@ -297,12 +353,14 @@
     (= my-v-list-length WDATA.V-List-Length) (= mlist-length my-v-list-length)
     (= WDATA.V-List (csym::alloc-v-list 0))
     (= WDATA.V-List-Length 1)
+    (= WDATA.V-List-Last WDATA.V-List)
     ;; my-v-listを処理
+    (DEBUG-PRINT 1 "my-v-list-length: %d~%" my-v-list-length)
+    (%ifdef CHECK (csym::check-length my-v-list my-v-list-length "in search-p"))
     (search-p-b my-v-list 0 my-v-list-length)
     ;; 処理済みのmy-v-listを解放
     (for ((= i 0) (< i mlist-length) (inc i))
       (= mlist (csym::dealloc-v-list mlist)))
-    (DEBUG-PRINT 1 "V-List-Length: %d~%" WDATA.V-List-Length)
     )
   (DEBUG-PRINT 1 "search-p finishing.~%")
   )
@@ -312,18 +370,30 @@
   (def i0 int :in)
   (def i1 int :in)
   (def v-list (ptr (struct v-list-body)) :out)
+  (def v-list-last (ptr (struct v-list-body)) :out)
   (def v-list-length int :out)
   )
 ;;
 (def (task-body t-search-b)
     (%ifdef* COUNT-NTASK
       (++ WDATA.n-task)
-      (csym::fprintf stderr "Worker %d starts %d-th task (t-search-b)~%" WORKER-ID WDATA.n-task))
+      (DEBUG-PRINT 1 "Worker %d starts %d-th task (t-search-b)~%" WORKER-ID WDATA.n-task))
   (search-p-b this.my-v-list this.i0 this.i1)
-  (= this.v-list WDATA.V-List)
-  (= this.v-list-length WDATA.V-List-Length)
-  (= WDATA.V-List (csym::alloc-v-list 0))
-  (= WDATA.V-List-Length 1)
+  (%ifdef CHECK (csym::check-v-list WDATA.V-List WDATA.V-List-Last WDATA.V-List-Length "in task-body t-search-b"))
+  ;;
+  (if (or (> WDATA.V-List-Length 1)
+          (< WDATA.V-List->i V-LIST-ALLOC-SIZE))
+      (begin
+       (= this.v-list WDATA.V-List)
+       (= this.v-list-last WDATA.V-List-Last)
+       (= this.v-list-length WDATA.V-List-Length)
+       (= WDATA.V-List (csym::alloc-v-list 0))
+       (= WDATA.V-List-Last WDATA.V-List)
+       (= WDATA.V-List-Length 1))
+      (begin
+       (= this.v-list 0)
+       (= this.v-list-last 0)
+       (= this.v-list-length 0)))
   )
 ;;
 (def (search-p-b my-v-list i0 i1) (wfn void (ptr (struct v-list-body)) int int)
@@ -337,12 +407,17 @@
   (do-many for i from i0 to i1
     (search-p-c my-v-list my-v-list->i V-LIST-ALLOC-SIZE)
     (= my-v-list my-v-list->next)
-    (t-search-b                           ; my-v-list0の i0-2~i1-2 の範囲を渡す
+    (t-search-b                           ; my-v-list0の i0-2〜i1-2 の範囲を渡す
      (:put from i0-2 to i1-2
            (= this.my-v-list my-v-list0)
            (= this.i0 i0-2) (= this.i1 i1-2))
-     (:get (= WDATA.V-List (csym::nconc-v-list this.v-list WDATA.V-List))
-           (+= WDATA.V-List-Length this.v-list-length)))
+     (:get (%ifdef CHECK (csym::check-length WDATA.V-List WDATA.V-List-Length "in search-p-b :get (WDATA)"))
+           (%ifdef CHECK (csym::check-length this.v-list this.v-list-length "in search-p-b :get (this)"))
+           (= WDATA.V-List (csym::nconc-v-list this.v-list this.v-list-last WDATA.V-List))
+           (+= WDATA.V-List-Length this.v-list-length)
+           (%ifdef CHECK (csym::check-v-list WDATA.V-List WDATA.V-List-Last WDATA.V-List-Length
+                                             "in search-p-b :get (nconc)"))
+           ))
     ))
 ;;;
 (def (task t-search-c)
@@ -350,18 +425,30 @@
   (def j0 int :in)
   (def j1 int :in)
   (def v-list (ptr (struct v-list-body)) :out)
+  (def v-list-last (ptr (struct v-list-body)) :out)
   (def v-list-length int :out)
   )
 ;;
 (def (task-body t-search-c)
     (%ifdef* COUNT-NTASK
       (++ WDATA.n-task)
-      (csym::fprintf stderr "Worker %d starts %d-th task (t-search-c)~%" WORKER-ID WDATA.n-task))
+      (DEBUG-PRINT 1 "Worker %d starts %d-th task (t-search-c)~%" WORKER-ID WDATA.n-task))
   (search-p-c this.my-v-list this.j0 this.j1)
-  (= this.v-list WDATA.V-List)
-  (= this.v-list-length WDATA.V-List-Length)
-  (= WDATA.V-List (csym::alloc-v-list 0))
-  (= WDATA.V-List-Length 1)
+  (%ifdef CHECK (csym::check-v-list WDATA.V-List WDATA.V-List-Last WDATA.V-List-Length "in task-body t-search-c"))
+  ;; 
+  (if (or (> WDATA.V-List-Length 1)
+            (< WDATA.V-List->i V-LIST-ALLOC-SIZE))
+      (begin
+       (= this.v-list WDATA.V-List)
+       (= this.v-list-last WDATA.V-List-Last)
+       (= this.v-list-length WDATA.V-List-Length)
+       (= WDATA.V-List (csym::alloc-v-list 0))
+       (= WDATA.V-List-Last WDATA.V-List)
+       (= WDATA.V-List-Length 1))
+      (begin
+       (= this.v-list 0)
+       (= this.v-list-last 0)
+       (= this.v-list-length 0)))
   )
 ;;;
 (def (search-p-c my-v-list j0 j1) (wfn void (ptr (struct v-list-body)) int int)
@@ -373,8 +460,13 @@
      (:put from j0-2 to j1-2
            (= this.my-v-list my-v-list)
            (= this.j0 j0-2) (= this.j1 j1-2))
-     (:get (= WDATA.V-List (csym::nconc-v-list this.v-list WDATA.V-List))
-           (+= WDATA.V-List-Length this.v-list-length)))
+     (:get (%ifdef CHECK (csym::check-length WDATA.V-List WDATA.V-List-Length "in search-p-c :get (WDATA)"))
+           (%ifdef CHECK (csym::check-length this.v-list this.v-list-length "in search-p-c :get (this)"))
+           (= WDATA.V-List (csym::nconc-v-list this.v-list this.v-list-last WDATA.V-List))
+           (+= WDATA.V-List-Length this.v-list-length)
+           (%ifdef CHECK (csym::check-v-list WDATA.V-List WDATA.V-List-Last WDATA.V-List-Length
+                                             "in search-p-c :get (nconc)"))
+           ))
     ))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -570,7 +662,7 @@
 
   (%ifdef* COUNT-NTASK
     (++ WDATA.n-task)
-    (csym::fprintf stderr "Worker %d starts %d-th task.~%" WORKER-ID WDATA.n-task))
+    (DEBUG-PRINT 1 "Worker %d starts %d-th task.~%" WORKER-ID WDATA.n-task))
 
   ;; constructing graph
   (csym::gettimeofday tp 0)
@@ -606,9 +698,3 @@
   (csym::check-graph)
   )
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(def (task spanning)
-    )
-
-(def (task-body spanning)
-    )
-
