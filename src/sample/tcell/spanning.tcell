@@ -35,11 +35,13 @@
 (c-exp "#include\"xccmem.h\"")
 
 ;;; ワーカごとに処理したタスクの数をカウントして表示
-(%defconstant COUNT-NTASK 1)
+;; (%defconstant COUNT-NTASK 1)
 ;;; 時々v-listの整合性をチェック
-(%defconstant CHECK 1)
+;; (%defconstant CHECK 1)
 ;;; タスクごとの頂点スタックを使う（<->ワーカごとの頂点スタックを使う）
 ;; (%defconstant STACK-EACH-TASK 1)
+;;; search-p-1 での頂点再訪チェックにおけるメモリバリアの方法
+(%defconstant SEARCH-P-MEM-BARRIER-3) ; 1 or 2 or 3 (default=3)
 
 (%ifndef* NF-TYPE
   (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
@@ -189,6 +191,7 @@
 ;;;;;;;;;;
 
 ;;; serial DF search with v_list
+;; (%defconstant USE-CAS-IN-SEARCH2 1)
 (def (csym::search-s2 fv) (csym::fn void int)
   (def my-v-list (ptr (struct v-list-body)))
   (def my-v-list-length int)            ; 作業中のv-list-body
@@ -206,14 +209,18 @@
     (for ((= i 0) (< i d) (exps (inc i) (= e (fref (aref EE e) next-e))))
       (def nv int (fref (aref EE e) next-v))
       (when (== (fref (aref VV nv) parent) 0)
-        (when (csym::cas-int (fref (aref VV nv) parent) 0 (+ v 1)) ; 枝の先の頂点の親を自分にセット．成功したら0
-          (continue))                   ; すでにチェック済ならとばす
-        (when (<= vi 0)                 ; 配列が一杯になったらv-list-bodyをpush
-          (= my-v-list->i vi)           ; スタックポインタを構造体に反映
-          (= my-v-list (csym::alloc-v-list my-v-list))
-          (inc my-v-list-length)
-          (= vi my-v-list->i))
-        (= (aref my-v-list->v (-- vi)) nv))) ; 枝の先の頂点をスタックに追加
+        (when (%ifdef* USE-CAS-IN-SEARCH2
+                (not (csym::cas-int (fref (aref VV nv) parent) 0 (+ v 1))) ; 枝の先の頂点の親を自分にセット．成功したら0
+                %else
+                1)
+           (%ifndef* USE-CAS-IN-SEARCH2
+             (= (fref (aref VV nv) parent) (+ v 1)))
+           (when (<= vi 0)              ; 配列が一杯になったらv-list-bodyをpush
+             (= my-v-list->i vi)        ; スタックポインタを構造体に反映
+             (= my-v-list (csym::alloc-v-list my-v-list))
+             (inc my-v-list-length)
+             (= vi my-v-list->i))
+           (= (aref my-v-list->v (-- vi)) nv)))) ; 枝の先の頂点をスタックに追加
     (while (and (== vi V-LIST-ALLOC-SIZE) ; スタックが空になったらv-list-bodyをpop
                 (> my-v-list-length 1))
       (= my-v-list (csym::dealloc-v-list my-v-list))
@@ -224,6 +231,7 @@
 ;;;;;;;;;;;;;;;;;;;;
 
 ;;; recursive DF search with a bound "b" spilling into v_list
+;; (%defconstant USE-CAS-IN-SEARCH1 1)
 (def (csym::search1 v b) (csym::fn void int int)
   (def i int)
   (def d int (fref (aref VV v) degree))
@@ -234,7 +242,12 @@
     (def nv int (fref (aref EE e) next-v))
     ;; (DEBUG-PRINT 1 "nv: %d~%" nv)
     (when (== (fref (aref VV nv) parent) 0)
-      (unless (csym::cas-int (fref (aref VV nv) parent) 0 (+ v 1)) ; 成功したら0
+      (when (%ifdef* USE-CAS-IN-SEARCH1
+              (not (csym::cas-int (fref (aref VV nv) parent) 0 (+ v 1))) ; 枝の先の頂点の親を自分にセット．cas-intの値は成功したら0
+              %else
+              1)
+        (%ifndef* USE-CAS-IN-SEARCH1
+          (= (fref (aref VV nv) parent) (+ v 1)))
         (if (> b 0)
             (csym::search1 nv (- b 1))
           (begin
@@ -306,6 +319,25 @@
        (= this.v-list.length 0)))
   )
 ;;
+(%ifdef* SEARCH-P-MEM-BARRIER-1
+  (%defmacro DUP-CHECK (&body body)
+    `(unless (csym::cas-int (fref (aref VV nv) parent) 0 (+ v 1)) ; 成功したら0
+       (csym::start_access_after_lock)
+       ,@body))
+  %else
+  (%ifdef* SEARCH-P-MEM-BARRIER-2
+    (%defmacro DUP-CHECK (&body body)
+      `(when (== (csym::atomic-read-int-to-finish-write (fref (aref VV nv) parent)) 0)
+         (csym::atomic-write-int (fref (aref VV nv) parent) (+ v 1))
+         ,@body))
+    %else
+    ;; (%ifdef* SEARCH-P-MEM-BARRIER-3
+    (%defmacro DUP-CHECK (&body body)
+      `(when (== (csym::atomic-read-int (fref (aref VV nv) parent)) 0)
+         (csym::atomic-write-int-to-start-read (fref (aref VV nv) parent) (+ v 1))
+         ,@body))
+    ))
+
 (def (search1-p v b k0 k1) (wfn void int int int int)
   (def i int)
   (def e int (fref (aref VV v) first-e))
@@ -315,20 +347,16 @@
     (= e (fref (aref EE e) next-e)))
   (do-many for i from k0 to k1
     (= nv (fref (aref EE e) next-v))
-    ;; (DEBUG-PRINT 1 "nv: %d~%" nv)
-    (when (== (fref (aref VV nv) parent) 0)
-      ;; (DEBUG-PRINT 1 "try cas~%")
-      (unless (csym::cas-int (fref (aref VV nv) parent) 0 (+ v 1)) ; 成功したら0
-        ;; (DEBUG-PRINT 1 "cas succeeded~%")
-        (if (> b 0)                     ; boundaryに達していなければ深さ優先
-            (search1-p nv (- b 1) 0 (fref (aref VV nv) degree))
-          (begin                        ; boundaryに達していればスタックに積んで幅優先
-            (when (<= WDATA.V-List.first->i 0)
-              (= WDATA.V-List.first (csym::alloc-v-list WDATA.V-List.first))
-              (inc WDATA.V-List.length)
-              (%ifdef* CHECK (csym::check-v-list WDATA.V-List.first WDATA.V-List.last WDATA.V-List.length "in search1-p"))
-              )
-            (= (aref WDATA.V-List.first->v (-- WDATA.V-List.first->i)) nv)))))
+    (DUP-CHECK
+     (if (> b 0)                        ; boundaryに達していなければ深さ優先
+         (search1-p nv (- b 1) 0 (fref (aref VV nv) degree))
+       (begin                           ; boundaryに達していればスタックに積んで幅優先
+         (when (<= WDATA.V-List.first->i 0)
+           (= WDATA.V-List.first (csym::alloc-v-list WDATA.V-List.first))
+           (inc WDATA.V-List.length)
+           (%ifdef* CHECK (csym::check-v-list WDATA.V-List.first WDATA.V-List.last WDATA.V-List.length "in search1-p"))
+           )
+         (= (aref WDATA.V-List.first->v (-- WDATA.V-List.first->i)) nv))))
     (= e (fref (aref EE e) next-e))
     (t-search1
      (:put from k0-2 to k1-2

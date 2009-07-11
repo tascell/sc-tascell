@@ -27,7 +27,7 @@
 (%include "rule/nestfunc-setrule.sh")
 
 ;; sched_setaffinityによってコアをワーカに貼り付ける
-(%defconstant USE-AFFINITY 1)
+;; (%defconstant USE-AFFINITY 1)
 (%ifdef* USE-AFFINITY 
   (c-exp "#define _GNU_SOURCE")
   (c-exp "#include<sched.h>"))
@@ -1324,47 +1324,46 @@
   (= option.verbose 0)
   ;; Parse and set options
   (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:aP:v:h")))
-    (for ((= i 0) (< i argc) (inc i))
-      (switch ch
-        (case #\n)                      ; number of threads
-        (= option.num-thrs (csym::atoi optarg))
-        (break)
+    (switch ch
+      (case #\n)                        ; number of threads
+      (= option.num-thrs (csym::atoi optarg))
+      (break)
 
-        (case #\s)                      ; server name
-        (if (csym::strcmp "stdout" optarg)
-            (begin
-             (csym::strncpy option.sv-hostname optarg
-                            HOSTNAME-MAXSIZE)
-             (= (aref option.sv-hostname (- HOSTNAME-MAXSIZE 1)) 0))
-          (= (aref option.sv-hostname 0) #\NULL))
-        (break)
+      (case #\s)                        ; server name
+      (if (csym::strcmp "stdout" optarg)
+          (begin
+            (csym::strncpy option.sv-hostname optarg
+                           HOSTNAME-MAXSIZE)
+            (= (aref option.sv-hostname (- HOSTNAME-MAXSIZE 1)) 0))
+        (= (aref option.sv-hostname 0) #\NULL))
+      (break)
 
-        (case #\p)                      ; connection port number
-        (= option.port (csym::atoi optarg))
-        (break)
+      (case #\p)                        ; connection port number
+      (= option.port (csym::atoi optarg))
+      (break)
 
-        (case #\a)                      ; set affinity
-        (= option.affinity 1)
-        (%ifndef USE-AFFINITY
-            (csym::fprintf stderr "-a is ignored (invalidated in compile time)~%"))
-        (break)
+      (case #\a)                        ; set affinity
+      (= option.affinity 1)
+      (%ifndef* USE-AFFINITY
+        (csym::fprintf stderr "-a is ignored (invalidated in compile time)~%"))
+      (break)
 
-        (case #\P)                      ; the number of speculative tasks from external nodes
-        (= option.prefetch (csym::atoi optarg))
-        (break)
+      (case #\P)                        ; the number of speculative tasks from external nodes
+      (= option.prefetch (csym::atoi optarg))
+      (break)
 
-        (case #\v)                      ; verbose level
-        (= option.verbose (csym::atoi optarg))
-        (break)
+      (case #\v)                        ; verbose level
+      (= option.verbose (csym::atoi optarg))
+      (break)
 
-        (case #\h)                      ; usage
-        (csym::usage argc argv)
-        (break)
+      (case #\h)                        ; usage
+      (csym::usage argc argv)
+      (break)
 
-        (default)
-        (csym::fprintf stderr "Unknown option: %c~%" ch)
-        (csym::usage argc argv)
-        (break))))
+      (default)
+      (csym::fprintf stderr "Unknown option: %c~%" ch)
+      (csym::usage argc argv)
+      (break)))
   (return)
   )
 
@@ -1383,7 +1382,7 @@
   (= (fref color blue) b)
   (csym::gdk-color-alloc (csym::gdk-colormap-get-system) (ptr color))
   (csym::gdk-gc-set-foreground gc (ptr color))
-  (return gc))
+  (return gc))#\a
 
 #+tcell-gtk                             ; 生成・サイズ変更時
 (def (csym::configure-event widget event data)
