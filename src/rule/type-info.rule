@@ -321,4 +321,7 @@
    x)
   (#?(ptr ,texp)
    texp)
+  (otherwise
+   (iwarn "~S is not reference type." x)
+   'type::undefined)
   )

@@ -24,6 +24,7 @@
 
 ;;; Spanning tree
 
+;;; How to execute (single node)
 ;; task 0 0 0 3
 ;; <graph-type>
 ;; <algorithm>
@@ -35,9 +36,10 @@
 
 ;;; ワーカごとに処理したタスクの数をカウントして表示
 (%defconstant COUNT-NTASK 1)
-
 ;;; 時々v-listの整合性をチェック
 ;; (%defconstant CHECK 1)
+;;; タスクごとの頂点スタックを使う（<->ワーカごとの頂点スタックを使う）
+;; (%defconstant STACK-EACH-TASK 1)
 
 (%ifndef* NF-TYPE
   (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
@@ -72,7 +74,7 @@
 (def V-Length int)                      ; グラフの全頂点数
 
 (def (struct vertex)
-    (def degree int)                    ; 接続している枝の数
+  (def degree int)                      ; 接続している枝の数
   (def first-e int)                     ; 枝のうちの1つ（残りはnext-eで辿る）
   (def parent int))                     ; spanning treeの親の頂点ID+1，未定の場合は0，rootは自分自身を指す
 
@@ -90,32 +92,37 @@
 ;;;;;;;;;;
 ;;; list of arrays of vertices
 ;;; （作業スタック）
-(def V-List-Length int)                 ; スタックの長さ
 
 (def (struct v-list-body)
   (def next (ptr (struct v-list-body)))   ; 次の要素
   (def i int)                             ; スタックポインタ（(== i V-LIST-ALLOC-SIZE)が底）
   (def v (array int V-LIST-ALLOC-SIZE)))  ; 頂点IDのリスト
 
-(def V-List (ptr (struct v-list-body)))
+(def V-List-Length int)                 ; v-list-bodyリストの長さ
+(def V-List (ptr (struct v-list-body))) ; v-list-bodyリストの先頭
 
-;;; 並列版ではワーカごとにスタックを持つ
+(def (struct v-list-head)
+  (def first (ptr (struct v-list-body)))
+  (def last (ptr (struct v-list-body)))
+  (def length int))
+
+;;; 並列版 %ifndef STACK-EACH-TASK（ワーカごとにスタックを持つ）
 (def worker-data
     (%ifdef* COUNT-NTASK
       (def n-task int))
-  (def V-List-Length int)
-  (def V-List (ptr (struct v-list-body)))
-  (def V-List-Last (ptr (struct v-list-body)))
-  ) 
+  (%ifndef* STACK-EACH-TASK
+    (def V-List (struct v-list-head)) )
+  )
 
 (decl (csym::alloc-v-list next) (csym::fn (ptr (struct v-list-body)) (ptr (struct v-list-body))))
 
 (def worker-init
     (%ifdef* COUNT-NTASK
       (= WDATA.n-task 0))
-  (= WDATA.V-List (csym::alloc-v-list 0))
-  (= WDATA.V-List-Last WDATA.V-List)
-  (= WDATA.V-List-Length 1)
+  (%ifndef* STACK-EACH-TASK
+    (= WDATA.V-List.first (csym::alloc-v-list 0))
+    (= WDATA.V-List.last WDATA.V-List.first)
+    (= WDATA.V-List.length 1) )
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -169,7 +176,7 @@
   (def cur (ptr (struct v-list-body)))
   (cond
    (a-last
-    (%ifdef CHECK (csym::check-last a a-last "in nconc-v-list"))
+    (%ifdef* CHECK (csym::check-last a a-last "in nconc-v-list"))
     (= a-last->next b)
     (return a))
    (a
@@ -274,9 +281,7 @@
   (def b int :in)
   (def k0 int :in)
   (def k1 int :in)
-  (def v-list (ptr (struct v-list-body)) :out)
-  (def v-list-last (ptr (struct v-list-body)) :out)
-  (def v-list-length int :out)
+  (def v-list (struct v-list-head) :out)
   )
 ;;
 (def (task-body t-search1)
@@ -284,21 +289,21 @@
       (++ WDATA.n-task)
       (DEBUG-PRINT 1 "Worker %d starts %d-th task (t-search1)~%" WORKER-ID WDATA.n-task))
   (search1-p this.v this.b this.k0 this.k1)
-  (%ifdef CHECK (csym::check-v-list WDATA.V-List WDATA.V-List-Last WDATA.V-List-Length "in task-body t-search1"))
+  (%ifdef* CHECK (csym::check-v-list WDATA.V-List.first WDATA.V-List.last WDATA.V-List.length "in task-body t-search1"))
   ;;
-  (if (or (> WDATA.V-List-Length 1)
-          (< WDATA.V-List->i V-LIST-ALLOC-SIZE))
+  (if (or (> WDATA.V-List.length 1)
+          (< WDATA.V-List.first->i V-LIST-ALLOC-SIZE))
       (begin
-       (= this.v-list WDATA.V-List)
-       (= this.v-list-last WDATA.V-List-Last)
-       (= this.v-list-length WDATA.V-List-Length)
-       (= WDATA.V-List (csym::alloc-v-list 0))
-       (= WDATA.V-List-Last WDATA.V-List)
-       (= WDATA.V-List-Length 1))
+       (= this.v-list.first WDATA.V-List.first)
+       (= this.v-list.last WDATA.V-List.last)
+       (= this.v-list.length WDATA.V-List.length)
+       (= WDATA.V-List.first (csym::alloc-v-list 0))
+       (= WDATA.V-List.last WDATA.V-List.first)
+       (= WDATA.V-List.length 1))
       (begin
-       (= this.v-list 0)
-       (= this.v-list-last 0)
-       (= this.v-list-length 0)))
+       (= this.v-list.first 0)
+       (= this.v-list.last 0)
+       (= this.v-list.length 0)))
   )
 ;;
 (def (search1-p v b k0 k1) (wfn void int int int int)
@@ -318,153 +323,149 @@
         (if (> b 0)                     ; boundaryに達していなければ深さ優先
             (search1-p nv (- b 1) 0 (fref (aref VV nv) degree))
           (begin                        ; boundaryに達していればスタックに積んで幅優先
-            (when (<= WDATA.V-List->i 0)
-              (= WDATA.V-List (csym::alloc-v-list WDATA.V-List))
-              (inc WDATA.V-List-Length)
-              (%ifdef CHECK (csym::check-v-list WDATA.V-List WDATA.V-List-Last WDATA.V-List-Length "in search1-p"))
+            (when (<= WDATA.V-List.first->i 0)
+              (= WDATA.V-List.first (csym::alloc-v-list WDATA.V-List.first))
+              (inc WDATA.V-List.length)
+              (%ifdef* CHECK (csym::check-v-list WDATA.V-List.first WDATA.V-List.last WDATA.V-List.length "in search1-p"))
               )
-            (= (aref WDATA.V-List->v (-- WDATA.V-List->i)) nv)))))
+            (= (aref WDATA.V-List.first->v (-- WDATA.V-List.first->i)) nv)))))
     (= e (fref (aref EE e) next-e))
     (t-search1
      (:put from k0-2 to k1-2
            (= this.v v)  (= this.b b)
            (= this.k0 k0-2) (= this.k1 k1-2))
-     (:get (%ifdef CHECK (csym::check-length WDATA.V-List WDATA.V-List-Length "in search-p :get (WDATA)"))
-           (%ifdef CHECK (csym::check-length this.v-list this.v-list-length "in search-p :get (this)"))
-           (= WDATA.V-List (csym::nconc-v-list this.v-list this.v-list-last WDATA.V-List))
-           (+= WDATA.V-List-Length this.v-list-length)
-           (%ifdef CHECK (csym::check-v-list WDATA.V-List WDATA.V-List-Last WDATA.V-List-Length
+     (:get (%ifdef* CHECK (csym::check-length WDATA.V-List.first WDATA.V-List.length "in search-p :get (WDATA)"))
+           (%ifdef* CHECK (csym::check-length this.v-list.first this.v-list.length "in search-p :get (this)"))
+           (= WDATA.V-List.first (csym::nconc-v-list this.v-list.first this.v-list.last WDATA.V-List.first))
+           (+= WDATA.V-List.length this.v-list.length)
+           (%ifdef* CHECK (csym::check-v-list WDATA.V-List.first WDATA.V-List.last WDATA.V-List.length
                                              "in search-p :get (nconc)"))
            ))
      ))
 
 ;;; parallel version of search
 (def (search-p v) (wfn void int)
-  (defs (ptr (struct v-list-body)) my-v-list mlist)
-  (defs int i my-v-list-length mlist-length)
+  (defs (struct v-list-head) my-v-list mlist) ; my-v-list：1反復で処理するリスト，mlist：m-v-list解放用
+  (def i int)
   (DEBUG-PRINT 1 "[%2d] search-p v:%d~%" WORKER-ID v)
   (= (fref (aref VV v) parent) (+ v 1))
   (search1-p v 30 0 (fref (aref VV v) degree))
-  (DEBUG-PRINT 1 "V-List-Length: %d~%" WDATA.V-List-Length)
-  (do-while (or (> WDATA.V-List-Length 1)
-                (< WDATA.V-List->i V-LIST-ALLOC-SIZE))
+  (DEBUG-PRINT 1 "V-List-Length: %d~%" WDATA.V-List.length)
+  (do-while (or (> WDATA.V-List.length 1)
+                (< WDATA.V-List.first->i V-LIST-ALLOC-SIZE))
     ;; WDATA.V-Listをmy-v-listに移す
     (= my-v-list WDATA.V-List) (= mlist my-v-list)
-    (= my-v-list-length WDATA.V-List-Length) (= mlist-length my-v-list-length)
-    (= WDATA.V-List (csym::alloc-v-list 0))
-    (= WDATA.V-List-Length 1)
-    (= WDATA.V-List-Last WDATA.V-List)
+    ;; WDATA.V-Listを初期化
+    (= WDATA.V-List.first (csym::alloc-v-list 0))
+    (= WDATA.V-List.length 1)
+    (= WDATA.V-List.last WDATA.V-List.first)
     ;; my-v-listを処理
-    (DEBUG-PRINT 1 "my-v-list-length: %d~%" my-v-list-length)
-    (%ifdef CHECK (csym::check-length my-v-list my-v-list-length "in search-p"))
-    (search-p-b my-v-list 0 my-v-list-length)
+    (DEBUG-PRINT 1 "my-v-list-length: %d~%" my-v-list.length)
+    (%ifdef* CHECK (csym::check-length my-v-list.first my-v-list.length "in search-p"))
+    (search-p-b my-v-list.first 0 my-v-list.length)
     ;; 処理済みのmy-v-listを解放
-    (for ((= i 0) (< i mlist-length) (inc i))
-      (= mlist (csym::dealloc-v-list mlist)))
+    (for ((= i 0) (< i mlist.length) (inc i))
+      (= mlist.first (csym::dealloc-v-list mlist.first)))
     )
   (DEBUG-PRINT 1 "search-p finishing.~%")
   )
 ;;;
 (def (task t-search-b)
-  (def my-v-list (ptr (struct v-list-body)) :in)
+  (def my-v-list-first (ptr (struct v-list-body)) :in)
   (def i0 int :in)
   (def i1 int :in)
-  (def v-list (ptr (struct v-list-body)) :out)
-  (def v-list-last (ptr (struct v-list-body)) :out)
-  (def v-list-length int :out)
+  (def v-list (struct v-list-head) :out)
   )
 ;;
 (def (task-body t-search-b)
     (%ifdef* COUNT-NTASK
       (++ WDATA.n-task)
       (DEBUG-PRINT 1 "Worker %d starts %d-th task (t-search-b)~%" WORKER-ID WDATA.n-task))
-  (search-p-b this.my-v-list this.i0 this.i1)
-  (%ifdef CHECK (csym::check-v-list WDATA.V-List WDATA.V-List-Last WDATA.V-List-Length "in task-body t-search-b"))
+  (search-p-b this.my-v-list-first this.i0 this.i1)
+  (%ifdef* CHECK (csym::check-v-list WDATA.V-List.first WDATA.V-List.last WDATA.V-List.length "in task-body t-search-b"))
   ;;
-  (if (or (> WDATA.V-List-Length 1)
-          (< WDATA.V-List->i V-LIST-ALLOC-SIZE))
+  (if (or (> WDATA.V-List.length 1)
+          (< WDATA.V-List.first->i V-LIST-ALLOC-SIZE))
       (begin
-       (= this.v-list WDATA.V-List)
-       (= this.v-list-last WDATA.V-List-Last)
-       (= this.v-list-length WDATA.V-List-Length)
-       (= WDATA.V-List (csym::alloc-v-list 0))
-       (= WDATA.V-List-Last WDATA.V-List)
-       (= WDATA.V-List-Length 1))
-      (begin
-       (= this.v-list 0)
-       (= this.v-list-last 0)
-       (= this.v-list-length 0)))
+        (= this.v-list.first WDATA.V-List.first)
+        (= this.v-list.last WDATA.V-List.last)
+        (= this.v-list.length WDATA.V-List.length)
+        (= WDATA.V-List.first (csym::alloc-v-list 0))
+        (= WDATA.V-List.last WDATA.V-List.first)
+        (= WDATA.V-List.length 1))
+    (begin
+      (= this.v-list.first 0)
+      (= this.v-list.last 0)
+      (= this.v-list.length 0)))
   )
 ;;
-(def (search-p-b my-v-list i0 i1) (wfn void (ptr (struct v-list-body)) int int)
+(def (search-p-b my-v-list-first i0 i1) (wfn void (ptr (struct v-list-body)) int int)
   (def i int)
-  (def my-v-list0 (ptr (struct v-list-body)))
-  (DEBUG-PRINT 1 "[%2d] search-p-b %p %d %d~%" WORKER-ID my-v-list i0 i1)
+  (def my-v-list-first0 (ptr (struct v-list-body)))
+  (DEBUG-PRINT 1 "[%2d] search-p-b %p %d %d~%" WORKER-ID my-v-list-first i0 i1)
   (for ((= i 0) (< i i0) (inc i))
-    (= my-v-list my-v-list->next))
+    (= my-v-list-first my-v-list-first->next))
   (-= i1 i0) (= i0 0)
-  (= my-v-list0 my-v-list)
+  (= my-v-list-first0 my-v-list-first)
   (do-many for i from i0 to i1
-    (search-p-c my-v-list my-v-list->i V-LIST-ALLOC-SIZE)
-    (= my-v-list my-v-list->next)
+    (search-p-c my-v-list-first my-v-list-first->i V-LIST-ALLOC-SIZE)
+    (= my-v-list-first my-v-list-first->next)
     (t-search-b                           ; my-v-list0の i0-2〜i1-2 の範囲を渡す
      (:put from i0-2 to i1-2
-           (= this.my-v-list my-v-list0)
+           (= this.my-v-list-first my-v-list-first0)
            (= this.i0 i0-2) (= this.i1 i1-2))
-     (:get (%ifdef CHECK (csym::check-length WDATA.V-List WDATA.V-List-Length "in search-p-b :get (WDATA)"))
-           (%ifdef CHECK (csym::check-length this.v-list this.v-list-length "in search-p-b :get (this)"))
-           (= WDATA.V-List (csym::nconc-v-list this.v-list this.v-list-last WDATA.V-List))
-           (+= WDATA.V-List-Length this.v-list-length)
-           (%ifdef CHECK (csym::check-v-list WDATA.V-List WDATA.V-List-Last WDATA.V-List-Length
+     (:get (%ifdef* CHECK (csym::check-length WDATA.V-List.first WDATA.V-List.length "in search-p-b :get (WDATA)"))
+           (%ifdef* CHECK (csym::check-length this.v-list.first this.v-list.length "in search-p-b :get (this)"))
+           (= WDATA.V-List.first (csym::nconc-v-list this.v-list.first this.v-list.last WDATA.V-List.first))
+           (+= WDATA.V-List.length this.v-list.length)
+           (%ifdef* CHECK (csym::check-v-list WDATA.V-List.first WDATA.V-List.last WDATA.V-List.length
                                              "in search-p-b :get (nconc)"))
            ))
     ))
 ;;;
 (def (task t-search-c)
-  (def my-v-list (ptr (struct v-list-body)) :in)
+  (def my-v-list-cur (ptr (struct v-list-body)) :in)
   (def j0 int :in)
   (def j1 int :in)
-  (def v-list (ptr (struct v-list-body)) :out)
-  (def v-list-last (ptr (struct v-list-body)) :out)
-  (def v-list-length int :out)
+  (def v-list (struct v-list-head) :out)
   )
 ;;
 (def (task-body t-search-c)
     (%ifdef* COUNT-NTASK
       (++ WDATA.n-task)
       (DEBUG-PRINT 1 "Worker %d starts %d-th task (t-search-c)~%" WORKER-ID WDATA.n-task))
-  (search-p-c this.my-v-list this.j0 this.j1)
-  (%ifdef CHECK (csym::check-v-list WDATA.V-List WDATA.V-List-Last WDATA.V-List-Length "in task-body t-search-c"))
+  (search-p-c this.my-v-list-cur this.j0 this.j1)
+  (%ifdef* CHECK (csym::check-v-list WDATA.V-List.first WDATA.V-List.last WDATA.V-List.length "in task-body t-search-c"))
   ;; 
-  (if (or (> WDATA.V-List-Length 1)
-            (< WDATA.V-List->i V-LIST-ALLOC-SIZE))
+  (if (or (> WDATA.V-List.length 1)
+          (< WDATA.V-List.first->i V-LIST-ALLOC-SIZE))
       (begin
-       (= this.v-list WDATA.V-List)
-       (= this.v-list-last WDATA.V-List-Last)
-       (= this.v-list-length WDATA.V-List-Length)
-       (= WDATA.V-List (csym::alloc-v-list 0))
-       (= WDATA.V-List-Last WDATA.V-List)
-       (= WDATA.V-List-Length 1))
-      (begin
-       (= this.v-list 0)
-       (= this.v-list-last 0)
-       (= this.v-list-length 0)))
+        (= this.v-list.first WDATA.V-List.first)
+        (= this.v-list.last WDATA.V-List.last)
+        (= this.v-list.length WDATA.V-List.length)
+        (= WDATA.V-List.first (csym::alloc-v-list 0))
+        (= WDATA.V-List.last WDATA.V-List.last)
+        (= WDATA.V-List.length 1))
+    (begin
+      (= this.v-list.first 0)
+      (= this.v-list.last 0)
+      (= this.v-list.length 0)))
   )
 ;;;
-(def (search-p-c my-v-list j0 j1) (wfn void (ptr (struct v-list-body)) int int)
+(def (search-p-c my-v-list-cur j0 j1) (wfn void (ptr (struct v-list-body)) int int)
   (def j int)
-  (DEBUG-PRINT 1 "[%2d] search-p-c %p %d %d~%" WORKER-ID my-v-list j0 j1)
+  (DEBUG-PRINT 1 "[%2d] search-p-c %p %d %d~%" WORKER-ID my-v-list-cur j0 j1)
   (do-many for j from j0 to j1
-    (search1-p (aref my-v-list->v j) 30 0 (fref (aref VV (aref my-v-list->v j)) degree))
+    (search1-p (aref my-v-list-cur->v j) 30 0 (fref (aref VV (aref my-v-list-cur->v j)) degree))
     (t-search-c
      (:put from j0-2 to j1-2
-           (= this.my-v-list my-v-list)
+           (= this.my-v-list-cur my-v-list-cur)
            (= this.j0 j0-2) (= this.j1 j1-2))
-     (:get (%ifdef CHECK (csym::check-length WDATA.V-List WDATA.V-List-Length "in search-p-c :get (WDATA)"))
-           (%ifdef CHECK (csym::check-length this.v-list this.v-list-length "in search-p-c :get (this)"))
-           (= WDATA.V-List (csym::nconc-v-list this.v-list this.v-list-last WDATA.V-List))
-           (+= WDATA.V-List-Length this.v-list-length)
-           (%ifdef CHECK (csym::check-v-list WDATA.V-List WDATA.V-List-Last WDATA.V-List-Length
+     (:get (%ifdef* CHECK (csym::check-length WDATA.V-List.first WDATA.V-List.length "in search-p-c :get (WDATA)"))
+           (%ifdef* CHECK (csym::check-length this.v-list.first this.v-list.length "in search-p-c :get (this)"))
+           (= WDATA.V-List.first (csym::nconc-v-list this.v-list.first this.v-list.last WDATA.V-List.first))
+           (+= WDATA.V-List.length this.v-list.length)
+           (%ifdef* CHECK (csym::check-v-list WDATA.V-List.first WDATA.V-List.last WDATA.V-List.length
                                              "in search-p-c :get (nconc)"))
            ))
     ))
@@ -654,7 +655,7 @@
   (def graph int :in)                   ; 1: random, 2: 2D-torus, 3: hyper-cube
   (def algorithm int :in)               ; 1: sequential (search-s2), 2: sequential (search), 3: parallel (search-p)
   (def show-graph-p int :in)            ; 0: no, 1: show by show-graph, 2: show by show-graph2
-  (def show-tree-p int :in)              ; 0: no, 1: show by show-graph, 2: show by show-graph2
+  (def show-tree-p int :in)             ; 0: no, 1: show by show-graph, 2: show by show-graph2
   )
 
 (def (task-body spanning-start)
