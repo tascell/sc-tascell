@@ -37,9 +37,7 @@
 ;;; ワーカごとに処理したタスクの数をカウントして表示
 ;; (%defconstant COUNT-NTASK 1)
 ;;; 時々v-listの整合性をチェック
-;; (%defconstant CHECK 1)
-;;; タスクごとの頂点スタックを使う（<->ワーカごとの頂点スタックを使う）
-;; (%defconstant STACK-EACH-TASK 1)
+(%defconstant CHECK 1)
 ;;; search-p-1 での頂点再訪チェックにおけるメモリバリアの方法
 (%defconstant SEARCH-P-MEM-BARRIER-3) ; 1 or 2 or 3 (default=3)
 
@@ -108,12 +106,11 @@
   (def last (ptr (struct v-list-body)))
   (def length int))
 
-;;; 並列版 %ifndef STACK-EACH-TASK（ワーカごとにスタックを持つ）
+;;; 並列版ではワーカごとにスタックを持つ
 (def worker-data
     (%ifdef* COUNT-NTASK
       (def n-task int))
-  (%ifndef* STACK-EACH-TASK
-    (def V-List (struct v-list-head)) )
+  (def V-List (struct v-list-head))
   )
 
 (decl (csym::alloc-v-list next) (csym::fn (ptr (struct v-list-body)) (ptr (struct v-list-body))))
@@ -121,10 +118,9 @@
 (def worker-init
     (%ifdef* COUNT-NTASK
       (= WDATA.n-task 0))
-  (%ifndef* STACK-EACH-TASK
-    (= WDATA.V-List.first (csym::alloc-v-list 0))
-    (= WDATA.V-List.last WDATA.V-List.first)
-    (= WDATA.V-List.length 1) )
+  (= WDATA.V-List.first 0)
+  (= WDATA.V-List.last 0)
+  (= WDATA.V-List.length 0)
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -301,22 +297,28 @@
     (%ifdef* COUNT-NTASK
       (++ WDATA.n-task)
       (DEBUG-PRINT 1 "Worker %d starts %d-th task (t-search1)~%" WORKER-ID WDATA.n-task))
+  (def stack-created-p int 0)
+  (unless WDATA.V-List.first
+    ;; WDATA.V-Listを初期化
+    (= WDATA.V-List.first (csym::alloc-v-list 0))
+    (= WDATA.V-List.length 1)
+    (= WDATA.V-List.last WDATA.V-List.first)
+    (= stack-created-p 1))
   (search1-p this.v this.b this.k0 this.k1)
   (%ifdef* CHECK (csym::check-v-list WDATA.V-List.first WDATA.V-List.last WDATA.V-List.length "in task-body t-search1"))
   ;;
-  (if (or (> WDATA.V-List.length 1)
-          (< WDATA.V-List.first->i V-LIST-ALLOC-SIZE))
+  (if stack-created-p
       (begin
-       (= this.v-list.first WDATA.V-List.first)
-       (= this.v-list.last WDATA.V-List.last)
-       (= this.v-list.length WDATA.V-List.length)
-       (= WDATA.V-List.first (csym::alloc-v-list 0))
-       (= WDATA.V-List.last WDATA.V-List.first)
-       (= WDATA.V-List.length 1))
-      (begin
-       (= this.v-list.first 0)
-       (= this.v-list.last 0)
-       (= this.v-list.length 0)))
+        (= this.v-list.first WDATA.V-List.first)
+        (= this.v-list.last WDATA.V-List.last)
+        (= this.v-list.length WDATA.V-List.length)
+        (= WDATA.V-List.first 0)
+        (= WDATA.V-List.last 0)
+        (= WDATA.V-List.length 0))
+    (begin
+      (= this.v-list.first 0)
+      (= this.v-list.last 0)
+      (= this.v-list.length 0)))
   )
 ;;
 (%ifdef* SEARCH-P-MEM-BARRIER-1
@@ -377,6 +379,11 @@
   (def i int)
   (DEBUG-PRINT 1 "[%2d] search-p v:%d~%" WORKER-ID v)
   (= (fref (aref VV v) parent) (+ v 1))
+  ;; WDATA.V-Listを初期化
+  (= WDATA.V-List.first (csym::alloc-v-list 0))
+  (= WDATA.V-List.length 1)
+  (= WDATA.V-List.last WDATA.V-List.first)
+  ;; 始点から深さ制限つきDF search
   (search1-p v 30 0 (fref (aref VV v) degree))
   (DEBUG-PRINT 1 "V-List-Length: %d~%" WDATA.V-List.length)
   (do-while (or (> WDATA.V-List.length 1)
@@ -409,18 +416,24 @@
     (%ifdef* COUNT-NTASK
       (++ WDATA.n-task)
       (DEBUG-PRINT 1 "Worker %d starts %d-th task (t-search-b)~%" WORKER-ID WDATA.n-task))
+  (def stack-created-p int 0)
+  (unless WDATA.V-List.first
+    ;; WDATA.V-Listを初期化
+    (= WDATA.V-List.first (csym::alloc-v-list 0))
+    (= WDATA.V-List.length 1)
+    (= WDATA.V-List.last WDATA.V-List.first)
+    (= stack-created-p 1))
   (search-p-b this.my-v-list-first this.i0 this.i1)
   (%ifdef* CHECK (csym::check-v-list WDATA.V-List.first WDATA.V-List.last WDATA.V-List.length "in task-body t-search-b"))
   ;;
-  (if (or (> WDATA.V-List.length 1)
-          (< WDATA.V-List.first->i V-LIST-ALLOC-SIZE))
+  (if stack-created-p
       (begin
         (= this.v-list.first WDATA.V-List.first)
         (= this.v-list.last WDATA.V-List.last)
         (= this.v-list.length WDATA.V-List.length)
-        (= WDATA.V-List.first (csym::alloc-v-list 0))
-        (= WDATA.V-List.last WDATA.V-List.first)
-        (= WDATA.V-List.length 1))
+        (= WDATA.V-List.first 0)
+        (= WDATA.V-List.last 0)
+        (= WDATA.V-List.length 0))
     (begin
       (= this.v-list.first 0)
       (= this.v-list.last 0)
@@ -462,18 +475,24 @@
     (%ifdef* COUNT-NTASK
       (++ WDATA.n-task)
       (DEBUG-PRINT 1 "Worker %d starts %d-th task (t-search-c)~%" WORKER-ID WDATA.n-task))
+  (def stack-created-p int 0)
+  (unless WDATA.V-List.first
+    ;; WDATA.V-Listを初期化
+    (= WDATA.V-List.first (csym::alloc-v-list 0))
+    (= WDATA.V-List.length 1)
+    (= WDATA.V-List.last WDATA.V-List.first)
+    (= stack-created-p 1))
   (search-p-c this.my-v-list-cur this.j0 this.j1)
   (%ifdef* CHECK (csym::check-v-list WDATA.V-List.first WDATA.V-List.last WDATA.V-List.length "in task-body t-search-c"))
   ;; 
-  (if (or (> WDATA.V-List.length 1)
-          (< WDATA.V-List.first->i V-LIST-ALLOC-SIZE))
+  (if stack-created-p
       (begin
         (= this.v-list.first WDATA.V-List.first)
         (= this.v-list.last WDATA.V-List.last)
         (= this.v-list.length WDATA.V-List.length)
-        (= WDATA.V-List.first (csym::alloc-v-list 0))
-        (= WDATA.V-List.last WDATA.V-List.first)
-        (= WDATA.V-List.length 1))
+        (= WDATA.V-List.first 0)
+        (= WDATA.V-List.last 0)
+        (= WDATA.V-List.length 0))
     (begin
       (= this.v-list.first 0)
       (= this.v-list.last 0)
