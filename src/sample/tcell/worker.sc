@@ -1382,7 +1382,7 @@
   (= (fref color blue) b)
   (csym::gdk-color-alloc (csym::gdk-colormap-get-system) (ptr color))
   (csym::gdk-gc-set-foreground gc (ptr color))
-  (return gc))#\a
+  (return gc))
 
 #+tcell-gtk                             ; 生成・サイズ変更時
 (def (csym::configure-event widget event data)
