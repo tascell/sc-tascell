@@ -37,7 +37,7 @@
 ;;; ワーカごとに処理したタスクの数をカウントして表示
 (%defconstant COUNT-NTASK 1)
 ;;; 時々v-listの整合性をチェック
-;; (%defconstant CHECK 1)
+(%defconstant CHECK 1)
 ;;; タスクごとの頂点スタックを使う（<->ワーカごとの頂点スタックを使う）
 ;; (%defconstant STACK-EACH-TASK 1)
 
@@ -444,7 +444,7 @@
         (= this.v-list.last WDATA.V-List.last)
         (= this.v-list.length WDATA.V-List.length)
         (= WDATA.V-List.first (csym::alloc-v-list 0))
-        (= WDATA.V-List.last WDATA.V-List.last)
+        (= WDATA.V-List.last WDATA.V-List.first)
         (= WDATA.V-List.length 1))
     (begin
       (= this.v-list.first 0)
