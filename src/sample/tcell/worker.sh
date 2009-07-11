@@ -209,6 +209,7 @@
   (def sv-hostname (array char HOSTNAME-MAXSIZE))
                                         ; Tascellサーバのホスト名．""ならstdout
   (def port unsigned-short)             ; Tascellサーバへの接続ポート番号
+  (def affinity int)                    ; use sched_setaffinity
   (def prefetch int)                    ; 投機的に外部へtreq
   (def verbose int)                     ; verbose level
   )

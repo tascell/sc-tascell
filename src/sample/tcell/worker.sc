@@ -26,6 +26,12 @@
 ;;;; Tascell worker
 (%include "rule/nestfunc-setrule.sh")
 
+;; sched_setaffinityによってコアをワーカに貼り付ける
+(%defconstant USE-AFFINITY 1)
+(%ifdef* USE-AFFINITY 
+  (c-exp "#define _GNU_SOURCE")
+  (c-exp "#include<sched.h>"))
+
 ;; (c-exp "#define NDEBUG")
 (c-exp "#include<assert.h>")
 
@@ -398,10 +404,26 @@
   )
 
 
+;;; ワーカスレッドをコアに貼り付ける
+(%ifdef* USE-AFFINITY
+  (def (csym::worker-setaffinity n) (csym::fn void int)
+    (def mask cpu-set-t)
+    (csym::CPU-ZERO (ptr mask))
+    (csym::CPU-SET n (ptr mask))
+    (if (== -1 (csym::sched-setaffinity 0 (sizeof mask) (ptr mask)))
+        (begin
+          (csym::perror "Failed to set CPU affinity")
+          (csym::exit -1)))
+    (csym::fprintf stderr "Bind worker to core %d~%" n))
+  )
+  
 ;;; ワーカのループ
 (def (worker arg) (fn (ptr void) (ptr void))
   (def thr (ptr (struct thread-data)) arg)
   (= thr->wdptr (csym::malloc (sizeof (struct thread-data))))
+  (%ifdef* USE-AFFINITY
+    (if option.affinity
+      (csym::worker-setaffinity thr->id)))
   (csym::worker-init thr)
   (csym::pthread-mutex-lock (ptr thr->mut))
   (loop
@@ -1297,10 +1319,11 @@
   (= option.num-thrs 1)
   (= (aref option.sv-hostname 0) #\NULL)
   (= option.port 8888)
+  (= option.affinity 0)
   (= option.prefetch 0)
   (= option.verbose 0)
   ;; Parse and set options
-  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:P:v:h")))
+  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:aP:v:h")))
     (for ((= i 0) (< i argc) (inc i))
       (switch ch
         (case #\n)                      ; number of threads
@@ -1318,6 +1341,12 @@
 
         (case #\p)                      ; connection port number
         (= option.port (csym::atoi optarg))
+        (break)
+
+        (case #\a)                      ; set affinity
+        (= option.affinity 1)
+        (%ifndef USE-AFFINITY
+            (csym::fprintf stderr "-a is ignored (invalidated in compile time)~%"))
         (break)
 
         (case #\P)                      ; the number of speculative tasks from external nodes
