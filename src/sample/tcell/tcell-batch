@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -x
+
 #ALISP='/cygdrive/c/Program Files/acl81/alisp'           # path/to/alisp
 if [ $ALISP = "" ]; then
   ALISP=/usr/local/acl81/alisp
@@ -32,4 +34,5 @@ while [ $i -lt $NNODE ]; do
     sleep 1
     i=`expr $i + 1`
 done
-./tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD
+# ./tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD
+$WORKER_CMD -s $HOSTNAME -p $PORT_NUM

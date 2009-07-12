@@ -59,6 +59,7 @@
   (put 'for tag 1)
   (put 'switch tag 1)
   (put 'cast tag 1)
+  (put 'if-exp tag 2)
   ;; Tascell
   (put 'do-many tag 6)
   (put 'do-two tag 2)

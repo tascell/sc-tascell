@@ -37,7 +37,7 @@
 ;;; ワーカごとに処理したタスクの数をカウントして表示
 ;; (%defconstant COUNT-NTASK 1)
 ;;; 時々v-listの整合性をチェック
-(%defconstant CHECK 1)
+;; (%defconstant CHECK 1)
 ;;; search-p-1 での頂点再訪チェックにおけるメモリバリアの方法
 (%defconstant SEARCH-P-MEM-BARRIER-3) ; 1 or 2 or 3 (default=3)
 

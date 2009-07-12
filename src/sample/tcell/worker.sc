@@ -27,7 +27,7 @@
 (%include "rule/nestfunc-setrule.sh")
 
 ;; sched_setaffinityによってコアをワーカに貼り付ける
-;; (%defconstant USE-AFFINITY 1)
+(%defconstant USE-AFFINITY 1)
 (%ifdef* USE-AFFINITY 
   (c-exp "#define _GNU_SOURCE")
   (c-exp "#include<sched.h>"))
@@ -84,7 +84,9 @@
 
 (def (csym::mem-error str) (csym::fn void (ptr (const char)))
   (csym::fputs str stderr)
-  (csym::fputc #\Newline stderr))
+  (csym::fputc #\Newline stderr)
+  (csym::exit 1)
+  )
 
 ;;; 現在の絶対時刻をマイクロ秒単位の整数で得る
 (def (csym::get-universal-real-time) (csym::fn int)
@@ -672,27 +674,39 @@
   (csym::pthread-mutex-lock (ptr thr->rack-mut))
   (if (and (== thr->w-rack 0)           ; rack待ちならだめ
            (or #+comment (and (== ANY pcmd->node) ; 弟からのANY要求ならとりあえず受理して待たせておく
-                    (< id from-head)    ; 「弟から」の制限は，お互いにtreq受理の場合のデッドロック防止
-                    (== TERM (aref from-addr 1)))
+                              (< id from-head) ; 「弟から」の制限は，お互いにtreq受理の場合のデッドロック防止
+                              (== TERM (aref from-addr 1)))
                (and thr->task-top       ; 仕事中なら普通に受理
                     (or (== thr->task-top->stat TASK-STARTED)
-                        (== thr->task-top->stat TASK-INITIALIZED)))))
+                        (== thr->task-top->stat TASK-INITIALIZED))
+                    (or (== (aref pcmd->v 1 0) ANY) ; ただし，取り返しの場合
+                        (csym::address-equal thr->task-top->rslt-head (aref pcmd->v 1))
+                                        ; 取り返し対象のタスクを実行中であること
+                        ))))
       (= avail 1)
       (DEBUG-STMTS 2
-                   (let ((buf1 (array char BUFSIZE)))
+                   (let ((buf1 (array char BUFSIZE))
+                         (buf2 (array char BUFSIZE))
+                         (buf3 (array char BUFSIZE)))
                      (csym::fprintf 
                       stderr "(%d): Thread %d refused treq from %s because of %s.~%"
                       (csym::get-universal-real-time)
                       id
                       (exps (csym::serialize-arg buf1 from-addr) buf1)
                       (if-exp (> thr->w-rack 0)
-                              "w-rack"
-                              (if-exp (not thr->task-top)
-                                      "having no task"
-                                      (if-exp  (not (or (== thr->task-top->stat TASK-STARTED)
-                                                        (== thr->task-top->stat TASK-INITIALIZED)))
-                                               (aref task-stat-strings thr->task-top->stat)
-                                               "unexpected reason"))))))
+                          "w-rack"
+                        (if-exp (not thr->task-top)
+                            "having no task"
+                          (if-exp (not (or (== thr->task-top->stat TASK-STARTED)
+                                           (== thr->task-top->stat TASK-INITIALIZED)))
+                              (aref task-stat-strings thr->task-top->stat)
+                            (if-exp (not (or (== (aref pcmd->v 1 0) ANY)
+                                             (csym::address-equal thr->task-top->rslt-head (aref pcmd->v 1))))
+                                (exps (csym::serialize-arg buf1 thr->task-top->rslt-head)
+                                      (csym::serialize-arg buf2 (aref pcmd->v 1))
+                                      (csym::sprintf buf3 "rslt-head:%s != treq-head:%s" buf1 buf2)
+                                      buf3)
+                              "unexpected reason")))))))
       )
   (csym::pthread-mutex-unlock (ptr thr->rack-mut))
 
