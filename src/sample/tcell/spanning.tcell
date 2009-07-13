@@ -25,7 +25,7 @@
 ;;; Spanning tree
 
 ;;; How to execute (single node)
-;; task 0 0 0 3
+;; task 0 0 0 4
 ;; <graph-type>
 ;; <algorithm>
 ;; <show-graph-p>
@@ -184,6 +184,16 @@
     (else
      (return b))))
 
+;;; v-listを配列化
+(def (csym::v-list-to-array buf v-list-first len)
+    (csym::fn void (ptr (ptr (struct v-list-body))) (ptr (struct v-list-body)) int)
+  (def i int)
+  (def v-list-cur (ptr (struct v-list-body)))
+  (for ((exps (= i 0) (= v-list-cur v-list-first))
+        (< i len)
+        (exps (inc i) (= v-list-cur v-list-cur->next)))
+    (= (aref buf i) v-list-cur)))
+
 ;;;;;;;;;;
 
 ;;; serial DF search with v_list
@@ -282,6 +292,7 @@
 ;;; Parallel version
 (decl (search1-p v b k0 k1) (wfn void int int int int))
 (decl (search-p-b my-v-list i0 i1) (wfn void (ptr (struct v-list-body)) int int))
+(decl (search-p-b-array my-v-array i0 i1) (wfn void (ptr (ptr (struct v-list-body))) int int))
 (decl (search-p-c my-v-list j0 j1) (wfn void (ptr (struct v-list-body)) int int))
 
 ;;; parallel version of search1
@@ -461,6 +472,100 @@
            (+= WDATA.V-List.length this.v-list.length)
            (%ifdef* CHECK (csym::check-v-list WDATA.V-List.first WDATA.V-List.last WDATA.V-List.length
                                              "in search-p-b :get (nconc)"))
+           ))
+    ))
+;;; list2array version of search-p
+(def (search-p-array v) (wfn void int)
+  (def my-v-array (ptr (ptr (struct v-list-body)))) ; my-v-list：1反復で処理する頂点スタック配列
+  (def my-v-array-length int)
+  (def buf-size int)
+  (def i int)
+  (DEBUG-PRINT 1 "[%2d] search-p-array v:%d~%" WORKER-ID v)
+  (= (fref (aref VV v) parent) (+ v 1))
+  ;; WDATA.V-Listを初期化
+  (= WDATA.V-List.first (csym::alloc-v-list 0))
+  (= WDATA.V-List.length 1)
+  (= WDATA.V-List.last WDATA.V-List.first)
+  ;; 始点から深さ制限つきDF search
+  (search1-p v 30 0 (fref (aref VV v) degree))
+  (DEBUG-PRINT 1 "V-List-Length: %d~%" WDATA.V-List.length)
+  (= buf-size 0)
+  (do-while (or (> WDATA.V-List.length 1)
+                (< WDATA.V-List.first->i V-LIST-ALLOC-SIZE))
+    ;; WDATA.V-Listを配列化
+    (= my-v-array-length WDATA.V-List.length)
+    (when (> my-v-array-length buf-size)
+      (= buf-size (* 2 my-v-array-length))
+      (= my-v-array (cast (ptr (ptr (struct v-list-body)))
+                      (csym::realloc (* buf-size (sizeof (ptr (struct v-list-body))))))))
+    (csym::v-list-to-array my-v-array WDATA.V-List.first WDATA.V-List.length)
+    ;; WDATA.V-Listを初期化
+    (= WDATA.V-List.first (csym::alloc-v-list 0))
+    (= WDATA.V-List.length 1)
+    (= WDATA.V-List.last WDATA.V-List.first)
+    ;; my-v-arrayを処理
+    (search-p-b-array my-v-array 0 my-v-array-length)
+    ;; 処理済みのmy-v-arrayを解放
+    (for ((= i 0) (< i my-v-array-length) (inc i))
+      (csym::dealloc-v-list (aref my-v-array i)))
+    )
+  (csym::free my-v-array)
+  (DEBUG-PRINT 1 "search-p finishing.~%")
+  )
+;;;
+(def (task t-search-b-array)
+  (def my-v-array (ptr (ptr (struct v-list-body))) :in)
+  (def i0 int :in)
+  (def i1 int :in)
+  (def v-list (struct v-list-head) :out)
+  )
+;;
+(def (task-body t-search-b-array)
+    (%ifdef* COUNT-NTASK
+      (++ WDATA.n-task)
+      (DEBUG-PRINT 1 "Worker %d starts %d-th task (t-search-b-array)~%" WORKER-ID WDATA.n-task))
+  (def stack-created-p int 0)
+  (unless WDATA.V-List.first
+    ;; WDATA.V-Listを初期化
+    (= WDATA.V-List.first (csym::alloc-v-list 0))
+    (= WDATA.V-List.length 1)
+    (= WDATA.V-List.last WDATA.V-List.first)
+    (= stack-created-p 1))
+  (search-p-b-array this.my-v-array this.i0 this.i1)
+  (%ifdef* CHECK (csym::check-v-list WDATA.V-List.first WDATA.V-List.last WDATA.V-List.length
+                                     "in task-body t-search-b-array"))
+  ;;
+  (if stack-created-p
+      (begin
+        (= this.v-list.first WDATA.V-List.first)
+        (= this.v-list.last WDATA.V-List.last)
+        (= this.v-list.length WDATA.V-List.length)
+        (= WDATA.V-List.first 0)
+        (= WDATA.V-List.last 0)
+        (= WDATA.V-List.length 0))
+    (begin
+      (= this.v-list.first 0)
+      (= this.v-list.last 0)
+      (= this.v-list.length 0)))
+  )
+;;
+(def (search-p-b-array my-v-array i0 i1) (wfn void (ptr (ptr (struct v-list-body))) int int)
+  (def i int)
+  (DEBUG-PRINT 1 "[%2d] search-p-b-array %p %d %d~%" WORKER-ID my-v-array i0 i1)
+  (do-many for i from i0 to i1
+    (search-p-c (aref my-v-array i) (fref (aref my-v-array i) -> i) V-LIST-ALLOC-SIZE)
+    (t-search-b-array                   ; my-v-arrayの i0-2〜i1-2 の範囲を渡す
+     (:put from i0-2 to i1-2
+           (= this.my-v-array my-v-array)
+           (= this.i0 i0-2) (= this.i1 i1-2))
+     (:get (%ifdef* CHECK (csym::check-length WDATA.V-List.first WDATA.V-List.length "in search-p-b-array :get (WDATA)"))
+        
+           
+           (%ifdef* CHECK (csym::check-length this.v-list.first this.v-list.length "in search-p-b-array :get (this)"))
+           (= WDATA.V-List.first (csym::nconc-v-list this.v-list.first this.v-list.last WDATA.V-List.first))
+           (+= WDATA.V-List.length this.v-list.length)
+           (%ifdef* CHECK (csym::check-v-list WDATA.V-List.first WDATA.V-List.last WDATA.V-List.length
+                                             "in search-p-b-array :get (nconc)"))
            ))
     ))
 ;;;
@@ -700,7 +805,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (def (task spanning-start)
   (def graph int :in)                   ; 1: random, 2: 2D-torus, 3: hyper-cube
-  (def algorithm int :in)               ; 1: sequential (search-s2), 2: sequential (search), 3: parallel (search-p)
+  (def algorithm int :in)               ; 1: sequential (search-s2), 2: sequential (search),
+                                        ; 3: parallel (search-p), 4: parallel (search-p-array)
   (def show-graph-p int :in)            ; 0: no, 1: show by show-graph, 2: show by show-graph2
   (def show-tree-p int :in)             ; 0: no, 1: show by show-graph, 2: show by show-graph2
   )
@@ -734,6 +840,7 @@
     (case 1) (csym::search-s2 0) (break)
     (case 2) (csym::search 0)    (break)
     (case 3) (search-p 0)        (break)
+    (case 4) (search-p-array 0)  (break)
     (default) (csym::search-s2 0) (break))
   (csym::gettimeofday (+ tp 1) 0)
   (csym::fprintf stderr "time: %lf~%" (csym::elapsed-time tp))

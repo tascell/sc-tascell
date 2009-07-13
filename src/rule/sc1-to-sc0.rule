@@ -82,19 +82,19 @@
    ~(begin ,.(mapcar #'declaration decl-list)
            ,@(function-body body)) )
   (#?(while ,exp ,@rem)
-   (let ((cdt (expression exp)))
+   (let ((cdt (expression! exp)))
      ~(if ,cdt
-          (do-while ,cdt ,@(function-body rem))) ))
+          (do-while ,cdt ,@(function-body! rem))) ))
   (#?(cond ,@clauses)
    (if (not clauses) ~()
-     (let ((pred (expression (caar clauses)))
-           (action (statement ~(begin ,@(cdar clauses)))))
+     (let ((pred (expression! (caar clauses)))
+           (action (statement! ~(begin ,@(cdar clauses)))))
        (if (eq ~else pred) action
-         ~(if ,pred ,action ,(statement ~(cond ,@(cdr clauses))))))))
+         ~(if ,pred ,action ,(statement! ~(cond ,@(cdr clauses))))))))
   (#?(for (,@list ,exp2 ,exp3) ,@rem)
    (let ((e1-list (mapcar #'block-item list))
-         (e2 (expression exp2))
-         (e3 (expression exp3))
+         (e2 (expression! exp2))
+         (e3 (expression! exp3))
          (new-body (function-body rem)))
      ~(begin
        ,.e1-list
@@ -103,7 +103,7 @@
              ,@new-body)))
      ) )
   (#?(loop ,@rem)
-   ~(do-while 1 ,@(function-body rem)))
+   ~(do-while 1 ,@(function-body! rem)))
   )
 
 ;;; expression
@@ -116,6 +116,6 @@
       )))
   (#?(fref ,exp ,@id-list)
    (if id-list
-       ~(fref ,(expression exp) ,@id-list)
-     (expression exp)))
+       ~(fref ,(expression! exp) ,@id-list)
+     (expression! exp)))
   )

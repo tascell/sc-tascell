@@ -59,8 +59,8 @@
   ;; variable definitions/declarations
   ((#?(,scs[storage-class-specifier] ,id[identifier] ,texp {,init}))
    ~(,(get-retval scs)
-     ,(get-retval id) ,(type-expression texp)
-     ,@(if-pattern-variable init (list (initializer init)))))
+     ,(get-retval id) ,(type-expression! texp)
+     ,@(if-pattern-variable init (list (initializer! init)))))
   ;; function definitions/declarations
   ((#?(,scs[storage-class-specifier]
        ,func-id[function-identifier]
@@ -97,7 +97,7 @@
   ;; deftype
   ((#?(,dt-tag[deftype-tag] ,id ,texp))
    (push id *typename-list*) 
-   ~(,(get-retval dt-tag) ,(identifier id) ,(type-expression texp)))
+   ~(,(get-retval dt-tag) ,(identifier! id) ,(type-expression! texp)))
   )
 
 (defrule function-body sc0-to-sc0
@@ -173,7 +173,7 @@
   ((#?,en-const[enumeration-constant])
    (get-retval en-const))
   ((#?(,en-const[enumeration-constant] ,exp))
-   ~(,(get-retval en-const) ,(expression exp)))
+   ~(,(get-retval en-const) ,(expression! exp)))
   )
 
 ;; enumeration-constant
@@ -185,13 +185,13 @@
 ;; designator
 (defrule designator sc0-to-sc0
   ((#?(aref-this ,@exp-list))
-   ~(aref-this ,@(mapcar #'expression exp-list)))
+   ~(aref-this ,@(mapcar #'expression! exp-list)))
   ((#?(fref-this ,@id-list))
-   ~(fref-this ,@(mapcar #'identifier id-list)))
+   ~(fref-this ,@(mapcar #'identifier! id-list)))
   ((#?(aref ,desig ,@exp-list))
-   ~(aref ,(designator desig) ,@(mapcar #'expression exp-list)))
+   ~(aref ,(designator! desig) ,@(mapcar #'expression! exp-list)))
   ((#?(fref ,desig ,@id-list))
-   ~(fref ,(designator desig) ,@(mapcar #'identifier id-list)))
+   ~(fref ,(designator! desig) ,@(mapcar #'identifier! id-list)))
   )
 
 (defrule designator-tag sc0-to-sc0
@@ -227,17 +227,17 @@
   ((#?,tspec[type-specifier])
    (get-retval tspec))
   ((#?(,ar-tag[array-tag] ,texp ,@exp-list))
-   ~(,(get-retval ar-tag) ,(type-expression texp)
-     ,@(mapcar #'expression exp-list)))
+   ~(,(get-retval ar-tag) ,(type-expression! texp)
+     ,@(mapcar #'expression! exp-list)))
   ((#?(,ptr-tag[pointer-tag] ,texp))
-   ~(,(get-retval ptr-tag) ,(type-expression texp)))
+   ~(,(get-retval ptr-tag) ,(type-expression! texp)))
   ((#?(,fn-tag[function-tag] ,texp1 ,@texp-list {,va-arg[vaarg-tag]}))
-   ~(,(get-retval fn-tag) ,(type-expression texp1)
-     ,.(mapcar #'type-expression texp-list)
+   ~(,(get-retval fn-tag) ,(type-expression! texp1)
+     ,.(mapcar #'type-expression! texp-list)
      ,@(if-pattern-variable va-arg (list (get-retval va-arg))))
    )
   ((#?(,@tq-list[type-qualifier] ,texp))
-   ~(,@(get-retval tq-list) ,(type-expression texp)))
+   ~(,@(get-retval tq-list) ,(type-expression! texp)))
   )
 
 (defrule array-tag sc0-to-sc0
@@ -329,9 +329,9 @@
 
 (defrule labeled-statement sc0-to-sc0
   ((#?(label ,id ,stat))
-   ~(label ,(identifier id) ,(statement stat)))
+   ~(label ,(identifier id) ,(statement! stat)))
   ((#?(case ,exp))
-   ~(case ,(expression exp)))
+   ~(case ,(expression! exp)))
   ((#?(default))
    ~(default))
   )
@@ -343,14 +343,14 @@
 
 (defrule selection-statement sc0-to-sc0
   ((#?(if ,exp ,stat1 {,stat2}))
-   ~(if ,(expression exp)
-        ,(statement stat1)
+   ~(if ,(expression! exp)
+        ,(statement! stat1)
         ,@(if-pattern-variable stat2
-              (list (statement stat2))))
+              (list (statement! stat2))))
    )
   ((#?(switch ,exp ,@bi-list))
-   ~(switch ,(expression exp)
-            ,@(mapcar #'block-item bi-list)))
+   ~(switch ,(expression! exp)
+            ,@(mapcar #'block-item! bi-list)))
   )
 
 (defrule iteration-statement sc0-to-sc0
@@ -465,7 +465,7 @@
    (get-retval cexp) )
   ;; funcion-call
   ((#?(,fexp[expression] ,@exp-list))
-   ~(,(get-retval fexp) ,@(mapcar #'expression exp-list)))   
+   ~(,(get-retval fexp) ,@(mapcar #'expression! exp-list)))   
   )
 
 (defrule sc-number sc0-to-sc0
@@ -615,5 +615,5 @@
 ;;;; 6.C-expressions
 (defrule c-expression sc0-to-sc0
   ((#?(,c-op[cexp-operator] ,str ,@exp-list))
-   ~(,(get-retval c-op) ,str ,@(mapcar #'expression exp-list)))
+   ~(,(get-retval c-op) ,str ,@(mapcar #'expression! exp-list)))
   )
