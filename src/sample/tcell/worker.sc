@@ -27,7 +27,7 @@
 (%include "rule/nestfunc-setrule.sh")
 
 ;; sched_setaffinityによってコアをワーカに貼り付ける
-(%defconstant USE-AFFINITY 1)
+;; (%defconstant USE-AFFINITY 1)
 (%ifdef* USE-AFFINITY 
   (c-exp "#define _GNU_SOURCE")
   (c-exp "#include<sched.h>"))
@@ -1597,8 +1597,9 @@
                                                 (csym::strlen header))
                                              (sizeof char)))))
         (= receive-buf-p receive-buf)
+        (csym::strcpy receive-buf header)
         (for ((exps (= p-src option.initial-task)
-                    (= p-dst (csym::stpcpy receive-buf header)))
+                    (= p-dst (+ receive-buf (csym::strlen header))))
               (mref p-src)
               (exps (inc p-src) (inc p-dst)))
           (= (mref p-dst) (if-exp (== #\Space (mref p-src)) #\Newline (mref p-src))))
