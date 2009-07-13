@@ -814,7 +814,8 @@
 
 (def (task-body spanning-start)
   (def tp (array (struct timeval) 2))
-
+  (def algstr (ptr char))
+  
   (%ifdef* COUNT-NTASK
     (++ WDATA.n-task)
     (DEBUG-PRINT 1 "Worker %d starts %d-th task.~%" WORKER-ID WDATA.n-task))
@@ -838,13 +839,13 @@
   (csym::gettimeofday tp 0)
   ;; making a spanning tree
   (switch this.algorithm
-    (case 1) (csym::search-s2 0) (break)
-    (case 2) (csym::search 0)    (break)
-    (case 3) (search-p 0)        (break)
-    (case 4) (search-p-array 0)  (break)
-    (default) (csym::search-s2 0) (break))
+    (case 1) (csym::search-s2 0) (= algstr "search-s2") (break)
+    (case 2) (csym::search 0)    (= algstr "search")    (break)
+    (case 3) (search-p 0)        (= algstr "search-p")  (break)
+    (case 4) (search-p-array 0)  (= algstr "search-p-array") (break)
+    (default) (csym::search-s2 0) (= algstr "search-s2") (break))
   (csym::gettimeofday (+ tp 1) 0)
-  (csym::fprintf stderr "time: %lf~%" (csym::elapsed-time tp))
+  (csym::fprintf stderr "%s finished.~%time: %lf~%" algstr (csym::elapsed-time tp))
 
   (switch this.show-tree-p
     (case 1) (csym::show-graph)  (break)

@@ -420,7 +420,8 @@
         (begin
           (csym::perror "Failed to set CPU affinity")
           (csym::exit -1)))
-    (csym::fprintf stderr "Bind worker to core %d~%" n))
+    (if (>= option.verbose 1)
+        (csym::fprintf stderr "Bind worker to core %d~%" n)))
   )
   
 ;;; ワーカのループ
@@ -1377,6 +1378,9 @@
       (break)
       
       (case #\a)                        ; set affinity
+      (%ifdef* USE-AFFINITY
+        (if (== 0 option.affinity)
+            (csym::fprintf stderr "setaffinity enabled.~%")))
       (= option.affinity 1)
       (%ifndef* USE-AFFINITY
         (csym::fprintf stderr "-a is ignored (invalidated in compile time)~%"))
@@ -1602,7 +1606,8 @@
         (= (mref (inc p-dst)) #\Newline)
         (= (mref p-dst) 0)
         (csym::sleep 1)
-        (csym::fprintf stderr "%s" receive-buf)
+        (if (>= option.verbose 1)
+            (csym::fprintf stderr "%s" receive-buf))
         ))
   (while 1
     (%ifdef* VERBOSE
