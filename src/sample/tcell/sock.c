@@ -40,6 +40,10 @@ SUCH DAMAGE.
 #define SEND_MAX 65536
 #define RECV_MAX 1024
 
+/* ここに文字列があれば優先的にこちらから読み込む */
+char *receive_buf = 0;
+char *receive_buf_p = 0;
+
 /* #define DEBUG */
 
 #ifdef DEBUG
@@ -177,6 +181,14 @@ int receive_char (int socket)
     char buf;
     int ret;
 
+    if (receive_buf) {
+      if ( *receive_buf_p )
+        return ( *(receive_buf_p++) );
+      else {
+        receive_buf = 0;
+        /* →socketから読み込む */
+      }
+    } 
     if (socket<0)
         {
             return fgetc (stdin);
@@ -198,6 +210,27 @@ char* receive_line (char *buf, int maxlen, int socket)
     int ret;
     int i;
 
+    if (receive_buf) {
+      if ( *receive_buf_p ) {
+        for (i=0 ; i<maxlen-1 ; i++) {
+          if ( *receive_buf_p == '\n' ) {
+            receive_buf_p++;
+            break;
+          } else if ( *receive_buf_p == 0 ) {
+            break;
+          } else {
+            buf[i] = *receive_buf_p;
+            receive_buf_p++;
+          }
+        }
+        buf[i] = '\0';
+        return buf;
+      }
+      else {
+        receive_buf = 0;
+        /* →socketから読み込む */
+      }
+    } 
     if (socket<0)
         {
             return fgets (buf, maxlen, stdin);
@@ -228,6 +261,9 @@ char* receive_line (char *buf, int maxlen, int socket)
 int receive_binary (void *dst, unsigned long elm_size, unsigned long n_elm,
                     int socket)
 {
+    if (receive_buf) {
+      perror ("receive_binary to receive_buf");
+    }
     if (socket<0)
         {
             return fread (dst, elm_size, n_elm, stdin);

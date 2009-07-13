@@ -27,7 +27,7 @@
 (%include "rule/nestfunc-setrule.sh")
 
 ;; sched_setaffinityによってコアをワーカに貼り付ける
-;;(%defconstant USE-AFFINITY 1)
+(%defconstant USE-AFFINITY 1)
 (%ifdef* USE-AFFINITY 
   (c-exp "#define _GNU_SOURCE")
   (c-exp "#include<sched.h>"))
@@ -44,6 +44,7 @@
 (c-exp "#include<getopt.h>")
 #+tcell-gtk (c-exp "#include<gtk/gtk.h>")
 (%include "worker.sh")
+(%cinclude "sock.h")
 
 ;;; デバッグ情報出力用の変数
 (%ifdef* VERBOSE
@@ -170,7 +171,8 @@
       (csym::write-eol))
      ((== w RSLT)
       ((aref rslt-senders task-no) body)
-      (csym::write-eol))))
+      (csym::write-eol)
+      )))
    ((== w DATA)
     ;; data-mutはロック済
     (csym::data-send (aref pcmd->v 1 0) (aref pcmd->v 1 1))
@@ -179,6 +181,8 @@
   (csym::flush-send)
   (csym::pthread-mutex-unlock (ptr send-mut))
   ;; ---> sender-lock --->
+  (if (and (== w RSLT) option.auto-exit)
+      (csym::exit 0))
   )
 
 ;;; （受信）cmdをもらってメッセージの種類に適した関数を呼出す
@@ -1323,21 +1327,23 @@
 ;;; Handling command-line options
 (def (csym::usage argc argv) (csym::fn void int (ptr (ptr char)))
   (csym::fprintf stderr
-                 "Usage: %s [-s hostname] [-p port-num] [-n n-threads] [-P n-prefetches] [-v verbose]~%"
+                 "Usage: %s [-s hostname] [-p port-num] [-n n-threads] [-i initial-task-parms] [-a] [-P n-prefetches] [-v verbosity]~%"
                  (aref argv 0))
   (csym::exit 1))
 
 (def (set-option argc argv) (csym::fn void int (ptr (ptr char)))
   (def i int) (def ch int)
   ;; Default values
-  (= option.num-thrs 1)
   (= (aref option.sv-hostname 0) #\NULL)
   (= option.port 8888)
+  (= option.num-thrs 1)
+  (= option.initial-task 0)
+  (= option.auto-exit 0)
   (= option.affinity 0)
   (= option.prefetch 0)
   (= option.verbose 0)
   ;; Parse and set options
-  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:aP:v:h")))
+  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:i:xaP:v:h")))
     (switch ch
       (case #\n)                        ; number of threads
       (= option.num-thrs (csym::atoi optarg))
@@ -1356,6 +1362,20 @@
       (= option.port (csym::atoi optarg))
       (break)
 
+      (case #\i)                        ; initial task
+      (if option.initial-task
+          (csym::free option.initial-task))
+      (= option.initial-task
+         (cast (ptr char) (csym::malloc (* (+ 1 (csym::strlen optarg))
+                                           (sizeof char)))))
+      (csym::strcpy option.initial-task optarg)
+      (= option.auto-exit 1)            ; auto-exit set automatically
+      (break)
+      
+      (case #\x)                        ; auto exit
+      (= option.auto-exit 1)
+      (break)
+      
       (case #\a)                        ; set affinity
       (= option.affinity 1)
       (%ifndef* USE-AFFINITY
@@ -1562,6 +1582,28 @@
       (systhr-create prefetcher prefetch-thr))
 
   ;; 本スレッドはOUTSIDEからのメッセージ処理
+  (if option.initial-task               ; option.initial-taskを入力文字列に変換
+      (begin
+        (def p-src (ptr char))
+        (def p-dst (ptr char))
+        (def header (array char) "task 0 0 0 ")
+        (= receive-buf
+           (cast (ptr char) (csym::malloc (* (+ 3
+                                                (csym::strlen option.initial-task)
+                                                (csym::strlen header))
+                                             (sizeof char)))))
+        (= receive-buf-p receive-buf)
+        (for ((exps (= p-src option.initial-task)
+                    (= p-dst (csym::stpcpy receive-buf header)))
+              (mref p-src)
+              (exps (inc p-src) (inc p-dst)))
+          (= (mref p-dst) (if-exp (== #\Space (mref p-src)) #\Newline (mref p-src))))
+        (= (mref (inc p-dst)) #\Newline)
+        (= (mref (inc p-dst)) #\Newline)
+        (= (mref p-dst) 0)
+        (csym::sleep 1)
+        (csym::fprintf stderr "%s" receive-buf)
+        ))
   (while 1
     (%ifdef* VERBOSE
              (csym::sprintf ext-cmd-status "Waiting for an external message."))

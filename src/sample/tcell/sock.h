@@ -37,3 +37,6 @@ int receive_char (int socket);
 char* receive_line (char *buf, int maxlen, int socket);
 int receive_binary (void *dst, unsigned long elm_size, unsigned long n_elm,
                     int socket);
+
+extern char *receive_buf;
+extern char *receive_buf_p;

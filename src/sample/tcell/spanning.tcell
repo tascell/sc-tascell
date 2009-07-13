@@ -32,6 +32,7 @@
 ;; <show-tree-p>
 
 (c-exp "#include<sys/time.h>")
+(c-exp "#include<stdlib.h>")
 (c-exp "#include\"xccmem.h\"")
 
 ;;; ワーカごとに処理したタスクの数をカウントして表示
@@ -489,7 +490,7 @@
   ;; 始点から深さ制限つきDF search
   (search1-p v 30 0 (fref (aref VV v) degree))
   (DEBUG-PRINT 1 "V-List-Length: %d~%" WDATA.V-List.length)
-  (= buf-size 0)
+  (= my-v-array 0) (= buf-size 0)
   (do-while (or (> WDATA.V-List.length 1)
                 (< WDATA.V-List.first->i V-LIST-ALLOC-SIZE))
     ;; WDATA.V-Listを配列化
@@ -497,7 +498,7 @@
     (when (> my-v-array-length buf-size)
       (= buf-size (* 2 my-v-array-length))
       (= my-v-array (cast (ptr (ptr (struct v-list-body)))
-                      (csym::realloc (* buf-size (sizeof (ptr (struct v-list-body))))))))
+                      (csym::realloc my-v-array (* buf-size (sizeof (ptr (struct v-list-body))))))))
     (csym::v-list-to-array my-v-array WDATA.V-List.first WDATA.V-List.length)
     ;; WDATA.V-Listを初期化
     (= WDATA.V-List.first (csym::alloc-v-list 0))

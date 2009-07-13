@@ -209,6 +209,8 @@
   (def sv-hostname (array char HOSTNAME-MAXSIZE))
                                         ; Tascellサーバのホスト名．""ならstdout
   (def port unsigned-short)             ; Tascellサーバへの接続ポート番号
+  (def initial-task (ptr char))         ; 自動的に最初に投入するタスクパラメータ
+  (def auto-exit int)                   ; 外部に最初のrsltを送ったら自動終了
   (def affinity int)                    ; use sched_setaffinity
   (def prefetch int)                    ; 投機的に外部へtreq
   (def verbose int)                     ; verbose level

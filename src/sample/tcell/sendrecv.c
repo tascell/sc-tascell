@@ -32,7 +32,7 @@ SUCH DAMAGE.
 
 // #define DEBUG
 
-extern int sv_socket;     /* defined in worker[>=3].sc */
+extern int sv_socket;     /* defined in worker.sc */
 
 /**/
 void send_int(int n)
