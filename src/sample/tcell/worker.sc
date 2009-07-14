@@ -1590,7 +1590,8 @@
       (begin
         (def p-src (ptr char))
         (def p-dst (ptr char))
-        (def header (array char) "task 0 0 0 ")
+        (def header (array char 30))
+        (csym::strcpy header "task 0 0 0 ")
         (= receive-buf
            (cast (ptr char) (csym::malloc (* (+ 3
                                                 (csym::strlen option.initial-task)
