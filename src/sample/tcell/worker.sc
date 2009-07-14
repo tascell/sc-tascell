@@ -27,7 +27,7 @@
 (%include "rule/nestfunc-setrule.sh")
 
 ;; sched_setaffinityによってコアをワーカに貼り付ける
-;; (%defconstant USE-AFFINITY 1)
+(%defconstant USE-AFFINITY 1)
 (%ifdef* USE-AFFINITY 
   (c-exp "#define _GNU_SOURCE")
   (c-exp "#include<sched.h>"))
@@ -423,7 +423,7 @@
     (if (>= option.verbose 1)
         (csym::fprintf stderr "Bind worker to core %d~%" n)))
   )
-  
+
 ;;; ワーカのループ
 (def (worker arg) (fn (ptr void) (ptr void))
   (def thr (ptr (struct thread-data)) arg)
@@ -1586,7 +1586,7 @@
       (systhr-create prefetcher prefetch-thr))
 
   ;; 本スレッドはOUTSIDEからのメッセージ処理
-  (if option.initial-task               ; option.initial-taskを入力文字列に変換
+  (if option.initial-task               ; option.initial-task を入力文字列に変換
       (begin
         (def p-src (ptr char))
         (def p-dst (ptr char))
