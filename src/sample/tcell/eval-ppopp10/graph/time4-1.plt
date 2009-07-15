@@ -8,33 +8,22 @@ set multiplot
 set grid noxtics ytics
 set key left top
 
-set xrange [4:64]
+set xrange [1:8]
 set xtic 2
 set ytic 2
 set logscale xy
 
 # set lmargin 6
 
-## LU
-# set size 1,0.25
-# set origin 0,0
-# set xlabel 'number of workers'
-# set ylabel ""
-# set xtics ("1x4" 4, "2x4" 8, "4x4" 16, "8x4" 32, "16x4" 64)
-# set tmargin 0
-
 # set yrange [0.125:4]
 set ytic 4
-# タイトルは後で表示
-# plot\
-# "lu2000-4.dat" using 1:2 notitle with linespoints linetype 7 pointtype 7
 
 ## exceput LU
 set size 1,1                   # set size 1,0.75
 set origin 0,0                 # set origin 0,0.25
-set xlabel '(# of nodes)x(# of workers per node)' # set xlabel ""
+set xlabel '# of cores'
 set ylabel 'speedup' # 'elapsed time (sec)'
-set xtics ("1x4" 4, "2x4" 8, "4x4" 16, "8x4" 32, "16x4" 64) # set xtics 4 # set format x ""
+# set xtics ("1x4" 4, "2x4" 8, "4x4" 16, "8x4" 32, "16x4" 64) # set xtics 4 # set format x ""
 # set bmargin 0
 
 # see *.dat for yposition

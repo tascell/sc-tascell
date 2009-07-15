@@ -1,66 +1,67 @@
 \documentclass{article}
 
+% list->arrayはしていない
+
 \begin{document}
 
-Random
+Random(4000000,2) \\ %graph
 \begin{tabular}{l|r|r|r|r|r|r|r|r}
 \# of cores  &1&2&3&4&5&6&7&8 \\ \hline \hline
-serial               & &---&---&---&---&---& \\ \hline
-serial\_call         & &---&---&---&---&---& \\ \hline
-serial\_call\_cas    & &---&---&---&---&---& \\ \hline
-serial\_call\_membar & &---&---&---&---&---& \\ \hline
+serial               & 1.73 & --- & --- & --- & --- & --- & --- & --- \\ \hline
+serial\_call         & 1.49 & --- & --- & --- & --- & --- & --- & --- \\ \hline
+serial\_call\_cas    & 1.82 & --- & --- & --- & --- & --- & --- & --- \\ \hline
+serial\_call\_membar & 1.78 & --- & --- & --- & --- & --- & --- & --- \\ \hline
 Cilk\_cas            & & & & & & & \\ \hline
 Cilk\_member         & & & & & & & \\ \hline
-Tascell\_cas         & & & & & & & \\ \hline
-Taselll\_member      & & & & & & & \\ \hline
-Tascell\_gcc\_cas    & & & & & & & \\ \hline
-Taselll\_gcc\_member & & & & & & & \\
+Tascell\_cas         & 1.85 & 1.67 & 0.957 & 0.821 & 0.649 & 0.630 & 0.568 & 0.532 \\ \hline
+Tascell\_member      & 1.82 & 1.64 & 0.937 & 0.810 & 0.666 & 0.588 & 0.555 & 0.547 \\ \hline
+Tascell\_gcc\_cas    & 1.88 & 1.70 & 0.971 & 0.952 & 0.687 & 0.616 & 0.607 & 0.564 \\ \hline
+Tascell\_gcc\_member & 1.88 & 1.71 & 0.962 & 0.952 & 0.682 & 0.624 & 0.617 & 0.551 \\
 \end{tabular}
 
-20D-hypercube
+Hypercube(20) \\ %graph
 \begin{tabular}{l|r|r|r|r|r|r|r|r}
 \# of cores  &1&2&3&4&5&6&7&8 \\ \hline \hline
-serial               & &---&---&---&---&---& \\ \hline
-serial\_call         & &---&---&---&---&---& \\ \hline
-serial\_call\_cas    & &---&---&---&---&---& \\ \hline
-serial\_call\_membar & &---&---&---&---&---& \\ \hline
+serial               & 0.170 & --- & --- & --- & --- & --- & --- & --- \\ \hline
+serial\_call         & 0.277 & --- & --- & --- & --- & --- & --- & --- \\ \hline
+serial\_call\_cas    & 0.354 & --- & --- & --- & --- & --- & --- & --- \\ \hline
+serial\_call\_membar & 0.326 & --- & --- & --- & --- & --- & --- & --- \\ \hline
 Cilk\_cas            & & & & & & & \\ \hline
 Cilk\_member         & & & & & & & \\ \hline
-Tascell\_cas         & & & & & & & \\ \hline
-Taselll\_member      & & & & & & & \\ \hline
-Tascell\_gcc\_cas    & & & & & & & \\ \hline
-Taselll\_gcc\_member & & & & & & & \\
+Tascell\_cas         & 0.380 & 0.267 & 0.201 & 0.191 & 0.171 & 0.160 & 0.151 & 0.146 \\ \hline
+Tascell\_member      & 0.358 & 0.244 & 0.186 & 0.180 & 0.162 & 0.148 & 0.142 & 0.140  \\ \hline
+Tascell\_gcc\_cas    & 0.382 & 0.265 & 0.200 & 0.188 & 0.169 & 0.155 & 0.149 & 0.146 \\ \hline
+Tascell\_gcc\_member & 0.359 & 0.244 & 0.188 & 0.176 & 0.159 & 0.152 & 0.145 & 0.143 \\
 \end{tabular}
 
-2D-torus
+2D-torus(2000) \\ %graph
 \begin{tabular}{l|r|r|r|r|r|r|r|r}
 \# of cores  &1&2&3&4&5&6&7&8 \\ \hline \hline
-serial               & &---&---&---&---&---& \\ \hline
-serial\_call         & &---&---&---&---&---& \\ \hline
-serial\_call\_cas    & &---&---&---&---&---& \\ \hline
-serial\_call\_membar & &---&---&---&---&---& \\ \hline
+serial               & 0.580 & --- & --- & --- & --- & --- & --- & --- \\ \hline
+serial\_call         & 0.493 & --- & --- & --- & --- & --- & --- & --- \\ \hline
+serial\_call\_cas    & 0.533 & --- & --- & --- & --- & --- & --- & --- \\ \hline
+serial\_call\_membar & 0.525 & --- & --- & --- & --- & --- & --- & --- \\ \hline
 Cilk\_cas            & & & & & & & \\ \hline
 Cilk\_member         & & & & & & & \\ \hline
-Tascell\_cas         & & & & & & & \\ \hline
-Taselll\_member      & & & & & & & \\ \hline
-Tascell\_gcc\_cas    & & & & & & & \\ \hline
-Taselll\_gcc\_member & & & & & & & \\
+Tascell\_cas         & 0.552 & 0.367 & 0.248 & 0.222 & 0.199 & 0.192 & 0.181 & 0.174 \\ \hline
+Tascell\_member      & 0.545 & 0.364 & 0.242 & 0.218 & 0.196 & 0.190 & 0.175 & 0.173 \\ \hline
+Tascell\_gcc\_cas    & 0.564 & 0.374 & 0.252 & 0.226 & 0.200 & 0.194 & 0.179 & 0.174 \\ \hline
+Tascell\_gcc\_member & 0.549 & 0.367 & 0.247 & 0.221 & 0.198 & 0.192 & 0.177 & 0.175 \\
 \end{tabular}
 
-Binary tree
+Bintree(20) \\ %graph
 \begin{tabular}{l|r|r|r|r|r|r|r|r}
 \# of cores  &1&2&3&4&5&6&7&8 \\ \hline \hline
-serial               & &---&---&---&---&---& \\ \hline
-serial\_call         & &---&---&---&---&---& \\ \hline
-serial\_call\_cas    & &---&---&---&---&---& \\ \hline
-serial\_call\_membar & &---&---&---&---&---& \\ \hline
+serial               & 0.558 & --- & --- & --- & --- & --- & --- & --- \\ \hline
+serial\_call         & 0.626 & --- & --- & --- & --- & --- & --- & --- \\ \hline
+serial\_call\_cas    & 0.840 & --- & --- & --- & --- & --- & --- & --- \\ \hline
+serial\_call\_membar & 0.732 & --- & --- & --- & --- & --- & --- & --- \\ \hline
 Cilk\_cas            & & & & & & & \\ \hline
 Cilk\_member         & & & & & & & \\ \hline
-Tascell\_cas         & & & & & & & \\ \hline
-Taselll\_member      & & & & & & & \\ \hline
-Tascell\_gcc\_cas    & & & & & & & \\ \hline
-Taselll\_gcc\_member & & & & & & & \\
+Tascell\_cas         & 0.953 & 0.495 & 0.370 & 0.313 & 0.251 & 0.225 & 0.195 & 0.178 \\ \hline
+Tascell\_member      & 0.839 & 0.438 & 0.327 & 0.301 & 0.205 & 0.210 & 0.173 & 0.155 \\ \hline
+Tascell\_gcc\_cas    & 0.957 & 0.522 & 0.391 & 0.362 & 0.264 & 0.250 & 0.202 & 0.177 \\ \hline
+Tascell\_gcc\_member & 0.820 & 0.444 & 0.332 & 0.279 & 0.227 & 0.182 & 0.163 & 0.160 \\
 \end{tabular}
 
 \end{document}
-

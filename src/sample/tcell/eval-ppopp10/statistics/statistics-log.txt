@@ -5,31 +5,6 @@ Welcome to the Emacs shell
 spanning-gcc-cas-statistics     spanning-lw-cas-statistics
 spanning-gcc-membar-statistics  spanning-lw-membar-statistics
 ~/work/sc/src/sample/tcell/eval-ppopp10/statistics $ sh statistics.sh 
-./spanning-lw-membar -n 1 -a -i 4 1 3 0 0
-/home/lab4/hiraisi/bin/ntimes: 11: ./spanning-lw-membar: not found
-
-./spanning-lw-membar -n 8 -a -i 4 1 3 0 0
-/home/lab4/hiraisi/bin/ntimes: 11: ./spanning-lw-membar: not found
-
-./spanning-lw-membar -n 1 -a -i 4 2 3 0 0
-/home/lab4/hiraisi/bin/ntimes: 11: ./spanning-lw-membar: not found
-
-./spanning-lw-membar -n 8 -a -i 4 2 3 0 0
-/home/lab4/hiraisi/bin/ntimes: 11: ./spanning-lw-membar: not found
-
-./spanning-lw-membar -n 1 -a -i 4 3 3 0 0
-/home/lab4/hiraisi/bin/ntimes: 11: ./spanning-lw-membar: not found
-
-./spanning-lw-membar -n 8 -a -i 4 3 3 0 0
-/home/lab4/hiraisi/bin/ntimes: 11: ./spanning-lw-membar: not found
-
-./spanning-lw-membar -n 1 -a -i 4 4 3 0 0
-/home/lab4/hiraisi/bin/ntimes: 11: ./spanning-lw-membar: not found
-
-./spanning-lw-membar -n 8 -a -i 4 4 3 0 0
-/home/lab4/hiraisi/bin/ntimes: 11: ./spanning-lw-membar: not found
-
-~/work/sc/src/sample/tcell/eval-ppopp10/statistics $ sh statistics.sh 
 ./spanning-lw-membar-statistics -n 1 -a -i 4 1 3 0 0
 setaffinity enabled.
 treq 0 any
