@@ -1,6 +1,6 @@
 #/bin/sh
-graphs="1 2 3 4"
-procs="1 2 3 4 5 6 7 8"
+graphs="5" #1 2 3 4"
+procs="7" #"1 2 3 4 5 6 7 8"
 time=3
 
 # ・評価 + xyグラフなどをふくめて，平石君中心でお願いできますでしょうか?
@@ -32,9 +32,9 @@ for g in $graphs; do
 
     for p in $procs; do
 # #   *  Cilk_cas
-#         ntimes $time ./cilk/affinity $p ./cilk/st-par-cilk --nproc $p $g 2
-#   *  Cilk_membar
-        ntimes $time ./cilk/affinity $p ./cilk/st-par3-cilk --nproc $p $g 2
+        ntimes $time ./cilk/affinity $p ./cilk/st-par-cilk --nproc $p $g 2
+# #   *  Cilk_membar
+#         ntimes $time ./cilk/affinity $p ./cilk/st-par3-cilk --nproc $p $g 2
         
 # #   *  Tascell_cas    (list->array はどうしましょうか....)
 #         ntimes $time ./spanning-lw-cas -n $p -a -i "4 $g 3 0 0"
