@@ -1,0 +1,53 @@
+グラフについて
+
+Cong08やBader95で"k-regualar"(次数kの正則) と呼ぶのは変．
+   Greiner93 は，ランダムに3箇所と結んで結んだ結果3近傍と呼んでいる．
+                 degree は最大6となっている．(geometric ではないのでは?)
+                 (Krishnamurthy94では，Greiner93の平均のdegree が6 と
+                  いっている．そのうえで，AD3 として平均 degree が 3と
+                  なるようにしたものを提案している．各頂点は 0～3の
+                  頂点を選ぶ．平均次数は3に．1.6M頂点で 95k連結成分
+                  Hsu96では，n=3m とあるので，Greiner93と同じか)
+   Greiner93 には，2D60 や 3D40がある．
+              
+   Moret&Shapiro では，幾何グラフ(geometric となっいる)
+                 平面の正方形にランダムに点をうち，3近傍に矢印
+                 向きなしにして，複製エッジを消す．
+                 なので，最終的な次数は3以上
+                 これは MST用
+
+   Moret&Shapiro ではランダムで生成したグラフは連結とは限らないので，
+                 連結グラフが生成するまで繰り返したとある．
+
+案
+  5. tree
+  6. fat-tree
+
+  1. 2D-torus
+  2. 3D-mesh
+  4. Gabriel graph
+
+  8. hyper cube
+  7. 階層メッシュ
+
+  3. random
+
+
+簡単なのは 2D-torus, hyper-cube, random
+
+平均degreeと，直径で特徴づけられるのでは?
+
+距離を取ろうとすると，ソートしたり木にしたりしないと難しい．
+
+ランダムで連結には，1D-torus + random という手はある．
+
+ランダムでは degree を一定にするのはむずかしそう
+
+結局
+ 2D-torus, hyper-cube, Greiner93の3頂点を2頂点にもできるようにしたもの．
+
+次のような redundant tree も考えられる
+(dotimes (i 200)
+  (print (list i 
+	       (* 2 (/ (- i 2) 6))
+	       (+ (* 2 (/ (- i 2) 6)) 1))))

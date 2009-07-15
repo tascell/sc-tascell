@@ -31,10 +31,10 @@ for g in $graphs; do
 #     ntimes $time ./st-serial-call-membar $g 2
 
     for p in $procs; do
-#   *  Cilk_cas
-        ntimes $time ./cilk/affinity $p ./cilk/st-par-cilk --nproc $p $g 2
+# #   *  Cilk_cas
+#         ntimes $time ./cilk/affinity $p ./cilk/st-par-cilk --nproc $p $g 2
 #   *  Cilk_membar
-        ntimes $time ./cilk/affinity $p ./cilk/st-par-cilk3 --nproc $p $g 2
+        ntimes $time ./cilk/affinity $p ./cilk/st-par3-cilk --nproc $p $g 2
         
 # #   *  Tascell_cas    (list->array はどうしましょうか....)
 #         ntimes $time ./spanning-lw-cas -n $p -a -i "4 $g 3 0 0"
