@@ -1,6 +1,6 @@
 #!/usr/bin/env gnuplot
 set terminal tgif monochrome "Times-Roman" 30
-set output 'Random.obj' # 4x1--4x16 for small problem
+set output 'Hypercube21.obj' # 4x1--4x16 for small problem
 
 set multiplot
 ## common settings
@@ -33,16 +33,16 @@ set ylabel 'speedup' # 'elapsed time (sec)'
 
 
 plot \
-"Random-Cilk_cas.dat"  using 1:2 title "Cilk_cas"     with linespoints,\
-"Random-Cilk_membar.dat"  using 1:2 title "Cilk_membar"     with linespoints,\
-"Random-Tascell_cas.dat"  using 1:2 title "Tascell_cas"     with linespoints,\
-"Random-Tascell_membar.dat"  using 1:2 title "Tascell_membar"     with linespoints,\
-"Random-Tascell_gcc_cas.dat"   using 1:2 title "Tascell_gcc_cas"      with linespoints,\
-"Random-Tascell_gcc_membar.dat"   using 1:2 title "Tasell_gcc_membar"      with linespoints
+"Hypercube21-Cilk_cas.dat"  using 1:2 title "Cilk_cas"     with linespoints,\
+"Hypercube21-Cilk_membar.dat"  using 1:2 title "Cilk_membar"     with linespoints,\
+"Hypercube21-Tascell_cas.dat"  using 1:2 title "Tascell_cas"     with linespoints,\
+"Hypercube21-Tascell_membar.dat"  using 1:2 title "Tascell_membar"     with linespoints,\
+"Hypercube21-Tascell_gcc_cas.dat"   using 1:2 title "Tascell_gcc_cas"      with linespoints,\
+"Hypercube21-Tascell_gcc_membar.dat"   using 1:2 title "Tasell_gcc_membar"      with linespoints
 
-# "Random-serial_call.dat" using 1:2 title "serial_call"  with linespoints,\
-# "Random-serial_call_cas.dat" using 1:2 title "serial_call_cas" with linespoints,\
-# "Random-serial_call_membar.dat" using 1:2 title "serial_call_membar" with linespoints,\
+# "Hypercube21-serial_call.dat" using 1:2 title "serial_call"  with linespoints,\
+# "Hypercube21-serial_call_cas.dat" using 1:2 title "serial_call_cas" with linespoints,\
+# "Hypercube21-serial_call_membar.dat" using 1:2 title "serial_call_membar" with linespoints,\
 
 # 0 title "LU(2000)" with linespoints linetype 7 pointtype 7
 

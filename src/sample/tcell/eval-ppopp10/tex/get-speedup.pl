@@ -5,6 +5,7 @@ my $FILENAME = $ARGV[0];
 my $BAKFILE = $ARGV[0] . ".bak";
 
 my $mode = $ARGV[1];  # 0: tex->tex-with-speedups  1: tex->data for gnuplot
+print "mode: $mode\n";
 
 # sleep 0.5;
 # system ("cp -p $FILENAME $BAKFILE");
