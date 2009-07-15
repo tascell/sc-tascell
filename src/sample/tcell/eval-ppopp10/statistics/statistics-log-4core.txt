@@ -1,0 +1,110 @@
+# ./spanning-lw-membar-statistics -n 4 -a -i 4 2 3 0 0
+# setaffinity enabled.
+# treq 0 any
+# 2000x2000 nodes 2D torus
+# Graph constuction time: 0.197274
+# v: 4000000 e: 16000000
+# search-p finished.
+# time: 3.516157
+# Iterations: 101
+iter(  1): list-length=        3         visited=      540
+iter(  2): list-length=        3         visited=     1946
+iter(  3): list-length=        7         visited=     4840
+iter(  4): list-length=        5         visited=     8860
+iter(  5): list-length=        6         visited=    13414
+iter(  6): list-length=        8         visited=    19722
+iter(  7): list-length=        7         visited=    26939
+iter(  8): list-length=        9         visited=    35534
+iter(  9): list-length=        7         visited=    45567
+iter( 10): list-length=       11         visited=    56545
+iter( 11): list-length=        8         visited=    69068
+iter( 12): list-length=        8         visited=    82619
+iter( 13): list-length=       10         visited=    97444
+iter( 14): list-length=       12         visited=   113209
+iter( 15): list-length=       11         visited=   130175
+iter( 16): list-length=       14         visited=   148527
+iter( 17): list-length=       14         visited=   167371
+iter( 18): list-length=       15         visited=   187743
+iter( 19): list-length=       13         visited=   208829
+iter( 20): list-length=       13         visited=   232065
+iter( 21): list-length=       13         visited=   256477
+iter( 22): list-length=       17         visited=   281860
+iter( 23): list-length=       17         visited=   309132
+iter( 24): list-length=       17         visited=   337460
+iter( 25): list-length=       18         visited=   367365
+iter( 26): list-length=       19         visited=   397439
+iter( 27): list-length=       18         visited=   429549
+iter( 28): list-length=       17         visited=   462243
+iter( 29): list-length=       18         visited=   496014
+iter( 30): list-length=       20         visited=   531178
+iter( 31): list-length=       19         visited=   566731
+iter( 32): list-length=       20         visited=   603862
+iter( 33): list-length=       21         visited=   643825
+iter( 34): list-length=       21         visited=   684234
+iter( 35): list-length=       24         visited=   725683
+iter( 36): list-length=       20         visited=   767906
+iter( 37): list-length=       22         visited=   811966
+iter( 38): list-length=       24         visited=   857705
+iter( 39): list-length=       23         visited=   902986
+iter( 40): list-length=       23         visited=   950396
+iter( 41): list-length=       24         visited=   998567
+iter( 42): list-length=       25         visited=  1047907
+iter( 43): list-length=       26         visited=  1099221
+iter( 44): list-length=       28         visited=  1152364
+iter( 45): list-length=       27         visited=  1206971
+iter( 46): list-length=       26         visited=  1262045
+iter( 47): list-length=       28         visited=  1317236
+iter( 48): list-length=       31         visited=  1374556
+iter( 49): list-length=       29         visited=  1433568
+iter( 50): list-length=       30         visited=  1494151
+iter( 51): list-length=       31         visited=  1555493
+iter( 52): list-length=       29         visited=  1618468
+iter( 53): list-length=       31         visited=  1682826
+iter( 54): list-length=       32         visited=  1748899
+iter( 55): list-length=       34         visited=  1815075
+iter( 56): list-length=       32         visited=  1883549
+iter( 57): list-length=       32         visited=  1952447
+iter( 58): list-length=       34         visited=  2023763
+iter( 59): list-length=       37         visited=  2095338
+iter( 60): list-length=       35         visited=  2166806
+iter( 61): list-length=       33         visited=  2240602
+iter( 62): list-length=       37         visited=  2316160
+iter( 63): list-length=       36         visited=  2393471
+iter( 64): list-length=       35         visited=  2469589
+iter( 65): list-length=       38         visited=  2548696
+iter( 66): list-length=       38         visited=  2628899
+iter( 67): list-length=       41         visited=  2710276
+iter( 68): list-length=       39         visited=  2791085
+iter( 69): list-length=       39         visited=  2873357
+iter( 70): list-length=       41         visited=  2958109
+iter( 71): list-length=       40         visited=  3045583
+iter( 72): list-length=       39         visited=  3132246
+iter( 73): list-length=       38         visited=  3214576
+iter( 74): list-length=       36         visited=  3291017
+iter( 75): list-length=       32         visited=  3359178
+iter( 76): list-length=       28         visited=  3417991
+iter( 77): list-length=       29         visited=  3472802
+iter( 78): list-length=       24         visited=  3522214
+iter( 79): list-length=       21         visited=  3567628
+iter( 80): list-length=       19         visited=  3609997
+iter( 81): list-length=       18         visited=  3648419
+iter( 82): list-length=       19         visited=  3684826
+iter( 83): list-length=       20         visited=  3718923
+iter( 84): list-length=       17         visited=  3751504
+iter( 85): list-length=       17         visited=  3781114
+iter( 86): list-length=       15         visited=  3808505
+iter( 87): list-length=       12         visited=  3833178
+iter( 88): list-length=       13         visited=  3856810
+iter( 89): list-length=       13         visited=  3879191
+iter( 90): list-length=       12         visited=  3899579
+iter( 91): list-length=       11         visited=  3917980
+iter( 92): list-length=       11         visited=  3933756
+iter( 93): list-length=       12         visited=  3948214
+iter( 94): list-length=       10         visited=  3961131
+iter( 95): list-length=        9         visited=  3971831
+iter( 96): list-length=        9         visited=  3980795
+iter( 97): list-length=        8         visited=  3987870
+iter( 98): list-length=        8         visited=  3993401
+iter( 99): list-length=        5         visited=  3997245
+iter(100): list-length=        6         visited=  3999263
+iter(101): list-length=        3         visited=  3999998

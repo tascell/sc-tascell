@@ -28,6 +28,7 @@ set ylabel 'length' # 'elapsed time (sec)'
 
 plot \
 "length-2dtorus-1core.dat"  using 1:2 title "serial"     with linespoints pointtype 6,\
-"length-2dtorus-8core.dat"  using 1:2 title "Tascell_membar 8cores" with linespoints linetype 7
+"length-2dtorus-8core.dat"  using 1:2 title "Tascell_membar 4cores" with linespoints pointtype 5,\
+"length-2dtorus-8core.dat"  using 1:2 title "Tascell_membar 8cores" with linespoints pointtype 3
 
 set nomultiplot

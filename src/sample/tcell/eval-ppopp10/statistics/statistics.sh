@@ -1,6 +1,6 @@
 #/bin/sh
-graphs="1 2 3 4"
-procs="1 8"
+graphs="2"
+procs="1 4 8"
 time=1
 
 # ・性能評価とは別に，search
