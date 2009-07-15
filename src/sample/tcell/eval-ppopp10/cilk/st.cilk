@@ -4,7 +4,7 @@
 #include <cilk-lib.cilkh>
 #include "xccmem.h"
 
-#define MAX_V 8388929  /* 8M + 321 */
+#define MAX_V (2*8388929)  /* 8M + 321 */
 // #define MAX_V 128*1024*1024+321  /* 128M + 321 */
 #define MAX_E 67109185 /* 64M + 321 */
 // #define MAX_E 128*1024*1024+321  /* 128M + 321 */
@@ -556,6 +556,7 @@ int checked_make_edge(int v1, int v2, int e){
 make_2dt(int n){
   int ix, iy, e;
   unsigned long next = n;
+  fprintf (stderr, "%dx%d nodes 2D torus\n", n, n);
   for(ix=0;ix<n;ix++)
     for(iy=0;iy<n;iy++){
       int k = ix*n+iy;
@@ -610,6 +611,7 @@ make_2dt(int n){
 make_ncube(int n){
   int i, j, s = 1 << n, e = 0;
   unsigned long next = n;
+  fprintf (stderr, "%d-D hypercube\n", n, n);
   for(i = 0; i<s ; i++){
     vv[i].degree = 0;
     vv[i].first_e = 0;
@@ -650,6 +652,7 @@ make_ncube(int n){
 make_random(int n, int m){
   int i, j, e = 0;
   unsigned long next = n + m;
+  fprintf (stderr, "%d nodes random (%d edges per node)\n", n, m);
   for(i = 0; i<n ; i++){
     vv[i].degree = 0;
     vv[i].first_e = 0;
@@ -779,13 +782,38 @@ elapsed_time(struct timeval tp[2])
 
 cilk int cilk_main(int argc, char *argv[]){
   struct timeval tp[2];
+  int graph = (argc>1)?atoi(argv[1]):1; 
+  int algo = (argc>2)?atoi(argv[2]):1;
+  char *algstr;
+  
   gettimeofday(tp, 0);
 
   /* constructing a graph */
+  switch (graph)
+    {
+    case 1:
+      make_random (2000 * 2000, 2);
+      break;
+    case 2:
+      make_2dt (2000);
+      break;
+    case 3:
+      make_ncube (20);
+      break;
+    case 4:
+      make_bintree (24);
+      break;
+    case 5:
+      make_ncube (21);
+      break;
+    default:
+      make_random (2000 * 2000, 2);
+      break;
+    }
   // make_random(2000*2000, 2);
   // make_2dt(2000);
   // make_ncube(20);
-  make_2dt(2000);
+  // make_2dt(2000);
   // make_bintree(23);
 
   gettimeofday(tp+1, 0);
@@ -799,12 +827,33 @@ cilk int cilk_main(int argc, char *argv[]){
   gettimeofday(tp, 0);
 
   /* making a spanning tree */
-  spawn search(0);
-  sync; // nennotame
-  // search_s2(0);
+  switch (algo)
+    {
+    case 1:
+      search_s2 (0);
+      algstr = "search-s2 ";
+      break;
+    case 2:
+      spawn search (0);
+      sync; // nennotame
+#ifdef PARALLEL_SEARCH
+      algstr = "search cas";
+#elif PARALLEL_SEARCH2
+      algstr = "search PARALLEL_SEARCH2";
+#elif PARALLEL_SEARCH3
+      algstr = "search membar";
+#else
+      algstr = "search serial_call";
+#endif
+      break;
+    default:
+      search_s2 (0);
+      algstr = "search-s2";
+      break;
+    }
 
   gettimeofday(tp+1, 0);
-  printf("%lf\n", elapsed_time(tp));
+  fprintf (stderr, "%s finished.\ntime: %lf\n", algstr, elapsed_time (tp));
   // show_graph();
   check_graph();
 

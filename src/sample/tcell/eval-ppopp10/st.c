@@ -546,6 +546,9 @@ main(int argc, char **argv){
     case 4:
       make_bintree (24);
       break;
+    case 5:
+      make_ncube (21);
+      break;
     default:
       make_random (2000 * 2000, 2);
       break;
