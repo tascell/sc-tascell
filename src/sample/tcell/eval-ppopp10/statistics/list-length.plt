@@ -27,8 +27,8 @@ set ylabel 'length' # 'elapsed time (sec)'
 # set label "   0.534s (Fib)"       at 64,11.8 font "Times-Roman,30"
 
 plot \
-"length-2dtorus-1core.dat"  using 1:2 title "serial"     with linespoints pointtype 6,\
-"length-2dtorus-8core.dat"  using 1:2 title "Tascell_membar 4cores" with linespoints pointtype 5,\
-"length-2dtorus-8core.dat"  using 1:2 title "Tascell_membar 8cores" with linespoints pointtype 3
+"length-2dtorus-1core.dat"  using 1:2 title "serial"     with linespoints pointtype 4,\
+"length-2dtorus-4core.dat"  using 1:2 title "Tascell_membar 4cores" with linespoints pointtype 6,\
+"length-2dtorus-8core.dat"  using 1:2 title "Tascell_membar 8cores" with linespoints pointtype 2
 
 set nomultiplot
