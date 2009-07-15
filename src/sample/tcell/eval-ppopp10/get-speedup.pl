@@ -4,7 +4,7 @@ use strict;
 my $FILENAME = $ARGV[0];
 my $BAKFILE = $ARGV[0] . ".bak";
 
-my $mode = 0;
+my $mode = 1;  # 0: tex->tex-with-speedups  1: tex->data for gnuplot
 
 # sleep 0.5;
 # system ("cp -p $FILENAME $BAKFILE");
@@ -24,9 +24,9 @@ while (<IN>) {
   if ( $_ =~ /^\s*serial\s*&\s*(\S+)\s*&.*/ ) {
     if ($mode==0) { print stdout $_; }
     $base = $1;
-  } elsif ( $_ =~ /^(\S+) \\\\ %graph$/ ) {
+  } elsif ( $_ =~ /^(\S+) \\\\ %graph \"\S+\"$/ ) {
     if ($mode==1) { print stdout "# "; }
-    $graph = $_;
+    $graph = $2;
     print stdout $_;
   } elsif ( $_ =~ /Tascell\S+\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*\\\\.*/
             or

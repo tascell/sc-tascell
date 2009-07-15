@@ -43,7 +43,7 @@
 ;;; search1-p での頂点再訪チェックにおけるメモリバリアの方法
 (%defconstant SEARCH-P-MEM-BARRIER-3)  ; 1 or 2 or 3 (default=3)
 ;;; 統計情報をとる
-;; (%defconstant STATISTICS)
+(%defconstant STATISTICS)
 
 (%ifndef* NF-TYPE
   (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
@@ -920,6 +920,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (def (task spanning-start)
   (def graph int :in)                   ; 1: random, 2: 2D-torus, 3: hyper-cube, 4:bintree
+;;  (def gparam int :in)                  ; parameter of graph (e.g., size)
   (def algorithm int :in)               ; 1: sequential (search-s2), 2: sequential (search),
                                         ; 3: parallel (search-p), 4: parallel (search-p-array)
   (def show-graph-p int :in)            ; 0: no, 1: show by show-graph, 2: show by show-graph2
@@ -937,11 +938,12 @@
   ;; constructing graph
   (csym::gettimeofday tp 0)
   (switch this.graph
-    (case 1) (csym::make-random (* 2000 2000) 2) (break)
-    (case 2) (csym::make-2dt 2000)               (break)
-    (case 3) (csym::make-ncube 20)               (break)
-    (case 4) (csym::make-bintree 24)              (break)
-    (default) (csym::make-random (* 2000 2000) 2) (break))
+    (case 1) (csym::make-random (* 2000 2000) 2)    (break)
+    (case 2) (csym::make-2dt 2000)                  (break)
+    (case 3) (csym::make-ncube 20)                  (break)
+    (case 4) (csym::make-bintree 24)                (break)
+    (case 5) (csym::make-ncube 21)                  (break)
+    (default) (csym::make-random (* 2000 2000) 2)   (break))
   (csym::gettimeofday (+ tp 1) 0)
   (csym::fprintf stderr "Graph constuction time: %lf~%" (csym::elapsed-time tp))
   (csym::fprintf stderr "v: %d e: %d~%" V-Length E-Length)

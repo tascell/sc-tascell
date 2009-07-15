@@ -12,39 +12,41 @@ time=3
 #    PARALLEL_SEARCH と PARALLEL_SEARCH3 を使う．
 
 for g in $graphs; do
-#   *  serial (逐次Cで，単に頂点スタックのみ search_s2)
-    ntimes $time ./st-serial $g
+# #   *  serial (逐次Cで，単に頂点スタックのみ search_s2)
+#     ntimes $time ./st-serial $g
 
-# *  serial_call (逐次Cで，呼び出しと頂点スタックを使う，
-#          TascellやCilkでの並列化はされていない．
-#          cas_int, membar (XXX_to_start_readなど) などは使わない．)
-    ntimes $time ./st-serial-call $g 2
+# # *  serial_call (逐次Cで，呼び出しと頂点スタックを使う，
+# #          TascellやCilkでの並列化はされていない．
+# #          cas_int, membar (XXX_to_start_readなど) などは使わない．)
+#     ntimes $time ./st-serial-call $g 2
 
-#   *  serial_call_cas  (逐次Cで，呼び出しと頂点スタックを使う，
-#          TascellやCilkでの並列化はされていない．
-#          cas_int (PARALLEL_SEARCH )を使う．)
-    ntimes $time ./st-serial-call-cas $g 2
+# #   *  serial_call_cas  (逐次Cで，呼び出しと頂点スタックを使う，
+# #          TascellやCilkでの並列化はされていない．
+# #          cas_int (PARALLEL_SEARCH )を使う．)
+#     ntimes $time ./st-serial-call-cas $g 2
 
-#   *  serial_call_membar  (逐次Cで，呼び出しと頂点スタックを使う，
-#          TascellやCilkでの並列化はされていない．
-#          membar (PARALLEL_SEARCH3) を使う．)
-    ntimes $time ./st-serial-call-membar $g 2
+# #   *  serial_call_membar  (逐次Cで，呼び出しと頂点スタックを使う，
+# #          TascellやCilkでの並列化はされていない．
+# #          membar (PARALLEL_SEARCH3) を使う．)
+#     ntimes $time ./st-serial-call-membar $g 2
 
     for p in $procs; do
 #   *  Cilk_cas
+        ntimes $time ./cilk/affinity $p ./cilk/st-par-cilk --nproc $p $g 2
 #   *  Cilk_membar
+        ntimes $time ./cilk/affinity $p ./cilk/st-par-cilk3 --nproc $p $g 2
         
-#   *  Tascell_cas    (list->array はどうしましょうか....)
-        ntimes $time ./spanning-lw-cas -n $p -a -i "4 $g 3 0 0"
+# #   *  Tascell_cas    (list->array はどうしましょうか....)
+#         ntimes $time ./spanning-lw-cas -n $p -a -i "4 $g 3 0 0"
 
-#   *  Tascell_membar
-        ntimes $time ./spanning-lw-membar -n $p -a -i "4 $g 3 0 0"
+# #   *  Tascell_membar
+#         ntimes $time ./spanning-lw-membar -n $p -a -i "4 $g 3 0 0"
 
-#   *  Tascell_gcc_cas
-        ntimes $time ./spanning-gcc-cas -n $p -a -i "4 $g 3 0 0"
+# #   *  Tascell_gcc_cas
+#         ntimes $time ./spanning-gcc-cas -n $p -a -i "4 $g 3 0 0"
 
-#   *  Tascell_gcc_membar
-        ntimes $time ./spanning-gcc-membar -n $p -a -i "4 $g 3 0 0"
+# #   *  Tascell_gcc_membar
+#         ntimes $time ./spanning-gcc-membar -n $p -a -i "4 $g 3 0 0"
 
     done
 
