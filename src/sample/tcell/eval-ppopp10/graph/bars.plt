@@ -7,9 +7,9 @@ set output 'bars.eps' # 4x1--4x16 for small problem
 # for gnuplot ver.4
 # set style line 1 lt 1 lw 50
 
-set xrange [30:240]
+set xrange [30:200]
 # 40*graph_no+15
-set xtics ("Random" 55, "Hypercube(20)" 95, "2D-torus(2000)" 134, "Bintree(24)" 175, "Hypercube(21)" 215)
+set xtics ("Random(4000000,2)" 55, "Hypercube(21)" 95, "2D-torus(2000)" 134, "Bintree(24)" 175)
 # set yrange [0:1.2]
 # set ytics ("0.2" 0.2, "0.4" 0.4, "0.6" 0.6, "0.8" 0.8, "1.0" 1.0)
 # set y2tics ("" 1.0)
@@ -18,7 +18,8 @@ set grid noxtics ytics
 # set ylabel "speedup"
 set ylabel "elapsed time relative to serial C"
 
-set key below
+# set key below
+set key left top
 
 set style fill pattern border
 

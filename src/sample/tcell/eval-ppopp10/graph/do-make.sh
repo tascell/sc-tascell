@@ -1,3 +1,4 @@
 #!/bin/sh
-gnuplot *.plt
-# && tgif -print -eps -color *.obj
+for g in *.plt; do
+    gnuplot $g
+done
