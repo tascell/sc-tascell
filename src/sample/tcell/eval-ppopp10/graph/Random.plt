@@ -1,5 +1,6 @@
 #!/usr/bin/env gnuplot
-set terminal tgif monochrome "Times-Roman" 30
+set terminal tgif color "Times-Roman" 30 # monochrome
+# set terminal epslatex color #"Times-Roman" 30
 set output 'Random.obj' # 4x1--4x16 for small problem
 
 set multiplot
@@ -8,11 +9,11 @@ set multiplot
 set grid noxtics ytics
 set key right bottom
 
+unset logscale xy
 set xrange [1:8]
-set xtic 2
-set yrange [0.25:8]
-set ytic 2
-set logscale xy
+set xtic 1
+set yrange [0:4]
+set ytic 1
 
 # set lmargin 6
 
@@ -33,12 +34,12 @@ set ylabel 'speedup' # 'elapsed time (sec)'
 
 
 plot \
-"Random-Cilk_cas.dat"  using 1:2 title "Cilk_cas"     with linespoints,\
-"Random-Cilk_membar.dat"  using 1:2 title "Cilk_membar"     with linespoints,\
-"Random-Tascell_cas.dat"  using 1:2 title "Tascell_cas"     with linespoints,\
-"Random-Tascell_membar.dat"  using 1:2 title "Tascell_membar"     with linespoints,\
-"Random-Tascell_gcc_cas.dat"   using 1:2 title "Tascell_gcc_cas"      with linespoints,\
-"Random-Tascell_gcc_membar.dat"   using 1:2 title "Tasell_gcc_membar"      with linespoints
+"Random-Cilk_cas.dat"  using 1:2 title "Cilk_cas"     with linespoints lt 1 pt 6,\
+"Random-Cilk_membar.dat"  using 1:2 title "Cilk_membar"     with linespoints lt 1 pt 2,\
+"Random-Tascell_cas.dat"  using 1:2 title "Tascell_cas"     with linespoints lt 4 pt 6,\
+"Random-Tascell_membar.dat"  using 1:2 title "Tascell_membar"     with linespoints lt 4 pt 2,\
+"Random-Tascell_gcc_cas.dat"   using 1:2 title "Tascell_gcc_cas"      with linespoints lt 3 pt 6,\
+"Random-Tascell_gcc_membar.dat"   using 1:2 title "Tasell_gcc_membar"      with linespoints lt 3 pt 2
 
 # "Random-serial_call.dat" using 1:2 title "serial_call"  with linespoints,\
 # "Random-serial_call_cas.dat" using 1:2 title "serial_call_cas" with linespoints,\
