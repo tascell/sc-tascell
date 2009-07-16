@@ -41,9 +41,9 @@
 ;;; 時々v-listの整合性をチェック
 ;; (%defconstant CHECK)
 ;;; search1-p での頂点再訪チェックにおけるメモリバリアの方法
-(%defconstant SEARCH-P-MEM-BARRIER-3)  ; 1 or 2 or 3 (default=3)
+(%defconstant SEARCH-P-MEM-BARRIER-1)  ; 1 or 2 or 3 (default=3)
 ;;; 統計情報をとる
-(%defconstant STATISTICS)
+;; (%defconstant STATISTICS)
 
 (%ifndef* NF-TYPE
   (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
