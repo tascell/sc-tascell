@@ -5,7 +5,7 @@ my $FILENAME = $ARGV[0];
 my $BAKFILE = $ARGV[0] . ".bak";
 
 my $mode = $ARGV[1];  # 0: tex->tex-with-speedups  1: tex->data for gnuplot
-print "mode: $mode\n";
+print stderr "mode: $mode\n";
 
 # sleep 0.5;
 # system ("cp -p $FILENAME $BAKFILE");
@@ -30,11 +30,11 @@ while (<IN>) {
         $graph = $2;
         if ($mode==1) { print stdout "# $2\n"; }
         print stdout $_;
-    } elsif ( $_ =~ /(Tascell\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*\\\\.*/
+    } elsif ( $_ =~ /^(Tascell\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*\\\\.*/
               or
-              $_ =~ /(Cilk\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*\\\\.*/
+              $_ =~ /^(Cilk\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*\\\\.*/
               or              
-              $_ =~ /(serial\\_cal\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*\\\\.*/
+              $_ =~ /^(serial\\_cal\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*\\\\.*/
         ) {
         my $impl = $1;
         $impl =~ tr/\\//d;
@@ -47,7 +47,9 @@ while (<IN>) {
             print OUT "# $graph-$impl\n";
             print OUT "# $_";
         } elsif ($mode==0) {
-            print stdout $_;
+            my $line = $_;
+            $line =~ s/\\hline//;
+            print stdout $line;
         }
         my @arr = ($2,$3,$4,$5,$6,$7,$8,$9);
         my $i=0;

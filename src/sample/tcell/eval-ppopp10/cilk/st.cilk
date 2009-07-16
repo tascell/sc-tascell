@@ -837,14 +837,21 @@ cilk int cilk_main(int argc, char *argv[]){
       spawn search (0);
       sync; // nennotame
 #ifdef PARALLEL_SEARCH
-      algstr = "search cas";
+      algstr = "search cas"
 #elif PARALLEL_SEARCH2
-      algstr = "search PARALLEL_SEARCH2";
+      algstr = "search PARALLEL_SEARCH2"
 #elif PARALLEL_SEARCH3
-      algstr = "search membar";
+      algstr = "search membar"
 #else
-      algstr = "search serial_call";
+      algstr = "search serial_call"
 #endif
+#ifdef USE_SYNCHED
+      " (with SYNCHED)"
+#else
+      " (without SYNCHED)"
+#endif
+        ;
+
       break;
     default:
       search_s2 (0);
