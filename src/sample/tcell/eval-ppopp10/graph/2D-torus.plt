@@ -36,14 +36,16 @@ set ylabel 'speedup' # 'elapsed time (sec)'
 plot \
 "2D-torus-Cilk_cas.dat"  using 1:2 title "Cilk_cas"     with linespoints lt 1 pt 6,\
 "2D-torus-Cilk_membar.dat"  using 1:2 title "Cilk_membar"     with linespoints lt 1 pt 2,\
+"2D-torus-Cilk_R_cas.dat"  using 1:2 title "Cilk_R_cas"     with linespoints lt 3 pt 6,\
+"2D-torus-Cilk_R_membar.dat"  using 1:2 title "Cilk_R_membar"     with linespoints lt 3 pt 2,\
 "2D-torus-Tascell_cas.dat"  using 1:2 title "Tascell_cas"     with linespoints lt 4 pt 6,\
-"2D-torus-Tascell_membar.dat"  using 1:2 title "Tascell_membar"     with linespoints lt 4 pt 2,\
-"2D-torus-Tascell_gcc_cas.dat"   using 1:2 title "Tascell_gcc_cas"      with linespoints lt 3 pt 6,\
-"2D-torus-Tascell_gcc_membar.dat"   using 1:2 title "Tasell_gcc_membar"      with linespoints lt 3 pt 2
+"2D-torus-Tascell_membar.dat"  using 1:2 title "Tascell_membar"     with linespoints lt 4 pt 2
 
+#
 # "2D-torus-serial_call.dat" using 1:2 title "serial_call"  with linespoints,\
 # "2D-torus-serial_call_cas.dat" using 1:2 title "serial_call_cas" with linespoints,\
 # "2D-torus-serial_call_membar.dat" using 1:2 title "serial_call_membar" with linespoints,\
+#
 
 # 0 title "LU(2000)" with linespoints linetype 7 pointtype 7
 

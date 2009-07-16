@@ -7,6 +7,10 @@ my $BAKFILE = $ARGV[0] . ".bak";
 my $mode = $ARGV[1];  # 0: tex->tex-with-speedups  1: tex->data for gnuplot
 print stderr "mode: $mode\n";
 
+if ($mode == 1) {
+    system ("rm -f *-bar.dat");
+}
+
 # sleep 0.5;
 # system ("cp -p $FILENAME $BAKFILE");
 
@@ -21,15 +25,29 @@ open (IN, "< $FILENAME")
 
 my $base;
 my $graph;
+my $graphcount=0;
 
 while (<IN>) {
-    if ( $_ =~ /^\s*serial\s*&\s*(\S+)\s*&.*/ ) {
-        if ($mode==0) { print stdout $_; }
-        $base = $1;
-    } elsif ( $_ =~ /^(\S+)\s+\\\\\s+%graph\s+\"(\S+)\"\s+$/ ) {
+    if ( $_ =~ /^(\S+)\s+\\\\\s+%graph\s+\"(\S+)\"\s+$/ ) {
         $graph = $2;
+        $graphcount++;
         if ($mode==1) { print stdout "# $2\n"; }
         print stdout $_;
+    } elsif ( $_ =~ /^\s*serial\s*&\s*(\S+)\s*&.*/ ) {
+        if ($mode==0) { print stdout $_; }
+        if ($mode==1) {
+            # 棒グラフ用
+            my $impl = "serial";
+            my $core = 1;
+            my $round = 1;
+            my $barfile = "$impl-bar.dat";
+            open (BAROUT, ">> $barfile")
+                or die "Can't open $barfile: $!";
+            print BAROUT "# $impl $graph $core core\n";
+            print BAROUT "$graphcount $round\n";
+            close (BAROUT);
+        }
+        $base = $1;
     } elsif ( $_ =~ /^(Tascell\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*\\\\.*/
               or
               $_ =~ /^(Cilk\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*&\s*(\S+)\s*\\\\.*/
@@ -52,11 +70,11 @@ while (<IN>) {
             print stdout $line;
         }
         my @arr = ($2,$3,$4,$5,$6,$7,$8,$9);
-        my $i=0;
+        my $core=0;
         foreach my $tm (@arr) {
             my $speedup;
             my $round;
-            $i++;
+            $core++;
             if ( $tm eq '---' ) {
                 if ($mode==0) {
                     print stdout "& ";
@@ -71,7 +89,16 @@ while (<IN>) {
                 if ($mode==0) {
                     print stdout "& ($round) ";
                 } elsif ($mode==1) {
-                    print OUT "$i $round\n";
+                    print OUT "$core $round\n";
+                    if ( $core == 1 ) {
+                        # 棒グラフ用
+                        my $barfile = "$impl-bar.dat";
+                        open (BAROUT, ">> $barfile")
+                            or die "Can't open $barfile: $!";
+                        print BAROUT "# $impl $graph $core core\n";
+                        print BAROUT "$graphcount $round\n";
+                        close (BAROUT);
+                    }
                 }
             }
         }

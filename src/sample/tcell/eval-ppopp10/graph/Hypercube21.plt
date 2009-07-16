@@ -36,10 +36,10 @@ set ylabel 'speedup' # 'elapsed time (sec)'
 plot \
 "Hypercube21-Cilk_cas.dat"  using 1:2 title "Cilk_cas"     with linespoints lt 1 pt 6,\
 "Hypercube21-Cilk_membar.dat"  using 1:2 title "Cilk_membar"     with linespoints lt 1 pt 2,\
+"Hypercube21-Cilk_R_cas.dat"  using 1:2 title "Cilk_R_cas"     with linespoints lt 3 pt 6,\
+"Hypercube21-Cilk_R_membar.dat"  using 1:2 title "Cilk_R_membar"     with linespoints lt 3 pt 2,\
 "Hypercube21-Tascell_cas.dat"  using 1:2 title "Tascell_cas"     with linespoints lt 4 pt 6,\
-"Hypercube21-Tascell_membar.dat"  using 1:2 title "Tascell_membar"     with linespoints lt 4 pt 2,\
-"Hypercube21-Tascell_gcc_cas.dat"   using 1:2 title "Tascell_gcc_cas"      with linespoints lt 3 pt 6,\
-"Hypercube21-Tascell_gcc_membar.dat"   using 1:2 title "Tasell_gcc_membar"      with linespoints lt 3 pt 2
+"Hypercube21-Tascell_membar.dat"  using 1:2 title "Tascell_membar"     with linespoints lt 4 pt 2
 
 # "Hypercube21-serial_call.dat" using 1:2 title "serial_call"  with linespoints,\
 # "Hypercube21-serial_call_cas.dat" using 1:2 title "serial_call_cas" with linespoints,\
