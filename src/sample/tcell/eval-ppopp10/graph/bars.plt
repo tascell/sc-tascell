@@ -10,7 +10,7 @@ set output 'bars.eps' # 4x1--4x16 for small problem
 set xrange [30:200]
 # 40*graph_no+15
 set xtics ("Random(4000000,2)" 55, "Hypercube(21)" 95, "2D-torus(2000)" 134, "Bintree(24)" 175)
-set yrange [0:4]
+set yrange [0:2.5]
 # set ytics ("0.2" 0.2, "0.4" 0.4, "0.6" 0.6, "0.8" 0.8, "1.0" 1.0)
 # set y2tics ("" 1.0)
 set grid noxtics ytics
