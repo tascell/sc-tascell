@@ -30,8 +30,13 @@ for g in $graphs; do
 # #          membar (PARALLEL_SEARCH3) を使う．)
 #     ntimes $time ./st-serial-call-membar $g 2
 
+#   CALL_BOUND = 800
+    ntimes $time ./st-serial-call-800 $g 2
+    ntimes $time ./st-serial-call-cas-800 $g 2
+    ntimes $time ./st-serial-call-membar-800 $g 2
+    
     for p in $procs; do
-
+        echo
 # #   *  SYNCHED を使わない Cilk があってもよいかな...
 #         ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par-cilk-s --nproc $p $g 2
 #         ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par3-cilk-s --nproc $p $g 2
@@ -46,13 +51,13 @@ for g in $graphs; do
 #         ntimes $time ./spanning-lw-cas -n $p -a -i "4 $g 3 0 0"
 #         ntimes $time ./spanning-lw-membar -n $p -a -i "4 $g 3 0 0"
 
-#   CALL_BOUND = 800
-        ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par-cilk-s-800 --nproc $p $g 2
-        ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par3-cilk-s-800 --nproc $p $g 2
-        ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par-cilk-800 --nproc $p $g 2
-        ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par3-cilk-800 --nproc $p $g 2
-        ntimes $time ./spanning-lw-cas-800 -n $p -a -i "4 $g 3 0 0"
-        ntimes $time ./spanning-lw-membar-800 -n $p -a -i "4 $g 3 0 0"
+# #   CALL_BOUND = 800
+#         ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par-cilk-s-800 --nproc $p $g 2
+#         ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par3-cilk-s-800 --nproc $p $g 2
+#         ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par-cilk-800 --nproc $p $g 2
+#         ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par3-cilk-800 --nproc $p $g 2
+#         ntimes $time ./spanning-lw-cas-800 -n $p -a -i "4 $g 3 0 0"
+#         ntimes $time ./spanning-lw-membar-800 -n $p -a -i "4 $g 3 0 0"
         
         
 # #   *  Tascell_gcc_cas

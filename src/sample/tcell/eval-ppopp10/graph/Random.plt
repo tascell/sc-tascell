@@ -1,13 +1,13 @@
 #!/usr/bin/env gnuplot
 set terminal tgif color "Times-Roman" 30 # monochrome
 # set terminal epslatex color #"Times-Roman" 30
-set output 'Random.obj' # 4x1--4x16 for small problem
+set output 'Random.obj'
 
 set multiplot
 ## common settings
 
 set grid noxtics ytics
-set key left top
+set key right bottom
 
 unset logscale xy
 set xrange [1:8]

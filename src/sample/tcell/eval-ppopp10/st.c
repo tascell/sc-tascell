@@ -9,6 +9,9 @@
 
 #define V_LIST_ALLOC_SIZE 600
 // #define V_LIST_ALLOC_SIZE 200
+#ifndef CALL_BOUND
+#define CALL_BOUND 800
+#endif
 
 int v_length;
 
@@ -590,6 +593,7 @@ main(int argc, char **argv){
     }
   
   gettimeofday(tp+1, 0);
+  fprintf (stderr, "CALL_BOUND: %d\n", CALL_BOUND);
   fprintf (stderr, "%s finished.\ntime: %lf\n", algstr, elapsed_time (tp));
   // show_graph();
   check_graph();
