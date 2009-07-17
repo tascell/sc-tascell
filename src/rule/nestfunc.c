@@ -30,7 +30,7 @@ struct tho_frame{
  void *arg = x->arg;
  void *ret;
  char *new_esp;
- char estack[65536];
+ char estack[4*65536];
  char *esp = estack;
 pthread_cleanup_push(free, farg);
 efp = (struct tho_frame *)esp;

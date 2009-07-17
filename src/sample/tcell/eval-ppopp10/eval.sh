@@ -1,5 +1,5 @@
 #/bin/sh
-graphs="1 2 3 4 5"
+graphs="1 5 3 4"
 procs="1 2 3 4 5 6 7 8"
 time=3
 
@@ -31,21 +31,30 @@ for g in $graphs; do
 #     ntimes $time ./st-serial-call-membar $g 2
 
     for p in $procs; do
-# #   *  Cilk_cas
-#        ntimes $time ./cilk/affinity $p ./cilk/st-par-cilk --nproc $p $g 2
-# #   *  Cilk_membar
-#         ntimes $time ./cilk/affinity $p ./cilk/st-par3-cilk --nproc $p $g 2
 
 # #   *  SYNCHED を使わない Cilk があってもよいかな...
-        ntimes $time ./cilk/affinity $p ./cilk/st-par-cilk-slow --nproc $p $g 2
-        ntimes $time ./cilk/affinity $p ./cilk/st-par3-cilk-slow --nproc $p $g 2
+#         ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par-cilk-s --nproc $p $g 2
+#         ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par3-cilk-s --nproc $p $g 2
+
+# #   *  Cilk_cas
+# #   *  Cilk_membar
+#         ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par-cilk --nproc $p $g 2
+#         ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par3-cilk --nproc $p $g 2
         
 # #   *  Tascell_cas    (list->array はどうしましょうか....)
-#         ntimes $time ./spanning-lw-cas -n $p -a -i "4 $g 3 0 0"
-
 # #   *  Tascell_membar
+#         ntimes $time ./spanning-lw-cas -n $p -a -i "4 $g 3 0 0"
 #         ntimes $time ./spanning-lw-membar -n $p -a -i "4 $g 3 0 0"
 
+#   CALL_BOUND = 800
+        ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par-cilk-s-800 --nproc $p $g 2
+        ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par3-cilk-s-800 --nproc $p $g 2
+        ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par-cilk-800 --nproc $p $g 2
+        ntimes $time ./cilk/affinity $p ./cilk0717-2/st-par3-cilk-800 --nproc $p $g 2
+        ntimes $time ./spanning-lw-cas-800 -n $p -a -i "4 $g 3 0 0"
+        ntimes $time ./spanning-lw-membar-800 -n $p -a -i "4 $g 3 0 0"
+        
+        
 # #   *  Tascell_gcc_cas
 #         ntimes $time ./spanning-gcc-cas -n $p -a -i "4 $g 3 0 0"
 

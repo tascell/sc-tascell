@@ -32,7 +32,7 @@
 
 (define-ruleset nestfunc (sc0t-to-sc0t)
   (thread-creator ~pthread-create)
-  (estack-size 65536)                   ; 明示的スタックのサイズ（sizeof char）
+  (estack-size #.(* 4 65536))           ; 明示的スタックのサイズ（sizeof char）
   (all-in-estack nil)                   ; 局所変数などを全て明示的スタックに置く(= CL-SC)
   (use-builtin-expect t)                ; GCCの __builtin_expectを使って最適化する
   )

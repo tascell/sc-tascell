@@ -41,7 +41,7 @@
 ;;; 時々v-listの整合性をチェック
 ;; (%defconstant CHECK)
 ;;; search1-p での頂点再訪チェックにおけるメモリバリアの方法
-(%defconstant SEARCH-P-MEM-BARRIER-1)  ; 1 or 2 or 3 (default=3)
+(%defconstant SEARCH-P-MEM-BARRIER-3)  ; 1 or 2 or 3 (default=3)
 ;;; 統計情報をとる
 ;; (%defconstant STATISTICS)
 
@@ -72,6 +72,8 @@
 (%defconstant MAX-E (+ (* 64 1024 1024) 321))
 (%defconstant V-LIST-ALLOC-SIZE 600)
 ;;; (%defconstant V-LIST-ALLOC-SIZE 200)
+
+(%defconstant CALL-BOUND 800)
 
 ;;;;;;;;;;
 (def V-Length int)                      ; グラフの全頂点数
@@ -299,7 +301,7 @@
   (= (fref (aref VV v) parent) (+ v 1))
   (= V-List (csym::alloc-v-list 0))
   (= V-List-Length 1)
-  (csym::search1 v 30)
+  (csym::search1 v CALL-BOUND)
   (DEBUG-PRINT 1 "V-List-Length: %d~%" V-List-Length)
   (do-while (or (> V-List-Length 1)
                 (< V-List->i V-LIST-ALLOC-SIZE))
@@ -310,7 +312,7 @@
     (= V-List-Length 1)
     (for ((= i 0) (< i my-v-list-length) (exps (inc i) (= my-v-list my-v-list->next)))
       (for ((= j  my-v-list->i) (< j V-LIST-ALLOC-SIZE) (inc j))
-        (csym::search1 (aref my-v-list->v j) 30)))
+        (csym::search1 (aref my-v-list->v j) CALL-BOUND)))
     (for ((= i 0) (< i mlist-length) (inc i))
       (= mlist (csym::dealloc-v-list mlist)))
     (DEBUG-PRINT 1 "V-List-Length: %d~%" V-List-Length)
@@ -431,7 +433,7 @@
   (= WDATA.V-List.length 1)
   (= WDATA.V-List.last WDATA.V-List.first)
   ;; 始点から深さ制限つきDF search
-  (search1-p v 30 0 (fref (aref VV v) degree))
+  (search1-p v CALL-BOUND 0 (fref (aref VV v) degree))
   (DEBUG-PRINT 1 "V-List-Length: %d~%" WDATA.V-List.length)
   (while (or (> WDATA.V-List.length 1)
              (< WDATA.V-List.first->i V-LIST-ALLOC-SIZE))
@@ -536,7 +538,7 @@
   (= WDATA.V-List.length 1)
   (= WDATA.V-List.last WDATA.V-List.first)
   ;; 始点から深さ制限つきDF search
-  (search1-p v 30 0 (fref (aref VV v) degree))
+  (search1-p v CALL-BOUND 0 (fref (aref VV v) degree))
   (DEBUG-PRINT 1 "V-List-Length: %d~%" WDATA.V-List.length)
   (= my-v-array 0) (= buf-size 0)
   (while (or (> WDATA.V-List.length 1)
@@ -679,7 +681,7 @@
   (def j int)
   (DEBUG-PRINT 1 "[%2d] search-p-c %p %d %d~%" WORKER-ID my-v-list-cur j0 j1)
   (do-many for j from j0 to j1
-    (search1-p (aref my-v-list-cur->v j) 30 0 (fref (aref VV (aref my-v-list-cur->v j)) degree))
+    (search1-p (aref my-v-list-cur->v j) CALL-BOUND 0 (fref (aref VV (aref my-v-list-cur->v j)) degree))
     (t-search-c
      (:put from j0-2 to j1-2
            (= this.my-v-list-cur my-v-list-cur)
@@ -962,6 +964,7 @@
     (case 4) (search-p-array 0)  (= algstr "search-p-array") (break)
     (default) (csym::search-s2 0) (= algstr "search-s2") (break))
   (csym::gettimeofday (+ tp 1) 0)
+  (csym::fprintf stderr "CALL-BOUND: %d~%" CALL-BOUND)
   (csym::fprintf stderr "%s finished.~%time: %lf~%" algstr (csym::elapsed-time tp))
   (%ifdef* STATISTICS (csym::print-statistics))
 
