@@ -1,4 +1,4 @@
-This is pTeX, Version 3.141592-p3.1.10 (sjis) (Web2C 7.5.4) (format=platex 2009.7.7)  17 JUL 2009 22:20
+This is pTeX, Version 3.141592-p3.1.10 (sjis) (Web2C 7.5.4) (format=platex 2009.7.7)  18 JUL 2009 04:36
 **result-speedup.tex
 (./result-speedup.tex
 pLaTeX2e <2006/11/10>+0 (based on LaTeX2e <2003/12/01> patch level 0)
@@ -43,35 +43,35 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <5> on input line 8.
 
-Overfull \hbox (52.81204pt too wide) in paragraph at lines 7--32
+Overfull \hbox (71.4121pt too wide) in paragraph at lines 7--50
 [][] 
  []
 
 
-Overfull \hbox (47.81203pt too wide) in paragraph at lines 33--58
-[][] 
- []
-
-
-Overfull \hbox (52.81204pt too wide) in paragraph at lines 59--84
+Overfull \hbox (66.41208pt too wide) in paragraph at lines 51--94
 [][] 
  []
 
 [1
 
 ]
-Overfull \hbox (57.81206pt too wide) in paragraph at lines 85--110
+Overfull \hbox (71.4121pt too wide) in paragraph at lines 95--138
 [][] 
  []
 
-[2] (./result-speedup.aux) ) 
+[2]
+Overfull \hbox (76.41211pt too wide) in paragraph at lines 139--182
+[][] 
+ []
+
+[3] [4] (./result-speedup.aux) ) 
 Here is how much of TeX's memory you used:
  201 strings out of 94682
  2174 string characters out of 1176943
- 77184 words of memory out of 1500000
+ 84184 words of memory out of 1500000
  3573 multiletter control sequences out of 10000+50000
  7511 words of font info for 31 fonts, out of 1200000 for 2000
  566 hyphenation exceptions out of 8191
- 22i,7n,17p,127b,242s stack positions out of 5000i,500n,6000p,200000b,5000s
+ 22i,7n,17p,129b,242s stack positions out of 5000i,500n,6000p,200000b,5000s
 
-Output written on result-speedup.dvi (2 pages, 20444 bytes).
+Output written on result-speedup.dvi (4 pages, 39412 bytes).
