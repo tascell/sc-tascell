@@ -1,5 +1,5 @@
 #/bin/sh
-graphs="1 5 3 4"
+graphs="3"
 procs="1 2 3 4 5 6 7 8"
 time=3
 

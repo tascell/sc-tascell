@@ -10,7 +10,7 @@
 #define V_LIST_ALLOC_SIZE 600
 // #define V_LIST_ALLOC_SIZE 200
 #ifndef CALL_BOUND
-#define CALL_BOUND 800
+#define CALL_BOUND 30
 #endif
 
 int v_length;
@@ -241,7 +241,7 @@ search(int v){
   vv[v].parent = v+1;
   v_list = alloc_v_list(0);
   v_list_length = 1;
-  search1(v, 30);
+  search1(v, CALL_BOUND);
   do{
     mlist = my_v_list = v_list;
     mlist_length = my_v_list_length = v_list_length;
@@ -250,7 +250,7 @@ search(int v){
     v_list_length = 1;
     for(i=0; i<my_v_list_length ; i++, my_v_list = my_v_list->next)
       for(j= my_v_list->i ; j < V_LIST_ALLOC_SIZE; j++)
-	search1(my_v_list->v[j], 30);
+	search1(my_v_list->v[j], CALL_BOUND);
     for(i=0; i<mlist_length ; i++)
       mlist = dealloc_v_list(mlist);
   }while(v_list_length > 1 || v_list->i < V_LIST_ALLOC_SIZE);
@@ -541,10 +541,10 @@ main(int argc, char **argv){
       make_random (2000 * 2000, 2);
       break;
     case 2:
-      make_2dt (2000);
+      make_ncube (20);
       break;
     case 3:
-      make_ncube (20);
+      make_2dt (2000);
       break;
     case 4:
       make_bintree (24);
