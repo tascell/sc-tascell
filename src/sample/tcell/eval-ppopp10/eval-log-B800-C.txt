@@ -1,0 +1,312 @@
+perl: warning: Setting locale failed.
+perl: warning: Please check that your locale settings:
+	LANGUAGE = (unset),
+	LC_ALL = (unset),
+	LANG = "ja_JP.eucjp"
+    are supported and installed on your system.
+perl: warning: Falling back to the standard locale ("C").
+perl: warning: Setting locale failed.
+perl: warning: Please check that your locale settings:
+	LANGUAGE = (unset),
+	LC_ALL = (unset),
+	LANG = "ja_JP.eucjp"
+    are supported and installed on your system.
+perl: warning: Falling back to the standard locale ("C").
+no ssh-agent
+* ¥Î¡¼¥ÈPC(N-605)¥ì¥ó¥¿¥ëÃæ
+ËÜÂÎ
+¥Ù¡¼¥¹¥É¥Ã¥°
+AC¥¢¥À¥×¥¿
+
+* c2sc
+Ê£¿ô¤Î³ÈÄ¥¤Î°ÂÁ´¤ÊÅ¬ÍÑ -- cf. mj, MetaHelix
+
+~yasugi/papers/pldi04/p/p04-1413.pdf
+~yasugi/papers/pldi05/p/p05.pdf       // seinou hyouka
+~yasugi/lang/xcc/gc/
+[~yasugi/lang/c/loadb/]
+fib005.c
+Àµµ¬ÌÚÊ¸Ë¡
+ÄÌ¿® = ¶¦Í­¥á¥â¥ê¤Î¾õÂÖ¤Î°Ü¹Ô
+initialize, serialize
+
+PLDI ¤Î»²¹ÍÊ¸¸¥ (ISMM2002) ¤è¤ê portable, effective
+
+SXC-Cube
+[22;44mhiraisi@akiu[00m [01;32m~/work/sc/src/sample/tcell/eval-ppopp10
+ % [00msh eval.sh
+sh eval.sh
+./st-serial-call-800 1 2
+4000000 nodes random (2 edges per node)
+111.874186
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search serial_call finished.
+time: 1.500072
+4000000 nodes random (2 edges per node)
+111.881296
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search serial_call finished.
+time: 1.493909
+4000000 nodes random (2 edges per node)
+111.936370
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search serial_call finished.
+time: 1.489098
+
+./st-serial-call-cas-800 1 2
+4000000 nodes random (2 edges per node)
+111.936456
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas finished.
+time: 1.817355
+4000000 nodes random (2 edges per node)
+111.903360
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas finished.
+time: 1.813170
+4000000 nodes random (2 edges per node)
+111.898562
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas finished.
+time: 1.816997
+
+./st-serial-call-membar-800 1 2
+4000000 nodes random (2 edges per node)
+111.941816
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar finished.
+time: 1.782149
+4000000 nodes random (2 edges per node)
+111.888497
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar finished.
+time: 1.786447
+4000000 nodes random (2 edges per node)
+111.970038
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar finished.
+time: 1.779843
+
+
+
+
+
+
+
+
+
+./st-serial-call-800 5 2
+21-D hypercube
+0.477695
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search serial_call finished.
+time: 1.174325
+21-D hypercube
+0.481319
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search serial_call finished.
+time: 1.170044
+21-D hypercube
+0.479719
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search serial_call finished.
+time: 1.172316
+
+./st-serial-call-cas-800 5 2
+21-D hypercube
+0.477108
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas finished.
+time: 1.255924
+21-D hypercube
+0.483374
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas finished.
+time: 1.258258
+21-D hypercube
+0.480494
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas finished.
+time: 1.255355
+
+./st-serial-call-membar-800 5 2
+21-D hypercube
+0.477148
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar finished.
+time: 1.238550
+21-D hypercube
+0.476672
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar finished.
+time: 1.240848
+21-D hypercube
+0.478386
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar finished.
+time: 1.242514
+
+
+
+
+
+
+
+
+
+./st-serial-call-800 3 2
+20-D hypercube
+0.234337
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search serial_call finished.
+time: 0.492021
+20-D hypercube
+0.238667
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search serial_call finished.
+time: 0.495411
+20-D hypercube
+0.233914
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search serial_call finished.
+time: 0.493140
+
+./st-serial-call-cas-800 3 2
+20-D hypercube
+0.229403
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas finished.
+time: 0.532660
+20-D hypercube
+0.231213
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas finished.
+time: 0.532464
+20-D hypercube
+0.229671
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas finished.
+time: 0.532087
+
+./st-serial-call-membar-800 3 2
+20-D hypercube
+0.230391
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar finished.
+time: 0.524395
+20-D hypercube
+0.235031
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar finished.
+time: 0.526353
+20-D hypercube
+0.231854
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar finished.
+time: 0.524662
+
+
+
+
+
+
+
+
+
+./st-serial-call-800 4 2
+Depth 24 binary tree
+0.509258
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search serial_call finished.
+time: 0.625651
+Depth 24 binary tree
+0.511964
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search serial_call finished.
+time: 0.625831
+Depth 24 binary tree
+0.507935
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search serial_call finished.
+time: 0.626160
+
+./st-serial-call-cas-800 4 2
+Depth 24 binary tree
+0.508154
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas finished.
+time: 0.841012
+Depth 24 binary tree
+0.508989
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas finished.
+time: 0.840279
+Depth 24 binary tree
+0.513364
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas finished.
+time: 0.838372
+
+./st-serial-call-membar-800 4 2
+Depth 24 binary tree
+0.507243
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar finished.
+time: 0.729432
+Depth 24 binary tree
+0.512194
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar finished.
+time: 0.731154
+Depth 24 binary tree
+0.511315
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar finished.
+time: 0.732708
+
+
+
+
+
+
+
+
+
+[22;44mhiraisi@akiu[00m [01;32m~/work/sc/src/sample/tcell/eval-ppopp10
+ % [00m
