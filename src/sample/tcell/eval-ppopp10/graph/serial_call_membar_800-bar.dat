@@ -1,8 +1,0 @@
-# serial_call_membar_800 Random 1 core
-1 0.861
-# serial_call_membar_800 Hypercube21 1 core
-2 1.13
-# serial_call_membar_800 2D-torus 1 core
-3 1.73
-# serial_call_membar_800 Bintree 1 core
-4 0.762
