@@ -1,8 +1,0 @@
-# Cilk_R_cas Random 1 core
-1 0.783
-# Cilk_R_cas Hypercube21 1 core
-2 1.02
-# Cilk_R_cas 2D-torus 1 core
-3 0.981
-# Cilk_R_cas Bintree 1 core
-4 0.477
