@@ -1,0 +1,22 @@
+#!/bin/sh
+if [ "x$SC_PATH" = "x" ]; then
+    "Environmant variable SC_PATH is not set"
+fi
+if [ "x$SC_CMDLINE" = "x" ]; then
+    "Environmant variable SC_CMDLINE is not set"
+fi
+if [ "x$SC_LISP_PATH" = "x" ]; then
+    "Environmant variable SC_LISP_PATH is not set"
+fi
+if [ "x$SC_LISP" = "x" ]; then
+    "Environmant variable SC_LISP is not set"
+fi
+
+if [ $SC_LISP = "alisp" ]; then
+    exec $SC_LISP_PATH -L $SC_CMDLINE -- "$@"
+elif [ $SC_LISP = "clisp" ]; then
+    exec $SC_LISP_PATH $SC_CMDLINE "$@"
+else
+    echo "Unexpected value of SC_LISP: $SC_LISP"
+    exit 99
+fi
