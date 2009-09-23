@@ -34,3 +34,11 @@ sc/
 % cd sample
 % gcc fib.c -o fib
 % ./fib 30
+
+3.5 If you would like to compile an SC file from shell command line directly:
+3.5.1 Make a copy of bin/sc-setenv.sh
+3.5.2 Modify the value of SC_PREFIX to your SC directory.
+3.5.3 Execute "source <modified sc-setenv.sh>".
+3.5.4 You can translate an SC program by "sc2c <sc-file> <options>"
+      (<options> are defined in src/sc-cmdline.lsp. Details to be written.)
+3.5.5 If necessary, copy the contents into a startup file of your login shell.

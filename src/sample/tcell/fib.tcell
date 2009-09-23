@@ -29,7 +29,7 @@
 
 (c-exp "#include<sys/time.h>")
 
-;; ГПБ[ГJВ▓В╞В╔ПИЧЭВ╡В╜Г^ГXГNВ╠РФВЁГJГEГУГgВ╡В─Х\Ож
+;; еяб╝елд┤д╚д╦╜ш═¤д╖д┐е┐е╣епд╬┐ЇдЄележеєе╚д╖д╞╔╜╝и
 (%defconstant COUNT-NTASK 1)
 
 (%ifndef* NF-TYPE
