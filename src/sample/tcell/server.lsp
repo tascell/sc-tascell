@@ -131,7 +131,7 @@
 (defclass parent (host)
   ((host :initform *parent-host*)
    (port :initform *parent-port*)
-   (n-treq-sent :accessor parent-n-treq-sent :type fixnum :initform 0)
+   (n-treq-sent :accessor parent-n-treq-sent :type fixnum :initform 0) ; 未使用
    (diff-task-rslt :accessor parent-diff-task-rslt :type fixnum :initform 0)
                                         ; <taskをもらった回数>-<rsltを送った回数> (childとは違うので注意)
    ))
