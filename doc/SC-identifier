@@ -16,7 +16,7 @@ no modification is applied.
 SC              print-name (of CL)      C
 -----------------------------------------------
 abc             "ABC"                   abc
-Abc             "Abc"                   aBC
+Abc             "Abc"                   Abc
 NULL            "null"                  NULL
 null            "NULL"                  null
 FreeBSD         "FreeBSD"               FreeBSD

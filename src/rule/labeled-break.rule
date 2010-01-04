@@ -40,7 +40,7 @@
 (defrule iter labeled-break
   ((#?(label ,id[identifier] (do-while ,exp ,@body))
     #?(label ,id[identifier] (switch ,exp ,@body)))
-   (let* ((ids (par-identifier id))
+   (let* ((ids (identifier! id))
           (*label-list*
            (cons ~(,id
                    ,(generate-id ids)
@@ -53,15 +53,15 @@
   ((#?(continue ,id[identifier])
     #?(break ,id[identifier]))
    (let ((label-tuple 
-          (car (member (par-identifier id) *label-list*
-                       :key #'(lambda (x) (par-identifier (first x)))
+          (car (member (identifier! id) *label-list*
+                       :key #'(lambda (x) (identifier! (first x)))
                        :test #'string=))))
      (unless label-tuple
        (error "label ~s is undefined." id))
      ~(goto ,(funcall
               (case (car x)
-                ((continue) #'second)
-                ((break) #'third))
+                ((sc::continue) #'second)
+                ((sc::break) #'third))
               label-tuple))) )
   ((#?(,@list))
    (mapcar #'iter list))
