@@ -278,6 +278,7 @@
   (unwind-protect
       (progn
         ;; 親へ接続
+        ;; sv.parent = connect_to (prnt):
         (setf (ts-parent sv) (connect-to prnt))
         ;; 子からの待ち受けポートを開く
         (setf (ts-chsock0 sv)

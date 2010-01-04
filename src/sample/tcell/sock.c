@@ -40,6 +40,11 @@ SUCH DAMAGE.
 #define SEND_MAX 65536
 #define RECV_MAX 1024
 
+/* SunOS does not support vasprintf() */
+#ifdef NO_VASPRINTF
+#define VSNPRINTF_LEN 1000
+#endif
+
 /* ここに文字列があれば優先的にこちらから読み込む */
 char *receive_buf = 0;
 char *receive_buf_p = 0;
@@ -51,14 +56,24 @@ int dbg_printf (char *fmt_string, ...)
 {
     va_list args;
     int len;
+#ifdef NO_VASPRINTF
+    char str[VSNPRINTF_LEN];
+#else
     char *str;
+#endif
     char *str2;
     int i, i2;
 
     va_start (args, fmt_string);
+#ifdef NO_VASPRINTF
+    len = vsnprintf (str, VSNPRINTF_LEN, fmt_string, args);
+#else
     len = vasprintf (&str, fmt_string, args);
+#endif
     va_end (args);
+#ifndef NO_VASPRINTF
     if (str == NULL) { perror ("allocation"); exit (1); }
+#endif
 
     str2= (char*) malloc (sizeof(char)*(strlen(str)*2+3));
     fputc ('"',stderr);
@@ -71,7 +86,10 @@ int dbg_printf (char *fmt_string, ...)
         }
     strncpy (str2+i2, "\"\n", 2); str2[i2+2]='\0';
     fputs (str2, stderr);
-    free(str); free(str2);
+#ifndef NO_VASPRINTF
+    free(str);
+#endif
+    free(str2);
     return len;
 }
 
@@ -106,7 +124,11 @@ int send_string (char *str, int socket)
 int send_fmt_string (int socket, char *fmt_string, ...)
 {
     va_list args;
+#ifdef NO_VASPRINTF
+    char str[VSNPRINTF_LEN];
+#else
     char *str;
+#endif
     int len;
     int ret;
 
@@ -120,15 +142,23 @@ int send_fmt_string (int socket, char *fmt_string, ...)
     else
         {
             va_start (args, fmt_string);
+#ifdef NO_VASPRINTF
+            len = vsnprintf (str, VSNPRINTF_LEN, fmt_string, args);
+#else
             len = vasprintf (&str, fmt_string, args);
+#endif
             va_end (args);
 
+#ifndef NO_VASPRINTF
             if (str == NULL) { perror ("allocation"); exit (1); }
+#endif
             ret = send (socket, str, len, 0);
 #ifdef DEBUG
             dbg_printf ("send_fmt_string: %s", str);
 #endif
+#ifndef NO_VASPRINTF
             free (str);
+#endif
             return ret;
         }
 }

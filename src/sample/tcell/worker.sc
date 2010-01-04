@@ -27,7 +27,7 @@
 (%include "rule/nestfunc-setrule.sh")
 
 ;; sched_setaffinityによってコアをワーカに貼り付ける
-(%defconstant USE-AFFINITY 1)
+;; (%defconstant USE-AFFINITY 1)
 (%ifdef* USE-AFFINITY 
   (c-exp "#define _GNU_SOURCE")
   (c-exp "#include<sched.h>"))

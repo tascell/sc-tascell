@@ -1,3 +1,4 @@
+OS=${shell uname}
 SC2C=sc2c
 XCC=xcc
 GCC=gcc #$(XCC)
@@ -5,6 +6,21 @@ ICC=icc
 OPT=-O2 -g $(MOPT)
 XCCOPT=-DCT=lightweight
 XCCCLOPT=-DCT=closure
+
+ifeq ($(OS),SunOS)
+    THROPTS=-lthread
+else
+    THROPTS=-lpthread
+endif
+LIBOPTS=$(THROPTS) -lm
+ifeq ($(OS),SunOS)
+    LIBOPTS += -lsocket -lnsl
+endif
+
+ifeq ($(OS),SunOS)
+    OPT += -DNO_VASPRINTF
+endif
+
 
 APPS=fib lu cmp pen pen6x17 nq grav matmul spanning
 
@@ -46,10 +62,6 @@ all-icc: $(ALL_ICC_PROGS)
 
 
 LIBS=sendrecv.c sock.c
-
-THROPTS=-lpthread
-LIBOPTS=$(THROPTS) -lm
-
 WORKER_LIBS=worker cmd-serial
 #WORKER_C=$(WORKER_GCC)
 WORKER_GCC=$(addsuffix -gcc.c,$(WORKER_LIBS))
