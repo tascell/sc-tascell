@@ -44,15 +44,13 @@ shift
 echo $BASE
 
 $C2SCPP -Y1$BASE $IFILE -o $BASE.se1 $*  \
-&& \
-cat $BASE.se2 $BASE.se3 >| $BASE.se4 \
-&& \
-$C2SCPP -Y2 $BASE.se4 -o $BASE.se5 \
-&& \
-sed -e 's/^#pragma[[:blank:]]\{1,\}c2sc_macroname[[:blank:]]*\(.*\)/#define \1 \\/' -e 's/^\$\(.*\)/\1/' $BASE.se5 >| $BASE.se6\
-&& \
-$C2SCPP -Y3 $BASE.se6 -o $BASE.se7  \
-&& \
-cat $BASE.se1 $BASE.se7 >| $BASE.se
+&& rm -f $BASE.se4 \
+&& cat $BASE.se2 $BASE.se3 > $BASE.se4 \
+&& $C2SCPP -Y2 $BASE.se4 -o $BASE.se5 \
+&& rm -f $BASE.se6 \
+&& sed -e 's/^#pragma[[:blank:]]\{1,\}c2sc_macroname[[:blank:]]*\(.*\)/#define \1 \\/' -e 's/^\$\(.*\)/\1/' $BASE.se5 > $BASE.se6\
+&& $C2SCPP -Y3 $BASE.se6 -o $BASE.se7  \
+&& rm -f $BASE.se \
+&& cat $BASE.se1 $BASE.se7 > $BASE.se
 
 #sed -E -e 's/^#pragma[[:blank:]]+c2sc_macroname[[:blank:]]*(.*)/#define \1 \\/' -e 's/^\$(.*)/\1/' $BASE.se5 >| $BASE.se6\

@@ -221,7 +221,7 @@
        (csym::proc-cmd pcmd body)
        )))
 
-(def threads (array (struct thread-data) 64))
+(def threads (array (struct thread-data) 128))
 (def prefetch-thr (ptr (struct thread-data)))
 (def prefetch-thr-id int)
 (def num-thrs unsigned-int)
