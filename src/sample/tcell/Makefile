@@ -114,15 +114,15 @@ $(WORKER_XCC): %-xcc.c: %.sc worker.sh
 	$(SC2C) -D NF-TYPE=XCC $<
 $(addsuffix .c,$(XCCLW_PROGS)): %-xcc.c: %.tcell
 	$(SC2C) -D NF-TYPE=XCC $<
-$(XCCLW_PROGS): %: $(WORKER_CLOS) $(LIBS) %.c
-	$(XCC) $(OPT) $(LIBOPTS) $+ -o $@
+$(XCCLW_PROGS): %: $(WORKER_XCC) $(LIBS) %.c
+	$(XCC) $(OPT) $(LIBOPTS) -fno-omit-frame-pointer $+ -o $@
 
 # XCC nested function (closure)
 $(WORKER_XCCCL): %-xcccl.c: %.sc worker.sh
 	$(SC2C) -D NF-TYPE=XCCCL $<
 $(addsuffix .c,$(XCCCL_PROGS)): %-xcccl.c: %.tcell
 	$(SC2C) -D NF-TYPE=XCCCL $<
-$(XCCCL_PROGS): %: $(WORKER_CLOS) $(LIBS) %.c
+$(XCCCL_PROGS): %: $(WORKER_XCCCL) $(LIBS) %.c
 	$(XCC) $(OPT) $(LIBOPTS) $+ -o $@
 
 

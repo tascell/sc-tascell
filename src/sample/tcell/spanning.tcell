@@ -27,10 +27,10 @@
 
 ;;; How to execute
 ;; task 0 0 0 4
-;; <graph-type>
-;; <algorithm>
-;; <show-graph-p>
-;; <show-tree-p>
+;; <graph-type>   ; 1: random, 2: 2D-torus, 3: hyper-cube, 4:bintree
+;; <algorithm>    ; 1: sequential (search-s2), 2: sequential (search), 3: parallel (search-p), 4: parallel (search-p-array)
+;; <show-graph-p> ; 0: no, 1: show by show-graph, 2: show by show-graph2
+;; <show-tree-p>  ; 0: no, 1: show by show-graph, 2: show by show-graph2
 
 (c-exp "#include<sys/time.h>")
 (c-exp "#include<stdlib.h>")
