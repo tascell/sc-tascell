@@ -27,11 +27,16 @@
 (%include "rule/nestfunc-setrule.sh")
 
 ;; sched_setaffinityによってコアをワーカに貼り付ける
-;; (%defconstant USE-AFFINITY 1)
-(%ifdef* USE-AFFINITY 
+(%ifndef* USE-AFFINITY
+  (%defconstant USE-AFFINITY SCHED))    ; one of SCHED(for Linux), PBIND(for Solaris)
+(%if* (eq 'USE-AFFINITY 'SCHED)
   (c-exp "#define _GNU_SOURCE")
   (c-exp "#include<sched.h>"))
-
+(%if* (eq 'USE-AFFINITY 'PBIND)
+  (c-exp "#include <sys/types.h>")
+  (c-exp "#include <sys/processor.h>")
+  (c-exp "#include <sys/procset.h>"))
+   
 ;; (c-exp "#define NDEBUG")
 (c-exp "#include<assert.h>")
 
@@ -411,7 +416,7 @@
 
 
 ;;; ワーカスレッドをコアに貼り付ける
-(%ifdef* USE-AFFINITY
+(%if* (eq 'USE-AFFINITY 'SCHED)
   (def (csym::worker-setaffinity n) (csym::fn void int)
     (def mask cpu-set-t)
     (csym::CPU-ZERO (ptr mask))
@@ -422,6 +427,26 @@
           (csym::exit -1)))
     (if (>= option.verbose 1)
         (csym::fprintf stderr "Bind worker to core %d~%" n)))
+  )
+
+(%if* (eq 'USE-AFFINITY 'PBIND)
+  (def (csym::worker-setaffinity pe) (csym::fn void int)
+    (def pe0 int pe)
+    (def p int)    
+    (if (>= pe (csym::sysconf csym::-SC-NPROCESSORS-ONLN))
+        (begin
+         (csym::fprintf stderr "Error in worker-setaffnity: too large pe~%")
+         (csym::exit -1)))
+    (for ((= p 0) (< p 65536) (inc p))
+      (if (and (== csym::P_ONLINE (csym::p_online p csym::P_STATUS))
+               (== 0 (dec pe)))
+          (break)))
+    ;; (csym::fprintf stderr "Bind worker to core %d~%" pe0)
+    (if (!= 0 (csym::processor-bind csym::P-LWPID csym::P-MYID p 0))
+        (begin
+          (csym::perror "Failed to set CPU affinity")
+          (csym::exit -1)))
+    (return))
   )
 
 ;;; ワーカのループ

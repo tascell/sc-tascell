@@ -38,7 +38,7 @@ extern int sv_socket;     /* defined in worker.sc */
 void send_int(int n)
 {
     char buf[16];
-    snprintf (buf, 16, "%ld\n", n);
+    snprintf (buf, 16, "%d\n", n);
     send_string (buf, sv_socket);
 }
 int recv_int(void)

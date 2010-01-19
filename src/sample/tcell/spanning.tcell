@@ -41,7 +41,10 @@
 ;;; 時々v-listの整合性をチェック
 ;; (%defconstant CHECK)
 ;;; search1-p での頂点再訪チェックにおけるメモリバリアの方法
-(%defconstant SEARCH-P-MEM-BARRIER-3)  ; 1 or 2 or 3 (default=3)
+(%ifndef* SEARCH-P-MEM-BARRIER-1
+  (%ifndef* SEARCH-P-MEM-BARRIER-2
+    (%ifndef* SEARCH-P-MEM-BARRIER-3
+      (%defconstant SEARCH-P-MEM-BARRIER-3)))) ; 1 or 2 or 3 (default=3)
 ;;; 統計情報をとる
 ;; (%defconstant STATISTICS)
 
@@ -73,7 +76,8 @@
 (%defconstant V-LIST-ALLOC-SIZE 600)
 ;;; (%defconstant V-LIST-ALLOC-SIZE 200)
 
-(%defconstant CALL-BOUND 800)
+(%ifndef* CALL-BOUND
+  (%defconstant CALL-BOUND 30))
 
 ;;;;;;;;;;
 (def V-Length int)                      ; グラフの全頂点数
@@ -910,6 +914,72 @@
   (for ((= e 0) (< e E-Length) (inc e))
     (csym::fprintf stderr "%9d => %d -> e: %d~%" e (fref (aref EE e) next-v) (fref (aref EE e) next-e))))
 
+(def (csym::dump-graph name file) (csym::fn void (ptr char) (ptr char))
+  (defs int v e)
+  (def fp (ptr FILE))
+  (= fp (csym::fopen file "w"))
+  ;; グラフ名
+  ;; "vertex"
+  ;; # of vertex
+  ;; degree first-e
+  ;; ...
+  ;; "edge"
+  ;; # of edges
+  ;; next-v next-e
+  ;; ...
+  (csym::fprintf fp "%s~%" name)
+  (csym::fprintf fp "vertex~%")
+  (csym::fprintf fp "%d~%" V-Length)
+  (for ((= v 0) (< v V-Length) (inc v))
+    (csym::fprintf fp "%d %d~%" (fref (aref VV v) degree) (fref (aref VV v) first-e)))
+  (csym::fprintf fp "edge~%")
+  (csym::fprintf fp "%d~%" E-Length)
+  (for ((= e 0) (< e E-Length) (inc e))
+    (csym::fprintf fp "%d %d~%" (fref (aref EE e) next-v) (fref (aref EE e) next-e)))
+  (csym::fclose fp)
+  (csym::fprintf stderr "Graph \"%s\" successfully dumped.~%" name)
+  (return))
+
+(def (csym::expect-int str expct n) (csym::fn void (ptr char) int int)
+  (if (!= expct n)
+      (begin
+        (csym::fprintf stderr "%s: expectes %d but %d" str expct n)
+        (csym::exit -1)))
+  (return))
+
+(def (csym::read-graph file) (csym::fn void (ptr char))
+  (defs int v e)
+  (def name (array char 1024))
+  (def str (array char 1024))
+  (def fp (ptr FILE))
+  (= fp (csym::fopen file "r"))
+  (csym::expect-int "fscanf" 1 (csym::fscanf fp "%s" name))
+  (csym::expect-int "fscanf" 1 (csym::fscanf fp "%s" str))
+  (if (not (== (aref str 0) #\v)) ; expects "vertex"
+      (begin
+        (csym::fprintf stderr "File format error~%")
+        (csym::exit -1)))
+  (csym::expect-int "fscanf" 1 (csym::fscanf fp "%d" (ptr V-Length)))
+  (for ((= v 0) (< v V-Length) (inc v))
+    (= (fref (aref VV v) parent) 0)
+    (csym::expect-int
+     "fscanf" 2
+     (csym::fscanf fp "%d %d" (ptr (fref (aref VV v) degree)) (ptr (fref (aref VV v) first-e)))))
+  (csym::expect-int "fscanf" 1 (csym::fscanf fp "%s" str))
+  (if (not (== (aref str 0) #\e)) ; expects "edge"
+      (begin
+        (csym::fprintf stderr "File format error~%")
+        (csym::exit -1)))
+  (csym::expect-int "fscanf" 1 (csym::fscanf fp "%d" (ptr E-Length)))
+  (for ((= e 0) (< e E-Length) (inc e))
+    (csym::expect-int
+     "fscanf" 2
+     (csym::fscanf fp "%d %d" (ptr (fref (aref EE e) next-v)) (ptr (fref (aref EE e) next-e)))))
+  (csym::fclose fp)
+  (csym::fprintf stderr "Graph \"%s\" successfully loaded.~%" name)
+  (return))
+
+
 ;;; parentの値が想定外のものになっていないかチェック
 (def (csym::check-graph) (csym::fn void)
   (def v int)
@@ -932,20 +1002,35 @@
 (def (task-body spanning-start)
   (def tp (array (struct timeval) 2))
   (def algstr (ptr char))
+  (def gname (ptr char))
   
   (%ifdef* COUNT-NTASK
     (++ WDATA.n-task)
     (DEBUG-PRINT 1 "Worker %d starts %d-th task.~%" WORKER-ID WDATA.n-task))
-
+  (csym::fprintf stderr "CALL-BOUND: %d~%" CALL-BOUND)
+  (csym::fprintf stderr "BARRIER: %s~%"
+                 (%ifdef* SEARCH-P-MEM-BARRIER-1
+                   "type 1 (cas)"
+                   %else
+                   (%ifdef* SEARCH-P-MEM-BARRIER-2
+                     "type 2 (atomic_read_to_finish_write->atomic_write)"
+                     %else
+                     "type 3 (atomic_read->atomic_write_to_start_read)")))
+  
   ;; constructing graph
   (csym::gettimeofday tp 0)
   (switch this.graph
-    (case 1) (csym::make-random (* 2000 2000) 2)    (break)
-    (case 2) (csym::make-2dt 2000)                  (break)
-    (case 3) (csym::make-ncube 20)                  (break)
-    (case 4) (csym::make-bintree 24)                (break)
-    (case 5) (csym::make-ncube 21)                  (break)
-    (default) (csym::make-random (* 2000 2000) 2)   (break))
+    (case 1) (csym::make-random (* 2000 2000) 2)   (= gname "Random4000000.graph") (break)
+    (case 2) (csym::make-2dt 2000)                 (= gname "2DTorus.graph") (break)
+    (case 3) (csym::make-ncube 20)                 (= gname "HCube20.graph") (break)
+    (case 4) (csym::make-bintree 24)               (= gname "Bintree24.graph") (break)
+    (case 5) (csym::make-ncube 21)                 (= gname "HCube21.graph") (break)
+    (case 11) (= gname "Random4000000.graph") (csym::read-graph gname) (break)
+;     (case 12) (= gname "2DTorus.graph") (csym::read-graph gname) (break)
+;     (case 13) (= gname "HCube20.graph") (csym::read-graph gname) (break)
+;     (case 14) (= gname "Bintree24.graph") (csym::read-graph gname) (break)
+;     (case 15) (= gname "HCube21.graph") (csym::read-graph gname) (break)
+    (default) (csym::make-random (* 2000 2000) 2)  (= gname "Random4000000.graph") (break))
   (csym::gettimeofday (+ tp 1) 0)
   (csym::fprintf stderr "Graph constuction time: %lf~%" (csym::elapsed-time tp))
   (csym::fprintf stderr "v: %d e: %d~%" V-Length E-Length)
@@ -962,9 +1047,9 @@
     (case 2) (csym::search 0)    (= algstr "search")    (break)
     (case 3) (search-p 0)        (= algstr "search-p")  (break)
     (case 4) (search-p-array 0)  (= algstr "search-p-array") (break)
+    (case 99) (csym::dump-graph gname gname) (csym::exit 0)
     (default) (csym::search-s2 0) (= algstr "search-s2") (break))
   (csym::gettimeofday (+ tp 1) 0)
-  (csym::fprintf stderr "CALL-BOUND: %d~%" CALL-BOUND)
   (csym::fprintf stderr "%s finished.~%time: %lf~%" algstr (csym::elapsed-time tp))
   (%ifdef* STATISTICS (csym::print-statistics))
 
