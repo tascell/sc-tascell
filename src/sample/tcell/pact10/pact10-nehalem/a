@@ -1,0 +1,84 @@
+cilk/affinity 7 cilk/st-par-cilk-s --nproc 7 6 2
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 0.542805
+time: 0.547177
+time: 0.559355
+cilk/affinity 7 cilk/st-par-cilk --nproc 7 6 2
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 0.337337
+time: 0.340358
+time: 0.345035
+cilk/affinity 7 cilk/st-par-cilk-s-800 --nproc 7 6 2
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 0.898212
+time: 0.898758
+time: 0.908360
+cilk/affinity 7 cilk/st-par-cilk-800 --nproc 7 6 2
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 0.603763
+time: 0.606231
+time: 0.622001
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 7 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 0.283453
+time: 0.284159
+time: 0.284726
+../pact10-nehalem-tcell/spanning-xcccl-cas-800 -n 7 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 0.268861
+time: 0.275355
+time: 0.275923
+cilk/affinity 8 cilk/st-par-cilk-s --nproc 8 6 2
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 0.540694
+time: 0.541210
+time: 0.551950
+cilk/affinity 8 cilk/st-par-cilk --nproc 8 6 2
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 0.301406
+time: 0.304642
+time: 0.308727
+cilk/affinity 8 cilk/st-par-cilk-s-800 --nproc 8 6 2
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 0.875893
+time: 0.885923
+time: 0.896422
+cilk/affinity 8 cilk/st-par-cilk-800 --nproc 8 6 2
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 0.598268
+time: 0.600487
+time: 0.624117
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 8 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 0.251927
+time: 0.254821
+time: 0.255544
+../pact10-nehalem-tcell/spanning-xcccl-cas-800 -n 8 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 0.244832
+time: 0.247842
+time: 0.249278

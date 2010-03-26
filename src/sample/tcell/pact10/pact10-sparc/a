@@ -1,0 +1,42 @@
+cilk/st-par3-cilk-s --nproc 128 6 2
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 9.452001
+time: 9.537165
+time: 9.606682
+cilk/st-par3-cilk --nproc 128 6 2
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 3.439899
+time: 3.495324
+time: 3.516406
+cilk/st-par3-cilk-s-800 --nproc 128 6 2
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 4.144800
+time: 4.232868
+time: 4.260025
+cilk/st-par3-cilk-800 --nproc 128 6 2
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 3.181597
+time: 3.436068
+time: 3.494307
+../pact10-sparc-tcell/spanning-xcccl-membar-30 -n 128 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 1.666366
+time: 1.670421
+time: 1.710298
+../pact10-sparc-tcell/spanning-xcccl-membar-800 -n 128 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+4000x4000 nodes 2D torus
+time: 0.779902
+time: 0.878419
+time: 0.888344

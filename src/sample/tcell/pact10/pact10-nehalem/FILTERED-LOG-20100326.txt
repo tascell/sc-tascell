@@ -1,0 +1,385 @@
+./st-serial-call 6 1
+4000x4000 nodes 2D torus
+time: 1.138423
+4000x4000 nodes 2D torus
+time: 1.152289
+4000x4000 nodes 2D torus
+time: 1.138208
+./st-serial-call 6 2
+4000x4000 nodes 2D torus
+time: 1.383994
+4000x4000 nodes 2D torus
+time: 1.383992
+4000x4000 nodes 2D torus
+time: 1.384039
+./st-serial-call-cas 6 2
+4000x4000 nodes 2D torus
+time: 1.432222
+4000x4000 nodes 2D torus
+time: 1.432217
+4000x4000 nodes 2D torus
+time: 1.431961
+./st-serial-call-membar 6 2
+4000x4000 nodes 2D torus
+time: 1.767873
+4000x4000 nodes 2D torus
+time: 1.767226
+4000x4000 nodes 2D torus
+time: 1.767407
+./st-serial-call-800 6 2
+4000x4000 nodes 2D torus
+time: 1.414073
+4000x4000 nodes 2D torus
+time: 1.413579
+4000x4000 nodes 2D torus
+time: 1.414229
+./st-serial-call-cas-800 6 2
+4000x4000 nodes 2D torus
+time: 1.456470
+4000x4000 nodes 2D torus
+time: 1.456529
+4000x4000 nodes 2D torus
+time: 1.456627
+./st-serial-call-membar-800 6 2
+4000x4000 nodes 2D torus
+time: 1.787309
+4000x4000 nodes 2D torus
+time: 1.787674
+4000x4000 nodes 2D torus
+time: 1.787634
+cilk/affinity 1 cilk/st-par-cilk-s --nproc 1 6 2
+4000x4000 nodes 2D torus
+time: 2.542883
+4000x4000 nodes 2D torus
+time: 2.543640
+4000x4000 nodes 2D torus
+time: 2.543082
+cilk/affinity 1 cilk/st-par-cilk --nproc 1 6 2
+4000x4000 nodes 2D torus
+time: 2.118491
+4000x4000 nodes 2D torus
+time: 2.118258
+4000x4000 nodes 2D torus
+time: 2.118859
+cilk/affinity 1 cilk/st-par-cilk-s-800 --nproc 1 6 2
+4000x4000 nodes 2D torus
+time: 2.414558
+4000x4000 nodes 2D torus
+time: 2.392537
+4000x4000 nodes 2D torus
+time: 2.393059
+cilk/affinity 1 cilk/st-par-cilk-800 --nproc 1 6 2
+4000x4000 nodes 2D torus
+time: 2.126482
+4000x4000 nodes 2D torus
+time: 2.126575
+4000x4000 nodes 2D torus
+time: 2.126316
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 1 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 1.580253
+4000x4000 nodes 2D torus
+time: 1.578319
+4000x4000 nodes 2D torus
+time: 1.580436
+../pact10-nehalem-tcell/spanning-xcccl-cas-800 -n 1 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 1.583377
+4000x4000 nodes 2D torus
+time: 1.583678
+4000x4000 nodes 2D torus
+time: 1.581263
+cilk/affinity 2 cilk/st-par-cilk-s --nproc 2 6 2
+4000x4000 nodes 2D torus
+time: 1.328728
+4000x4000 nodes 2D torus
+time: 1.325513
+4000x4000 nodes 2D torus
+time: 1.326449
+cilk/affinity 2 cilk/st-par-cilk --nproc 2 6 2
+4000x4000 nodes 2D torus
+time: 1.062946
+4000x4000 nodes 2D torus
+time: 1.064397
+4000x4000 nodes 2D torus
+time: 1.066102
+cilk/affinity 2 cilk/st-par-cilk-s-800 --nproc 2 6 2
+4000x4000 nodes 2D torus
+time: 1.303527
+4000x4000 nodes 2D torus
+time: 1.293147
+4000x4000 nodes 2D torus
+time: 1.291331
+cilk/affinity 2 cilk/st-par-cilk-800 --nproc 2 6 2
+4000x4000 nodes 2D torus
+time: 1.118773
+4000x4000 nodes 2D torus
+time: 1.117388
+4000x4000 nodes 2D torus
+time: 1.117830
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 2 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 0.807754
+4000x4000 nodes 2D torus
+time: 0.809523
+4000x4000 nodes 2D torus
+time: 0.808009
+../pact10-nehalem-tcell/spanning-xcccl-cas-800 -n 2 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 0.831691
+4000x4000 nodes 2D torus
+time: 0.827239
+4000x4000 nodes 2D torus
+time: 0.832262
+cilk/affinity 3 cilk/st-par-cilk-s --nproc 3 6 2
+4000x4000 nodes 2D torus
+time: 0.923925
+4000x4000 nodes 2D torus
+time: 0.928442
+4000x4000 nodes 2D torus
+time: 0.930314
+cilk/affinity 3 cilk/st-par-cilk --nproc 3 6 2
+4000x4000 nodes 2D torus
+time: 0.741524
+4000x4000 nodes 2D torus
+time: 0.742430
+4000x4000 nodes 2D torus
+time: 0.741840
+cilk/affinity 3 cilk/st-par-cilk-s-800 --nproc 3 6 2
+4000x4000 nodes 2D torus
+time: 0.937538
+4000x4000 nodes 2D torus
+time: 0.934098
+4000x4000 nodes 2D torus
+time: 0.946243
+cilk/affinity 3 cilk/st-par-cilk-800 --nproc 3 6 2
+4000x4000 nodes 2D torus
+time: 0.807451
+4000x4000 nodes 2D torus
+time: 0.780783
+4000x4000 nodes 2D torus
+time: 0.782776
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 3 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 0.651173
+4000x4000 nodes 2D torus
+time: 0.645984
+4000x4000 nodes 2D torus
+time: 0.644193
+../pact10-nehalem-tcell/spanning-xcccl-cas-800 -n 3 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 0.625301
+4000x4000 nodes 2D torus
+time: 0.619861
+4000x4000 nodes 2D torus
+time: 0.633503
+cilk/affinity 4 cilk/st-par-cilk-s --nproc 4 6 2
+4000x4000 nodes 2D torus
+time: 0.722198
+4000x4000 nodes 2D torus
+time: 0.719225
+4000x4000 nodes 2D torus
+time: 0.720370
+cilk/affinity 4 cilk/st-par-cilk --nproc 4 6 2
+4000x4000 nodes 2D torus
+time: 0.567532
+4000x4000 nodes 2D torus
+time: 0.568157
+4000x4000 nodes 2D torus
+time: 0.570423
+cilk/affinity 4 cilk/st-par-cilk-s-800 --nproc 4 6 2
+4000x4000 nodes 2D torus
+time: 0.755851
+4000x4000 nodes 2D torus
+time: 0.760398
+4000x4000 nodes 2D torus
+time: 0.756694
+cilk/affinity 4 cilk/st-par-cilk-800 --nproc 4 6 2
+4000x4000 nodes 2D torus
+time: 0.644187
+4000x4000 nodes 2D torus
+time: 0.626893
+4000x4000 nodes 2D torus
+time: 0.610183
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 4 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 0.511549
+4000x4000 nodes 2D torus
+time: 0.510075
+4000x4000 nodes 2D torus
+time: 0.507408
+../pact10-nehalem-tcell/spanning-xcccl-cas-800 -n 4 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 0.510819
+4000x4000 nodes 2D torus
+time: 0.514206
+4000x4000 nodes 2D torus
+time: 0.511379
+cilk/affinity 5 cilk/st-par-cilk-s --nproc 5 6 2
+4000x4000 nodes 2D torus
+time: 0.597568
+4000x4000 nodes 2D torus
+time: 0.609694
+4000x4000 nodes 2D torus
+time: 0.595111
+cilk/affinity 5 cilk/st-par-cilk --nproc 5 6 2
+4000x4000 nodes 2D torus
+time: 0.463946
+4000x4000 nodes 2D torus
+time: 0.456743
+4000x4000 nodes 2D torus
+time: 0.460693
+cilk/affinity 5 cilk/st-par-cilk-s-800 --nproc 5 6 2
+4000x4000 nodes 2D torus
+time: 0.852148
+4000x4000 nodes 2D torus
+time: 0.857281
+4000x4000 nodes 2D torus
+time: 0.848752
+cilk/affinity 5 cilk/st-par-cilk-800 --nproc 5 6 2
+4000x4000 nodes 2D torus
+time: 0.647185
+4000x4000 nodes 2D torus
+time: 0.651131
+4000x4000 nodes 2D torus
+time: 0.627609
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 5 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 0.391564
+4000x4000 nodes 2D torus
+time: 0.390959
+4000x4000 nodes 2D torus
+time: 0.388993
+../pact10-nehalem-tcell/spanning-xcccl-cas-800 -n 5 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 0.383700
+4000x4000 nodes 2D torus
+time: 0.386557
+4000x4000 nodes 2D torus
+time: 0.388313
+cilk/affinity 6 cilk/st-par-cilk-s --nproc 6 6 2
+4000x4000 nodes 2D torus
+time: 0.588542
+4000x4000 nodes 2D torus
+time: 0.640315
+4000x4000 nodes 2D torus
+time: 0.587644
+cilk/affinity 6 cilk/st-par-cilk --nproc 6 6 2
+4000x4000 nodes 2D torus
+time: 0.379184
+4000x4000 nodes 2D torus
+time: 0.398096
+4000x4000 nodes 2D torus
+time: 0.473455
+cilk/affinity 6 cilk/st-par-cilk-s-800 --nproc 6 6 2
+4000x4000 nodes 2D torus
+time: 0.877555
+4000x4000 nodes 2D torus
+time: 0.842792
+4000x4000 nodes 2D torus
+time: 0.858850
+cilk/affinity 6 cilk/st-par-cilk-800 --nproc 6 6 2
+4000x4000 nodes 2D torus
+time: 0.628059
+4000x4000 nodes 2D torus
+time: 0.602971
+4000x4000 nodes 2D torus
+time: 0.643756
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 6 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 0.328504
+4000x4000 nodes 2D torus
+time: 0.328443
+4000x4000 nodes 2D torus
+time: 0.329571
+../pact10-nehalem-tcell/spanning-xcccl-cas-800 -n 6 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 0.321425
+4000x4000 nodes 2D torus
+time: 0.314096
+4000x4000 nodes 2D torus
+time: 0.324087
+cilk/affinity 7 cilk/st-par-cilk-s --nproc 7 6 2
+4000x4000 nodes 2D torus
+time: 0.542805
+4000x4000 nodes 2D torus
+time: 0.547177
+4000x4000 nodes 2D torus
+time: 0.559355
+cilk/affinity 7 cilk/st-par-cilk --nproc 7 6 2
+4000x4000 nodes 2D torus
+time: 0.340358
+4000x4000 nodes 2D torus
+time: 0.337337
+4000x4000 nodes 2D torus
+time: 0.345035
+cilk/affinity 7 cilk/st-par-cilk-s-800 --nproc 7 6 2
+4000x4000 nodes 2D torus
+time: 0.898758
+4000x4000 nodes 2D torus
+time: 0.908360
+4000x4000 nodes 2D torus
+time: 0.898212
+cilk/affinity 7 cilk/st-par-cilk-800 --nproc 7 6 2
+4000x4000 nodes 2D torus
+time: 0.603763
+4000x4000 nodes 2D torus
+time: 0.606231
+4000x4000 nodes 2D torus
+time: 0.622001
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 7 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 0.283453
+4000x4000 nodes 2D torus
+time: 0.284159
+4000x4000 nodes 2D torus
+time: 0.284726
+../pact10-nehalem-tcell/spanning-xcccl-cas-800 -n 7 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 0.275923
+4000x4000 nodes 2D torus
+time: 0.275355
+4000x4000 nodes 2D torus
+time: 0.268861
+cilk/affinity 8 cilk/st-par-cilk-s --nproc 8 6 2
+4000x4000 nodes 2D torus
+time: 0.541210
+4000x4000 nodes 2D torus
+time: 0.540694
+4000x4000 nodes 2D torus
+time: 0.551950
+cilk/affinity 8 cilk/st-par-cilk --nproc 8 6 2
+4000x4000 nodes 2D torus
+time: 0.304642
+4000x4000 nodes 2D torus
+time: 0.308727
+4000x4000 nodes 2D torus
+time: 0.301406
+cilk/affinity 8 cilk/st-par-cilk-s-800 --nproc 8 6 2
+4000x4000 nodes 2D torus
+time: 0.896422
+4000x4000 nodes 2D torus
+time: 0.875893
+4000x4000 nodes 2D torus
+time: 0.885923
+cilk/affinity 8 cilk/st-par-cilk-800 --nproc 8 6 2
+4000x4000 nodes 2D torus
+time: 0.600487
+4000x4000 nodes 2D torus
+time: 0.598268
+4000x4000 nodes 2D torus
+time: 0.624117
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 8 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 0.255544
+4000x4000 nodes 2D torus
+time: 0.251927
+4000x4000 nodes 2D torus
+time: 0.254821
+../pact10-nehalem-tcell/spanning-xcccl-cas-800 -n 8 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 0.247842
+4000x4000 nodes 2D torus
+time: 0.244832
+4000x4000 nodes 2D torus
+time: 0.249278
