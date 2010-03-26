@@ -1,0 +1,1393 @@
+./st-serial-call 4 1
+Depth 24 binary tree
+time: 0.386385
+Depth 24 binary tree
+time: 0.388189
+Depth 24 binary tree
+time: 0.386760
+./st-serial-call 4 2
+Depth 24 binary tree
+time: 0.507060
+Depth 24 binary tree
+time: 0.505867
+Depth 24 binary tree
+time: 0.506822
+./st-serial-call-cas 4 2
+Depth 24 binary tree
+time: 0.585729
+Depth 24 binary tree
+time: 0.585259
+Depth 24 binary tree
+time: 0.585440
+./st-serial-call-membar 4 2
+Depth 24 binary tree
+time: 0.839083
+Depth 24 binary tree
+time: 0.842018
+Depth 24 binary tree
+time: 0.859368
+./st-serial-call-800 4 2
+Depth 24 binary tree
+time: 0.506373
+Depth 24 binary tree
+time: 0.515075
+Depth 24 binary tree
+time: 0.506617
+./st-serial-call-cas-800 4 2
+Depth 24 binary tree
+time: 0.596976
+Depth 24 binary tree
+time: 0.585622
+Depth 24 binary tree
+time: 0.596568
+./st-serial-call-membar-800 4 2
+Depth 24 binary tree
+time: 0.842099
+Depth 24 binary tree
+time: 0.844315
+Depth 24 binary tree
+time: 0.842262
+cilk/affinity 1 cilk/st-par-cilk-s --nproc 1 4 2
+Depth 24 binary tree
+time: 0.931782
+Depth 24 binary tree
+time: 0.932758
+Depth 24 binary tree
+time: 0.932802
+cilk/affinity 1 cilk/st-par3-cilk-s --nproc 1 4 2
+Depth 24 binary tree
+time: 1.118481
+Depth 24 binary tree
+time: 1.118792
+Depth 24 binary tree
+time: 1.118846
+cilk/affinity 1 cilk/st-par-cilk --nproc 1 4 2
+Depth 24 binary tree
+time: 0.970929
+Depth 24 binary tree
+time: 0.969252
+Depth 24 binary tree
+time: 0.966180
+cilk/affinity 1 cilk/st-par3-cilk --nproc 1 4 2
+Depth 24 binary tree
+time: 1.150586
+Depth 24 binary tree
+time: 1.152959
+Depth 24 binary tree
+time: 1.157155
+cilk/affinity 1 cilk/st-par-cilk-s-800 --nproc 1 4 2
+Depth 24 binary tree
+time: 0.931429
+Depth 24 binary tree
+time: 0.931866
+Depth 24 binary tree
+time: 0.931576
+cilk/affinity 1 cilk/st-par3-cilk-s-800 --nproc 1 4 2
+Depth 24 binary tree
+time: 1.118355
+Depth 24 binary tree
+time: 1.117705
+Depth 24 binary tree
+time: 1.118494
+cilk/affinity 1 cilk/st-par-cilk-800 --nproc 1 4 2
+Depth 24 binary tree
+time: 0.970091
+Depth 24 binary tree
+time: 0.970762
+Depth 24 binary tree
+time: 0.969955
+cilk/affinity 1 cilk/st-par3-cilk-800 --nproc 1 4 2
+Depth 24 binary tree
+time: 1.156765
+Depth 24 binary tree
+time: 1.157613
+Depth 24 binary tree
+time: 1.157097
+../spaa10-nehalem-tcell/spanning-clos-cas-30 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.796792
+Depth 24 binary tree (16777215 vertices)
+time: 0.796734
+Depth 24 binary tree (16777215 vertices)
+time: 0.797459
+../spaa10-nehalem-tcell/spanning-clos-membar-30 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.994062
+Depth 24 binary tree (16777215 vertices)
+time: 0.994378
+Depth 24 binary tree (16777215 vertices)
+time: 0.988479
+../spaa10-nehalem-tcell/spanning-lw-cas-30 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.677993
+Depth 24 binary tree (16777215 vertices)
+time: 0.679311
+Depth 24 binary tree (16777215 vertices)
+time: 0.678976
+../spaa10-nehalem-tcell/spanning-lw-membar-30 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.871648
+Depth 24 binary tree (16777215 vertices)
+time: 0.871580
+Depth 24 binary tree (16777215 vertices)
+time: 0.872530
+../spaa10-nehalem-tcell/spanning-xcc-cas-30 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.600941
+Depth 24 binary tree (16777215 vertices)
+time: 0.601970
+Depth 24 binary tree (16777215 vertices)
+time: 0.611655
+../spaa10-nehalem-tcell/spanning-xcc-membar-30 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.857410
+Depth 24 binary tree (16777215 vertices)
+time: 0.857641
+Depth 24 binary tree (16777215 vertices)
+time: 0.856856
+../spaa10-nehalem-tcell/spanning-xcccl-cas-30 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.630286
+Depth 24 binary tree (16777215 vertices)
+time: 0.630104
+Depth 24 binary tree (16777215 vertices)
+time: 0.630113
+../spaa10-nehalem-tcell/spanning-xcccl-membar-30 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.829253
+Depth 24 binary tree (16777215 vertices)
+time: 0.829657
+Depth 24 binary tree (16777215 vertices)
+time: 0.824366
+../spaa10-nehalem-tcell/spanning-clos-cas-800 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.794727
+Depth 24 binary tree (16777215 vertices)
+time: 0.795521
+Depth 24 binary tree (16777215 vertices)
+time: 0.795592
+../spaa10-nehalem-tcell/spanning-clos-membar-800 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.990079
+Depth 24 binary tree (16777215 vertices)
+time: 0.993196
+Depth 24 binary tree (16777215 vertices)
+time: 0.992364
+../spaa10-nehalem-tcell/spanning-lw-cas-800 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.680024
+Depth 24 binary tree (16777215 vertices)
+time: 0.679962
+Depth 24 binary tree (16777215 vertices)
+time: 0.679598
+../spaa10-nehalem-tcell/spanning-lw-membar-800 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.869797
+Depth 24 binary tree (16777215 vertices)
+time: 0.871439
+Depth 24 binary tree (16777215 vertices)
+time: 0.871495
+../spaa10-nehalem-tcell/spanning-xcc-cas-800 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.601484
+Depth 24 binary tree (16777215 vertices)
+time: 0.601261
+Depth 24 binary tree (16777215 vertices)
+time: 0.601297
+../spaa10-nehalem-tcell/spanning-xcc-membar-800 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.840819
+Depth 24 binary tree (16777215 vertices)
+time: 0.841335
+Depth 24 binary tree (16777215 vertices)
+time: 0.840990
+../spaa10-nehalem-tcell/spanning-xcccl-cas-800 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.630882
+Depth 24 binary tree (16777215 vertices)
+time: 0.630760
+Depth 24 binary tree (16777215 vertices)
+time: 0.630562
+../spaa10-nehalem-tcell/spanning-xcccl-membar-800 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.829809
+Depth 24 binary tree (16777215 vertices)
+time: 0.829224
+Depth 24 binary tree (16777215 vertices)
+time: 0.827003
+cilk/affinity 2 cilk/st-par-cilk-s --nproc 2 4 2
+Depth 24 binary tree
+time: 0.475442
+Depth 24 binary tree
+time: 0.475448
+Depth 24 binary tree
+time: 0.475862
+cilk/affinity 2 cilk/st-par3-cilk-s --nproc 2 4 2
+Depth 24 binary tree
+time: 0.574929
+Depth 24 binary tree
+time: 0.576163
+Depth 24 binary tree
+time: 0.576409
+cilk/affinity 2 cilk/st-par-cilk --nproc 2 4 2
+Depth 24 binary tree
+time: 0.483039
+Depth 24 binary tree
+time: 0.482886
+Depth 24 binary tree
+time: 0.482539
+cilk/affinity 2 cilk/st-par3-cilk --nproc 2 4 2
+Depth 24 binary tree
+time: 0.583007
+Depth 24 binary tree
+time: 0.581125
+Depth 24 binary tree
+time: 0.580034
+cilk/affinity 2 cilk/st-par-cilk-s-800 --nproc 2 4 2
+Depth 24 binary tree
+time: 0.475901
+Depth 24 binary tree
+time: 0.477200
+Depth 24 binary tree
+time: 0.480022
+cilk/affinity 2 cilk/st-par3-cilk-s-800 --nproc 2 4 2
+Depth 24 binary tree
+time: 0.577009
+Depth 24 binary tree
+time: 0.577681
+Depth 24 binary tree
+time: 0.576839
+cilk/affinity 2 cilk/st-par-cilk-800 --nproc 2 4 2
+Depth 24 binary tree
+time: 0.482862
+Depth 24 binary tree
+time: 0.483446
+Depth 24 binary tree
+time: 0.482616
+cilk/affinity 2 cilk/st-par3-cilk-800 --nproc 2 4 2
+Depth 24 binary tree
+time: 0.579023
+Depth 24 binary tree
+time: 0.578806
+Depth 24 binary tree
+time: 0.578949
+../spaa10-nehalem-tcell/spanning-clos-cas-30 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.403025
+Depth 24 binary tree (16777215 vertices)
+time: 0.402779
+Depth 24 binary tree (16777215 vertices)
+time: 0.405128
+../spaa10-nehalem-tcell/spanning-clos-membar-30 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.501150
+Depth 24 binary tree (16777215 vertices)
+time: 0.501233
+Depth 24 binary tree (16777215 vertices)
+time: 0.499428
+../spaa10-nehalem-tcell/spanning-lw-cas-30 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.344231
+Depth 24 binary tree (16777215 vertices)
+time: 0.344236
+Depth 24 binary tree (16777215 vertices)
+time: 0.343740
+../spaa10-nehalem-tcell/spanning-lw-membar-30 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.440078
+Depth 24 binary tree (16777215 vertices)
+time: 0.439758
+Depth 24 binary tree (16777215 vertices)
+time: 0.439562
+../spaa10-nehalem-tcell/spanning-xcc-cas-30 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.303575
+Depth 24 binary tree (16777215 vertices)
+time: 0.303997
+Depth 24 binary tree (16777215 vertices)
+time: 0.303973
+../spaa10-nehalem-tcell/spanning-xcc-membar-30 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.424393
+Depth 24 binary tree (16777215 vertices)
+time: 0.423990
+Depth 24 binary tree (16777215 vertices)
+time: 0.427251
+../spaa10-nehalem-tcell/spanning-xcccl-cas-30 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.318430
+Depth 24 binary tree (16777215 vertices)
+time: 0.318858
+Depth 24 binary tree (16777215 vertices)
+time: 0.318014
+../spaa10-nehalem-tcell/spanning-xcccl-membar-30 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.420532
+Depth 24 binary tree (16777215 vertices)
+time: 0.417825
+Depth 24 binary tree (16777215 vertices)
+time: 0.417846
+../spaa10-nehalem-tcell/spanning-clos-cas-800 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.401796
+Depth 24 binary tree (16777215 vertices)
+time: 0.402281
+Depth 24 binary tree (16777215 vertices)
+time: 0.402637
+../spaa10-nehalem-tcell/spanning-clos-membar-800 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.501130
+Depth 24 binary tree (16777215 vertices)
+time: 0.504998
+Depth 24 binary tree (16777215 vertices)
+time: 0.505961
+../spaa10-nehalem-tcell/spanning-lw-cas-800 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.346609
+Depth 24 binary tree (16777215 vertices)
+time: 0.346867
+Depth 24 binary tree (16777215 vertices)
+time: 0.346733
+../spaa10-nehalem-tcell/spanning-lw-membar-800 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.443380
+Depth 24 binary tree (16777215 vertices)
+time: 0.449837
+Depth 24 binary tree (16777215 vertices)
+time: 0.443318
+../spaa10-nehalem-tcell/spanning-xcc-cas-800 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.304795
+Depth 24 binary tree (16777215 vertices)
+time: 0.305913
+Depth 24 binary tree (16777215 vertices)
+time: 0.306405
+../spaa10-nehalem-tcell/spanning-xcc-membar-800 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.428838
+Depth 24 binary tree (16777215 vertices)
+time: 0.427796
+Depth 24 binary tree (16777215 vertices)
+time: 0.424011
+../spaa10-nehalem-tcell/spanning-xcccl-cas-800 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.318526
+Depth 24 binary tree (16777215 vertices)
+time: 0.319035
+Depth 24 binary tree (16777215 vertices)
+time: 0.319123
+../spaa10-nehalem-tcell/spanning-xcccl-membar-800 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.418121
+Depth 24 binary tree (16777215 vertices)
+time: 0.416881
+Depth 24 binary tree (16777215 vertices)
+time: 0.418091
+cilk/affinity 3 cilk/st-par-cilk-s --nproc 3 4 2
+Depth 24 binary tree
+time: 0.314818
+Depth 24 binary tree
+time: 0.314095
+Depth 24 binary tree
+time: 0.314018
+cilk/affinity 3 cilk/st-par3-cilk-s --nproc 3 4 2
+Depth 24 binary tree
+time: 0.376017
+Depth 24 binary tree
+time: 0.376045
+Depth 24 binary tree
+time: 0.375874
+cilk/affinity 3 cilk/st-par-cilk --nproc 3 4 2
+Depth 24 binary tree
+time: 0.335011
+Depth 24 binary tree
+time: 0.326683
+Depth 24 binary tree
+time: 0.327021
+cilk/affinity 3 cilk/st-par3-cilk --nproc 3 4 2
+Depth 24 binary tree
+time: 0.395122
+Depth 24 binary tree
+time: 0.392482
+Depth 24 binary tree
+time: 0.395065
+cilk/affinity 3 cilk/st-par-cilk-s-800 --nproc 3 4 2
+Depth 24 binary tree
+time: 0.313780
+Depth 24 binary tree
+time: 0.313615
+Depth 24 binary tree
+time: 0.314308
+cilk/affinity 3 cilk/st-par3-cilk-s-800 --nproc 3 4 2
+Depth 24 binary tree
+time: 0.376179
+Depth 24 binary tree
+time: 0.376456
+Depth 24 binary tree
+time: 0.376365
+cilk/affinity 3 cilk/st-par-cilk-800 --nproc 3 4 2
+Depth 24 binary tree
+time: 0.338369
+Depth 24 binary tree
+time: 0.326124
+Depth 24 binary tree
+time: 0.331179
+cilk/affinity 3 cilk/st-par3-cilk-800 --nproc 3 4 2
+Depth 24 binary tree
+time: 0.401231
+Depth 24 binary tree
+time: 0.405953
+Depth 24 binary tree
+time: 0.393751
+../spaa10-nehalem-tcell/spanning-clos-cas-30 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.302835
+Depth 24 binary tree (16777215 vertices)
+time: 0.301118
+Depth 24 binary tree (16777215 vertices)
+time: 0.301553
+../spaa10-nehalem-tcell/spanning-clos-membar-30 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.376385
+Depth 24 binary tree (16777215 vertices)
+time: 0.375551
+Depth 24 binary tree (16777215 vertices)
+time: 0.497944
+../spaa10-nehalem-tcell/spanning-lw-cas-30 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.257744
+Depth 24 binary tree (16777215 vertices)
+time: 0.258002
+Depth 24 binary tree (16777215 vertices)
+time: 0.257829
+../spaa10-nehalem-tcell/spanning-lw-membar-30 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.330249
+Depth 24 binary tree (16777215 vertices)
+time: 0.330427
+Depth 24 binary tree (16777215 vertices)
+time: 0.328829
+../spaa10-nehalem-tcell/spanning-xcc-cas-30 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.301687
+Depth 24 binary tree (16777215 vertices)
+time: 0.301665
+Depth 24 binary tree (16777215 vertices)
+time: 0.301611
+../spaa10-nehalem-tcell/spanning-xcc-membar-30 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.420534
+Depth 24 binary tree (16777215 vertices)
+time: 0.421357
+Depth 24 binary tree (16777215 vertices)
+time: 0.421402
+../spaa10-nehalem-tcell/spanning-xcccl-cas-30 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.315292
+Depth 24 binary tree (16777215 vertices)
+time: 0.242896
+Depth 24 binary tree (16777215 vertices)
+time: 0.243081
+../spaa10-nehalem-tcell/spanning-xcccl-membar-30 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.318680
+Depth 24 binary tree (16777215 vertices)
+time: 0.318656
+Depth 24 binary tree (16777215 vertices)
+time: 0.318539
+../spaa10-nehalem-tcell/spanning-clos-cas-800 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.401583
+Depth 24 binary tree (16777215 vertices)
+time: 0.398556
+Depth 24 binary tree (16777215 vertices)
+time: 0.306196
+../spaa10-nehalem-tcell/spanning-clos-membar-800 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.497126
+Depth 24 binary tree (16777215 vertices)
+time: 0.497497
+Depth 24 binary tree (16777215 vertices)
+time: 0.375756
+../spaa10-nehalem-tcell/spanning-lw-cas-800 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.257396
+Depth 24 binary tree (16777215 vertices)
+time: 0.258687
+Depth 24 binary tree (16777215 vertices)
+time: 0.258119
+../spaa10-nehalem-tcell/spanning-lw-membar-800 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.330541
+Depth 24 binary tree (16777215 vertices)
+time: 0.330492
+Depth 24 binary tree (16777215 vertices)
+time: 0.330167
+../spaa10-nehalem-tcell/spanning-xcc-cas-800 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.302076
+Depth 24 binary tree (16777215 vertices)
+time: 0.228499
+Depth 24 binary tree (16777215 vertices)
+time: 0.302179
+../spaa10-nehalem-tcell/spanning-xcc-membar-800 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.318476
+Depth 24 binary tree (16777215 vertices)
+time: 0.421119
+Depth 24 binary tree (16777215 vertices)
+time: 0.316450
+../spaa10-nehalem-tcell/spanning-xcccl-cas-800 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.316051
+Depth 24 binary tree (16777215 vertices)
+time: 0.315702
+Depth 24 binary tree (16777215 vertices)
+time: 0.316016
+../spaa10-nehalem-tcell/spanning-xcccl-membar-800 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.313320
+Depth 24 binary tree (16777215 vertices)
+time: 0.314595
+Depth 24 binary tree (16777215 vertices)
+time: 0.313656
+cilk/affinity 4 cilk/st-par-cilk-s --nproc 4 4 2
+Depth 24 binary tree
+time: 0.236440
+Depth 24 binary tree
+time: 0.235610
+Depth 24 binary tree
+time: 0.235814
+cilk/affinity 4 cilk/st-par3-cilk-s --nproc 4 4 2
+Depth 24 binary tree
+time: 0.282168
+Depth 24 binary tree
+time: 0.281914
+Depth 24 binary tree
+time: 0.281901
+cilk/affinity 4 cilk/st-par-cilk --nproc 4 4 2
+Depth 24 binary tree
+time: 0.242607
+Depth 24 binary tree
+time: 0.241783
+Depth 24 binary tree
+time: 0.241922
+cilk/affinity 4 cilk/st-par3-cilk --nproc 4 4 2
+Depth 24 binary tree
+time: 0.291842
+Depth 24 binary tree
+time: 0.291687
+Depth 24 binary tree
+time: 0.292852
+cilk/affinity 4 cilk/st-par-cilk-s-800 --nproc 4 4 2
+Depth 24 binary tree
+time: 0.236239
+Depth 24 binary tree
+time: 0.236059
+Depth 24 binary tree
+time: 0.236017
+cilk/affinity 4 cilk/st-par3-cilk-s-800 --nproc 4 4 2
+Depth 24 binary tree
+time: 0.282392
+Depth 24 binary tree
+time: 0.282200
+Depth 24 binary tree
+time: 0.282093
+cilk/affinity 4 cilk/st-par-cilk-800 --nproc 4 4 2
+Depth 24 binary tree
+time: 0.243295
+Depth 24 binary tree
+time: 0.240905
+Depth 24 binary tree
+time: 0.240171
+cilk/affinity 4 cilk/st-par3-cilk-800 --nproc 4 4 2
+Depth 24 binary tree
+time: 0.291810
+Depth 24 binary tree
+time: 0.292541
+Depth 24 binary tree
+time: 0.292893
+../spaa10-nehalem-tcell/spanning-clos-cas-30 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.298239
+Depth 24 binary tree (16777215 vertices)
+time: 0.301179
+Depth 24 binary tree (16777215 vertices)
+time: 0.251056
+../spaa10-nehalem-tcell/spanning-clos-membar-30 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.375774
+Depth 24 binary tree (16777215 vertices)
+time: 0.379654
+Depth 24 binary tree (16777215 vertices)
+time: 0.316472
+../spaa10-nehalem-tcell/spanning-lw-cas-30 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.260325
+Depth 24 binary tree (16777215 vertices)
+time: 0.258293
+Depth 24 binary tree (16777215 vertices)
+time: 0.220033
+../spaa10-nehalem-tcell/spanning-lw-membar-30 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.306533
+Depth 24 binary tree (16777215 vertices)
+time: 0.329435
+Depth 24 binary tree (16777215 vertices)
+time: 0.304447
+../spaa10-nehalem-tcell/spanning-xcc-cas-30 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.155644
+Depth 24 binary tree (16777215 vertices)
+time: 0.218184
+Depth 24 binary tree (16777215 vertices)
+time: 0.154986
+../spaa10-nehalem-tcell/spanning-xcc-membar-30 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.316750
+Depth 24 binary tree (16777215 vertices)
+time: 0.214366
+Depth 24 binary tree (16777215 vertices)
+time: 0.214994
+../spaa10-nehalem-tcell/spanning-xcccl-cas-30 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.202593
+Depth 24 binary tree (16777215 vertices)
+time: 0.200791
+Depth 24 binary tree (16777215 vertices)
+time: 0.238627
+../spaa10-nehalem-tcell/spanning-xcccl-membar-30 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.287535
+Depth 24 binary tree (16777215 vertices)
+time: 0.262315
+Depth 24 binary tree (16777215 vertices)
+time: 0.260287
+../spaa10-nehalem-tcell/spanning-clos-cas-800 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.202231
+Depth 24 binary tree (16777215 vertices)
+time: 0.300211
+Depth 24 binary tree (16777215 vertices)
+time: 0.202465
+../spaa10-nehalem-tcell/spanning-clos-membar-800 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.312304
+Depth 24 binary tree (16777215 vertices)
+time: 0.345683
+Depth 24 binary tree (16777215 vertices)
+time: 0.374704
+../spaa10-nehalem-tcell/spanning-lw-cas-800 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.237143
+Depth 24 binary tree (16777215 vertices)
+time: 0.214851
+Depth 24 binary tree (16777215 vertices)
+time: 0.256322
+../spaa10-nehalem-tcell/spanning-lw-membar-800 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.220871
+Depth 24 binary tree (16777215 vertices)
+time: 0.328059
+Depth 24 binary tree (16777215 vertices)
+time: 0.221168
+../spaa10-nehalem-tcell/spanning-xcc-cas-800 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.192429
+Depth 24 binary tree (16777215 vertices)
+time: 0.210305
+Depth 24 binary tree (16777215 vertices)
+time: 0.228324
+../spaa10-nehalem-tcell/spanning-xcc-membar-800 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.317301
+Depth 24 binary tree (16777215 vertices)
+time: 0.317790
+Depth 24 binary tree (16777215 vertices)
+time: 0.292052
+../spaa10-nehalem-tcell/spanning-xcccl-cas-800 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.238107
+Depth 24 binary tree (16777215 vertices)
+time: 0.238344
+Depth 24 binary tree (16777215 vertices)
+time: 0.219752
+../spaa10-nehalem-tcell/spanning-xcccl-membar-800 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.260745
+Depth 24 binary tree (16777215 vertices)
+time: 0.311580
+Depth 24 binary tree (16777215 vertices)
+time: 0.261749
+cilk/affinity 5 cilk/st-par-cilk-s --nproc 5 4 2
+Depth 24 binary tree
+time: 0.183784
+Depth 24 binary tree
+time: 0.184633
+Depth 24 binary tree
+time: 0.183862
+cilk/affinity 5 cilk/st-par3-cilk-s --nproc 5 4 2
+Depth 24 binary tree
+time: 0.224576
+Depth 24 binary tree
+time: 0.225218
+Depth 24 binary tree
+time: 0.279959
+cilk/affinity 5 cilk/st-par-cilk --nproc 5 4 2
+Depth 24 binary tree
+time: 0.191825
+Depth 24 binary tree
+time: 0.189615
+Depth 24 binary tree
+time: 0.189557
+cilk/affinity 5 cilk/st-par3-cilk --nproc 5 4 2
+Depth 24 binary tree
+time: 0.228139
+Depth 24 binary tree
+time: 0.233549
+Depth 24 binary tree
+time: 0.228105
+cilk/affinity 5 cilk/st-par-cilk-s-800 --nproc 5 4 2
+Depth 24 binary tree
+time: 0.183735
+Depth 24 binary tree
+time: 0.183886
+Depth 24 binary tree
+time: 0.183538
+cilk/affinity 5 cilk/st-par3-cilk-s-800 --nproc 5 4 2
+Depth 24 binary tree
+time: 0.224131
+Depth 24 binary tree
+time: 0.226890
+Depth 24 binary tree
+time: 0.226977
+cilk/affinity 5 cilk/st-par-cilk-800 --nproc 5 4 2
+Depth 24 binary tree
+time: 0.189399
+Depth 24 binary tree
+time: 0.189212
+Depth 24 binary tree
+time: 0.249001
+cilk/affinity 5 cilk/st-par3-cilk-800 --nproc 5 4 2
+Depth 24 binary tree
+time: 0.284526
+Depth 24 binary tree
+time: 0.227945
+Depth 24 binary tree
+time: 0.227801
+../spaa10-nehalem-tcell/spanning-clos-cas-30 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.197446
+Depth 24 binary tree (16777215 vertices)
+time: 0.189174
+Depth 24 binary tree (16777215 vertices)
+time: 0.199115
+../spaa10-nehalem-tcell/spanning-clos-membar-30 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.237141
+Depth 24 binary tree (16777215 vertices)
+time: 0.247243
+Depth 24 binary tree (16777215 vertices)
+time: 0.232276
+../spaa10-nehalem-tcell/spanning-lw-cas-30 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.191947
+Depth 24 binary tree (16777215 vertices)
+time: 0.187921
+Depth 24 binary tree (16777215 vertices)
+time: 0.151007
+../spaa10-nehalem-tcell/spanning-lw-membar-30 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.260883
+Depth 24 binary tree (16777215 vertices)
+time: 0.209693
+Depth 24 binary tree (16777215 vertices)
+time: 0.214212
+../spaa10-nehalem-tcell/spanning-xcc-cas-30 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.152855
+Depth 24 binary tree (16777215 vertices)
+time: 0.169204
+Depth 24 binary tree (16777215 vertices)
+time: 0.170464
+../spaa10-nehalem-tcell/spanning-xcc-membar-30 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.208294
+Depth 24 binary tree (16777215 vertices)
+time: 0.184324
+Depth 24 binary tree (16777215 vertices)
+time: 0.209613
+../spaa10-nehalem-tcell/spanning-xcccl-cas-30 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.158190
+Depth 24 binary tree (16777215 vertices)
+time: 0.195561
+Depth 24 binary tree (16777215 vertices)
+time: 0.157468
+../spaa10-nehalem-tcell/spanning-xcccl-membar-30 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.192633
+Depth 24 binary tree (16777215 vertices)
+time: 0.182188
+Depth 24 binary tree (16777215 vertices)
+time: 0.201575
+../spaa10-nehalem-tcell/spanning-clos-cas-800 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.210958
+Depth 24 binary tree (16777215 vertices)
+time: 0.198791
+Depth 24 binary tree (16777215 vertices)
+time: 0.192208
+../spaa10-nehalem-tcell/spanning-clos-membar-800 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.245945
+Depth 24 binary tree (16777215 vertices)
+time: 0.243769
+Depth 24 binary tree (16777215 vertices)
+time: 0.216295
+../spaa10-nehalem-tcell/spanning-lw-cas-800 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.185289
+Depth 24 binary tree (16777215 vertices)
+time: 0.155919
+Depth 24 binary tree (16777215 vertices)
+time: 0.156927
+../spaa10-nehalem-tcell/spanning-lw-membar-800 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.212111
+Depth 24 binary tree (16777215 vertices)
+time: 0.228451
+Depth 24 binary tree (16777215 vertices)
+time: 0.218005
+../spaa10-nehalem-tcell/spanning-xcc-cas-800 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.145210
+Depth 24 binary tree (16777215 vertices)
+time: 0.153530
+Depth 24 binary tree (16777215 vertices)
+time: 0.145954
+../spaa10-nehalem-tcell/spanning-xcc-membar-800 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.238998
+Depth 24 binary tree (16777215 vertices)
+time: 0.193036
+Depth 24 binary tree (16777215 vertices)
+time: 0.198834
+../spaa10-nehalem-tcell/spanning-xcccl-cas-800 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.177076
+Depth 24 binary tree (16777215 vertices)
+time: 0.180028
+Depth 24 binary tree (16777215 vertices)
+time: 0.167491
+../spaa10-nehalem-tcell/spanning-xcccl-membar-800 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.194453
+Depth 24 binary tree (16777215 vertices)
+time: 0.235428
+Depth 24 binary tree (16777215 vertices)
+time: 0.197671
+cilk/affinity 6 cilk/st-par-cilk-s --nproc 6 4 2
+Depth 24 binary tree
+time: 0.151954
+Depth 24 binary tree
+time: 0.151666
+Depth 24 binary tree
+time: 0.151613
+cilk/affinity 6 cilk/st-par3-cilk-s --nproc 6 4 2
+Depth 24 binary tree
+time: 0.181460
+Depth 24 binary tree
+time: 0.181680
+Depth 24 binary tree
+time: 0.181786
+cilk/affinity 6 cilk/st-par-cilk --nproc 6 4 2
+Depth 24 binary tree
+time: 0.156335
+Depth 24 binary tree
+time: 0.156494
+Depth 24 binary tree
+time: 0.155956
+cilk/affinity 6 cilk/st-par3-cilk --nproc 6 4 2
+Depth 24 binary tree
+time: 0.188194
+Depth 24 binary tree
+time: 0.188073
+Depth 24 binary tree
+time: 0.188557
+cilk/affinity 6 cilk/st-par-cilk-s-800 --nproc 6 4 2
+Depth 24 binary tree
+time: 0.151815
+Depth 24 binary tree
+time: 0.151745
+Depth 24 binary tree
+time: 0.154437
+cilk/affinity 6 cilk/st-par3-cilk-s-800 --nproc 6 4 2
+Depth 24 binary tree
+time: 0.181768
+Depth 24 binary tree
+time: 0.181895
+Depth 24 binary tree
+time: 0.181677
+cilk/affinity 6 cilk/st-par-cilk-800 --nproc 6 4 2
+Depth 24 binary tree
+time: 0.156953
+Depth 24 binary tree
+time: 0.156722
+Depth 24 binary tree
+time: 0.198916
+cilk/affinity 6 cilk/st-par3-cilk-800 --nproc 6 4 2
+Depth 24 binary tree
+time: 0.197046
+Depth 24 binary tree
+time: 0.224076
+Depth 24 binary tree
+time: 0.188008
+../spaa10-nehalem-tcell/spanning-clos-cas-30 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.187453
+Depth 24 binary tree (16777215 vertices)
+time: 0.169103
+Depth 24 binary tree (16777215 vertices)
+time: 0.184903
+../spaa10-nehalem-tcell/spanning-clos-membar-30 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.208437
+Depth 24 binary tree (16777215 vertices)
+time: 0.185612
+Depth 24 binary tree (16777215 vertices)
+time: 0.207696
+../spaa10-nehalem-tcell/spanning-lw-cas-30 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.138640
+Depth 24 binary tree (16777215 vertices)
+time: 0.128234
+Depth 24 binary tree (16777215 vertices)
+time: 0.137636
+../spaa10-nehalem-tcell/spanning-lw-membar-30 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.206388
+Depth 24 binary tree (16777215 vertices)
+time: 0.171260
+Depth 24 binary tree (16777215 vertices)
+time: 0.177046
+../spaa10-nehalem-tcell/spanning-xcc-cas-30 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.113990
+Depth 24 binary tree (16777215 vertices)
+time: 0.134585
+Depth 24 binary tree (16777215 vertices)
+time: 0.132504
+../spaa10-nehalem-tcell/spanning-xcc-membar-30 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.182932
+Depth 24 binary tree (16777215 vertices)
+time: 0.170206
+Depth 24 binary tree (16777215 vertices)
+time: 0.175229
+../spaa10-nehalem-tcell/spanning-xcccl-cas-30 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.117015
+Depth 24 binary tree (16777215 vertices)
+time: 0.110884
+Depth 24 binary tree (16777215 vertices)
+time: 0.140541
+../spaa10-nehalem-tcell/spanning-xcccl-membar-30 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.183075
+Depth 24 binary tree (16777215 vertices)
+time: 0.167109
+Depth 24 binary tree (16777215 vertices)
+time: 0.194229
+../spaa10-nehalem-tcell/spanning-clos-cas-800 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.165036
+Depth 24 binary tree (16777215 vertices)
+time: 0.184522
+Depth 24 binary tree (16777215 vertices)
+time: 0.169324
+../spaa10-nehalem-tcell/spanning-clos-membar-800 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.198378
+Depth 24 binary tree (16777215 vertices)
+time: 0.217107
+Depth 24 binary tree (16777215 vertices)
+time: 0.209170
+../spaa10-nehalem-tcell/spanning-lw-cas-800 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.149375
+Depth 24 binary tree (16777215 vertices)
+time: 0.137762
+Depth 24 binary tree (16777215 vertices)
+time: 0.138768
+../spaa10-nehalem-tcell/spanning-lw-membar-800 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.193325
+Depth 24 binary tree (16777215 vertices)
+time: 0.164882
+Depth 24 binary tree (16777215 vertices)
+time: 0.200594
+../spaa10-nehalem-tcell/spanning-xcc-cas-800 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.135474
+Depth 24 binary tree (16777215 vertices)
+time: 0.122673
+Depth 24 binary tree (16777215 vertices)
+time: 0.120897
+../spaa10-nehalem-tcell/spanning-xcc-membar-800 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.183997
+Depth 24 binary tree (16777215 vertices)
+time: 0.182303
+Depth 24 binary tree (16777215 vertices)
+time: 0.178995
+../spaa10-nehalem-tcell/spanning-xcccl-cas-800 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.130972
+Depth 24 binary tree (16777215 vertices)
+time: 0.137409
+Depth 24 binary tree (16777215 vertices)
+time: 0.121078
+../spaa10-nehalem-tcell/spanning-xcccl-membar-800 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.164083
+Depth 24 binary tree (16777215 vertices)
+time: 0.178185
+Depth 24 binary tree (16777215 vertices)
+time: 0.169697
+cilk/affinity 7 cilk/st-par-cilk-s --nproc 7 4 2
+Depth 24 binary tree
+time: 0.129250
+Depth 24 binary tree
+time: 0.129574
+Depth 24 binary tree
+time: 0.129152
+cilk/affinity 7 cilk/st-par3-cilk-s --nproc 7 4 2
+Depth 24 binary tree
+time: 0.154447
+Depth 24 binary tree
+time: 0.155051
+Depth 24 binary tree
+time: 0.154718
+cilk/affinity 7 cilk/st-par-cilk --nproc 7 4 2
+Depth 24 binary tree
+time: 0.132357
+Depth 24 binary tree
+time: 0.134640
+Depth 24 binary tree
+time: 0.134961
+cilk/affinity 7 cilk/st-par3-cilk --nproc 7 4 2
+Depth 24 binary tree
+time: 0.159920
+Depth 24 binary tree
+time: 0.160607
+Depth 24 binary tree
+time: 0.160393
+cilk/affinity 7 cilk/st-par-cilk-s-800 --nproc 7 4 2
+Depth 24 binary tree
+time: 0.129102
+Depth 24 binary tree
+time: 0.129125
+Depth 24 binary tree
+time: 0.149591
+cilk/affinity 7 cilk/st-par3-cilk-s-800 --nproc 7 4 2
+Depth 24 binary tree
+time: 0.154486
+Depth 24 binary tree
+time: 0.154493
+Depth 24 binary tree
+time: 0.154552
+cilk/affinity 7 cilk/st-par-cilk-800 --nproc 7 4 2
+Depth 24 binary tree
+time: 0.156960
+Depth 24 binary tree
+time: 0.133192
+Depth 24 binary tree
+time: 0.133370
+cilk/affinity 7 cilk/st-par3-cilk-800 --nproc 7 4 2
+Depth 24 binary tree
+time: 0.160120
+Depth 24 binary tree
+time: 0.160616
+Depth 24 binary tree
+time: 0.185192
+../spaa10-nehalem-tcell/spanning-clos-cas-30 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.149390
+Depth 24 binary tree (16777215 vertices)
+time: 0.160462
+Depth 24 binary tree (16777215 vertices)
+time: 0.126733
+../spaa10-nehalem-tcell/spanning-clos-membar-30 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.167341
+Depth 24 binary tree (16777215 vertices)
+time: 0.176215
+Depth 24 binary tree (16777215 vertices)
+time: 0.172640
+../spaa10-nehalem-tcell/spanning-lw-cas-30 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.129062
+Depth 24 binary tree (16777215 vertices)
+time: 0.123353
+Depth 24 binary tree (16777215 vertices)
+time: 0.119665
+../spaa10-nehalem-tcell/spanning-lw-membar-30 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.159790
+Depth 24 binary tree (16777215 vertices)
+time: 0.152971
+Depth 24 binary tree (16777215 vertices)
+time: 0.147273
+../spaa10-nehalem-tcell/spanning-xcc-cas-30 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.106738
+Depth 24 binary tree (16777215 vertices)
+time: 0.098493
+Depth 24 binary tree (16777215 vertices)
+time: 0.116434
+../spaa10-nehalem-tcell/spanning-xcc-membar-30 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.150291
+Depth 24 binary tree (16777215 vertices)
+time: 0.151296
+Depth 24 binary tree (16777215 vertices)
+time: 0.151695
+../spaa10-nehalem-tcell/spanning-xcccl-cas-30 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.125992
+Depth 24 binary tree (16777215 vertices)
+time: 0.119351
+Depth 24 binary tree (16777215 vertices)
+time: 0.106351
+../spaa10-nehalem-tcell/spanning-xcccl-membar-30 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.151105
+Depth 24 binary tree (16777215 vertices)
+time: 0.141489
+Depth 24 binary tree (16777215 vertices)
+time: 0.146272
+../spaa10-nehalem-tcell/spanning-clos-cas-800 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.141311
+Depth 24 binary tree (16777215 vertices)
+time: 0.157294
+Depth 24 binary tree (16777215 vertices)
+time: 0.164630
+../spaa10-nehalem-tcell/spanning-clos-membar-800 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.177278
+Depth 24 binary tree (16777215 vertices)
+time: 0.186057
+Depth 24 binary tree (16777215 vertices)
+time: 0.200013
+../spaa10-nehalem-tcell/spanning-lw-cas-800 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.110165
+Depth 24 binary tree (16777215 vertices)
+time: 0.116105
+Depth 24 binary tree (16777215 vertices)
+time: 0.133330
+../spaa10-nehalem-tcell/spanning-lw-membar-800 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.154864
+Depth 24 binary tree (16777215 vertices)
+time: 0.152119
+Depth 24 binary tree (16777215 vertices)
+time: 0.148351
+../spaa10-nehalem-tcell/spanning-xcc-cas-800 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.108801
+Depth 24 binary tree (16777215 vertices)
+time: 0.107552
+Depth 24 binary tree (16777215 vertices)
+time: 0.111241
+../spaa10-nehalem-tcell/spanning-xcc-membar-800 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.143237
+Depth 24 binary tree (16777215 vertices)
+time: 0.175703
+Depth 24 binary tree (16777215 vertices)
+time: 0.134683
+../spaa10-nehalem-tcell/spanning-xcccl-cas-800 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.116243
+Depth 24 binary tree (16777215 vertices)
+time: 0.113888
+Depth 24 binary tree (16777215 vertices)
+time: 0.101021
+../spaa10-nehalem-tcell/spanning-xcccl-membar-800 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.139441
+Depth 24 binary tree (16777215 vertices)
+time: 0.143888
+Depth 24 binary tree (16777215 vertices)
+time: 0.142383
+cilk/affinity 8 cilk/st-par-cilk-s --nproc 8 4 2
+Depth 24 binary tree
+time: 0.113340
+Depth 24 binary tree
+time: 0.112991
+Depth 24 binary tree
+time: 0.112918
+cilk/affinity 8 cilk/st-par3-cilk-s --nproc 8 4 2
+Depth 24 binary tree
+time: 0.134998
+Depth 24 binary tree
+time: 0.135090
+Depth 24 binary tree
+time: 0.135087
+cilk/affinity 8 cilk/st-par-cilk --nproc 8 4 2
+Depth 24 binary tree
+time: 0.118420
+Depth 24 binary tree
+time: 0.116308
+Depth 24 binary tree
+time: 0.116687
+cilk/affinity 8 cilk/st-par3-cilk --nproc 8 4 2
+Depth 24 binary tree
+time: 0.140475
+Depth 24 binary tree
+time: 0.140407
+Depth 24 binary tree
+time: 0.140164
+cilk/affinity 8 cilk/st-par-cilk-s-800 --nproc 8 4 2
+Depth 24 binary tree
+time: 0.113191
+Depth 24 binary tree
+time: 0.112956
+Depth 24 binary tree
+time: 0.113080
+cilk/affinity 8 cilk/st-par3-cilk-s-800 --nproc 8 4 2
+Depth 24 binary tree
+time: 0.139056
+Depth 24 binary tree
+time: 0.135649
+Depth 24 binary tree
+time: 0.135225
+cilk/affinity 8 cilk/st-par-cilk-800 --nproc 8 4 2
+Depth 24 binary tree
+time: 0.116840
+Depth 24 binary tree
+time: 0.116678
+Depth 24 binary tree
+time: 0.118204
+cilk/affinity 8 cilk/st-par3-cilk-800 --nproc 8 4 2
+Depth 24 binary tree
+time: 0.140557
+Depth 24 binary tree
+time: 0.140636
+Depth 24 binary tree
+time: 0.140337
+../spaa10-nehalem-tcell/spanning-clos-cas-30 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.126828
+Depth 24 binary tree (16777215 vertices)
+time: 0.118307
+Depth 24 binary tree (16777215 vertices)
+time: 0.116118
+../spaa10-nehalem-tcell/spanning-clos-membar-30 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.152036
+Depth 24 binary tree (16777215 vertices)
+time: 0.159876
+Depth 24 binary tree (16777215 vertices)
+time: 0.156824
+../spaa10-nehalem-tcell/spanning-lw-cas-30 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.119761
+Depth 24 binary tree (16777215 vertices)
+time: 0.103280
+Depth 24 binary tree (16777215 vertices)
+time: 0.120766
+../spaa10-nehalem-tcell/spanning-lw-membar-30 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.142886
+Depth 24 binary tree (16777215 vertices)
+time: 0.137732
+Depth 24 binary tree (16777215 vertices)
+time: 0.137879
+../spaa10-nehalem-tcell/spanning-xcc-cas-30 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.089284
+Depth 24 binary tree (16777215 vertices)
+time: 0.096951
+Depth 24 binary tree (16777215 vertices)
+time: 0.101036
+../spaa10-nehalem-tcell/spanning-xcc-membar-30 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.143239
+Depth 24 binary tree (16777215 vertices)
+time: 0.144334
+Depth 24 binary tree (16777215 vertices)
+time: 0.122345
+../spaa10-nehalem-tcell/spanning-xcccl-cas-30 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.108467
+Depth 24 binary tree (16777215 vertices)
+time: 0.088880
+Depth 24 binary tree (16777215 vertices)
+time: 0.090624
+../spaa10-nehalem-tcell/spanning-xcccl-membar-30 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.125990
+Depth 24 binary tree (16777215 vertices)
+time: 0.126053
+Depth 24 binary tree (16777215 vertices)
+time: 0.132013
+../spaa10-nehalem-tcell/spanning-clos-cas-800 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.120390
+Depth 24 binary tree (16777215 vertices)
+time: 0.124282
+Depth 24 binary tree (16777215 vertices)
+time: 0.120167
+../spaa10-nehalem-tcell/spanning-clos-membar-800 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.159698
+Depth 24 binary tree (16777215 vertices)
+time: 0.164199
+Depth 24 binary tree (16777215 vertices)
+time: 0.153752
+../spaa10-nehalem-tcell/spanning-lw-cas-800 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.108326
+Depth 24 binary tree (16777215 vertices)
+time: 0.113200
+Depth 24 binary tree (16777215 vertices)
+time: 0.111238
+../spaa10-nehalem-tcell/spanning-lw-membar-800 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.144193
+Depth 24 binary tree (16777215 vertices)
+time: 0.141269
+Depth 24 binary tree (16777215 vertices)
+time: 0.141873
+../spaa10-nehalem-tcell/spanning-xcc-cas-800 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.098132
+Depth 24 binary tree (16777215 vertices)
+time: 0.106686
+Depth 24 binary tree (16777215 vertices)
+time: 0.097857
+../spaa10-nehalem-tcell/spanning-xcc-membar-800 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.137846
+Depth 24 binary tree (16777215 vertices)
+time: 0.132003
+Depth 24 binary tree (16777215 vertices)
+time: 0.148538
+../spaa10-nehalem-tcell/spanning-xcccl-cas-800 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.102138
+Depth 24 binary tree (16777215 vertices)
+time: 0.096783
+Depth 24 binary tree (16777215 vertices)
+time: 0.103450
+../spaa10-nehalem-tcell/spanning-xcccl-membar-800 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.139839
+Depth 24 binary tree (16777215 vertices)
+time: 0.145840
+Depth 24 binary tree (16777215 vertices)
+time: 0.139319

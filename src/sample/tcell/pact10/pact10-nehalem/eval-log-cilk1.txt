@@ -1,0 +1,1259 @@
+Welcome to the Emacs shell
+
+/home/lab4/hiraisi/work/sc/src/sample/tcell $ cd eval-ppopp10/
+~/work/sc/src/sample/tcell/eval-ppopp10 $ ls
+a.out                eval.sh         spanning-gcc-cas     st-ser.c            st-serial-call-membar  tex
+cilk                 get-speedup.pl  spanning-gcc-membar  st-serial           st.c                   xccmem.h
+eval-log-filter.txt  graph           spanning-lw-cas      st-serial-call      st.s                   
+eval-log.txt         mail4.txt       spanning-lw-membar   st-serial-call-cas  statistics             
+~/work/sc/src/sample/tcell/eval-ppopp10 $ sh eval.sh
+./cilk/affinity 1 ./cilk/st-par-cilk --nproc 1 1 2
+4000000 nodes random (2 edges per node)
+111.840489
+v: 4000000 e: 15999723
+search cas finished.
+time: 2.202878
+4000000 nodes random (2 edges per node)
+112.013152
+v: 4000000 e: 15999723
+search cas finished.
+time: 2.205791
+4000000 nodes random (2 edges per node)
+111.906239
+v: 4000000 e: 15999723
+search cas finished.
+time: 2.208015
+
+./cilk/affinity 1 ./cilk/st-par-cilk3 --nproc 1 1 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 2 ./cilk/st-par-cilk --nproc 2 1 2
+4000000 nodes random (2 edges per node)
+111.596136
+v: 4000000 e: 15999723
+search cas finished.
+time: 1.320630
+4000000 nodes random (2 edges per node)
+111.618092
+v: 4000000 e: 15999723
+search cas finished.
+time: 1.322271
+4000000 nodes random (2 edges per node)
+111.550744
+v: 4000000 e: 15999723
+search cas finished.
+time: 1.319035
+
+./cilk/affinity 2 ./cilk/st-par-cilk3 --nproc 2 1 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 3 ./cilk/st-par-cilk --nproc 3 1 2
+4000000 nodes random (2 edges per node)
+114.317525
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.890143
+4000000 nodes random (2 edges per node)
+114.295415
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.889938
+4000000 nodes random (2 edges per node)
+114.266850
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.888871
+
+./cilk/affinity 3 ./cilk/st-par-cilk3 --nproc 3 1 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 4 ./cilk/st-par-cilk --nproc 4 1 2
+4000000 nodes random (2 edges per node)
+132.184726
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.737857
+4000000 nodes random (2 edges per node)
+132.875422
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.737235
+4000000 nodes random (2 edges per node)
+129.258063
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.739399
+
+./cilk/affinity 4 ./cilk/st-par-cilk3 --nproc 4 1 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 5 ./cilk/st-par-cilk --nproc 5 1 2
+4000000 nodes random (2 edges per node)
+128.840306
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.643662
+4000000 nodes random (2 edges per node)
+128.225657
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.627576
+4000000 nodes random (2 edges per node)
+127.719903
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.636785
+
+./cilk/affinity 5 ./cilk/st-par-cilk3 --nproc 5 1 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 6 ./cilk/st-par-cilk --nproc 6 1 2
+4000000 nodes random (2 edges per node)
+128.890921
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.596959
+4000000 nodes random (2 edges per node)
+125.809017
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.603789
+4000000 nodes random (2 edges per node)
+125.563204
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.598709
+
+./cilk/affinity 6 ./cilk/st-par-cilk3 --nproc 6 1 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 7 ./cilk/st-par-cilk --nproc 7 1 2
+4000000 nodes random (2 edges per node)
+130.720778
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.540646
+4000000 nodes random (2 edges per node)
+129.587932
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.561355
+4000000 nodes random (2 edges per node)
+129.152447
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.539322
+
+./cilk/affinity 7 ./cilk/st-par-cilk3 --nproc 7 1 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 8 ./cilk/st-par-cilk --nproc 8 1 2
+4000000 nodes random (2 edges per node)
+130.411077
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.517780
+4000000 nodes random (2 edges per node)
+129.919294
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.520242
+4000000 nodes random (2 edges per node)
+130.317518
+v: 4000000 e: 15999723
+search cas finished.
+time: 0.523884
+
+./cilk/affinity 8 ./cilk/st-par-cilk3 --nproc 8 1 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 1 ./cilk/st-par-cilk --nproc 1 2 2
+2000x2000 nodes 2D torus
+0.170624
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.478854
+2000x2000 nodes 2D torus
+0.170714
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.478669
+2000x2000 nodes 2D torus
+0.170002
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.479649
+
+./cilk/affinity 1 ./cilk/st-par-cilk3 --nproc 1 2 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 2 ./cilk/st-par-cilk --nproc 2 2 2
+2000x2000 nodes 2D torus
+0.181275
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.281780
+2000x2000 nodes 2D torus
+0.168939
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.278535
+2000x2000 nodes 2D torus
+0.168400
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.279262
+
+./cilk/affinity 2 ./cilk/st-par-cilk3 --nproc 2 2 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 3 ./cilk/st-par-cilk --nproc 3 2 2
+2000x2000 nodes 2D torus
+0.180573
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.233977
+2000x2000 nodes 2D torus
+0.185187
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.238004
+2000x2000 nodes 2D torus
+0.218272
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.243090
+
+./cilk/affinity 3 ./cilk/st-par-cilk3 --nproc 3 2 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 4 ./cilk/st-par-cilk --nproc 4 2 2
+2000x2000 nodes 2D torus
+0.270898
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.204672
+2000x2000 nodes 2D torus
+0.229652
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.211698
+2000x2000 nodes 2D torus
+0.224377
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.208102
+
+./cilk/affinity 4 ./cilk/st-par-cilk3 --nproc 4 2 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 5 ./cilk/st-par-cilk --nproc 5 2 2
+2000x2000 nodes 2D torus
+0.270435
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.185197
+2000x2000 nodes 2D torus
+0.186986
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.192716
+2000x2000 nodes 2D torus
+0.204953
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.175028
+
+./cilk/affinity 5 ./cilk/st-par-cilk3 --nproc 5 2 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 6 ./cilk/st-par-cilk --nproc 6 2 2
+2000x2000 nodes 2D torus
+0.171677
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.232143
+2000x2000 nodes 2D torus
+0.193961
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.173040
+2000x2000 nodes 2D torus
+0.180063
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.175455
+
+./cilk/affinity 6 ./cilk/st-par-cilk3 --nproc 6 2 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 7 ./cilk/st-par-cilk --nproc 7 2 2
+2000x2000 nodes 2D torus
+0.184983
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.163972
+2000x2000 nodes 2D torus
+0.303477
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.160682
+2000x2000 nodes 2D torus
+0.198886
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.173357
+
+./cilk/affinity 7 ./cilk/st-par-cilk3 --nproc 7 2 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 8 ./cilk/st-par-cilk --nproc 8 2 2
+2000x2000 nodes 2D torus
+0.220353
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.160953
+2000x2000 nodes 2D torus
+0.176712
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.171113
+2000x2000 nodes 2D torus
+0.189494
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.153812
+
+./cilk/affinity 8 ./cilk/st-par-cilk3 --nproc 8 2 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 1 ./cilk/st-par-cilk --nproc 1 3 2
+20-D hypercube
+0.261488
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.594035
+20-D hypercube
+0.259522
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.593927
+20-D hypercube
+0.257980
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.593985
+
+./cilk/affinity 1 ./cilk/st-par-cilk3 --nproc 1 3 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 2 ./cilk/st-par-cilk --nproc 2 3 2
+20-D hypercube
+0.258699
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.389561
+20-D hypercube
+0.258367
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.385343
+20-D hypercube
+0.258450
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.387258
+
+./cilk/affinity 2 ./cilk/st-par-cilk3 --nproc 2 3 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 3 ./cilk/st-par-cilk --nproc 3 3 2
+20-D hypercube
+0.361065
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.268655
+20-D hypercube
+0.271386
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.258085
+20-D hypercube
+0.381252
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.260415
+
+./cilk/affinity 3 ./cilk/st-par-cilk3 --nproc 3 3 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 4 ./cilk/st-par-cilk --nproc 4 3 2
+20-D hypercube
+0.486499
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.222756
+20-D hypercube
+0.379333
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.222916
+20-D hypercube
+0.357312
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.222684
+
+./cilk/affinity 4 ./cilk/st-par-cilk3 --nproc 4 3 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 5 ./cilk/st-par-cilk --nproc 5 3 2
+20-D hypercube
+0.259703
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.217640
+20-D hypercube
+0.270010
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.205365
+20-D hypercube
+0.295643
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.203612
+
+./cilk/affinity 5 ./cilk/st-par-cilk3 --nproc 5 3 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 6 ./cilk/st-par-cilk --nproc 6 3 2
+20-D hypercube
+0.285985
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.192126
+20-D hypercube
+0.310923
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.193524
+20-D hypercube
+0.281286
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.196180
+
+./cilk/affinity 6 ./cilk/st-par-cilk3 --nproc 6 3 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 7 ./cilk/st-par-cilk --nproc 7 3 2
+20-D hypercube
+0.311814
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.179822
+20-D hypercube
+0.334199
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.180711
+20-D hypercube
+0.304507
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.181783
+
+./cilk/affinity 7 ./cilk/st-par-cilk3 --nproc 7 3 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 8 ./cilk/st-par-cilk --nproc 8 3 2
+20-D hypercube
+0.322273
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.174878
+20-D hypercube
+0.343619
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.172749
+20-D hypercube
+0.281697
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.197595
+
+./cilk/affinity 8 ./cilk/st-par-cilk3 --nproc 8 3 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 1 ./cilk/st-par-cilk --nproc 1 4 2
+Depth 24 binary tree
+0.511867
+v: 16777215 e: 33554428
+search cas finished.
+time: 1.164545
+Depth 24 binary tree
+0.509386
+v: 16777215 e: 33554428
+search cas finished.
+time: 1.166857
+Depth 24 binary tree
+0.510703
+v: 16777215 e: 33554428
+search cas finished.
+time: 1.162814
+
+./cilk/affinity 1 ./cilk/st-par-cilk3 --nproc 1 4 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 2 ./cilk/st-par-cilk --nproc 2 4 2
+Depth 24 binary tree
+0.521242
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.581161
+Depth 24 binary tree
+0.507411
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.580384
+Depth 24 binary tree
+0.507625
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.580742
+
+./cilk/affinity 2 ./cilk/st-par-cilk3 --nproc 2 4 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 3 ./cilk/st-par-cilk --nproc 3 4 2
+Depth 24 binary tree
+0.546885
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.388138
+Depth 24 binary tree
+0.712633
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.387151
+Depth 24 binary tree
+0.691087
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.388452
+
+./cilk/affinity 3 ./cilk/st-par-cilk3 --nproc 3 4 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 4 ./cilk/st-par-cilk --nproc 4 4 2
+Depth 24 binary tree
+0.676302
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.294788
+Depth 24 binary tree
+0.668299
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.293317
+Depth 24 binary tree
+0.666710
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.295100
+
+./cilk/affinity 4 ./cilk/st-par-cilk3 --nproc 4 4 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 5 ./cilk/st-par-cilk --nproc 5 4 2
+Depth 24 binary tree
+0.963769
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.243809
+Depth 24 binary tree
+0.611221
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.237294
+Depth 24 binary tree
+0.597842
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.236704
+
+./cilk/affinity 5 ./cilk/st-par-cilk3 --nproc 5 4 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 6 ./cilk/st-par-cilk --nproc 6 4 2
+Depth 24 binary tree
+0.592241
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.200910
+Depth 24 binary tree
+0.605346
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.202332
+Depth 24 binary tree
+0.613045
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.201511
+
+./cilk/affinity 6 ./cilk/st-par-cilk3 --nproc 6 4 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 7 ./cilk/st-par-cilk --nproc 7 4 2
+Depth 24 binary tree
+0.726682
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.174601
+Depth 24 binary tree
+0.581318
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.174988
+Depth 24 binary tree
+0.602631
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.174770
+
+./cilk/affinity 7 ./cilk/st-par-cilk3 --nproc 7 4 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+./cilk/affinity 8 ./cilk/st-par-cilk --nproc 8 4 2
+Depth 24 binary tree
+0.576939
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.180991
+Depth 24 binary tree
+0.594187
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.155349
+Depth 24 binary tree
+0.597302
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.154906
+
+./cilk/affinity 8 ./cilk/st-par-cilk3 --nproc 8 4 2
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+./cilk/st-par-cilk3: No such file or directory
+
+~/work/sc/src/sample/tcell/eval-ppopp10 $ sh eval.sh
+./cilk/affinity 1 ./cilk/st-par3-cilk --nproc 1 1 2
+4000000 nodes random (2 edges per node)
+111.955923
+v: 4000000 e: 15999723
+search membar finished.
+time: 2.190416
+4000000 nodes random (2 edges per node)
+111.954741
+v: 4000000 e: 15999723
+search membar finished.
+time: 2.191499
+4000000 nodes random (2 edges per node)
+111.874159
+v: 4000000 e: 15999723
+search membar finished.
+time: 2.190870
+
+./cilk/affinity 2 ./cilk/st-par3-cilk --nproc 2 1 2
+4000000 nodes random (2 edges per node)
+111.422389
+v: 4000000 e: 15999723
+search membar finished.
+time: 1.312188
+4000000 nodes random (2 edges per node)
+111.616360
+v: 4000000 e: 15999723
+search membar finished.
+time: 1.312991
+4000000 nodes random (2 edges per node)
+111.538772
+v: 4000000 e: 15999723
+search membar finished.
+time: 1.311777
+
+./cilk/affinity 3 ./cilk/st-par3-cilk --nproc 3 1 2
+4000000 nodes random (2 edges per node)
+114.144121
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.872723
+4000000 nodes random (2 edges per node)
+114.189426
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.873466
+4000000 nodes random (2 edges per node)
+171.918374
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.883677
+
+./cilk/affinity 4 ./cilk/st-par3-cilk --nproc 4 1 2
+4000000 nodes random (2 edges per node)
+130.064216
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.730725
+4000000 nodes random (2 edges per node)
+132.078038
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.735280
+4000000 nodes random (2 edges per node)
+129.567488
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.744478
+
+./cilk/affinity 5 ./cilk/st-par3-cilk --nproc 5 1 2
+4000000 nodes random (2 edges per node)
+130.845072
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.635465
+4000000 nodes random (2 edges per node)
+131.637347
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.637287
+4000000 nodes random (2 edges per node)
+125.237733
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.631429
+
+./cilk/affinity 6 ./cilk/st-par3-cilk --nproc 6 1 2
+4000000 nodes random (2 edges per node)
+129.011005
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.598593
+4000000 nodes random (2 edges per node)
+129.108284
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.603154
+4000000 nodes random (2 edges per node)
+125.137727
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.602644
+
+./cilk/affinity 7 ./cilk/st-par3-cilk --nproc 7 1 2
+4000000 nodes random (2 edges per node)
+129.909389
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.544920
+4000000 nodes random (2 edges per node)
+131.364624
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.545222
+4000000 nodes random (2 edges per node)
+131.179945
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.544501
+
+./cilk/affinity 8 ./cilk/st-par3-cilk --nproc 8 1 2
+4000000 nodes random (2 edges per node)
+130.278318
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.519809
+4000000 nodes random (2 edges per node)
+130.964631
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.518706
+4000000 nodes random (2 edges per node)
+130.059692
+v: 4000000 e: 15999723
+search membar finished.
+time: 0.519236
+
+./cilk/affinity 1 ./cilk/st-par3-cilk --nproc 1 2 2
+2000x2000 nodes 2D torus
+0.172134
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.455805
+2000x2000 nodes 2D torus
+0.170676
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.455260
+2000x2000 nodes 2D torus
+0.171196
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.455420
+
+./cilk/affinity 2 ./cilk/st-par3-cilk --nproc 2 2 2
+2000x2000 nodes 2D torus
+0.170446
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.262510
+2000x2000 nodes 2D torus
+0.197462
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.266422
+2000x2000 nodes 2D torus
+0.185085
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.262651
+
+./cilk/affinity 3 ./cilk/st-par3-cilk --nproc 3 2 2
+2000x2000 nodes 2D torus
+0.180515
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.224992
+2000x2000 nodes 2D torus
+0.261140
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.227205
+2000x2000 nodes 2D torus
+0.221058
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.228977
+
+./cilk/affinity 4 ./cilk/st-par3-cilk --nproc 4 2 2
+2000x2000 nodes 2D torus
+0.247206
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.207025
+2000x2000 nodes 2D torus
+0.320483
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.198033
+2000x2000 nodes 2D torus
+0.210711
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.204679
+
+./cilk/affinity 5 ./cilk/st-par3-cilk --nproc 5 2 2
+2000x2000 nodes 2D torus
+0.208278
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.177035
+2000x2000 nodes 2D torus
+0.204543
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.182664
+2000x2000 nodes 2D torus
+0.204942
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.170716
+
+./cilk/affinity 6 ./cilk/st-par3-cilk --nproc 6 2 2
+2000x2000 nodes 2D torus
+0.198409
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.155229
+2000x2000 nodes 2D torus
+0.193408
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.159343
+2000x2000 nodes 2D torus
+0.199347
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.165468
+
+./cilk/affinity 7 ./cilk/st-par3-cilk --nproc 7 2 2
+2000x2000 nodes 2D torus
+0.261178
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.152171
+2000x2000 nodes 2D torus
+0.193455
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.159797
+2000x2000 nodes 2D torus
+0.237356
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.159861
+
+./cilk/affinity 8 ./cilk/st-par3-cilk --nproc 8 2 2
+2000x2000 nodes 2D torus
+0.194594
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.166510
+2000x2000 nodes 2D torus
+0.203488
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.155799
+2000x2000 nodes 2D torus
+0.354337
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.181244
+
+./cilk/affinity 1 ./cilk/st-par3-cilk --nproc 1 3 2
+20-D hypercube
+0.259597
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.583185
+20-D hypercube
+0.258677
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.583149
+20-D hypercube
+0.258393
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.583127
+
+./cilk/affinity 2 ./cilk/st-par3-cilk --nproc 2 3 2
+20-D hypercube
+0.258523
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.378630
+20-D hypercube
+0.257890
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.371771
+20-D hypercube
+0.257696
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.378082
+
+./cilk/affinity 3 ./cilk/st-par3-cilk --nproc 3 3 2
+20-D hypercube
+0.274338
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.287445
+20-D hypercube
+0.287252
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.253309
+20-D hypercube
+0.381672
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.253392
+
+./cilk/affinity 4 ./cilk/st-par3-cilk --nproc 4 3 2
+20-D hypercube
+0.282725
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.234636
+20-D hypercube
+0.357777
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.218457
+20-D hypercube
+0.374209
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.217091
+
+./cilk/affinity 5 ./cilk/st-par3-cilk --nproc 5 3 2
+20-D hypercube
+0.293461
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.199573
+20-D hypercube
+0.290442
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.194882
+20-D hypercube
+0.344349
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.198093
+
+./cilk/affinity 6 ./cilk/st-par3-cilk --nproc 6 3 2
+20-D hypercube
+0.308968
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.190922
+20-D hypercube
+0.295956
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.191103
+20-D hypercube
+0.309531
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.191685
+
+./cilk/affinity 7 ./cilk/st-par3-cilk --nproc 7 3 2
+20-D hypercube
+0.301468
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.180772
+20-D hypercube
+0.311805
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.180152
+20-D hypercube
+0.302577
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.179463
+
+./cilk/affinity 8 ./cilk/st-par3-cilk --nproc 8 3 2
+20-D hypercube
+0.306746
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.226640
+20-D hypercube
+0.287597
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.171266
+20-D hypercube
+0.295436
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.172150
+
+./cilk/affinity 1 ./cilk/st-par3-cilk --nproc 1 4 2
+Depth 24 binary tree
+0.510931
+v: 16777215 e: 33554428
+search membar finished.
+time: 1.036577
+Depth 24 binary tree
+0.510141
+v: 16777215 e: 33554428
+search membar finished.
+time: 1.035338
+Depth 24 binary tree
+0.510089
+v: 16777215 e: 33554428
+search membar finished.
+time: 1.035022
+
+./cilk/affinity 2 ./cilk/st-par3-cilk --nproc 2 4 2
+Depth 24 binary tree
+0.507903
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.541346
+Depth 24 binary tree
+0.507387
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.542157
+Depth 24 binary tree
+0.508055
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.541541
+
+./cilk/affinity 3 ./cilk/st-par3-cilk --nproc 3 4 2
+Depth 24 binary tree
+0.528052
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.357547
+Depth 24 binary tree
+0.541171
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.355627
+Depth 24 binary tree
+0.752516
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.355049
+
+./cilk/affinity 4 ./cilk/st-par3-cilk --nproc 4 4 2
+Depth 24 binary tree
+0.545205
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.271690
+Depth 24 binary tree
+0.708553
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.271445
+Depth 24 binary tree
+0.718950
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.271418
+
+./cilk/affinity 5 ./cilk/st-par3-cilk --nproc 5 4 2
+Depth 24 binary tree
+0.581272
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.219570
+Depth 24 binary tree
+0.638706
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.221341
+Depth 24 binary tree
+0.610024
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.221125
+
+./cilk/affinity 6 ./cilk/st-par3-cilk --nproc 6 4 2
+Depth 24 binary tree
+0.586597
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.187110
+Depth 24 binary tree
+0.597359
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.187658
+Depth 24 binary tree
+0.580873
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.187220
+
+./cilk/affinity 7 ./cilk/st-par3-cilk --nproc 7 4 2
+Depth 24 binary tree
+0.573311
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.163523
+Depth 24 binary tree
+0.614973
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.162698
+Depth 24 binary tree
+0.615429
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.163467
+
+./cilk/affinity 8 ./cilk/st-par3-cilk --nproc 8 4 2
+Depth 24 binary tree
+0.586952
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.147003
+Depth 24 binary tree
+0.609014
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.146800
+Depth 24 binary tree
+0.609407
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.144788
+
+/home/lab4/hiraisi/work/sc/src/sample/tcell/eval-ppopp10 $ 

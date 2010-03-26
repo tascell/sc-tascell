@@ -1,0 +1,4652 @@
+perl: warning: Setting locale failed.
+perl: warning: Please check that your locale settings:
+	LANGUAGE = (unset),
+	LC_ALL = (unset),
+	LANG = "ja_JP.eucjp"
+    are supported and installed on your system.
+perl: warning: Falling back to the standard locale ("C").
+perl: warning: Setting locale failed.
+perl: warning: Please check that your locale settings:
+	LANGUAGE = (unset),
+	LC_ALL = (unset),
+	LANG = "ja_JP.eucjp"
+    are supported and installed on your system.
+perl: warning: Falling back to the standard locale ("C").
+no ssh-agent
+* ¥Î¡¼¥ÈPC(N-605)¥ì¥ó¥¿¥ëÃæ
+ËÜÂÎ
+¥Ù¡¼¥¹¥É¥Ã¥°
+AC¥¢¥À¥×¥¿
+
+* c2sc
+Ê£¿ô¤Î³ÈÄ¥¤Î°ÂÁ´¤ÊÅ¬ÍÑ -- cf. mj, MetaHelix
+
+~yasugi/papers/pldi04/p/p04-1413.pdf
+~yasugi/papers/pldi05/p/p05.pdf       // seinou hyouka
+~yasugi/lang/xcc/gc/
+[~yasugi/lang/c/loadb/]
+fib005.c
+Àµµ¬ÌÚÊ¸Ë¡
+ÄÌ¿® = ¶¦Í­¥á¥â¥ê¤Î¾õÂÖ¤Î°Ü¹Ô
+initialize, serialize
+
+PLDI ¤Î»²¹ÍÊ¸¸¥ (ISMM2002) ¤è¤ê portable, effective
+
+SXC-Cube
+[22;44mhiraisi@akiu[00m [01;32m~/work/sc/src/sample/tcell
+ % [00mcd eval-ppopp10/
+cd eval-ppopp10/
+[22;44mhiraisi@akiu[00m [01;32m~/work/sc/src/sample/tcell/eval-ppopp10
+ % [00msh eval.sh
+sh eval.sh
+./cilk/affinity 1 ./cilk0717-2/st-par-cilk-s-800 --nproc 1 1 2
+4000000 nodes random (2 edges per node)
+112.077867
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 2.715541
+4000000 nodes random (2 edges per node)
+111.954199
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 2.709581
+4000000 nodes random (2 edges per node)
+111.978591
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 2.714202
+
+./cilk/affinity 1 ./cilk0717-2/st-par3-cilk-s-800 --nproc 1 1 2
+4000000 nodes random (2 edges per node)
+112.032733
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 2.685570
+4000000 nodes random (2 edges per node)
+112.005268
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 2.684150
+4000000 nodes random (2 edges per node)
+112.003150
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 2.685276
+
+./cilk/affinity 1 ./cilk0717-2/st-par-cilk-800 --nproc 1 1 2
+4000000 nodes random (2 edges per node)
+112.002088
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 2.590963
+4000000 nodes random (2 edges per node)
+111.964312
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 2.586316
+4000000 nodes random (2 edges per node)
+111.855605
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 2.590025
+
+./cilk/affinity 1 ./cilk0717-2/st-par3-cilk-800 --nproc 1 1 2
+4000000 nodes random (2 edges per node)
+111.869040
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 2.563933
+4000000 nodes random (2 edges per node)
+111.974904
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 2.561996
+4000000 nodes random (2 edges per node)
+111.998086
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 2.560853
+
+./spanning-lw-cas-800 -n 1 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.703463
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 2.099295
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.945078
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 2.105670
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.942270
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 2.103196
+rslt 0
+
+
+./spanning-lw-membar-800 -n 1 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.921502
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 2.071031
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.799909
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 2.071432
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.894969
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 2.071171
+rslt 0
+
+
+./cilk/affinity 2 ./cilk0717-2/st-par-cilk-s-800 --nproc 2 1 2
+4000000 nodes random (2 edges per node)
+111.547255
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 1.630410
+4000000 nodes random (2 edges per node)
+111.518697
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 1.628007
+4000000 nodes random (2 edges per node)
+111.451530
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 1.625579
+
+./cilk/affinity 2 ./cilk0717-2/st-par3-cilk-s-800 --nproc 2 1 2
+4000000 nodes random (2 edges per node)
+111.527973
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 1.610005
+4000000 nodes random (2 edges per node)
+111.445491
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 1.608755
+4000000 nodes random (2 edges per node)
+111.540490
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 1.611539
+
+./cilk/affinity 2 ./cilk0717-2/st-par-cilk-800 --nproc 2 1 2
+4000000 nodes random (2 edges per node)
+111.450468
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 1.432164
+4000000 nodes random (2 edges per node)
+111.435259
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 1.540203
+4000000 nodes random (2 edges per node)
+111.550717
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 1.540663
+
+./cilk/affinity 2 ./cilk0717-2/st-par3-cilk-800 --nproc 2 1 2
+4000000 nodes random (2 edges per node)
+111.467425
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 1.523770
+4000000 nodes random (2 edges per node)
+111.499846
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 1.524985
+4000000 nodes random (2 edges per node)
+111.624954
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 1.529782
+
+./spanning-lw-cas-800 -n 2 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.975408
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 1.313994
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.884001
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 1.293781
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.991354
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 1.314985
+rslt 0
+
+
+./spanning-lw-membar-800 -n 2 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.802265
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 1.294121
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.890417
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 1.294668
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.852059
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 1.295835
+rslt 0
+
+
+./cilk/affinity 3 ./cilk0717-2/st-par-cilk-s-800 --nproc 3 1 2
+4000000 nodes random (2 edges per node)
+138.338121
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.905518
+4000000 nodes random (2 edges per node)
+114.046897
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.905500
+4000000 nodes random (2 edges per node)
+169.115936
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.947485
+
+./cilk/affinity 3 ./cilk0717-2/st-par3-cilk-s-800 --nproc 3 1 2
+4000000 nodes random (2 edges per node)
+114.205811
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 1.022320
+4000000 nodes random (2 edges per node)
+114.279993
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.916490
+4000000 nodes random (2 edges per node)
+114.227497
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 1.027938
+
+./cilk/affinity 3 ./cilk0717-2/st-par-cilk-800 --nproc 3 1 2
+4000000 nodes random (2 edges per node)
+167.148807
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.920214
+4000000 nodes random (2 edges per node)
+171.322378
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.916303
+4000000 nodes random (2 edges per node)
+171.157698
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.957071
+
+./cilk/affinity 3 ./cilk0717-2/st-par3-cilk-800 --nproc 3 1 2
+4000000 nodes random (2 edges per node)
+170.270210
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.899254
+4000000 nodes random (2 edges per node)
+163.849261
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.897604
+4000000 nodes random (2 edges per node)
+170.363725
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.877272
+
+./spanning-lw-cas-800 -n 3 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.999141
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.781947
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.031592
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.953323
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.946228
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.788165
+rslt 0
+
+
+./spanning-lw-membar-800 -n 3 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.937485
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.962845
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.895696
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.765361
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.941979
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.938026
+rslt 0
+
+
+./cilk/affinity 4 ./cilk0717-2/st-par-cilk-s-800 --nproc 4 1 2
+4000000 nodes random (2 edges per node)
+126.504675
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.756002
+4000000 nodes random (2 edges per node)
+128.185747
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.825921
+4000000 nodes random (2 edges per node)
+129.277626
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.762749
+
+./cilk/affinity 4 ./cilk0717-2/st-par3-cilk-s-800 --nproc 4 1 2
+4000000 nodes random (2 edges per node)
+126.305662
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.815302
+4000000 nodes random (2 edges per node)
+131.790951
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.814713
+4000000 nodes random (2 edges per node)
+129.890555
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.779430
+
+./cilk/affinity 4 ./cilk0717-2/st-par-cilk-800 --nproc 4 1 2
+4000000 nodes random (2 edges per node)
+125.239238
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.730880
+4000000 nodes random (2 edges per node)
+133.962026
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.768387
+4000000 nodes random (2 edges per node)
+131.000213
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.753496
+
+./cilk/affinity 4 ./cilk0717-2/st-par3-cilk-800 --nproc 4 1 2
+4000000 nodes random (2 edges per node)
+129.165639
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.722528
+4000000 nodes random (2 edges per node)
+130.672317
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.739772
+4000000 nodes random (2 edges per node)
+131.649529
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.737601
+
+./spanning-lw-cas-800 -n 4 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.897583
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.694891
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.839239
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.707377
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.809141
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.686980
+rslt 0
+
+
+./spanning-lw-membar-800 -n 4 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.932102
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.674528
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.890964
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.732341
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.952483
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.698664
+rslt 0
+
+
+./cilk/affinity 5 ./cilk0717-2/st-par-cilk-s-800 --nproc 5 1 2
+4000000 nodes random (2 edges per node)
+129.596070
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.739648
+4000000 nodes random (2 edges per node)
+129.069547
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.684379
+4000000 nodes random (2 edges per node)
+128.808189
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.685385
+
+./cilk/affinity 5 ./cilk0717-2/st-par3-cilk-s-800 --nproc 5 1 2
+4000000 nodes random (2 edges per node)
+130.363390
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.693534
+4000000 nodes random (2 edges per node)
+131.432568
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.634480
+4000000 nodes random (2 edges per node)
+130.138582
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.687028
+
+./cilk/affinity 5 ./cilk0717-2/st-par-cilk-800 --nproc 5 1 2
+4000000 nodes random (2 edges per node)
+131.385138
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.660894
+4000000 nodes random (2 edges per node)
+125.973148
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.662917
+4000000 nodes random (2 edges per node)
+131.156521
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.654332
+
+./cilk/affinity 5 ./cilk0717-2/st-par3-cilk-800 --nproc 5 1 2
+4000000 nodes random (2 edges per node)
+130.577115
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.642783
+4000000 nodes random (2 edges per node)
+128.643545
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.638625
+4000000 nodes random (2 edges per node)
+130.730317
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.638013
+
+./spanning-lw-cas-800 -n 5 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.932631
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.668820
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.993057
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.621498
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.842648
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.636451
+rslt 0
+
+
+./spanning-lw-membar-800 -n 5 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.003765
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.614850
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.929619
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.630317
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.046466
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.685195
+rslt 0
+
+
+./cilk/affinity 6 ./cilk0717-2/st-par-cilk-s-800 --nproc 6 1 2
+4000000 nodes random (2 edges per node)
+128.917400
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.701231
+4000000 nodes random (2 edges per node)
+128.821169
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.643508
+4000000 nodes random (2 edges per node)
+125.501566
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.599682
+
+./cilk/affinity 6 ./cilk0717-2/st-par3-cilk-s-800 --nproc 6 1 2
+4000000 nodes random (2 edges per node)
+128.553026
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.656152
+4000000 nodes random (2 edges per node)
+127.709802
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.612033
+4000000 nodes random (2 edges per node)
+128.658342
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.615372
+
+./cilk/affinity 6 ./cilk0717-2/st-par-cilk-800 --nproc 6 1 2
+4000000 nodes random (2 edges per node)
+126.302294
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.617300
+4000000 nodes random (2 edges per node)
+125.398585
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.649567
+4000000 nodes random (2 edges per node)
+125.091251
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.621871
+
+./cilk/affinity 6 ./cilk0717-2/st-par3-cilk-800 --nproc 6 1 2
+4000000 nodes random (2 edges per node)
+125.580163
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.599307
+4000000 nodes random (2 edges per node)
+129.310789
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.626776
+4000000 nodes random (2 edges per node)
+128.799938
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.627599
+
+./spanning-lw-cas-800 -n 6 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.836448
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.625031
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.886716
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.556914
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.742804
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.589760
+rslt 0
+
+
+./spanning-lw-membar-800 -n 6 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.986529
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.594087
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.706611
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.608600
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.810462
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.582633
+rslt 0
+
+
+./cilk/affinity 7 ./cilk0717-2/st-par-cilk-s-800 --nproc 7 1 2
+4000000 nodes random (2 edges per node)
+129.724715
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.602275
+4000000 nodes random (2 edges per node)
+130.176797
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.580509
+4000000 nodes random (2 edges per node)
+131.136682
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.589717
+
+./cilk/affinity 7 ./cilk0717-2/st-par3-cilk-s-800 --nproc 7 1 2
+4000000 nodes random (2 edges per node)
+129.974340
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.597094
+4000000 nodes random (2 edges per node)
+128.464590
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.566241
+4000000 nodes random (2 edges per node)
+131.050705
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.624917
+
+./cilk/affinity 7 ./cilk0717-2/st-par-cilk-800 --nproc 7 1 2
+4000000 nodes random (2 edges per node)
+130.023687
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.538909
+4000000 nodes random (2 edges per node)
+129.360399
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.568945
+4000000 nodes random (2 edges per node)
+131.386761
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.553832
+
+./cilk/affinity 7 ./cilk0717-2/st-par3-cilk-800 --nproc 7 1 2
+4000000 nodes random (2 edges per node)
+130.233858
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.559039
+4000000 nodes random (2 edges per node)
+131.168071
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.547619
+4000000 nodes random (2 edges per node)
+129.634180
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.527673
+
+./spanning-lw-cas-800 -n 7 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.883736
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.544581
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.034849
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.536595
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.903699
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.574088
+rslt 0
+
+
+./spanning-lw-membar-800 -n 7 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.909239
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.543623
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.002777
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.544159
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.972964
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.520418
+rslt 0
+
+
+./cilk/affinity 8 ./cilk0717-2/st-par-cilk-s-800 --nproc 8 1 2
+4000000 nodes random (2 edges per node)
+131.038379
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.539647
+4000000 nodes random (2 edges per node)
+131.396682
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.570655
+4000000 nodes random (2 edges per node)
+130.668738
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.537324
+
+./cilk/affinity 8 ./cilk0717-2/st-par3-cilk-s-800 --nproc 8 1 2
+4000000 nodes random (2 edges per node)
+130.673563
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.547599
+4000000 nodes random (2 edges per node)
+130.769217
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.529027
+4000000 nodes random (2 edges per node)
+130.588347
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.671601
+
+./cilk/affinity 8 ./cilk0717-2/st-par-cilk-800 --nproc 8 1 2
+4000000 nodes random (2 edges per node)
+129.771914
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.561107
+4000000 nodes random (2 edges per node)
+130.539291
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.524184
+4000000 nodes random (2 edges per node)
+130.853108
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.553691
+
+./cilk/affinity 8 ./cilk0717-2/st-par3-cilk-800 --nproc 8 1 2
+4000000 nodes random (2 edges per node)
+130.642692
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.519792
+4000000 nodes random (2 edges per node)
+129.990595
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.531975
+4000000 nodes random (2 edges per node)
+131.330159
+v: 4000000 e: 15999723
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.517287
+
+./spanning-lw-cas-800 -n 8 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.897765
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.525769
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.937093
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.508646
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.078950
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.528391
+rslt 0
+
+
+./spanning-lw-membar-800 -n 8 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.081522
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.495278
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.066131
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.486397
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.926963
+v: 4000000 e: 15999723
+CALL-BOUND: 800
+search-p finished.
+time: 0.511719
+rslt 0
+
+
+./cilk/affinity 1 ./cilk0717-2/st-par-cilk-s-800 --nproc 1 5 2
+21-D hypercube
+0.529149
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 1.380277
+21-D hypercube
+0.525522
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 1.380838
+21-D hypercube
+0.526343
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 1.380228
+
+./cilk/affinity 1 ./cilk0717-2/st-par3-cilk-s-800 --nproc 1 5 2
+21-D hypercube
+0.527773
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 1.365827
+21-D hypercube
+0.528723
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 1.365814
+21-D hypercube
+0.528180
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 1.368287
+
+./cilk/affinity 1 ./cilk0717-2/st-par-cilk-800 --nproc 1 5 2
+21-D hypercube
+0.527645
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 1.371712
+21-D hypercube
+0.529784
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 1.371665
+21-D hypercube
+0.529061
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 1.372491
+
+./cilk/affinity 1 ./cilk0717-2/st-par3-cilk-800 --nproc 1 5 2
+21-D hypercube
+0.527130
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 1.358594
+21-D hypercube
+0.528655
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 1.357687
+21-D hypercube
+0.530938
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 1.357530
+
+./spanning-lw-cas-800 -n 1 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.553652
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 1.296312
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.555532
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 1.293717
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.556419
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 1.291131
+rslt 0
+
+
+./spanning-lw-membar-800 -n 1 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.555091
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 1.276541
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.554552
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 1.280283
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.551561
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 1.277521
+rslt 0
+
+
+./cilk/affinity 2 ./cilk0717-2/st-par-cilk-s-800 --nproc 2 5 2
+21-D hypercube
+0.528283
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.925277
+21-D hypercube
+0.522333
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.915577
+21-D hypercube
+0.525585
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.919194
+
+./cilk/affinity 2 ./cilk0717-2/st-par3-cilk-s-800 --nproc 2 5 2
+21-D hypercube
+0.561658
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.907472
+21-D hypercube
+0.522485
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.908369
+21-D hypercube
+0.561067
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.903301
+
+./cilk/affinity 2 ./cilk0717-2/st-par-cilk-800 --nproc 2 5 2
+21-D hypercube
+0.559948
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.905700
+21-D hypercube
+0.563387
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.908015
+21-D hypercube
+0.529086
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.908537
+
+./cilk/affinity 2 ./cilk0717-2/st-par3-cilk-800 --nproc 2 5 2
+21-D hypercube
+0.563391
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.897156
+21-D hypercube
+0.528648
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.892230
+21-D hypercube
+0.527126
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.895578
+
+./spanning-lw-cas-800 -n 2 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.528222
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.859864
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.560306
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.860891
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.536305
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.865051
+rslt 0
+
+
+./spanning-lw-membar-800 -n 2 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.530805
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.857142
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.556889
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.860435
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.530807
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.858888
+rslt 0
+
+
+./cilk/affinity 3 ./cilk0717-2/st-par-cilk-s-800 --nproc 3 5 2
+21-D hypercube
+0.546465
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.662026
+21-D hypercube
+0.528896
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.999113
+21-D hypercube
+0.848571
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.670817
+
+./cilk/affinity 3 ./cilk0717-2/st-par3-cilk-s-800 --nproc 3 5 2
+21-D hypercube
+0.607488
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.657556
+21-D hypercube
+0.561484
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.657974
+21-D hypercube
+0.554994
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.659917
+
+./cilk/affinity 3 ./cilk0717-2/st-par-cilk-800 --nproc 3 5 2
+21-D hypercube
+0.848343
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.597942
+21-D hypercube
+0.601696
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.611679
+21-D hypercube
+0.906337
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.596465
+
+./cilk/affinity 3 ./cilk0717-2/st-par3-cilk-800 --nproc 3 5 2
+21-D hypercube
+0.794582
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.592369
+21-D hypercube
+0.555399
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.585951
+21-D hypercube
+0.552181
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.579827
+
+./spanning-lw-cas-800 -n 3 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.526859
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.580107
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529373
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.568779
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.560984
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.578275
+rslt 0
+
+
+./spanning-lw-membar-800 -n 3 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.530288
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.572560
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529723
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.570645
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.527713
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.557819
+rslt 0
+
+
+./cilk/affinity 4 ./cilk0717-2/st-par-cilk-s-800 --nproc 4 5 2
+21-D hypercube
+0.789308
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.752500
+21-D hypercube
+0.782318
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.561499
+21-D hypercube
+0.765247
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.560423
+
+./cilk/affinity 4 ./cilk0717-2/st-par3-cilk-s-800 --nproc 4 5 2
+21-D hypercube
+0.899092
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.556688
+21-D hypercube
+0.721650
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.557263
+21-D hypercube
+0.700412
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.557384
+
+./cilk/affinity 4 ./cilk0717-2/st-par-cilk-800 --nproc 4 5 2
+21-D hypercube
+0.727745
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.507381
+21-D hypercube
+0.744363
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.506404
+21-D hypercube
+0.698201
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.509788
+
+./cilk/affinity 4 ./cilk0717-2/st-par3-cilk-800 --nproc 4 5 2
+21-D hypercube
+0.748029
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.499020
+21-D hypercube
+0.710150
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.501271
+21-D hypercube
+0.718542
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.503625
+
+./spanning-lw-cas-800 -n 4 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.530094
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.514518
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.530386
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.502269
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.528502
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.500139
+rslt 0
+
+
+./spanning-lw-membar-800 -n 4 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529390
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.497218
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.536776
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.509234
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.528824
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.499627
+rslt 0
+
+
+./cilk/affinity 5 ./cilk0717-2/st-par-cilk-s-800 --nproc 5 5 2
+21-D hypercube
+0.633955
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.663659
+21-D hypercube
+0.644231
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.527003
+21-D hypercube
+0.600410
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.530164
+
+./cilk/affinity 5 ./cilk0717-2/st-par3-cilk-s-800 --nproc 5 5 2
+21-D hypercube
+0.682893
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.529134
+21-D hypercube
+0.627049
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.529068
+21-D hypercube
+0.602279
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.526062
+
+./cilk/affinity 5 ./cilk0717-2/st-par-cilk-800 --nproc 5 5 2
+21-D hypercube
+0.588876
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.460065
+21-D hypercube
+0.645140
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.464305
+21-D hypercube
+0.646054
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.459450
+
+./cilk/affinity 5 ./cilk0717-2/st-par3-cilk-800 --nproc 5 5 2
+21-D hypercube
+0.620747
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.456290
+21-D hypercube
+0.657921
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.457171
+21-D hypercube
+0.642735
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.458457
+
+./spanning-lw-cas-800 -n 5 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529106
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.448809
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.530450
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.458726
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529993
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.457767
+rslt 0
+
+
+./spanning-lw-membar-800 -n 5 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.530604
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.442780
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.534914
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.454090
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.531710
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.455857
+rslt 0
+
+
+./cilk/affinity 6 ./cilk0717-2/st-par-cilk-s-800 --nproc 6 5 2
+21-D hypercube
+0.643133
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.517990
+21-D hypercube
+0.577245
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.628599
+21-D hypercube
+0.601800
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.515729
+
+./cilk/affinity 6 ./cilk0717-2/st-par3-cilk-s-800 --nproc 6 5 2
+21-D hypercube
+0.600315
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.517497
+21-D hypercube
+0.619182
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.606348
+21-D hypercube
+0.643216
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.514893
+
+./cilk/affinity 6 ./cilk0717-2/st-par-cilk-800 --nproc 6 5 2
+21-D hypercube
+0.590170
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.453701
+21-D hypercube
+0.611096
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.456042
+21-D hypercube
+0.595067
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.449463
+
+./cilk/affinity 6 ./cilk0717-2/st-par3-cilk-800 --nproc 6 5 2
+21-D hypercube
+0.593752
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.449567
+21-D hypercube
+0.604843
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.447980
+21-D hypercube
+0.655525
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.448729
+
+./spanning-lw-cas-800 -n 6 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.528392
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.440696
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.528179
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.446904
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.530029
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.436355
+rslt 0
+
+
+./spanning-lw-membar-800 -n 6 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.528243
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.433175
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.560101
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.451503
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.528238
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.441994
+rslt 0
+
+
+./cilk/affinity 7 ./cilk0717-2/st-par-cilk-s-800 --nproc 7 5 2
+21-D hypercube
+0.654494
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.494663
+21-D hypercube
+0.585541
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.498802
+21-D hypercube
+0.685266
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.493587
+
+./cilk/affinity 7 ./cilk0717-2/st-par3-cilk-s-800 --nproc 7 5 2
+21-D hypercube
+0.589682
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.491594
+21-D hypercube
+0.582231
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.493974
+21-D hypercube
+0.644605
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.503565
+
+./cilk/affinity 7 ./cilk0717-2/st-par-cilk-800 --nproc 7 5 2
+21-D hypercube
+0.597381
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.423829
+21-D hypercube
+0.809600
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.427970
+21-D hypercube
+0.680211
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.420785
+
+./cilk/affinity 7 ./cilk0717-2/st-par3-cilk-800 --nproc 7 5 2
+21-D hypercube
+0.637390
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.416950
+21-D hypercube
+0.638867
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.422602
+21-D hypercube
+0.634180
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.417570
+
+./spanning-lw-cas-800 -n 7 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.561800
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.411449
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.558151
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.420647
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.558588
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.416802
+rslt 0
+
+
+./spanning-lw-membar-800 -n 7 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.531648
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.418173
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.531088
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.417998
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.532317
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.412901
+rslt 0
+
+
+./cilk/affinity 8 ./cilk0717-2/st-par-cilk-s-800 --nproc 8 5 2
+21-D hypercube
+0.653619
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.485971
+21-D hypercube
+0.630505
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.483681
+21-D hypercube
+0.631383
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.483627
+
+./cilk/affinity 8 ./cilk0717-2/st-par3-cilk-s-800 --nproc 8 5 2
+21-D hypercube
+0.644240
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.491679
+21-D hypercube
+0.606536
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.485046
+21-D hypercube
+0.613395
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.560126
+
+./cilk/affinity 8 ./cilk0717-2/st-par-cilk-800 --nproc 8 5 2
+21-D hypercube
+0.644997
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.405973
+21-D hypercube
+0.572404
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.413070
+21-D hypercube
+0.591300
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.411388
+
+./cilk/affinity 8 ./cilk0717-2/st-par3-cilk-800 --nproc 8 5 2
+21-D hypercube
+0.630175
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.409330
+21-D hypercube
+0.627545
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.408477
+21-D hypercube
+0.641092
+v: 2097152 e: 44040192
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.402243
+
+./spanning-lw-cas-800 -n 8 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.532196
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.409197
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529667
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.406183
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.559307
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.410591
+rslt 0
+
+
+./spanning-lw-membar-800 -n 8 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.528107
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.406109
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.558626
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.404316
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.531580
+v: 2097152 e: 44040192
+CALL-BOUND: 800
+search-p finished.
+time: 0.407148
+rslt 0
+
+
+./cilk/affinity 1 ./cilk0717-2/st-par-cilk-s-800 --nproc 1 3 2
+20-D hypercube
+0.257977
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.601117
+20-D hypercube
+0.257739
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.601174
+20-D hypercube
+0.257488
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.600766
+
+./cilk/affinity 1 ./cilk0717-2/st-par3-cilk-s-800 --nproc 1 3 2
+20-D hypercube
+0.257654
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.593916
+20-D hypercube
+0.257683
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.593347
+20-D hypercube
+0.258230
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.593805
+
+./cilk/affinity 1 ./cilk0717-2/st-par-cilk-800 --nproc 1 3 2
+20-D hypercube
+0.259738
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.586774
+20-D hypercube
+0.259368
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.586779
+20-D hypercube
+0.260082
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.586562
+
+./cilk/affinity 1 ./cilk0717-2/st-par3-cilk-800 --nproc 1 3 2
+20-D hypercube
+0.260445
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.579067
+20-D hypercube
+0.259675
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.579019
+20-D hypercube
+0.260070
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.579088
+
+./spanning-lw-cas-800 -n 1 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.271747
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.548673
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.271669
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.548267
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.274221
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.548110
+rslt 0
+
+
+./spanning-lw-membar-800 -n 1 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.274938
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.543621
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.272151
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.543037
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.270469
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.541881
+rslt 0
+
+
+./cilk/affinity 2 ./cilk0717-2/st-par-cilk-s-800 --nproc 2 3 2
+20-D hypercube
+0.260151
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.398880
+20-D hypercube
+0.523501
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.399394
+20-D hypercube
+0.257139
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.398468
+
+./cilk/affinity 2 ./cilk0717-2/st-par3-cilk-s-800 --nproc 2 3 2
+20-D hypercube
+0.256826
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.392460
+20-D hypercube
+0.258443
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.391207
+20-D hypercube
+0.256683
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.392579
+
+./cilk/affinity 2 ./cilk0717-2/st-par-cilk-800 --nproc 2 3 2
+20-D hypercube
+0.257664
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.383186
+20-D hypercube
+0.258443
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.389069
+20-D hypercube
+0.258596
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.388401
+
+./cilk/affinity 2 ./cilk0717-2/st-par3-cilk-800 --nproc 2 3 2
+20-D hypercube
+0.258540
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.383071
+20-D hypercube
+0.277400
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.374922
+20-D hypercube
+0.277371
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.374125
+
+./spanning-lw-cas-800 -n 2 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259373
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.364550
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.271174
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.367802
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258092
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.368144
+rslt 0
+
+
+./spanning-lw-membar-800 -n 2 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.271061
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.361013
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261387
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.358423
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261592
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.360682
+rslt 0
+
+
+./cilk/affinity 3 ./cilk0717-2/st-par-cilk-s-800 --nproc 3 3 2
+20-D hypercube
+0.268579
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.297209
+20-D hypercube
+0.421682
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.294499
+20-D hypercube
+0.325917
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.294406
+
+./cilk/affinity 3 ./cilk0717-2/st-par3-cilk-s-800 --nproc 3 3 2
+20-D hypercube
+0.359617
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.295616
+20-D hypercube
+0.270270
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.292715
+20-D hypercube
+0.274489
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.294057
+
+./cilk/affinity 3 ./cilk0717-2/st-par-cilk-800 --nproc 3 3 2
+20-D hypercube
+0.463376
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.258227
+20-D hypercube
+0.363038
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.267710
+20-D hypercube
+0.297569
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.265909
+
+./cilk/affinity 3 ./cilk0717-2/st-par3-cilk-800 --nproc 3 3 2
+20-D hypercube
+0.441805
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.254016
+20-D hypercube
+0.407081
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.254423
+20-D hypercube
+0.279413
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.254957
+
+./spanning-lw-cas-800 -n 3 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259722
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.251968
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.273649
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.253837
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261343
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.251013
+rslt 0
+
+
+./spanning-lw-membar-800 -n 3 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260207
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.246981
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.262813
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.246481
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259858
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.247633
+rslt 0
+
+
+./cilk/affinity 4 ./cilk0717-2/st-par-cilk-s-800 --nproc 4 3 2
+20-D hypercube
+0.286313
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.342788
+20-D hypercube
+0.351532
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.256756
+20-D hypercube
+0.354429
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.254986
+
+./cilk/affinity 4 ./cilk0717-2/st-par3-cilk-s-800 --nproc 4 3 2
+20-D hypercube
+0.357613
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.249762
+20-D hypercube
+0.360183
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.250313
+20-D hypercube
+0.363840
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.248310
+
+./cilk/affinity 4 ./cilk0717-2/st-par-cilk-800 --nproc 4 3 2
+20-D hypercube
+0.375011
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.223476
+20-D hypercube
+0.381433
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.227824
+20-D hypercube
+0.354587
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.224653
+
+./cilk/affinity 4 ./cilk0717-2/st-par3-cilk-800 --nproc 4 3 2
+20-D hypercube
+0.360452
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.223604
+20-D hypercube
+0.401043
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.217513
+20-D hypercube
+0.372809
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.221694
+
+./spanning-lw-cas-800 -n 4 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260849
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.220880
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260526
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.221459
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260357
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.222191
+rslt 0
+
+
+./spanning-lw-membar-800 -n 4 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260715
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.218065
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260979
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.220916
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260375
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.218598
+rslt 0
+
+
+./cilk/affinity 5 ./cilk0717-2/st-par-cilk-s-800 --nproc 5 3 2
+20-D hypercube
+0.392196
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.234607
+20-D hypercube
+0.322559
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.236518
+20-D hypercube
+0.312740
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.238038
+
+./cilk/affinity 5 ./cilk0717-2/st-par3-cilk-s-800 --nproc 5 3 2
+20-D hypercube
+0.294449
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.235246
+20-D hypercube
+0.287169
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.233997
+20-D hypercube
+0.346492
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.235430
+
+./cilk/affinity 5 ./cilk0717-2/st-par-cilk-800 --nproc 5 3 2
+20-D hypercube
+0.308549
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.207531
+20-D hypercube
+0.342166
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.203154
+20-D hypercube
+0.298776
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.202561
+
+./cilk/affinity 5 ./cilk0717-2/st-par3-cilk-800 --nproc 5 3 2
+20-D hypercube
+0.304795
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.201745
+20-D hypercube
+0.304307
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.199075
+20-D hypercube
+0.336529
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.197927
+
+./spanning-lw-cas-800 -n 5 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259739
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.194102
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.264784
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.199788
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259530
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.199268
+rslt 0
+
+
+./spanning-lw-membar-800 -n 5 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.274779
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.199025
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261730
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.196660
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261530
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.195982
+rslt 0
+
+
+./cilk/affinity 6 ./cilk0717-2/st-par-cilk-s-800 --nproc 6 3 2
+20-D hypercube
+0.312614
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.232354
+20-D hypercube
+0.304158
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.233093
+20-D hypercube
+0.265513
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.306189
+
+./cilk/affinity 6 ./cilk0717-2/st-par3-cilk-s-800 --nproc 6 3 2
+20-D hypercube
+0.309084
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.231057
+20-D hypercube
+0.390344
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.402128
+20-D hypercube
+0.290860
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.230047
+
+./cilk/affinity 6 ./cilk0717-2/st-par-cilk-800 --nproc 6 3 2
+20-D hypercube
+0.325068
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.198171
+20-D hypercube
+0.282485
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.198034
+20-D hypercube
+0.296670
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.199530
+
+./cilk/affinity 6 ./cilk0717-2/st-par3-cilk-800 --nproc 6 3 2
+20-D hypercube
+0.283194
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.215890
+20-D hypercube
+0.551031
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.196656
+20-D hypercube
+0.294109
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.196292
+
+./spanning-lw-cas-800 -n 6 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261248
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.191610
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258812
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.192612
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261263
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.191902
+rslt 0
+
+
+./spanning-lw-membar-800 -n 6 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260293
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.196923
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261131
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.190458
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260953
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.191088
+rslt 0
+
+
+./cilk/affinity 7 ./cilk0717-2/st-par-cilk-s-800 --nproc 7 3 2
+20-D hypercube
+0.324188
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.220756
+20-D hypercube
+0.344232
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.220110
+20-D hypercube
+0.302073
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.219235
+
+./cilk/affinity 7 ./cilk0717-2/st-par3-cilk-s-800 --nproc 7 3 2
+20-D hypercube
+0.287900
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.218651
+20-D hypercube
+0.316905
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.230604
+20-D hypercube
+0.310711
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.220360
+
+./cilk/affinity 7 ./cilk0717-2/st-par-cilk-800 --nproc 7 3 2
+20-D hypercube
+0.289537
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.185857
+20-D hypercube
+0.305236
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.183703
+20-D hypercube
+0.307736
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.184780
+
+./cilk/affinity 7 ./cilk0717-2/st-par3-cilk-800 --nproc 7 3 2
+20-D hypercube
+0.307335
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.182255
+20-D hypercube
+0.411028
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.181399
+20-D hypercube
+0.288571
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.183080
+
+./spanning-lw-cas-800 -n 7 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258958
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.180971
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259355
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.178973
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260952
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.179937
+rslt 0
+
+
+./spanning-lw-membar-800 -n 7 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260687
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.179125
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259362
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.177857
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261752
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.180573
+rslt 0
+
+
+./cilk/affinity 8 ./cilk0717-2/st-par-cilk-s-800 --nproc 8 3 2
+20-D hypercube
+0.314528
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.272334
+20-D hypercube
+0.300971
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.217307
+20-D hypercube
+0.283130
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.238658
+
+./cilk/affinity 8 ./cilk0717-2/st-par3-cilk-s-800 --nproc 8 3 2
+20-D hypercube
+0.281241
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.213550
+20-D hypercube
+0.319282
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.214137
+20-D hypercube
+0.337609
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.216405
+
+./cilk/affinity 8 ./cilk0717-2/st-par-cilk-800 --nproc 8 3 2
+20-D hypercube
+0.264139
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.212746
+20-D hypercube
+0.294692
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.179411
+20-D hypercube
+0.306896
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.177915
+
+./cilk/affinity 8 ./cilk0717-2/st-par3-cilk-800 --nproc 8 3 2
+20-D hypercube
+0.342643
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.176036
+20-D hypercube
+0.270207
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.176726
+20-D hypercube
+0.300881
+v: 1048576 e: 20971520
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.174273
+
+./spanning-lw-cas-800 -n 8 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259332
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.176968
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261347
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.175683
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259070
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.174176
+rslt 0
+
+
+./spanning-lw-membar-800 -n 8 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261092
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.173116
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.275200
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.175105
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.262391
+v: 1048576 e: 20971520
+CALL-BOUND: 800
+search-p finished.
+time: 0.174250
+rslt 0
+
+
+./cilk/affinity 1 ./cilk0717-2/st-par-cilk-s-800 --nproc 1 4 2
+Depth 24 binary tree
+0.512032
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 1.112090
+Depth 24 binary tree
+0.511770
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 1.112019
+Depth 24 binary tree
+0.511248
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 1.112009
+
+./cilk/affinity 1 ./cilk0717-2/st-par3-cilk-s-800 --nproc 1 4 2
+Depth 24 binary tree
+0.511204
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.999331
+Depth 24 binary tree
+0.510909
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.999206
+Depth 24 binary tree
+0.511909
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.999191
+
+./cilk/affinity 1 ./cilk0717-2/st-par-cilk-800 --nproc 1 4 2
+Depth 24 binary tree
+0.509315
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 1.164428
+Depth 24 binary tree
+0.508076
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 1.162564
+Depth 24 binary tree
+0.510066
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 1.162769
+
+./cilk/affinity 1 ./cilk0717-2/st-par3-cilk-800 --nproc 1 4 2
+Depth 24 binary tree
+0.508767
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 1.074055
+Depth 24 binary tree
+0.508596
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 1.074627
+Depth 24 binary tree
+0.508965
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 1.074012
+
+./spanning-lw-cas-800 -n 1 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.509874
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.952174
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.515888
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.954733
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510738
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.954614
+rslt 0
+
+
+./spanning-lw-membar-800 -n 1 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510173
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.837150
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510514
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.838566
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.513234
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.837596
+rslt 0
+
+
+./cilk/affinity 2 ./cilk0717-2/st-par-cilk-s-800 --nproc 2 4 2
+Depth 24 binary tree
+0.618106
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.571632
+Depth 24 binary tree
+0.509233
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.571596
+Depth 24 binary tree
+0.507191
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.571279
+
+./cilk/affinity 2 ./cilk0717-2/st-par3-cilk-s-800 --nproc 2 4 2
+Depth 24 binary tree
+0.528144
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.516392
+Depth 24 binary tree
+0.508258
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.516884
+Depth 24 binary tree
+0.512851
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.516292
+
+./cilk/affinity 2 ./cilk0717-2/st-par-cilk-800 --nproc 2 4 2
+Depth 24 binary tree
+0.517710
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.580077
+Depth 24 binary tree
+0.506636
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.578763
+Depth 24 binary tree
+0.506355
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.579870
+
+./cilk/affinity 2 ./cilk0717-2/st-par3-cilk-800 --nproc 2 4 2
+Depth 24 binary tree
+0.506966
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.547426
+Depth 24 binary tree
+0.506075
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.547759
+Depth 24 binary tree
+0.518556
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.559787
+
+./spanning-lw-cas-800 -n 2 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511023
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.493911
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.513696
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.494360
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.509224
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.494022
+rslt 0
+
+
+./spanning-lw-membar-800 -n 2 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510689
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.437674
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511202
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.437404
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.507855
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.437491
+rslt 0
+
+
+./cilk/affinity 3 ./cilk0717-2/st-par-cilk-s-800 --nproc 3 4 2
+Depth 24 binary tree
+0.707609
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.380835
+Depth 24 binary tree
+0.656030
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.380987
+Depth 24 binary tree
+0.729171
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.380705
+
+./cilk/affinity 3 ./cilk0717-2/st-par3-cilk-s-800 --nproc 3 4 2
+Depth 24 binary tree
+0.560224
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.343905
+Depth 24 binary tree
+0.715661
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.343808
+Depth 24 binary tree
+0.537769
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.343841
+
+./cilk/affinity 3 ./cilk0717-2/st-par-cilk-800 --nproc 3 4 2
+Depth 24 binary tree
+0.712673
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.386060
+Depth 24 binary tree
+0.577881
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.386429
+Depth 24 binary tree
+0.670099
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.386073
+
+./cilk/affinity 3 ./cilk0717-2/st-par3-cilk-800 --nproc 3 4 2
+Depth 24 binary tree
+0.538965
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.371071
+Depth 24 binary tree
+0.541956
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.371054
+Depth 24 binary tree
+0.681939
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.366997
+
+./spanning-lw-cas-800 -n 3 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.513341
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.369285
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.513208
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.484627
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.513218
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.484820
+rslt 0
+
+
+./spanning-lw-membar-800 -n 3 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.514592
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.429335
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.513713
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.327085
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.513559
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.430319
+rslt 0
+
+
+./cilk/affinity 4 ./cilk0717-2/st-par-cilk-s-800 --nproc 4 4 2
+Depth 24 binary tree
+0.719859
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.289459
+Depth 24 binary tree
+0.702792
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.290256
+Depth 24 binary tree
+0.677423
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.289200
+
+./cilk/affinity 4 ./cilk0717-2/st-par3-cilk-s-800 --nproc 4 4 2
+Depth 24 binary tree
+0.838112
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.263821
+Depth 24 binary tree
+0.709928
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.261920
+Depth 24 binary tree
+0.698965
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.261997
+
+./cilk/affinity 4 ./cilk0717-2/st-par-cilk-800 --nproc 4 4 2
+Depth 24 binary tree
+0.664328
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.295438
+Depth 24 binary tree
+0.690550
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.294837
+Depth 24 binary tree
+0.711389
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.293644
+
+./cilk/affinity 4 ./cilk0717-2/st-par3-cilk-800 --nproc 4 4 2
+Depth 24 binary tree
+0.695220
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.279515
+Depth 24 binary tree
+0.666772
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.280598
+Depth 24 binary tree
+0.679429
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.279873
+
+./spanning-lw-cas-800 -n 4 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512777
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.310492
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.517665
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.339119
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512564
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.338863
+rslt 0
+
+
+./spanning-lw-membar-800 -n 4 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.514201
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.275119
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.513760
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.303129
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.516791
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.224482
+rslt 0
+
+
+./cilk/affinity 5 ./cilk0717-2/st-par-cilk-s-800 --nproc 5 4 2
+Depth 24 binary tree
+0.571051
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.233956
+Depth 24 binary tree
+0.620947
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.234889
+Depth 24 binary tree
+0.616158
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.235644
+
+./cilk/affinity 5 ./cilk0717-2/st-par3-cilk-s-800 --nproc 5 4 2
+Depth 24 binary tree
+0.626150
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.214269
+Depth 24 binary tree
+0.628739
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.213954
+Depth 24 binary tree
+0.615690
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.212721
+
+./cilk/affinity 5 ./cilk0717-2/st-par-cilk-800 --nproc 5 4 2
+Depth 24 binary tree
+0.603229
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.239406
+Depth 24 binary tree
+0.611336
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.239222
+Depth 24 binary tree
+0.570022
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.237597
+
+./cilk/affinity 5 ./cilk0717-2/st-par3-cilk-800 --nproc 5 4 2
+Depth 24 binary tree
+0.934256
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.227425
+Depth 24 binary tree
+0.635111
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.228471
+Depth 24 binary tree
+0.611637
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.226855
+
+./spanning-lw-cas-800 -n 5 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512186
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.253527
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510901
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.235345
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512992
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.274437
+rslt 0
+
+
+./spanning-lw-membar-800 -n 5 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512273
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.212874
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511376
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.199293
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.513306
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.223314
+rslt 0
+
+
+./cilk/affinity 6 ./cilk0717-2/st-par-cilk-s-800 --nproc 6 4 2
+Depth 24 binary tree
+0.589284
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.198922
+Depth 24 binary tree
+0.596185
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.198858
+Depth 24 binary tree
+0.609709
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.198774
+
+./cilk/affinity 6 ./cilk0717-2/st-par3-cilk-s-800 --nproc 6 4 2
+Depth 24 binary tree
+0.579531
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.181120
+Depth 24 binary tree
+0.590595
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.181393
+Depth 24 binary tree
+0.614432
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.182634
+
+./cilk/affinity 6 ./cilk0717-2/st-par-cilk-800 --nproc 6 4 2
+Depth 24 binary tree
+0.600349
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.202963
+Depth 24 binary tree
+0.586764
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.202953
+Depth 24 binary tree
+0.601574
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.201697
+
+./cilk/affinity 6 ./cilk0717-2/st-par3-cilk-800 --nproc 6 4 2
+Depth 24 binary tree
+0.601525
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.194511
+Depth 24 binary tree
+0.593844
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.192838
+Depth 24 binary tree
+0.585291
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.192697
+
+./spanning-lw-cas-800 -n 6 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.513404
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.238493
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510425
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.222267
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.513267
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.204387
+rslt 0
+
+
+./spanning-lw-membar-800 -n 6 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511280
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.186951
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512219
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.184558
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.509941
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.174725
+rslt 0
+
+
+./cilk/affinity 7 ./cilk0717-2/st-par-cilk-s-800 --nproc 7 4 2
+Depth 24 binary tree
+0.743799
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.182294
+Depth 24 binary tree
+0.619032
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.171976
+Depth 24 binary tree
+0.583218
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.172417
+
+./cilk/affinity 7 ./cilk0717-2/st-par3-cilk-s-800 --nproc 7 4 2
+Depth 24 binary tree
+0.628790
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.157747
+Depth 24 binary tree
+0.588415
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.157590
+Depth 24 binary tree
+0.608175
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.157721
+
+./cilk/affinity 7 ./cilk0717-2/st-par-cilk-800 --nproc 7 4 2
+Depth 24 binary tree
+0.582328
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.175785
+Depth 24 binary tree
+0.591285
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.178062
+Depth 24 binary tree
+0.599290
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.176637
+
+./cilk/affinity 7 ./cilk0717-2/st-par3-cilk-800 --nproc 7 4 2
+Depth 24 binary tree
+0.604051
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.167144
+Depth 24 binary tree
+0.596385
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.167858
+Depth 24 binary tree
+0.602162
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.166642
+
+./spanning-lw-cas-800 -n 7 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511665
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.205199
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511370
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.177857
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.513832
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.181849
+rslt 0
+
+
+./spanning-lw-membar-800 -n 7 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.509184
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.159454
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511681
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.165194
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510985
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.195854
+rslt 0
+
+
+./cilk/affinity 8 ./cilk0717-2/st-par-cilk-s-800 --nproc 8 4 2
+Depth 24 binary tree
+1.083026
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.152947
+Depth 24 binary tree
+0.603117
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.153113
+Depth 24 binary tree
+0.579593
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (without SYNCHED 0717-2) finished.
+time: 0.174281
+
+./cilk/affinity 8 ./cilk0717-2/st-par3-cilk-s-800 --nproc 8 4 2
+Depth 24 binary tree
+0.587046
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.140696
+Depth 24 binary tree
+0.622274
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.140650
+Depth 24 binary tree
+0.596686
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (without SYNCHED 0717-2) finished.
+time: 0.147939
+
+./cilk/affinity 8 ./cilk0717-2/st-par-cilk-800 --nproc 8 4 2
+Depth 24 binary tree
+0.586747
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.156331
+Depth 24 binary tree
+0.580634
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.155970
+Depth 24 binary tree
+0.588253
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search cas (with SYNCHED 0717-2) finished.
+time: 0.156136
+
+./cilk/affinity 8 ./cilk0717-2/st-par3-cilk-800 --nproc 8 4 2
+Depth 24 binary tree
+0.612316
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.148049
+Depth 24 binary tree
+0.701747
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.147724
+Depth 24 binary tree
+0.577666
+v: 16777215 e: 33554428
+CALL_BOUND: 800
+search membar (with SYNCHED 0717-2) finished.
+time: 0.149219
+
+./spanning-lw-cas-800 -n 8 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.514024
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.164269
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512104
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.181913
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511934
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.195538
+rslt 0
+
+
+./spanning-lw-membar-800 -n 8 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.521142
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.158806
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512423
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.155191
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512575
+v: 16777215 e: 33554428
+CALL-BOUND: 800
+search-p finished.
+time: 0.152607
+rslt 0
+
+
+eval.sh: 94: Syntax error: word unexpected (expecting ")")
+[22;44mhiraisi@akiu[00m [01;32m~/work/sc/src/sample/tcell/eval-ppopp10
+ % [00m

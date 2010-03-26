@@ -1,0 +1,8 @@
+# Tascell_LWSC_membar Random 1 core
+1 0.894
+# Tascell_LWSC_membar Hypercube21 1 core
+2 0.930
+# Tascell_LWSC_membar 2D-torus 1 core
+3 0.681
+# Tascell_LWSC_membar Bintree 1 core
+4 0.444

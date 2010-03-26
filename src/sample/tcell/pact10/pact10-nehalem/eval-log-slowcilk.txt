@@ -1,0 +1,1364 @@
+ % [00msh eval.sh
+sh eval.sh
+./cilk/affinity 1 ./cilk/st-par-cilk-slow --nproc 1 1 2
+4000000 nodes random (2 edges per node)
+112.041807
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 2.560661
+4000000 nodes random (2 edges per node)
+111.893386
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 2.552702
+4000000 nodes random (2 edges per node)
+111.996937
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 2.559211
+
+./cilk/affinity 1 ./cilk/st-par3-cilk-slow --nproc 1 1 2
+4000000 nodes random (2 edges per node)
+112.004279
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 2.545240
+4000000 nodes random (2 edges per node)
+111.990977
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 2.546430
+4000000 nodes random (2 edges per node)
+112.057794
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 2.549407
+
+./cilk/affinity 2 ./cilk/st-par-cilk-slow --nproc 2 1 2
+4000000 nodes random (2 edges per node)
+111.581344
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 1.790103
+4000000 nodes random (2 edges per node)
+111.533609
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 1.780166
+4000000 nodes random (2 edges per node)
+111.577247
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 1.835750
+
+./cilk/affinity 2 ./cilk/st-par3-cilk-slow --nproc 2 1 2
+4000000 nodes random (2 edges per node)
+111.560452
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 1.815898
+4000000 nodes random (2 edges per node)
+111.565293
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 1.817660
+4000000 nodes random (2 edges per node)
+111.482984
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 1.805313
+
+./cilk/affinity 3 ./cilk/st-par-cilk-slow --nproc 3 1 2
+4000000 nodes random (2 edges per node)
+114.347536
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 2.068907
+4000000 nodes random (2 edges per node)
+163.083063
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 2.116215
+4000000 nodes random (2 edges per node)
+114.385356
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 2.093204
+
+./cilk/affinity 3 ./cilk/st-par3-cilk-slow --nproc 3 1 2
+4000000 nodes random (2 edges per node)
+169.624253
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 2.200270
+4000000 nodes random (2 edges per node)
+170.385504
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 2.044392
+4000000 nodes random (2 edges per node)
+167.913040
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 1.992578
+
+./cilk/affinity 4 ./cilk/st-par-cilk-slow --nproc 4 1 2
+4000000 nodes random (2 edges per node)
+126.731018
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 2.296819
+4000000 nodes random (2 edges per node)
+130.821251
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 2.412574
+4000000 nodes random (2 edges per node)
+127.221192
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 2.229259
+
+./cilk/affinity 4 ./cilk/st-par3-cilk-slow --nproc 4 1 2
+4000000 nodes random (2 edges per node)
+130.794809
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 2.262851
+4000000 nodes random (2 edges per node)
+131.286819
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 2.301774
+4000000 nodes random (2 edges per node)
+124.380182
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 2.347368
+
+./cilk/affinity 5 ./cilk/st-par-cilk-slow --nproc 5 1 2
+4000000 nodes random (2 edges per node)
+131.396896
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 2.109343
+4000000 nodes random (2 edges per node)
+126.080848
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 2.037220
+4000000 nodes random (2 edges per node)
+126.178600
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 2.096085
+
+./cilk/affinity 5 ./cilk/st-par3-cilk-slow --nproc 5 1 2
+4000000 nodes random (2 edges per node)
+126.467603
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 2.194477
+4000000 nodes random (2 edges per node)
+129.436611
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 2.119326
+4000000 nodes random (2 edges per node)
+125.795777
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 2.231788
+
+./cilk/affinity 6 ./cilk/st-par-cilk-slow --nproc 6 1 2
+4000000 nodes random (2 edges per node)
+125.804305
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 1.961047
+4000000 nodes random (2 edges per node)
+129.135097
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 1.947483
+4000000 nodes random (2 edges per node)
+128.593548
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 2.010645
+
+./cilk/affinity 6 ./cilk/st-par3-cilk-slow --nproc 6 1 2
+4000000 nodes random (2 edges per node)
+128.365161
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 1.977732
+4000000 nodes random (2 edges per node)
+125.433078
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 1.909174
+4000000 nodes random (2 edges per node)
+128.850829
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 2.008703
+
+./cilk/affinity 7 ./cilk/st-par-cilk-slow --nproc 7 1 2
+4000000 nodes random (2 edges per node)
+129.450436
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 1.903174
+4000000 nodes random (2 edges per node)
+129.161059
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 1.885331
+4000000 nodes random (2 edges per node)
+130.178066
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 1.902197
+
+./cilk/affinity 7 ./cilk/st-par3-cilk-slow --nproc 7 1 2
+4000000 nodes random (2 edges per node)
+129.674473
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 1.871089
+4000000 nodes random (2 edges per node)
+131.376372
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 1.918139
+4000000 nodes random (2 edges per node)
+128.916216
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 1.928007
+
+./cilk/affinity 8 ./cilk/st-par-cilk-slow --nproc 8 1 2
+4000000 nodes random (2 edges per node)
+130.189773
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 1.736441
+4000000 nodes random (2 edges per node)
+130.639542
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 1.744346
+4000000 nodes random (2 edges per node)
+130.461785
+v: 4000000 e: 15999723
+search cas (without SYNCHED) finished.
+time: 1.735955
+
+./cilk/affinity 8 ./cilk/st-par3-cilk-slow --nproc 8 1 2
+4000000 nodes random (2 edges per node)
+131.267588
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 1.825355
+4000000 nodes random (2 edges per node)
+130.440714
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 1.841761
+4000000 nodes random (2 edges per node)
+130.814591
+v: 4000000 e: 15999723
+search membar (without SYNCHED) finished.
+time: 1.868165
+
+./cilk/affinity 1 ./cilk/st-par-cilk-slow --nproc 1 2 2
+2000x2000 nodes 2D torus
+0.173705
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.799851
+2000x2000 nodes 2D torus
+0.169977
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.798292
+2000x2000 nodes 2D torus
+0.168867
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.797748
+
+./cilk/affinity 1 ./cilk/st-par3-cilk-slow --nproc 1 2 2
+2000x2000 nodes 2D torus
+0.169835
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.780231
+2000x2000 nodes 2D torus
+0.169742
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.778038
+2000x2000 nodes 2D torus
+0.169742
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.779404
+
+./cilk/affinity 2 ./cilk/st-par-cilk-slow --nproc 2 2 2
+2000x2000 nodes 2D torus
+0.229454
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.670150
+2000x2000 nodes 2D torus
+0.168260
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.543337
+2000x2000 nodes 2D torus
+0.168709
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.634684
+
+./cilk/affinity 2 ./cilk/st-par3-cilk-slow --nproc 2 2 2
+2000x2000 nodes 2D torus
+0.167789
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.566982
+2000x2000 nodes 2D torus
+0.168506
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.629890
+2000x2000 nodes 2D torus
+0.169233
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.646402
+
+./cilk/affinity 3 ./cilk/st-par-cilk-slow --nproc 3 2 2
+2000x2000 nodes 2D torus
+0.234276
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.833735
+2000x2000 nodes 2D torus
+0.169486
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.800210
+2000x2000 nodes 2D torus
+0.192199
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.693167
+
+./cilk/affinity 3 ./cilk/st-par3-cilk-slow --nproc 3 2 2
+2000x2000 nodes 2D torus
+0.256653
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.774702
+2000x2000 nodes 2D torus
+0.179701
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.745895
+2000x2000 nodes 2D torus
+0.190575
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.678407
+
+./cilk/affinity 4 ./cilk/st-par-cilk-slow --nproc 4 2 2
+2000x2000 nodes 2D torus
+0.173766
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.900425
+2000x2000 nodes 2D torus
+0.226357
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.816950
+2000x2000 nodes 2D torus
+0.235644
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.892256
+
+./cilk/affinity 4 ./cilk/st-par3-cilk-slow --nproc 4 2 2
+2000x2000 nodes 2D torus
+0.234345
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.814881
+2000x2000 nodes 2D torus
+0.219231
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.815167
+2000x2000 nodes 2D torus
+0.222819
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.772587
+
+./cilk/affinity 5 ./cilk/st-par-cilk-slow --nproc 5 2 2
+2000x2000 nodes 2D torus
+0.260899
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.710007
+2000x2000 nodes 2D torus
+0.203144
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.696730
+2000x2000 nodes 2D torus
+0.196935
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.739019
+
+./cilk/affinity 5 ./cilk/st-par3-cilk-slow --nproc 5 2 2
+2000x2000 nodes 2D torus
+0.284389
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.750184
+2000x2000 nodes 2D torus
+0.170021
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.681363
+2000x2000 nodes 2D torus
+0.198831
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.788833
+
+./cilk/affinity 6 ./cilk/st-par-cilk-slow --nproc 6 2 2
+2000x2000 nodes 2D torus
+0.188289
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.627435
+2000x2000 nodes 2D torus
+0.191320
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.598078
+2000x2000 nodes 2D torus
+0.189584
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.640168
+
+./cilk/affinity 6 ./cilk/st-par3-cilk-slow --nproc 6 2 2
+2000x2000 nodes 2D torus
+0.203701
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.662538
+2000x2000 nodes 2D torus
+0.189828
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.663193
+2000x2000 nodes 2D torus
+0.194130
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.701513
+
+./cilk/affinity 7 ./cilk/st-par-cilk-slow --nproc 7 2 2
+2000x2000 nodes 2D torus
+0.195912
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.724805
+2000x2000 nodes 2D torus
+0.230241
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.660290
+2000x2000 nodes 2D torus
+0.237850
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.673993
+
+./cilk/affinity 7 ./cilk/st-par3-cilk-slow --nproc 7 2 2
+2000x2000 nodes 2D torus
+0.176051
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.647693
+2000x2000 nodes 2D torus
+0.274509
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.665101
+2000x2000 nodes 2D torus
+0.265306
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.647153
+
+./cilk/affinity 8 ./cilk/st-par-cilk-slow --nproc 8 2 2
+2000x2000 nodes 2D torus
+0.220984
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.607786
+2000x2000 nodes 2D torus
+0.203573
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.599368
+2000x2000 nodes 2D torus
+0.276380
+v: 4000000 e: 16000000
+search cas (without SYNCHED) finished.
+time: 0.683621
+
+./cilk/affinity 8 ./cilk/st-par3-cilk-slow --nproc 8 2 2
+2000x2000 nodes 2D torus
+0.225645
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.612315
+2000x2000 nodes 2D torus
+0.253597
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.658137
+2000x2000 nodes 2D torus
+0.209536
+v: 4000000 e: 16000000
+search membar (without SYNCHED) finished.
+time: 0.587274
+
+./cilk/affinity 1 ./cilk/st-par-cilk-slow --nproc 1 3 2
+20-D hypercube
+0.260402
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.686415
+20-D hypercube
+0.257630
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.684395
+20-D hypercube
+0.257907
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.686114
+
+./cilk/affinity 1 ./cilk/st-par3-cilk-slow --nproc 1 3 2
+20-D hypercube
+0.256829
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.684040
+20-D hypercube
+0.257994
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.684333
+20-D hypercube
+0.256935
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.684467
+
+./cilk/affinity 2 ./cilk/st-par-cilk-slow --nproc 2 3 2
+20-D hypercube
+0.292362
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.430926
+20-D hypercube
+0.259175
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.430739
+20-D hypercube
+0.257120
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.429497
+
+./cilk/affinity 2 ./cilk/st-par3-cilk-slow --nproc 2 3 2
+20-D hypercube
+0.256937
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.429764
+20-D hypercube
+0.256062
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.429257
+20-D hypercube
+0.274418
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.427724
+
+./cilk/affinity 3 ./cilk/st-par-cilk-slow --nproc 3 3 2
+20-D hypercube
+0.408203
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.330454
+20-D hypercube
+0.260162
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.384403
+20-D hypercube
+0.274110
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.332008
+
+./cilk/affinity 3 ./cilk/st-par3-cilk-slow --nproc 3 3 2
+20-D hypercube
+0.271555
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.318325
+20-D hypercube
+0.415472
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.326758
+20-D hypercube
+0.384138
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.326643
+
+./cilk/affinity 4 ./cilk/st-par-cilk-slow --nproc 4 3 2
+20-D hypercube
+0.370541
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.283582
+20-D hypercube
+0.311085
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.330941
+20-D hypercube
+0.392353
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.287162
+
+./cilk/affinity 4 ./cilk/st-par3-cilk-slow --nproc 4 3 2
+20-D hypercube
+0.406997
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.279085
+20-D hypercube
+0.366874
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.280490
+20-D hypercube
+0.362857
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.276285
+
+./cilk/affinity 5 ./cilk/st-par-cilk-slow --nproc 5 3 2
+20-D hypercube
+0.345256
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.255484
+20-D hypercube
+0.300822
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.257864
+20-D hypercube
+0.347922
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.260610
+
+./cilk/affinity 5 ./cilk/st-par3-cilk-slow --nproc 5 3 2
+20-D hypercube
+0.332720
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.253270
+20-D hypercube
+0.298591
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.253973
+20-D hypercube
+0.299547
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.255368
+
+./cilk/affinity 6 ./cilk/st-par-cilk-slow --nproc 6 3 2
+20-D hypercube
+0.289492
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.246413
+20-D hypercube
+0.289976
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.265440
+20-D hypercube
+0.296996
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.247369
+
+./cilk/affinity 6 ./cilk/st-par3-cilk-slow --nproc 6 3 2
+20-D hypercube
+0.279305
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.243171
+20-D hypercube
+0.292287
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.309955
+20-D hypercube
+0.283824
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.246576
+
+./cilk/affinity 7 ./cilk/st-par-cilk-slow --nproc 7 3 2
+20-D hypercube
+0.278161
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.232522
+20-D hypercube
+0.301796
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.268342
+20-D hypercube
+0.288134
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.232998
+
+./cilk/affinity 7 ./cilk/st-par3-cilk-slow --nproc 7 3 2
+20-D hypercube
+0.308907
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.234083
+20-D hypercube
+0.312048
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.233844
+20-D hypercube
+0.302177
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.233801
+
+./cilk/affinity 8 ./cilk/st-par-cilk-slow --nproc 8 3 2
+20-D hypercube
+0.315544
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.227795
+20-D hypercube
+0.270337
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.248797
+20-D hypercube
+0.282203
+v: 1048576 e: 20971520
+search cas (without SYNCHED) finished.
+time: 0.246928
+
+./cilk/affinity 8 ./cilk/st-par3-cilk-slow --nproc 8 3 2
+20-D hypercube
+0.282934
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.226816
+20-D hypercube
+0.324191
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.243355
+20-D hypercube
+0.318283
+v: 1048576 e: 20971520
+search membar (without SYNCHED) finished.
+time: 0.226025
+
+./cilk/affinity 1 ./cilk/st-par-cilk-slow --nproc 1 4 2
+Depth 24 binary tree
+0.510110
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 1.963487
+Depth 24 binary tree
+0.508447
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 1.977643
+Depth 24 binary tree
+0.508022
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 1.956122
+
+./cilk/affinity 1 ./cilk/st-par3-cilk-slow --nproc 1 4 2
+Depth 24 binary tree
+0.509105
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 1.827242
+Depth 24 binary tree
+0.508106
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 1.812058
+Depth 24 binary tree
+0.507403
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 1.809551
+
+./cilk/affinity 2 ./cilk/st-par-cilk-slow --nproc 2 4 2
+Depth 24 binary tree
+0.504933
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.977147
+Depth 24 binary tree
+0.518154
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.996064
+Depth 24 binary tree
+0.504452
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.999118
+
+./cilk/affinity 2 ./cilk/st-par3-cilk-slow --nproc 2 4 2
+Depth 24 binary tree
+0.506723
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.954760
+Depth 24 binary tree
+0.506736
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.971205
+Depth 24 binary tree
+0.506729
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.933610
+
+./cilk/affinity 3 ./cilk/st-par-cilk-slow --nproc 3 4 2
+Depth 24 binary tree
+0.796316
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.677139
+Depth 24 binary tree
+0.542742
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.675036
+Depth 24 binary tree
+0.756106
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.691288
+
+./cilk/affinity 3 ./cilk/st-par3-cilk-slow --nproc 3 4 2
+Depth 24 binary tree
+0.539150
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.661820
+Depth 24 binary tree
+0.791089
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.642894
+Depth 24 binary tree
+0.610264
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.685061
+
+./cilk/affinity 4 ./cilk/st-par-cilk-slow --nproc 4 4 2
+Depth 24 binary tree
+0.628612
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.508719
+Depth 24 binary tree
+0.720472
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.524373
+Depth 24 binary tree
+0.701623
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.517657
+
+./cilk/affinity 4 ./cilk/st-par3-cilk-slow --nproc 4 4 2
+Depth 24 binary tree
+0.678819
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.486212
+Depth 24 binary tree
+0.711806
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.507741
+Depth 24 binary tree
+0.673983
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.498476
+
+./cilk/affinity 5 ./cilk/st-par-cilk-slow --nproc 5 4 2
+Depth 24 binary tree
+0.711987
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.410777
+Depth 24 binary tree
+0.589337
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.419791
+Depth 24 binary tree
+0.612747
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.407380
+
+./cilk/affinity 5 ./cilk/st-par3-cilk-slow --nproc 5 4 2
+Depth 24 binary tree
+0.614326
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.409223
+Depth 24 binary tree
+0.602370
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.394236
+Depth 24 binary tree
+0.608152
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.412056
+
+./cilk/affinity 6 ./cilk/st-par-cilk-slow --nproc 6 4 2
+Depth 24 binary tree
+0.595830
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.342330
+Depth 24 binary tree
+0.578619
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.357604
+Depth 24 binary tree
+0.608045
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.349006
+
+./cilk/affinity 6 ./cilk/st-par3-cilk-slow --nproc 6 4 2
+Depth 24 binary tree
+0.955545
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.367771
+Depth 24 binary tree
+0.842235
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.335260
+Depth 24 binary tree
+0.583616
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.346831
+
+./cilk/affinity 7 ./cilk/st-par-cilk-slow --nproc 7 4 2
+Depth 24 binary tree
+0.582181
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.298563
+Depth 24 binary tree
+0.580619
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.307191
+Depth 24 binary tree
+0.605193
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.310561
+
+./cilk/affinity 7 ./cilk/st-par3-cilk-slow --nproc 7 4 2
+Depth 24 binary tree
+0.590312
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.297768
+Depth 24 binary tree
+0.598247
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.288842
+Depth 24 binary tree
+0.943765
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.289389
+
+./cilk/affinity 8 ./cilk/st-par-cilk-slow --nproc 8 4 2
+Depth 24 binary tree
+0.578843
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.261564
+Depth 24 binary tree
+0.657747
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.263834
+Depth 24 binary tree
+0.625927
+v: 16777215 e: 33554428
+search cas (without SYNCHED) finished.
+time: 0.279840
+
+./cilk/affinity 8 ./cilk/st-par3-cilk-slow --nproc 8 4 2
+Depth 24 binary tree
+0.689158
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.252269
+Depth 24 binary tree
+0.615723
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.260724
+Depth 24 binary tree
+0.588880
+v: 16777215 e: 33554428
+search membar (without SYNCHED) finished.
+time: 0.263827
+
+./cilk/affinity 1 ./cilk/st-par-cilk-slow --nproc 1 5 2
+21-D hypercube
+0.527587
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 1.532863
+21-D hypercube
+0.528219
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 1.531002
+21-D hypercube
+0.527417
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 1.531364
+
+./cilk/affinity 1 ./cilk/st-par3-cilk-slow --nproc 1 5 2
+21-D hypercube
+0.525963
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 1.525044
+21-D hypercube
+0.525938
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 1.524746
+21-D hypercube
+0.525272
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 1.525391
+
+./cilk/affinity 2 ./cilk/st-par-cilk-slow --nproc 2 5 2
+21-D hypercube
+0.523653
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.981945
+21-D hypercube
+0.559697
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.974221
+21-D hypercube
+0.527091
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.979109
+
+./cilk/affinity 2 ./cilk/st-par3-cilk-slow --nproc 2 5 2
+21-D hypercube
+0.554583
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.972444
+21-D hypercube
+0.561112
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.973622
+21-D hypercube
+0.525008
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.977688
+
+./cilk/affinity 3 ./cilk/st-par-cilk-slow --nproc 3 5 2
+21-D hypercube
+1.010505
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.719856
+21-D hypercube
+0.570482
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.730456
+21-D hypercube
+0.876304
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.737144
+
+./cilk/affinity 3 ./cilk/st-par3-cilk-slow --nproc 3 5 2
+21-D hypercube
+0.806619
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.717153
+21-D hypercube
+0.779773
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.709503
+21-D hypercube
+0.626283
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.708482
+
+./cilk/affinity 4 ./cilk/st-par-cilk-slow --nproc 4 5 2
+21-D hypercube
+0.769330
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.620622
+21-D hypercube
+0.670561
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.634920
+21-D hypercube
+0.748677
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.632332
+
+./cilk/affinity 4 ./cilk/st-par3-cilk-slow --nproc 4 5 2
+21-D hypercube
+0.783449
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.621264
+21-D hypercube
+0.865398
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.615639
+21-D hypercube
+0.743459
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.633421
+
+./cilk/affinity 5 ./cilk/st-par-cilk-slow --nproc 5 5 2
+21-D hypercube
+0.700374
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.579258
+21-D hypercube
+0.622629
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.573124
+21-D hypercube
+0.612796
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.579728
+
+./cilk/affinity 5 ./cilk/st-par3-cilk-slow --nproc 5 5 2
+21-D hypercube
+0.643403
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.577879
+21-D hypercube
+0.551072
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.619106
+21-D hypercube
+0.664587
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.579103
+
+./cilk/affinity 6 ./cilk/st-par-cilk-slow --nproc 6 5 2
+21-D hypercube
+0.639936
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.564638
+21-D hypercube
+0.644526
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.560276
+21-D hypercube
+0.645928
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.560016
+
+./cilk/affinity 6 ./cilk/st-par3-cilk-slow --nproc 6 5 2
+21-D hypercube
+0.595272
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.633660
+21-D hypercube
+0.654225
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.560580
+21-D hypercube
+0.642070
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.556878
+
+./cilk/affinity 7 ./cilk/st-par-cilk-slow --nproc 7 5 2
+21-D hypercube
+0.674300
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.529035
+21-D hypercube
+0.671816
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.533962
+21-D hypercube
+0.688058
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.531884
+
+./cilk/affinity 7 ./cilk/st-par3-cilk-slow --nproc 7 5 2
+21-D hypercube
+0.644575
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.531633
+21-D hypercube
+1.123674
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.533682
+21-D hypercube
+0.593382
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.532991
+
+./cilk/affinity 8 ./cilk/st-par-cilk-slow --nproc 8 5 2
+21-D hypercube
+0.620149
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.513867
+21-D hypercube
+0.711560
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.516569
+21-D hypercube
+0.637554
+v: 2097152 e: 44040192
+search cas (without SYNCHED) finished.
+time: 0.519625
+
+./cilk/affinity 8 ./cilk/st-par3-cilk-slow --nproc 8 5 2
+21-D hypercube
+0.649263
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.520864
+21-D hypercube
+0.665811
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.515035
+21-D hypercube
+0.675620
+v: 2097152 e: 44040192
+search membar (without SYNCHED) finished.
+time: 0.514422
+
+[22;44mhiraisi@akiu[00m [01;32m~/work/sc/src/sample/tcell/eval-ppopp10
+ % [00m

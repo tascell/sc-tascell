@@ -1,0 +1,144 @@
+;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; All rights reserved.
+
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+;;; 1. Redistributions of source code must retain the above copyright
+;;;    notice, this list of conditions and the following disclaimer.
+;;; 2. Redistributions in binary form must reproduce the above copyright
+;;;    notice, this list of conditions and the following disclaimer in the
+;;;    documentation and/or other materials provided with the distribution.
+
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE
+;;; FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+;;; OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+;;; LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+;;; SUCH DAMAGE.
+
+;;; Find all the solutions of the n-queen problem
+
+;; task 0 0 0 0
+;; <n>
+;; -1
+
+(c-exp "#include<sys/time.h>")
+
+(%include "rule/tcell-setrule.sh")
+(%include "clib.sh")
+(%include "dprint.sh")
+(%cinclude "sendrecv.h" (:macro))
+
+;;; thread local strogae
+(def (task nqueens)
+  (def r int :out)  ; （部分）解の数
+  (def n int :in)   ;  問題サイズ
+  (def k int :in)   ;  初期化->探索開始(-1) or 部分探索開始かのフラグ(>=0)
+  (def i1 int)  ;  探索範囲 start
+  (def i2 int)  ;  探索範囲 end
+  (def a (array int 20)) ; 使用済み行の管理
+  (def lb (array int 40)) ; 盤面情報1
+  (def rb (array int 40)) ; 盤面情報2
+  )
+
+(def (task-sender nqueens)
+  (def i int 0)
+  (if (>= (fref this k) 0)
+      (begin
+       (csym::send-int (fref this i1))
+       (csym::send-int (fref this i2))
+       (for ((= i 0) (< i (fref this n)) (inc i))
+            (csym::send-int (aref (fref this a) i)))
+       (for ((= i 0) (< i (- (* 2 (fref this n)) 1)) (inc i))
+            (csym::send-int (aref (fref this lb) i)))
+       (for ((= i 0) (< i (- (* 2 (fref this n)) 1)) (inc i))
+            (csym::send-int (aref (fref this rb) i)))))
+  )
+
+(def (task-receiver nqueens)
+  (def i int 0)
+  (if (>= (fref this k) 0)
+      (begin
+       (= (fref this i1) (csym::recv-int))
+       (= (fref this i2) (csym::recv-int))
+       (for ((= i 0) (< i (fref this n)) (inc i))
+            (= (aref (fref this a) i) (csym::recv-int)))
+       (for ((= i 0) (< i (- (* 2 (fref this n)) 1)) (inc i))
+            (= (aref (fref this lb) i) (csym::recv-int)))
+       (for ((= i 0) (< i (- (* 2 (fref this n)) 1)) (inc i))
+            (= (aref (fref this rb) i) (csym::recv-int)))
+  )))
+
+;; k: a[j] (0<k)までの行にはもう置いた
+;; ix, iy:  探索範囲
+(def (nqueens n k ix iy tsk)
+    (wfn int int int int int (ptr (struct nqueens)))
+  (def s int 0)
+  (do-many for i from ix to iy
+    (def ai int (aref (fref tsk -> a) i))
+    ;; 駒が置けるかチェック
+    (if (not (or (aref (fref tsk -> lb) (+ n -1 (- ai) k))
+                 (aref (fref tsk -> rb) (+ ai k))))
+        (begin
+         (if (== k (- n 1)) (inc s)
+             (begin
+             (dynamic-wind
+              (:before
+               (= (aref (fref tsk -> lb) (+ n -1 (- ai) k)) 1)
+               (= (aref (fref tsk -> rb) (+ ai k)) 1)
+               (= (aref (fref tsk -> a) i) (aref (fref tsk -> a) k))
+               (= (aref (fref tsk -> a) k) ai))
+              (:body
+               (+= s (nqueens n (+ k 1) (+ k 1) n tsk)))
+              (:after
+               (= (aref (fref tsk -> lb) (+ n -1 (- ai) k)) 0)
+               (= (aref (fref tsk -> rb) (+ ai k)) 0)
+               (= ai (aref (fref tsk -> a) k))
+               (= (aref (fref tsk -> a) k) (aref (fref tsk -> a) i))
+               (= (aref (fref tsk -> a) i) ai)))))))
+    (nqueens
+     (:put from i1 to i2
+           (= this (mref tsk))
+           (= (fref this k) k)
+           (= (fref this i1) i1)
+           (= (fref this i2) i2))
+     (:get (+= s (fref this r)))))
+  (return s))
+
+
+(def (csym::elapsed-time tp) 
+    (fn double (array (struct timeval) 2))
+  (return (+ (- (fref (aref tp 1) tv-sec)
+                (fref (aref tp 0) tv-sec))
+             (* 0.000001
+                (- (fref (aref tp 1) tv-usec)
+                   (fref (aref tp 0) tv-usec))))))
+
+(def (task-body nqueens)
+  (def i int)
+  (def n int (fref this n))
+  (def k int (fref this k))
+  (decl tp (array (struct timeval) 2))
+  (if (> option.verbose 0) (csym::fprintf stderr "start %d %d %d %d~%" n k (fref this i1) (fref this i2)))
+  (if (< k 0)
+      (begin
+       (for ((= i 0) (< i n) (inc i))
+            (= (aref (fref this a) i) i))
+       (for ((= i 0) (< i (- (* 2 n) 1)) (inc i))
+            (= (aref (fref this lb) i) 0)
+            (= (aref (fref this rb) i) 0))
+       (csym::gettimeofday tp 0)
+       (= (fref this r)
+          (nqueens n 0 0 n (ptr this)))
+       (csym::gettimeofday (+ tp 1) 0)
+       (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp)))
+      (= (fref this r)
+         (nqueens n k (fref this i1) (fref this i2) (ptr this))))
+  (DEBUG-PRINT 1 "end %d %d %d %d~%" k n (fref this i1) (fref this i2))
+  )

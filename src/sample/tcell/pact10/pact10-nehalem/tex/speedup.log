@@ -1,0 +1,100 @@
+This is pTeXk, Version 3.141592-p3.1.10 (euc) (Web2C 7.5.4) (format=platex 2009.3.15)  12 JAN 2010 22:25
+ %&-line parsing enabled.
+**speedup.tex
+(./speedup.tex
+pLaTeX2e <2006/11/10>+0 (based on LaTeX2e <2005/12/01> patch level 0)
+(/usr/share/texmf/ptex/platex/base/jarticle.cls
+Document Class: jarticle 2006/06/27 v1.6 Standard pLaTeX class
+\c@@paper=\count81
+(/usr/share/texmf/ptex/platex/base/jsize10.clo
+File: jsize10.clo 2006/06/27 v1.6 Standard pLaTeX file (size option)
+)
+\c@part=\count82
+\c@section=\count83
+\c@subsection=\count84
+\c@subsubsection=\count85
+\c@paragraph=\count86
+\c@subparagraph=\count87
+\c@figure=\count88
+\c@table=\count89
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\symmincho=\mathgroup4
+LaTeX Font Info:    Overwriting symbol font `mincho' in version `bold'
+(Font)                  JY1/mc/m/n --> JY1/gt/m/n on input line 601.
+\toclineskip=\dimen118
+\@lnumwidth=\dimen119
+\bibindent=\dimen120
+\heisei=\count90
+) (./speedup.aux)
+\openout1 = `speedup.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for JY1/mc/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for JT1/mc/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 9.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 9.
+
+Overfull \hbox (24.21765pt too wide) in paragraph at lines 8--73
+[][] 
+ []
+
+[1
+
+]
+Overfull \vbox (25.41019pt too high) has occurred while \output is active []
+
+
+[2]
+Overfull \hbox (19.21764pt too wide) in paragraph at lines 75--140
+[][] 
+ []
+
+[3]
+Overfull \vbox (25.41019pt too high) has occurred while \output is active []
+
+
+[4]
+Overfull \hbox (54.21774pt too wide) in paragraph at lines 142--207
+[][] 
+ []
+
+[5]
+Overfull \vbox (25.41019pt too high) has occurred while \output is active []
+
+
+[6]
+Overfull \hbox (31.4399pt too wide) in paragraph at lines 209--274
+[][] 
+ []
+
+[7]
+Overfull \vbox (25.41019pt too high) has occurred while \output is active []
+
+
+[8] (./speedup.aux) ) 
+Here is how much of TeX's memory you used:
+ 251 strings out of 95531
+ 2495 string characters out of 1191153
+ 77083 words of memory out of 1500000
+ 3496 multiletter control sequences out of 10000+50000
+ 7511 words of font info for 31 fonts, out of 1200000 for 2000
+ 14 hyphenation exceptions out of 8191
+ 22i,7n,19p,154b,242s stack positions out of 5000i,500n,6000p,200000b,5000s
+
+Output written on speedup.dvi (8 pages, 67632 bytes).

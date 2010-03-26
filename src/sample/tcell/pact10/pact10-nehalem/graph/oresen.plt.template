@@ -1,0 +1,44 @@
+#!/usr/bin/env gnuplot
+#set terminal tgif color "Times-Roman" 30 # monochrome
+set term postscript eps enhanced color "Times-Roman" 9
+# set terminal epslatex color #"Times-Roman" 30
+# set output '%1%%2%.obj'
+set output '%1%%2%.eps'
+
+set size 0.36,0.36                   # set size 1,0.75
+set pointsize 0.7
+
+# set multiplot
+## common settings
+
+set grid noxtics ytics
+set key %3%
+
+unset logscale xy
+set xrange [1:8]
+set xtic 1
+set yrange [0:8]
+set ytic 1
+
+# set lmargin 6
+
+# set size 1.0,1.0                   # set size 1,0.75
+# set origin 0,0                 # set origin 0,0.25
+set xlabel '# of cores'
+set ylabel 'speedup' # 'elapsed time (sec)'
+# set xtics ("1x4" 4, "2x4" 8, "4x4" 16, "8x4" 32, "16x4" 64) # set xtics 4 # set format x ""
+# set bmargin 0
+
+# plot \
+# "%1%-Cilk_cas%2%.dat"  using 1:2 title "Cilk\\_cas"     with linespoints lt 4 pt 1,\
+# "%1%-Cilk_membar%2%.dat"  using 1:2 title "Cilk\\_membar"     with linespoints lt 4 pt 2,\
+# "%1%-Cilk_R_cas%2%.dat"  using 1:2 title "Cilk\\_R\\_cas"     with linespoints lt 3 pt 1,\
+# "%1%-Cilk_R_membar%2%.dat"  using 1:2 title "Cilk\\_R\\_membar"     with linespoints lt 3 pt 2,\
+# "%1%-Tascell_cas%2%.dat"  using 1:2 title "Tascell\\_cas"     with linespoints lt -1 pt 1,\
+# "%1%-Tascell_membar%2%.dat"  using 1:2 title "Tascell\\_membar"     with linespoints lt -1 pt 2
+
+plot \
+"%1%-Cilk_cas%2%.dat"  using 1:2 title "Cilk\\_cas"     with linespoints lt 4 pt 1,\
+"%1%-Tascell_XCCC_cas%2%.dat"  using 1:2 title "Tascell\\_cas"     with linespoints lt -1 pt 1
+
+# set nomultiplot

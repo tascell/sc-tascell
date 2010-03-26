@@ -1,0 +1,4164 @@
+./st-serial-call 11 1
+Graph "Random4000000.graph" successfully loaded.
+time: 4.286231
+Graph "Random4000000.graph" successfully loaded.
+time: 4.344043
+Graph "Random4000000.graph" successfully loaded.
+time: 4.347110
+./st-serial-call 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 3.714945
+Graph "Random4000000.graph" successfully loaded.
+time: 3.660845
+Graph "Random4000000.graph" successfully loaded.
+time: 3.715028
+./st-serial-call-membar 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 3.697870
+Graph "Random4000000.graph" successfully loaded.
+time: 3.641716
+Graph "Random4000000.graph" successfully loaded.
+time: 3.692142
+./st-serial-call-800 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 4.090698
+Graph "Random4000000.graph" successfully loaded.
+time: 4.150153
+Graph "Random4000000.graph" successfully loaded.
+time: 4.145712
+./st-serial-call-membar-800 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 4.128496
+Graph "Random4000000.graph" successfully loaded.
+time: 4.067055
+Graph "Random4000000.graph" successfully loaded.
+time: 4.076021
+cilk/st-par3-cilk-s --nproc 1 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 4.756740
+Graph "Random4000000.graph" successfully loaded.
+time: 4.703146
+Graph "Random4000000.graph" successfully loaded.
+time: 4.759264
+cilk/st-par3-cilk --nproc 1 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 4.282526
+Graph "Random4000000.graph" successfully loaded.
+time: 4.296731
+Graph "Random4000000.graph" successfully loaded.
+time: 4.338449
+cilk/st-par3-cilk-s-800 --nproc 1 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 6.450721
+Graph "Random4000000.graph" successfully loaded.
+time: 6.459643
+Graph "Random4000000.graph" successfully loaded.
+time: 6.388835
+cilk/st-par3-cilk-800 --nproc 1 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 5.183929
+Graph "Random4000000.graph" successfully loaded.
+time: 5.119057
+Graph "Random4000000.graph" successfully loaded.
+time: 5.189036
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 1 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 4.168483
+Graph "Random4000000.graph" successfully loaded.
+time: 4.166592
+Graph "Random4000000.graph" successfully loaded.
+time: 4.168765
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 1 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 3.906103
+Graph "Random4000000.graph" successfully loaded.
+time: 3.890324
+Graph "Random4000000.graph" successfully loaded.
+time: 3.892397
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 1 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 4.195306
+4000000 nodes random (2 edges per node)
+time: 4.196038
+4000000 nodes random (2 edges per node)
+time: 4.193768
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 1 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 3.856176
+Graph "Random4000000.graph" successfully loaded.
+time: 3.859857
+Graph "Random4000000.graph" successfully loaded.
+time: 3.858065
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 1 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 4.634749
+Graph "Random4000000.graph" successfully loaded.
+time: 4.644539
+Graph "Random4000000.graph" successfully loaded.
+time: 4.639464
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 1 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 4.349360
+Graph "Random4000000.graph" successfully loaded.
+time: 4.352016
+Graph "Random4000000.graph" successfully loaded.
+time: 4.351904
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 1 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 4.268406
+4000000 nodes random (2 edges per node)
+time: 4.257219
+4000000 nodes random (2 edges per node)
+time: 4.262732
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 1 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 4.329653
+Graph "Random4000000.graph" successfully loaded.
+time: 4.325755
+Graph "Random4000000.graph" successfully loaded.
+time: 4.329360
+cilk/st-par3-cilk-s --nproc 2 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 2.617052
+Graph "Random4000000.graph" successfully loaded.
+time: 2.295838
+Graph "Random4000000.graph" successfully loaded.
+time: 2.621442
+cilk/st-par3-cilk --nproc 2 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 2.096329
+Graph "Random4000000.graph" successfully loaded.
+time: 2.376571
+Graph "Random4000000.graph" successfully loaded.
+time: 2.379734
+cilk/st-par3-cilk-s-800 --nproc 2 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 3.005734
+Graph "Random4000000.graph" successfully loaded.
+time: 2.979591
+Graph "Random4000000.graph" successfully loaded.
+time: 2.980627
+cilk/st-par3-cilk-800 --nproc 2 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 2.516092
+Graph "Random4000000.graph" successfully loaded.
+time: 2.513056
+Graph "Random4000000.graph" successfully loaded.
+time: 2.549082
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 2 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 3.551417
+Graph "Random4000000.graph" successfully loaded.
+time: 3.551203
+Graph "Random4000000.graph" successfully loaded.
+time: 3.549862
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 2 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 3.368758
+Graph "Random4000000.graph" successfully loaded.
+time: 3.366134
+Graph "Random4000000.graph" successfully loaded.
+time: 3.364650
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 2 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 2.175829
+4000000 nodes random (2 edges per node)
+time: 2.175489
+4000000 nodes random (2 edges per node)
+time: 2.175910
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 2 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 3.335802
+Graph "Random4000000.graph" successfully loaded.
+time: 3.335614
+Graph "Random4000000.graph" successfully loaded.
+time: 3.335228
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 2 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 2.352530
+Graph "Random4000000.graph" successfully loaded.
+time: 2.358182
+Graph "Random4000000.graph" successfully loaded.
+time: 2.358892
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 2 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 2.229765
+Graph "Random4000000.graph" successfully loaded.
+time: 2.233036
+Graph "Random4000000.graph" successfully loaded.
+time: 2.229919
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 2 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 2.137272
+4000000 nodes random (2 edges per node)
+time: 2.136816
+4000000 nodes random (2 edges per node)
+time: 2.143535
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 2 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 2.213460
+Graph "Random4000000.graph" successfully loaded.
+time: 2.212781
+Graph "Random4000000.graph" successfully loaded.
+time: 2.217052
+cilk/st-par3-cilk-s --nproc 3 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 1.735150
+Graph "Random4000000.graph" successfully loaded.
+time: 1.737771
+Graph "Random4000000.graph" successfully loaded.
+time: 1.942668
+cilk/st-par3-cilk --nproc 3 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 1.588334
+Graph "Random4000000.graph" successfully loaded.
+time: 1.671409
+Graph "Random4000000.graph" successfully loaded.
+time: 1.567416
+cilk/st-par3-cilk-s-800 --nproc 3 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 2.292827
+Graph "Random4000000.graph" successfully loaded.
+time: 3.267323
+Graph "Random4000000.graph" successfully loaded.
+time: 3.085351
+cilk/st-par3-cilk-800 --nproc 3 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 1.602945
+Graph "Random4000000.graph" successfully loaded.
+time: 1.655918
+Graph "Random4000000.graph" successfully loaded.
+time: 1.697928
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 3 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 1.986075
+Graph "Random4000000.graph" successfully loaded.
+time: 1.978049
+Graph "Random4000000.graph" successfully loaded.
+time: 1.986360
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 3 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 1.894491
+Graph "Random4000000.graph" successfully loaded.
+time: 1.879729
+Graph "Random4000000.graph" successfully loaded.
+time: 1.906671
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 3 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 1.740177
+4000000 nodes random (2 edges per node)
+time: 1.742118
+4000000 nodes random (2 edges per node)
+time: 1.743222
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 3 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 1.863581
+Graph "Random4000000.graph" successfully loaded.
+time: 1.890774
+Graph "Random4000000.graph" successfully loaded.
+time: 1.863162
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 3 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 1.441625
+Graph "Random4000000.graph" successfully loaded.
+time: 1.438224
+Graph "Random4000000.graph" successfully loaded.
+time: 1.461249
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 3 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 1.371245
+Graph "Random4000000.graph" successfully loaded.
+time: 1.359674
+Graph "Random4000000.graph" successfully loaded.
+time: 1.361253
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 3 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 1.753554
+4000000 nodes random (2 edges per node)
+time: 1.760685
+4000000 nodes random (2 edges per node)
+time: 1.757081
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 3 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 1.337859
+Graph "Random4000000.graph" successfully loaded.
+time: 1.338855
+Graph "Random4000000.graph" successfully loaded.
+time: 1.335619
+cilk/st-par3-cilk-s --nproc 4 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 1.493740
+Graph "Random4000000.graph" successfully loaded.
+time: 1.488287
+Graph "Random4000000.graph" successfully loaded.
+time: 1.495722
+cilk/st-par3-cilk --nproc 4 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 1.209431
+Graph "Random4000000.graph" successfully loaded.
+time: 1.132748
+Graph "Random4000000.graph" successfully loaded.
+time: 1.217178
+cilk/st-par3-cilk-s-800 --nproc 4 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 1.416525
+Graph "Random4000000.graph" successfully loaded.
+time: 2.013083
+Graph "Random4000000.graph" successfully loaded.
+time: 1.410098
+cilk/st-par3-cilk-800 --nproc 4 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 1.266826
+Graph "Random4000000.graph" successfully loaded.
+time: 1.164668
+Graph "Random4000000.graph" successfully loaded.
+time: 1.238613
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 4 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 1.805219
+Graph "Random4000000.graph" successfully loaded.
+time: 1.650920
+Graph "Random4000000.graph" successfully loaded.
+time: 1.759785
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 4 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 1.665348
+Graph "Random4000000.graph" successfully loaded.
+time: 1.665687
+Graph "Random4000000.graph" successfully loaded.
+time: 1.546125
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 4 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 1.297429
+4000000 nodes random (2 edges per node)
+time: 1.284396
+4000000 nodes random (2 edges per node)
+time: 1.324041
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 4 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 1.514550
+Graph "Random4000000.graph" successfully loaded.
+time: 1.515381
+Graph "Random4000000.graph" successfully loaded.
+time: 1.689064
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 4 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 1.155307
+Graph "Random4000000.graph" successfully loaded.
+time: 1.415007
+Graph "Random4000000.graph" successfully loaded.
+time: 1.199792
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 4 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 1.307842
+Graph "Random4000000.graph" successfully loaded.
+time: 1.087309
+Graph "Random4000000.graph" successfully loaded.
+time: 1.033787
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 4 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 1.311403
+4000000 nodes random (2 edges per node)
+time: 1.266171
+4000000 nodes random (2 edges per node)
+time: 1.339958
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 4 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 1.119870
+Graph "Random4000000.graph" successfully loaded.
+time: 1.293552
+Graph "Random4000000.graph" successfully loaded.
+time: 1.307731
+cilk/st-par3-cilk-s --nproc 5 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 1.182753
+Graph "Random4000000.graph" successfully loaded.
+time: 1.333130
+Graph "Random4000000.graph" successfully loaded.
+time: 1.312057
+cilk/st-par3-cilk --nproc 5 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.962042
+Graph "Random4000000.graph" successfully loaded.
+time: 1.019439
+Graph "Random4000000.graph" successfully loaded.
+time: 1.009557
+cilk/st-par3-cilk-s-800 --nproc 5 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 1.215807
+Graph "Random4000000.graph" successfully loaded.
+time: 1.530836
+Graph "Random4000000.graph" successfully loaded.
+time: 1.208114
+cilk/st-par3-cilk-800 --nproc 5 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.954944
+Graph "Random4000000.graph" successfully loaded.
+time: 1.018688
+Graph "Random4000000.graph" successfully loaded.
+time: 0.988053
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 5 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 1.237370
+Graph "Random4000000.graph" successfully loaded.
+time: 1.196731
+Graph "Random4000000.graph" successfully loaded.
+time: 1.098137
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 5 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 1.137872
+Graph "Random4000000.graph" successfully loaded.
+time: 1.161608
+Graph "Random4000000.graph" successfully loaded.
+time: 1.197571
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 5 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 1.041976
+4000000 nodes random (2 edges per node)
+time: 1.056468
+4000000 nodes random (2 edges per node)
+time: 1.063865
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 5 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 1.016322
+Graph "Random4000000.graph" successfully loaded.
+time: 1.111754
+Graph "Random4000000.graph" successfully loaded.
+time: 1.011828
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 5 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.987766
+Graph "Random4000000.graph" successfully loaded.
+time: 1.024194
+Graph "Random4000000.graph" successfully loaded.
+time: 1.020945
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 5 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.942340
+Graph "Random4000000.graph" successfully loaded.
+time: 1.026532
+Graph "Random4000000.graph" successfully loaded.
+time: 1.059549
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 5 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 1.060511
+4000000 nodes random (2 edges per node)
+time: 1.079225
+4000000 nodes random (2 edges per node)
+time: 1.092099
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 5 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.913273
+Graph "Random4000000.graph" successfully loaded.
+time: 0.888252
+Graph "Random4000000.graph" successfully loaded.
+time: 0.876881
+cilk/st-par3-cilk-s --nproc 6 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 1.109247
+Graph "Random4000000.graph" successfully loaded.
+time: 1.141542
+Graph "Random4000000.graph" successfully loaded.
+time: 1.110313
+cilk/st-par3-cilk --nproc 6 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.817019
+Graph "Random4000000.graph" successfully loaded.
+time: 0.841088
+Graph "Random4000000.graph" successfully loaded.
+time: 0.820146
+cilk/st-par3-cilk-s-800 --nproc 6 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 1.346906
+Graph "Random4000000.graph" successfully loaded.
+time: 1.346196
+Graph "Random4000000.graph" successfully loaded.
+time: 1.946502
+cilk/st-par3-cilk-800 --nproc 6 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.918445
+Graph "Random4000000.graph" successfully loaded.
+time: 0.858932
+Graph "Random4000000.graph" successfully loaded.
+time: 0.821364
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 6 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.930418
+Graph "Random4000000.graph" successfully loaded.
+time: 0.907413
+Graph "Random4000000.graph" successfully loaded.
+time: 0.987247
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 6 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.833471
+Graph "Random4000000.graph" successfully loaded.
+time: 0.899144
+Graph "Random4000000.graph" successfully loaded.
+time: 0.882215
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 6 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 0.897845
+4000000 nodes random (2 edges per node)
+time: 0.914969
+4000000 nodes random (2 edges per node)
+time: 0.886775
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 6 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.845294
+Graph "Random4000000.graph" successfully loaded.
+time: 0.831964
+Graph "Random4000000.graph" successfully loaded.
+time: 0.871326
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 6 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.863567
+Graph "Random4000000.graph" successfully loaded.
+time: 0.848846
+Graph "Random4000000.graph" successfully loaded.
+time: 0.892623
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 6 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.792865
+Graph "Random4000000.graph" successfully loaded.
+time: 0.807689
+Graph "Random4000000.graph" successfully loaded.
+time: 0.866899
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 6 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 0.856113
+4000000 nodes random (2 edges per node)
+time: 0.890726
+4000000 nodes random (2 edges per node)
+time: 0.882932
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 6 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.811220
+Graph "Random4000000.graph" successfully loaded.
+time: 0.851710
+Graph "Random4000000.graph" successfully loaded.
+time: 0.798768
+cilk/st-par3-cilk-s --nproc 7 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 1.054753
+Graph "Random4000000.graph" successfully loaded.
+time: 1.095707
+Graph "Random4000000.graph" successfully loaded.
+time: 1.067608
+cilk/st-par3-cilk --nproc 7 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.712607
+Graph "Random4000000.graph" successfully loaded.
+time: 0.739344
+Graph "Random4000000.graph" successfully loaded.
+time: 0.725517
+cilk/st-par3-cilk-s-800 --nproc 7 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 1.112406
+Graph "Random4000000.graph" successfully loaded.
+time: 1.410792
+Graph "Random4000000.graph" successfully loaded.
+time: 1.362997
+cilk/st-par3-cilk-800 --nproc 7 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.712500
+Graph "Random4000000.graph" successfully loaded.
+time: 0.732118
+Graph "Random4000000.graph" successfully loaded.
+time: 0.748470
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 7 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.894672
+Graph "Random4000000.graph" successfully loaded.
+time: 0.885863
+Graph "Random4000000.graph" successfully loaded.
+time: 0.915627
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 7 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.924694
+Graph "Random4000000.graph" successfully loaded.
+time: 0.820575
+Graph "Random4000000.graph" successfully loaded.
+time: 0.848419
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 7 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 0.733770
+4000000 nodes random (2 edges per node)
+time: 0.754868
+4000000 nodes random (2 edges per node)
+time: 0.793878
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 7 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.879812
+Graph "Random4000000.graph" successfully loaded.
+time: 0.916005
+Graph "Random4000000.graph" successfully loaded.
+time: 0.802953
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 7 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.839109
+Graph "Random4000000.graph" successfully loaded.
+time: 0.796328
+Graph "Random4000000.graph" successfully loaded.
+time: 0.925729
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 7 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.697327
+Graph "Random4000000.graph" successfully loaded.
+time: 0.745974
+Graph "Random4000000.graph" successfully loaded.
+time: 0.742743
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 7 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 0.738011
+4000000 nodes random (2 edges per node)
+time: 0.736644
+4000000 nodes random (2 edges per node)
+time: 0.730560
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 7 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.697200
+Graph "Random4000000.graph" successfully loaded.
+time: 0.716694
+Graph "Random4000000.graph" successfully loaded.
+time: 0.715136
+cilk/st-par3-cilk-s --nproc 8 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 1.002105
+Graph "Random4000000.graph" successfully loaded.
+time: 0.969036
+Graph "Random4000000.graph" successfully loaded.
+time: 1.141890
+cilk/st-par3-cilk --nproc 8 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.644575
+Graph "Random4000000.graph" successfully loaded.
+time: 0.641524
+Graph "Random4000000.graph" successfully loaded.
+time: 0.632249
+cilk/st-par3-cilk-s-800 --nproc 8 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 1.455545
+Graph "Random4000000.graph" successfully loaded.
+time: 0.996445
+Graph "Random4000000.graph" successfully loaded.
+time: 0.901577
+cilk/st-par3-cilk-800 --nproc 8 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.697421
+Graph "Random4000000.graph" successfully loaded.
+time: 0.625040
+Graph "Random4000000.graph" successfully loaded.
+time: 0.642094
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 8 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.831416
+Graph "Random4000000.graph" successfully loaded.
+time: 0.808150
+Graph "Random4000000.graph" successfully loaded.
+time: 0.831108
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 8 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.716426
+Graph "Random4000000.graph" successfully loaded.
+time: 0.724843
+Graph "Random4000000.graph" successfully loaded.
+time: 0.746327
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 8 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 0.661327
+4000000 nodes random (2 edges per node)
+time: 0.665121
+4000000 nodes random (2 edges per node)
+time: 0.637479
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 8 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.757078
+Graph "Random4000000.graph" successfully loaded.
+time: 0.685468
+Graph "Random4000000.graph" successfully loaded.
+time: 0.733220
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 8 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.693282
+Graph "Random4000000.graph" successfully loaded.
+time: 0.827644
+Graph "Random4000000.graph" successfully loaded.
+time: 0.715114
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 8 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.605746
+Graph "Random4000000.graph" successfully loaded.
+time: 0.621280
+Graph "Random4000000.graph" successfully loaded.
+time: 0.632433
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 8 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 0.656326
+4000000 nodes random (2 edges per node)
+time: 0.642612
+4000000 nodes random (2 edges per node)
+time: 0.640431
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 8 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.647274
+Graph "Random4000000.graph" successfully loaded.
+time: 0.606561
+Graph "Random4000000.graph" successfully loaded.
+time: 0.634444
+cilk/st-par3-cilk-s --nproc 16 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.604360
+Graph "Random4000000.graph" successfully loaded.
+time: 0.648493
+Graph "Random4000000.graph" successfully loaded.
+time: 0.603456
+cilk/st-par3-cilk --nproc 16 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.346304
+Graph "Random4000000.graph" successfully loaded.
+time: 0.339324
+Graph "Random4000000.graph" successfully loaded.
+time: 0.337960
+cilk/st-par3-cilk-s-800 --nproc 16 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.910591
+Graph "Random4000000.graph" successfully loaded.
+time: 1.233091
+Graph "Random4000000.graph" successfully loaded.
+time: 0.618763
+cilk/st-par3-cilk-800 --nproc 16 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.352928
+Graph "Random4000000.graph" successfully loaded.
+time: 0.367075
+Graph "Random4000000.graph" successfully loaded.
+time: 0.359188
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 16 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.392017
+Graph "Random4000000.graph" successfully loaded.
+time: 0.392515
+Graph "Random4000000.graph" successfully loaded.
+time: 0.376888
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 16 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.368649
+Graph "Random4000000.graph" successfully loaded.
+time: 0.326538
+Graph "Random4000000.graph" successfully loaded.
+time: 0.348696
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 16 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 0.332926
+4000000 nodes random (2 edges per node)
+time: 0.362397
+4000000 nodes random (2 edges per node)
+time: 0.352248
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 16 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.347658
+Graph "Random4000000.graph" successfully loaded.
+time: 0.329312
+Graph "Random4000000.graph" successfully loaded.
+time: 0.348248
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 16 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.343113
+Graph "Random4000000.graph" successfully loaded.
+time: 0.357900
+Graph "Random4000000.graph" successfully loaded.
+time: 0.359010
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 16 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.303382
+Graph "Random4000000.graph" successfully loaded.
+time: 0.328608
+Graph "Random4000000.graph" successfully loaded.
+time: 0.317536
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 16 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 0.323418
+4000000 nodes random (2 edges per node)
+time: 0.323737
+4000000 nodes random (2 edges per node)
+time: 0.323200
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 16 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.335525
+Graph "Random4000000.graph" successfully loaded.
+time: 0.338033
+Graph "Random4000000.graph" successfully loaded.
+time: 0.312653
+cilk/st-par3-cilk-s --nproc 32 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.438574
+Graph "Random4000000.graph" successfully loaded.
+time: 0.509016
+Graph "Random4000000.graph" successfully loaded.
+time: 0.428868
+cilk/st-par3-cilk --nproc 32 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.225214
+Graph "Random4000000.graph" successfully loaded.
+time: 0.252616
+Graph "Random4000000.graph" successfully loaded.
+time: 0.226762
+cilk/st-par3-cilk-s-800 --nproc 32 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.515797
+Graph "Random4000000.graph" successfully loaded.
+time: 0.455985
+Graph "Random4000000.graph" successfully loaded.
+time: 0.487743
+cilk/st-par3-cilk-800 --nproc 32 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.213219
+Graph "Random4000000.graph" successfully loaded.
+time: 0.214682
+Graph "Random4000000.graph" successfully loaded.
+time: 0.212989
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 32 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.210294
+Graph "Random4000000.graph" successfully loaded.
+time: 0.213407
+Graph "Random4000000.graph" successfully loaded.
+time: 0.204086
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 32 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.182432
+Graph "Random4000000.graph" successfully loaded.
+time: 0.175163
+Graph "Random4000000.graph" successfully loaded.
+time: 0.187656
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 32 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 0.190404
+4000000 nodes random (2 edges per node)
+time: 0.191456
+4000000 nodes random (2 edges per node)
+time: 0.190910
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 32 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.184724
+Graph "Random4000000.graph" successfully loaded.
+time: 0.200345
+Graph "Random4000000.graph" successfully loaded.
+time: 0.183941
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 32 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.188442
+Graph "Random4000000.graph" successfully loaded.
+time: 0.169087
+Graph "Random4000000.graph" successfully loaded.
+time: 0.177639
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 32 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.165107
+Graph "Random4000000.graph" successfully loaded.
+time: 0.159781
+Graph "Random4000000.graph" successfully loaded.
+time: 0.156126
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 32 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+4000000 nodes random (2 edges per node)
+4000000 nodes random (2 edges per node)
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 32 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.159905
+Graph "Random4000000.graph" successfully loaded.
+time: 0.158944
+Graph "Random4000000.graph" successfully loaded.
+time: 0.163916
+cilk/st-par3-cilk-s --nproc 64 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.468847
+Graph "Random4000000.graph" successfully loaded.
+time: 0.416117
+Graph "Random4000000.graph" successfully loaded.
+time: 0.397746
+cilk/st-par3-cilk --nproc 64 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.278906
+Graph "Random4000000.graph" successfully loaded.
+time: 0.298344
+Graph "Random4000000.graph" successfully loaded.
+time: 0.313358
+cilk/st-par3-cilk-s-800 --nproc 64 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.230155
+Graph "Random4000000.graph" successfully loaded.
+time: 0.227652
+Graph "Random4000000.graph" successfully loaded.
+time: 0.194273
+cilk/st-par3-cilk-800 --nproc 64 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.229833
+Graph "Random4000000.graph" successfully loaded.
+time: 0.234695
+Graph "Random4000000.graph" successfully loaded.
+time: 0.195417
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 64 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.132755
+Graph "Random4000000.graph" successfully loaded.
+time: 0.130716
+Graph "Random4000000.graph" successfully loaded.
+time: 0.139906
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 64 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.121113
+Graph "Random4000000.graph" successfully loaded.
+time: 0.118110
+Graph "Random4000000.graph" successfully loaded.
+time: 0.122319
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 64 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 0.137849
+4000000 nodes random (2 edges per node)
+time: 0.140998
+4000000 nodes random (2 edges per node)
+time: 0.145895
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 64 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.121687
+Graph "Random4000000.graph" successfully loaded.
+time: 0.126955
+Graph "Random4000000.graph" successfully loaded.
+time: 0.118697
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 64 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.144148
+Graph "Random4000000.graph" successfully loaded.
+time: 0.150517
+Graph "Random4000000.graph" successfully loaded.
+time: 0.120980
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 64 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.164920
+Graph "Random4000000.graph" successfully loaded.
+time: 0.165695
+Graph "Random4000000.graph" successfully loaded.
+time: 0.266904
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 64 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 15.363084
+4000000 nodes random (2 edges per node)
+4000000 nodes random (2 edges per node)
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 64 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.143005
+Graph "Random4000000.graph" successfully loaded.
+time: 0.119929
+Graph "Random4000000.graph" successfully loaded.
+time: 0.113893
+cilk/st-par3-cilk-s --nproc 128 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.485379
+Graph "Random4000000.graph" successfully loaded.
+time: 0.445108
+Graph "Random4000000.graph" successfully loaded.
+time: 0.542344
+cilk/st-par3-cilk --nproc 128 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.478515
+Graph "Random4000000.graph" successfully loaded.
+time: 0.735908
+Graph "Random4000000.graph" successfully loaded.
+time: 0.442695
+cilk/st-par3-cilk-s-800 --nproc 128 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.192290
+Graph "Random4000000.graph" successfully loaded.
+time: 0.216085
+Graph "Random4000000.graph" successfully loaded.
+time: 0.196858
+cilk/st-par3-cilk-800 --nproc 128 11 2
+Graph "Random4000000.graph" successfully loaded.
+time: 0.607730
+Graph "Random4000000.graph" successfully loaded.
+time: 0.403940
+Graph "Random4000000.graph" successfully loaded.
+time: 0.895989
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 128 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.120247
+Graph "Random4000000.graph" successfully loaded.
+time: 0.125224
+Graph "Random4000000.graph" successfully loaded.
+time: 0.124066
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 128 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.122378
+Graph "Random4000000.graph" successfully loaded.
+time: 0.132463
+Graph "Random4000000.graph" successfully loaded.
+time: 0.122065
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 128 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+time: 0.146367
+4000000 nodes random (2 edges per node)
+time: 0.180681
+4000000 nodes random (2 edges per node)
+time: 0.145015
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 128 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.122951
+Graph "Random4000000.graph" successfully loaded.
+time: 0.129565
+Graph "Random4000000.graph" successfully loaded.
+time: 0.121249
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 128 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.220040
+Graph "Random4000000.graph" successfully loaded.
+time: 0.257440
+Graph "Random4000000.graph" successfully loaded.
+time: 0.249081
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 128 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.309185
+Graph "Random4000000.graph" successfully loaded.
+time: 0.483008
+Graph "Random4000000.graph" successfully loaded.
+time: 0.362387
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 128 -a -i 4 11 3 0 0
+4000000 nodes random (2 edges per node)
+4000000 nodes random (2 edges per node)
+4000000 nodes random (2 edges per node)
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 128 -a -i 4 11 3 0 0
+Graph "Random4000000.graph" successfully loaded.
+time: 0.186761
+Graph "Random4000000.graph" successfully loaded.
+time: 0.177286
+Graph "Random4000000.graph" successfully loaded.
+time: 0.204326
+./st-serial-call 5 1
+21-D hypercube
+time: 5.841609
+21-D hypercube
+time: 5.854392
+21-D hypercube
+time: 5.839918
+./st-serial-call 5 2
+21-D hypercube
+time: 4.742670
+21-D hypercube
+time: 4.755508
+21-D hypercube
+time: 4.742086
+./st-serial-call-membar 5 2
+21-D hypercube
+time: 4.718661
+21-D hypercube
+time: 4.724809
+21-D hypercube
+time: 4.717815
+./st-serial-call-800 5 2
+21-D hypercube
+time: 4.768207
+21-D hypercube
+time: 4.754886
+21-D hypercube
+time: 4.754302
+./st-serial-call-membar-800 5 2
+21-D hypercube
+time: 4.779062
+21-D hypercube
+time: 4.751163
+21-D hypercube
+time: 4.724371
+cilk/st-par3-cilk-s --nproc 1 5 2
+21-D hypercube
+time: 6.187519
+21-D hypercube
+time: 6.251808
+21-D hypercube
+time: 6.250581
+cilk/st-par3-cilk --nproc 1 5 2
+21-D hypercube
+time: 5.296689
+21-D hypercube
+time: 5.354882
+21-D hypercube
+time: 5.290066
+cilk/st-par3-cilk-s-800 --nproc 1 5 2
+21-D hypercube
+time: 6.149950
+21-D hypercube
+time: 6.144365
+21-D hypercube
+time: 6.207602
+cilk/st-par3-cilk-800 --nproc 1 5 2
+21-D hypercube
+time: 5.351426
+21-D hypercube
+time: 5.295015
+21-D hypercube
+time: 5.301075
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 1 -a -i 4 5 3 0 0
+21-D hypercube
+time: 5.305048
+21-D hypercube
+time: 5.312297
+21-D hypercube
+time: 5.312177
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 1 -a -i 4 5 3 0 0
+21-D hypercube
+time: 5.024232
+21-D hypercube
+time: 5.032904
+21-D hypercube
+time: 5.021180
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 1 -a -i 4 5 3 0 0
+21-D hypercube
+time: 4.930149
+21-D hypercube
+time: 4.930340
+21-D hypercube
+time: 4.943004
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 1 -a -i 4 5 3 0 0
+21-D hypercube
+time: 4.886245
+21-D hypercube
+time: 4.890346
+21-D hypercube
+time: 4.888559
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 1 -a -i 4 5 3 0 0
+21-D hypercube
+time: 5.304297
+21-D hypercube
+time: 5.305242
+21-D hypercube
+time: 5.310243
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 1 -a -i 4 5 3 0 0
+21-D hypercube
+time: 5.034708
+21-D hypercube
+time: 5.030107
+21-D hypercube
+time: 5.029417
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 1 -a -i 4 5 3 0 0
+21-D hypercube
+time: 4.940540
+21-D hypercube
+time: 4.938538
+21-D hypercube
+time: 4.941873
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 1 -a -i 4 5 3 0 0
+21-D hypercube
+time: 4.894872
+21-D hypercube
+time: 4.893459
+21-D hypercube
+time: 4.894035
+cilk/st-par3-cilk-s --nproc 2 5 2
+21-D hypercube
+time: 3.876288
+21-D hypercube
+time: 3.832171
+21-D hypercube
+time: 3.917700
+cilk/st-par3-cilk --nproc 2 5 2
+21-D hypercube
+time: 2.949741
+21-D hypercube
+time: 2.671961
+21-D hypercube
+time: 2.939563
+cilk/st-par3-cilk-s-800 --nproc 2 5 2
+21-D hypercube
+time: 3.882568
+21-D hypercube
+time: 3.409113
+21-D hypercube
+time: 3.868337
+cilk/st-par3-cilk-800 --nproc 2 5 2
+21-D hypercube
+time: 2.709598
+21-D hypercube
+time: 2.926715
+21-D hypercube
+time: 2.903052
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 2 -a -i 4 5 3 0 0
+21-D hypercube
+time: 2.772037
+21-D hypercube
+time: 2.776670
+21-D hypercube
+time: 2.763704
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 2 -a -i 4 5 3 0 0
+21-D hypercube
+time: 2.621672
+21-D hypercube
+time: 2.615940
+21-D hypercube
+time: 2.615909
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 2 -a -i 4 5 3 0 0
+21-D hypercube
+time: 2.569374
+21-D hypercube
+time: 2.567363
+21-D hypercube
+time: 2.574957
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 2 -a -i 4 5 3 0 0
+21-D hypercube
+time: 2.555584
+21-D hypercube
+time: 2.569705
+21-D hypercube
+time: 2.543534
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 2 -a -i 4 5 3 0 0
+21-D hypercube
+time: 2.789380
+21-D hypercube
+time: 2.779008
+21-D hypercube
+time: 2.795015
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 2 -a -i 4 5 3 0 0
+21-D hypercube
+time: 2.624999
+21-D hypercube
+time: 2.631328
+21-D hypercube
+time: 2.626095
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 2 -a -i 4 5 3 0 0
+21-D hypercube
+time: 7.445500
+21-D hypercube
+time: 2.698667
+21-D hypercube
+time: 2.567733
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 2 -a -i 4 5 3 0 0
+21-D hypercube
+time: 2.549319
+21-D hypercube
+time: 2.567663
+21-D hypercube
+time: 2.566493
+cilk/st-par3-cilk-s --nproc 3 5 2
+21-D hypercube
+time: 2.801205
+21-D hypercube
+time: 2.813600
+21-D hypercube
+time: 2.805601
+cilk/st-par3-cilk --nproc 3 5 2
+21-D hypercube
+time: 1.908409
+21-D hypercube
+time: 2.041653
+21-D hypercube
+time: 1.884805
+cilk/st-par3-cilk-s-800 --nproc 3 5 2
+21-D hypercube
+time: 2.798657
+21-D hypercube
+time: 2.787624
+21-D hypercube
+time: 2.807268
+cilk/st-par3-cilk-800 --nproc 3 5 2
+21-D hypercube
+time: 1.929115
+21-D hypercube
+time: 1.910868
+21-D hypercube
+time: 1.892527
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 3 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.942279
+21-D hypercube
+time: 1.965060
+21-D hypercube
+time: 1.950768
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 3 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.830921
+21-D hypercube
+time: 1.860728
+21-D hypercube
+time: 1.820809
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 3 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.780995
+21-D hypercube
+time: 1.815883
+21-D hypercube
+time: 1.819884
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 3 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.793375
+21-D hypercube
+time: 1.794771
+21-D hypercube
+time: 1.800737
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 3 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.934977
+21-D hypercube
+time: 1.977605
+21-D hypercube
+time: 1.955831
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 3 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.824504
+21-D hypercube
+time: 1.836470
+21-D hypercube
+time: 1.826422
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 3 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.876393
+21-D hypercube
+time: 1.767110
+21-D hypercube
+time: 1.768907
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 3 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.776359
+21-D hypercube
+time: 1.783772
+21-D hypercube
+time: 1.824350
+cilk/st-par3-cilk-s --nproc 4 5 2
+21-D hypercube
+time: 2.502669
+21-D hypercube
+time: 2.467848
+21-D hypercube
+time: 2.495795
+cilk/st-par3-cilk --nproc 4 5 2
+21-D hypercube
+time: 1.479933
+21-D hypercube
+time: 1.484939
+21-D hypercube
+time: 1.499963
+cilk/st-par3-cilk-s-800 --nproc 4 5 2
+21-D hypercube
+time: 2.522794
+21-D hypercube
+time: 2.508381
+21-D hypercube
+time: 2.502479
+cilk/st-par3-cilk-800 --nproc 4 5 2
+21-D hypercube
+time: 1.491805
+21-D hypercube
+time: 1.407696
+21-D hypercube
+time: 1.490155
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 4 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.585063
+21-D hypercube
+time: 1.626472
+21-D hypercube
+time: 1.585926
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 4 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.493904
+21-D hypercube
+time: 1.479564
+21-D hypercube
+time: 1.486043
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 4 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.432350
+21-D hypercube
+time: 1.477057
+21-D hypercube
+time: 1.454282
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 4 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.476071
+21-D hypercube
+time: 1.431763
+21-D hypercube
+time: 1.447412
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 4 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.577412
+21-D hypercube
+time: 1.574835
+21-D hypercube
+time: 1.610040
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 4 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.494895
+21-D hypercube
+time: 1.504682
+21-D hypercube
+time: 1.531886
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 4 -a -i 4 5 3 0 0
+21-D hypercube
+time: 2.710374
+21-D hypercube
+time: 1.495569
+21-D hypercube
+time: 1.485117
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 4 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.439003
+21-D hypercube
+time: 1.449586
+21-D hypercube
+time: 1.435762
+cilk/st-par3-cilk-s --nproc 5 5 2
+21-D hypercube
+time: 2.215989
+21-D hypercube
+time: 2.225232
+21-D hypercube
+time: 2.310486
+cilk/st-par3-cilk --nproc 5 5 2
+21-D hypercube
+time: 1.174239
+21-D hypercube
+time: 1.168847
+21-D hypercube
+time: 1.164614
+cilk/st-par3-cilk-s-800 --nproc 5 5 2
+21-D hypercube
+time: 2.240219
+21-D hypercube
+time: 2.229049
+21-D hypercube
+time: 2.322441
+cilk/st-par3-cilk-800 --nproc 5 5 2
+21-D hypercube
+time: 1.180901
+21-D hypercube
+time: 1.176500
+21-D hypercube
+time: 1.241804
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 5 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.263263
+21-D hypercube
+time: 1.312794
+21-D hypercube
+time: 1.275188
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 5 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.178294
+21-D hypercube
+time: 1.216590
+21-D hypercube
+time: 1.207324
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 5 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.182299
+21-D hypercube
+time: 1.155398
+21-D hypercube
+time: 1.168565
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 5 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.169146
+21-D hypercube
+time: 1.153731
+21-D hypercube
+time: 1.143272
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 5 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.289550
+21-D hypercube
+time: 1.301961
+21-D hypercube
+time: 1.293713
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 5 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.214848
+21-D hypercube
+time: 1.226533
+21-D hypercube
+time: 1.143294
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 5 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.847010
+21-D hypercube
+time: 1.334889
+21-D hypercube
+time: 1.197634
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 5 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.171960
+21-D hypercube
+time: 1.125698
+21-D hypercube
+time: 1.179060
+cilk/st-par3-cilk-s --nproc 6 5 2
+21-D hypercube
+time: 2.061252
+21-D hypercube
+time: 2.120208
+21-D hypercube
+time: 2.123941
+cilk/st-par3-cilk --nproc 6 5 2
+21-D hypercube
+time: 1.002550
+21-D hypercube
+time: 1.005080
+21-D hypercube
+time: 1.008950
+cilk/st-par3-cilk-s-800 --nproc 6 5 2
+21-D hypercube
+time: 2.102370
+21-D hypercube
+time: 2.121028
+21-D hypercube
+time: 2.113665
+cilk/st-par3-cilk-800 --nproc 6 5 2
+21-D hypercube
+time: 1.010407
+21-D hypercube
+time: 1.026039
+21-D hypercube
+time: 0.983174
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 6 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.109756
+21-D hypercube
+time: 1.110933
+21-D hypercube
+time: 1.114028
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 6 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.036905
+21-D hypercube
+time: 1.006886
+21-D hypercube
+time: 1.019567
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 6 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.973352
+21-D hypercube
+time: 0.972896
+21-D hypercube
+time: 0.994700
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 6 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.998506
+21-D hypercube
+time: 0.982572
+21-D hypercube
+time: 0.984915
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 6 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.143933
+21-D hypercube
+time: 1.072727
+21-D hypercube
+time: 1.123840
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 6 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.051239
+21-D hypercube
+time: 0.998030
+21-D hypercube
+time: 1.013759
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 6 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.692236
+21-D hypercube
+time: 1.021030
+21-D hypercube
+time: 1.446684
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 6 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.977603
+21-D hypercube
+time: 1.014381
+21-D hypercube
+time: 0.987977
+cilk/st-par3-cilk-s --nproc 7 5 2
+21-D hypercube
+time: 1.989578
+21-D hypercube
+time: 2.026879
+21-D hypercube
+time: 2.011493
+cilk/st-par3-cilk --nproc 7 5 2
+21-D hypercube
+time: 0.859076
+21-D hypercube
+time: 0.890298
+21-D hypercube
+time: 0.861314
+cilk/st-par3-cilk-s-800 --nproc 7 5 2
+21-D hypercube
+time: 2.027438
+21-D hypercube
+time: 2.030152
+21-D hypercube
+time: 2.009743
+cilk/st-par3-cilk-800 --nproc 7 5 2
+21-D hypercube
+time: 0.870300
+21-D hypercube
+time: 0.895141
+21-D hypercube
+time: 0.903289
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 7 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.999143
+21-D hypercube
+time: 0.959233
+21-D hypercube
+time: 0.966176
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 7 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.865325
+21-D hypercube
+time: 0.876526
+21-D hypercube
+time: 0.864836
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 7 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.867253
+21-D hypercube
+time: 0.871685
+21-D hypercube
+time: 0.876160
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 7 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.861888
+21-D hypercube
+time: 0.864779
+21-D hypercube
+time: 0.879736
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 7 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.004163
+21-D hypercube
+time: 1.002141
+21-D hypercube
+time: 0.991434
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 7 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.880385
+21-D hypercube
+time: 0.901528
+21-D hypercube
+time: 0.903771
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 7 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.982190
+21-D hypercube
+time: 1.522685
+21-D hypercube
+time: 1.025407
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 7 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.862123
+21-D hypercube
+time: 0.873678
+21-D hypercube
+time: 0.851193
+cilk/st-par3-cilk-s --nproc 8 5 2
+21-D hypercube
+time: 1.919394
+21-D hypercube
+time: 1.945464
+21-D hypercube
+time: 1.928753
+cilk/st-par3-cilk --nproc 8 5 2
+21-D hypercube
+time: 0.775569
+21-D hypercube
+time: 0.776398
+21-D hypercube
+time: 0.748103
+cilk/st-par3-cilk-s-800 --nproc 8 5 2
+21-D hypercube
+time: 1.923382
+21-D hypercube
+time: 1.931826
+21-D hypercube
+time: 1.921048
+cilk/st-par3-cilk-800 --nproc 8 5 2
+21-D hypercube
+time: 0.783048
+21-D hypercube
+time: 0.777884
+21-D hypercube
+time: 0.782563
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 8 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.881343
+21-D hypercube
+time: 0.932072
+21-D hypercube
+time: 0.897067
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 8 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.771987
+21-D hypercube
+time: 0.798437
+21-D hypercube
+time: 0.781701
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 8 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.782547
+21-D hypercube
+time: 0.791690
+21-D hypercube
+time: 0.795285
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 8 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.779408
+21-D hypercube
+time: 0.754983
+21-D hypercube
+time: 0.747320
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 8 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.923522
+21-D hypercube
+time: 0.900297
+21-D hypercube
+time: 0.898336
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 8 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.768683
+21-D hypercube
+time: 0.796072
+21-D hypercube
+time: 0.790924
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 8 -a -i 4 5 3 0 0
+21-D hypercube
+time: 1.711833
+21-D hypercube
+time: 0.838238
+21-D hypercube
+time: 1.352374
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 8 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.755396
+21-D hypercube
+time: 0.795726
+21-D hypercube
+time: 0.772358
+cilk/st-par3-cilk-s --nproc 16 5 2
+21-D hypercube
+time: 1.696099
+21-D hypercube
+time: 1.681803
+21-D hypercube
+time: 1.678220
+cilk/st-par3-cilk --nproc 16 5 2
+21-D hypercube
+time: 0.411921
+21-D hypercube
+time: 0.415267
+21-D hypercube
+time: 0.405370
+cilk/st-par3-cilk-s-800 --nproc 16 5 2
+21-D hypercube
+time: 1.681294
+21-D hypercube
+time: 1.670620
+21-D hypercube
+time: 1.687152
+cilk/st-par3-cilk-800 --nproc 16 5 2
+21-D hypercube
+time: 0.415272
+21-D hypercube
+time: 0.416684
+21-D hypercube
+time: 0.408841
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 16 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.490158
+21-D hypercube
+time: 0.481065
+21-D hypercube
+time: 0.466499
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 16 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.409130
+21-D hypercube
+time: 0.422495
+21-D hypercube
+time: 0.411329
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 16 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.408034
+21-D hypercube
+time: 0.417627
+21-D hypercube
+time: 0.419341
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 16 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.401826
+21-D hypercube
+time: 0.389130
+21-D hypercube
+time: 0.419031
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 16 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.488270
+21-D hypercube
+time: 0.463708
+21-D hypercube
+time: 0.476539
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 16 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.420504
+21-D hypercube
+time: 0.419084
+21-D hypercube
+time: 0.408304
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 16 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.443461
+21-D hypercube
+time: 0.641352
+21-D hypercube
+time: 0.444857
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 16 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.402822
+21-D hypercube
+time: 0.411530
+21-D hypercube
+time: 0.411923
+cilk/st-par3-cilk-s --nproc 32 5 2
+21-D hypercube
+time: 1.607073
+21-D hypercube
+time: 1.592973
+21-D hypercube
+time: 1.591668
+cilk/st-par3-cilk --nproc 32 5 2
+21-D hypercube
+time: 0.256986
+21-D hypercube
+time: 0.238545
+21-D hypercube
+time: 0.243661
+cilk/st-par3-cilk-s-800 --nproc 32 5 2
+21-D hypercube
+time: 1.606342
+21-D hypercube
+time: 1.631364
+21-D hypercube
+time: 1.580192
+cilk/st-par3-cilk-800 --nproc 32 5 2
+21-D hypercube
+time: 0.241222
+21-D hypercube
+time: 0.240798
+21-D hypercube
+time: 0.238673
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 32 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.260614
+21-D hypercube
+time: 0.261041
+21-D hypercube
+time: 0.263902
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 32 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.231695
+21-D hypercube
+time: 0.228855
+21-D hypercube
+time: 0.230217
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 32 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.236978
+21-D hypercube
+time: 0.236657
+21-D hypercube
+time: 0.230786
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 32 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.227230
+21-D hypercube
+time: 0.217690
+21-D hypercube
+time: 0.216933
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 32 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.260119
+21-D hypercube
+time: 0.257110
+21-D hypercube
+time: 0.265172
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 32 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.231482
+21-D hypercube
+time: 0.223851
+21-D hypercube
+time: 0.226142
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 32 -a -i 4 5 3 0 0
+21-D hypercube
+time: 20.412553
+21-D hypercube
+time: 20.699997
+21-D hypercube
+time: 19.516621
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 32 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.225236
+21-D hypercube
+time: 0.222138
+21-D hypercube
+time: 0.220014
+cilk/st-par3-cilk-s --nproc 64 5 2
+21-D hypercube
+time: 1.634865
+21-D hypercube
+time: 1.612567
+21-D hypercube
+time: 1.617829
+cilk/st-par3-cilk --nproc 64 5 2
+21-D hypercube
+time: 0.187770
+21-D hypercube
+time: 0.177407
+21-D hypercube
+time: 0.182214
+cilk/st-par3-cilk-s-800 --nproc 64 5 2
+21-D hypercube
+time: 1.529904
+21-D hypercube
+time: 1.603853
+21-D hypercube
+time: 1.634302
+cilk/st-par3-cilk-800 --nproc 64 5 2
+21-D hypercube
+time: 0.186354
+21-D hypercube
+time: 0.188518
+21-D hypercube
+time: 0.189009
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 64 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.205297
+21-D hypercube
+time: 0.206709
+21-D hypercube
+time: 0.275077
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 64 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.161736
+21-D hypercube
+time: 0.157713
+21-D hypercube
+time: 0.147403
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 64 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.158023
+21-D hypercube
+time: 0.156143
+21-D hypercube
+time: 0.159047
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 64 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.194204
+21-D hypercube
+time: 0.159490
+21-D hypercube
+time: 0.146443
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 64 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.198613
+21-D hypercube
+time: 0.227792
+21-D hypercube
+time: 0.225887
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 64 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.167236
+21-D hypercube
+time: 0.184155
+21-D hypercube
+time: 0.145790
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 64 -a -i 4 5 3 0 0
+21-D hypercube
+time: 20.039665
+21-D hypercube
+time: 18.847229
+21-D hypercube
+time: 17.194563
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 64 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.142754
+21-D hypercube
+time: 0.200494
+21-D hypercube
+time: 0.143402
+cilk/st-par3-cilk-s --nproc 128 5 2
+21-D hypercube
+time: 1.752861
+21-D hypercube
+time: 1.744733
+21-D hypercube
+time: 1.789270
+cilk/st-par3-cilk --nproc 128 5 2
+21-D hypercube
+time: 0.269331
+21-D hypercube
+time: 0.291186
+21-D hypercube
+time: 0.292581
+cilk/st-par3-cilk-s-800 --nproc 128 5 2
+21-D hypercube
+time: 1.722466
+21-D hypercube
+time: 1.776293
+21-D hypercube
+time: 1.726569
+cilk/st-par3-cilk-800 --nproc 128 5 2
+21-D hypercube
+time: 0.263996
+21-D hypercube
+time: 0.251438
+21-D hypercube
+time: 0.260849
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 128 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.144021
+21-D hypercube
+time: 0.136527
+21-D hypercube
+time: 0.145059
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 128 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.138497
+21-D hypercube
+time: 0.177023
+21-D hypercube
+time: 0.137106
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 128 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.133961
+21-D hypercube
+time: 0.135448
+21-D hypercube
+time: 0.136869
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 128 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.131699
+21-D hypercube
+time: 0.157833
+21-D hypercube
+time: 0.134305
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 128 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.155094
+21-D hypercube
+time: 0.206015
+21-D hypercube
+time: 0.220487
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 128 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.151446
+21-D hypercube
+time: 0.157381
+21-D hypercube
+time: 0.147796
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 128 -a -i 4 5 3 0 0
+21-D hypercube
+time: 21.575665
+21-D hypercube
+time: 16.566376
+21-D hypercube
+time: 22.187946
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 128 -a -i 4 5 3 0 0
+21-D hypercube
+time: 0.145461
+21-D hypercube
+time: 0.139564
+21-D hypercube
+time: 0.150178
+./st-serial-call 2 1
+2000x2000 nodes 2D torus
+time: 1.191443
+2000x2000 nodes 2D torus
+time: 1.201023
+2000x2000 nodes 2D torus
+time: 1.191655
+./st-serial-call 2 2
+2000x2000 nodes 2D torus
+time: 1.356867
+2000x2000 nodes 2D torus
+time: 1.363905
+2000x2000 nodes 2D torus
+time: 1.357119
+./st-serial-call-membar 2 2
+2000x2000 nodes 2D torus
+time: 1.292123
+2000x2000 nodes 2D torus
+time: 1.290621
+2000x2000 nodes 2D torus
+time: 1.305074
+./st-serial-call-800 2 2
+2000x2000 nodes 2D torus
+time: 1.534890
+2000x2000 nodes 2D torus
+time: 1.536650
+2000x2000 nodes 2D torus
+time: 1.535392
+./st-serial-call-membar-800 2 2
+2000x2000 nodes 2D torus
+time: 1.531897
+2000x2000 nodes 2D torus
+time: 1.520672
+2000x2000 nodes 2D torus
+time: 1.519851
+cilk/st-par3-cilk-s --nproc 1 2 2
+2000x2000 nodes 2D torus
+time: 3.539681
+2000x2000 nodes 2D torus
+time: 3.519293
+2000x2000 nodes 2D torus
+time: 3.516523
+cilk/st-par3-cilk --nproc 1 2 2
+2000x2000 nodes 2D torus
+time: 2.214545
+2000x2000 nodes 2D torus
+time: 2.215250
+2000x2000 nodes 2D torus
+time: 2.214304
+cilk/st-par3-cilk-s-800 --nproc 1 2 2
+2000x2000 nodes 2D torus
+time: 3.397684
+2000x2000 nodes 2D torus
+time: 3.375912
+2000x2000 nodes 2D torus
+time: 3.375845
+cilk/st-par3-cilk-800 --nproc 1 2 2
+2000x2000 nodes 2D torus
+time: 2.460590
+2000x2000 nodes 2D torus
+time: 2.460008
+2000x2000 nodes 2D torus
+time: 2.459923
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 1 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 1.879069
+2000x2000 nodes 2D torus
+time: 1.881018
+2000x2000 nodes 2D torus
+time: 1.881317
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 1 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 1.572115
+2000x2000 nodes 2D torus
+time: 1.573158
+2000x2000 nodes 2D torus
+time: 1.574304
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 1 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 1.404368
+2000x2000 nodes 2D torus
+time: 1.408738
+2000x2000 nodes 2D torus
+time: 1.403632
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 1 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 1.521132
+2000x2000 nodes 2D torus
+time: 1.523456
+2000x2000 nodes 2D torus
+time: 1.523031
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 1 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 2.178577
+2000x2000 nodes 2D torus
+time: 2.178501
+2000x2000 nodes 2D torus
+time: 2.178936
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 1 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 1.800306
+2000x2000 nodes 2D torus
+time: 1.802754
+2000x2000 nodes 2D torus
+time: 1.800589
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 1 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 1.616630
+2000x2000 nodes 2D torus
+time: 1.616866
+2000x2000 nodes 2D torus
+time: 1.616740
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 1 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 1.773597
+2000x2000 nodes 2D torus
+time: 1.773684
+2000x2000 nodes 2D torus
+time: 1.773561
+cilk/st-par3-cilk-s --nproc 2 2 2
+2000x2000 nodes 2D torus
+time: 2.131544
+2000x2000 nodes 2D torus
+time: 2.091585
+2000x2000 nodes 2D torus
+time: 2.112464
+cilk/st-par3-cilk --nproc 2 2 2
+2000x2000 nodes 2D torus
+time: 1.209346
+2000x2000 nodes 2D torus
+time: 1.204910
+2000x2000 nodes 2D torus
+time: 1.210093
+cilk/st-par3-cilk-s-800 --nproc 2 2 2
+2000x2000 nodes 2D torus
+time: 2.007008
+2000x2000 nodes 2D torus
+time: 2.002665
+2000x2000 nodes 2D torus
+time: 2.000831
+cilk/st-par3-cilk-800 --nproc 2 2 2
+2000x2000 nodes 2D torus
+time: 1.358224
+2000x2000 nodes 2D torus
+time: 1.352691
+2000x2000 nodes 2D torus
+time: 1.333876
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 2 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 1.044638
+2000x2000 nodes 2D torus
+time: 1.045456
+2000x2000 nodes 2D torus
+time: 1.046788
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 2 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.879295
+2000x2000 nodes 2D torus
+time: 0.877544
+2000x2000 nodes 2D torus
+time: 0.875739
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 2 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.784729
+2000x2000 nodes 2D torus
+time: 0.787299
+2000x2000 nodes 2D torus
+time: 0.789620
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 2 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.850858
+2000x2000 nodes 2D torus
+time: 0.850824
+2000x2000 nodes 2D torus
+time: 0.851692
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 2 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 1.328458
+2000x2000 nodes 2D torus
+time: 1.341620
+2000x2000 nodes 2D torus
+time: 1.333318
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 2 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 1.011485
+2000x2000 nodes 2D torus
+time: 1.183641
+2000x2000 nodes 2D torus
+time: 1.071844
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 2 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 18.163794
+2000x2000 nodes 2D torus
+time: 40.299669
+2000x2000 nodes 2D torus
+time: 24.310749
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 2 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 1.002619
+2000x2000 nodes 2D torus
+time: 1.070959
+2000x2000 nodes 2D torus
+time: 1.077054
+cilk/st-par3-cilk-s --nproc 3 2 2
+2000x2000 nodes 2D torus
+time: 1.589817
+2000x2000 nodes 2D torus
+time: 1.598677
+2000x2000 nodes 2D torus
+time: 1.584769
+cilk/st-par3-cilk --nproc 3 2 2
+2000x2000 nodes 2D torus
+time: 0.841475
+2000x2000 nodes 2D torus
+time: 0.838030
+2000x2000 nodes 2D torus
+time: 0.846070
+cilk/st-par3-cilk-s-800 --nproc 3 2 2
+2000x2000 nodes 2D torus
+time: 1.464103
+2000x2000 nodes 2D torus
+time: 1.479362
+2000x2000 nodes 2D torus
+time: 1.477199
+cilk/st-par3-cilk-800 --nproc 3 2 2
+2000x2000 nodes 2D torus
+time: 0.953315
+2000x2000 nodes 2D torus
+time: 0.999647
+2000x2000 nodes 2D torus
+time: 0.975877
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 3 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.878481
+2000x2000 nodes 2D torus
+time: 0.877725
+2000x2000 nodes 2D torus
+time: 0.875344
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 3 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.739130
+2000x2000 nodes 2D torus
+time: 0.745451
+2000x2000 nodes 2D torus
+time: 0.748094
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 3 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.672217
+2000x2000 nodes 2D torus
+time: 0.686076
+2000x2000 nodes 2D torus
+time: 0.677908
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 3 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.714635
+2000x2000 nodes 2D torus
+time: 0.719256
+2000x2000 nodes 2D torus
+time: 0.723816
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 3 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.987283
+2000x2000 nodes 2D torus
+time: 1.000620
+2000x2000 nodes 2D torus
+time: 1.064817
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 3 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.870329
+2000x2000 nodes 2D torus
+time: 0.874685
+2000x2000 nodes 2D torus
+time: 0.841721
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 3 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 53.779860
+2000x2000 nodes 2D torus
+time: 60.408864
+2000x2000 nodes 2D torus
+time: 32.095265
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 3 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.806356
+2000x2000 nodes 2D torus
+time: 0.839141
+2000x2000 nodes 2D torus
+time: 0.850825
+cilk/st-par3-cilk-s --nproc 4 2 2
+2000x2000 nodes 2D torus
+time: 1.361358
+2000x2000 nodes 2D torus
+time: 1.409935
+2000x2000 nodes 2D torus
+time: 1.412187
+cilk/st-par3-cilk --nproc 4 2 2
+2000x2000 nodes 2D torus
+time: 0.655447
+2000x2000 nodes 2D torus
+time: 0.612027
+2000x2000 nodes 2D torus
+time: 0.636952
+cilk/st-par3-cilk-s-800 --nproc 4 2 2
+2000x2000 nodes 2D torus
+time: 1.226782
+2000x2000 nodes 2D torus
+time: 1.197359
+2000x2000 nodes 2D torus
+time: 1.220356
+cilk/st-par3-cilk-800 --nproc 4 2 2
+2000x2000 nodes 2D torus
+time: 0.794450
+2000x2000 nodes 2D torus
+time: 0.764192
+2000x2000 nodes 2D torus
+time: 0.790950
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 4 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.754230
+2000x2000 nodes 2D torus
+time: 0.755886
+2000x2000 nodes 2D torus
+time: 0.756910
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 4 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.637199
+2000x2000 nodes 2D torus
+time: 0.640368
+2000x2000 nodes 2D torus
+time: 0.644494
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 4 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.629669
+2000x2000 nodes 2D torus
+time: 0.636528
+2000x2000 nodes 2D torus
+time: 0.630405
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 4 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.618759
+2000x2000 nodes 2D torus
+time: 0.617146
+2000x2000 nodes 2D torus
+time: 0.618387
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 4 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.981927
+2000x2000 nodes 2D torus
+time: 1.035854
+2000x2000 nodes 2D torus
+time: 0.923030
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 4 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 1.034792
+2000x2000 nodes 2D torus
+time: 1.001336
+2000x2000 nodes 2D torus
+time: 0.868780
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 4 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 36.550968
+2000x2000 nodes 2D torus
+time: 66.755847
+2000x2000 nodes 2D torus
+time: 41.794282
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 4 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.799155
+2000x2000 nodes 2D torus
+time: 0.723908
+2000x2000 nodes 2D torus
+time: 0.760676
+cilk/st-par3-cilk-s --nproc 5 2 2
+2000x2000 nodes 2D torus
+time: 1.285455
+2000x2000 nodes 2D torus
+time: 1.289227
+2000x2000 nodes 2D torus
+time: 1.283503
+cilk/st-par3-cilk --nproc 5 2 2
+2000x2000 nodes 2D torus
+time: 0.513939
+2000x2000 nodes 2D torus
+time: 0.511354
+2000x2000 nodes 2D torus
+time: 0.517220
+cilk/st-par3-cilk-s-800 --nproc 5 2 2
+2000x2000 nodes 2D torus
+time: 1.120160
+2000x2000 nodes 2D torus
+time: 1.104241
+2000x2000 nodes 2D torus
+time: 1.096700
+cilk/st-par3-cilk-800 --nproc 5 2 2
+2000x2000 nodes 2D torus
+time: 0.646045
+2000x2000 nodes 2D torus
+time: 0.683238
+2000x2000 nodes 2D torus
+time: 0.675063
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 5 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.622037
+2000x2000 nodes 2D torus
+time: 0.626039
+2000x2000 nodes 2D torus
+time: 0.630578
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 5 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.523316
+2000x2000 nodes 2D torus
+time: 0.523808
+2000x2000 nodes 2D torus
+time: 0.521676
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 5 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.586560
+2000x2000 nodes 2D torus
+time: 0.587337
+2000x2000 nodes 2D torus
+time: 0.591344
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 5 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.509213
+2000x2000 nodes 2D torus
+time: 0.510365
+2000x2000 nodes 2D torus
+time: 0.506182
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 5 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.948374
+2000x2000 nodes 2D torus
+time: 0.942290
+2000x2000 nodes 2D torus
+time: 0.986200
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 5 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.731568
+2000x2000 nodes 2D torus
+time: 0.675943
+2000x2000 nodes 2D torus
+time: 0.841214
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 5 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 54.075059
+2000x2000 nodes 2D torus
+time: 33.290709
+2000x2000 nodes 2D torus
+time: 57.244791
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 5 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.616222
+2000x2000 nodes 2D torus
+time: 0.621896
+2000x2000 nodes 2D torus
+time: 0.588324
+cilk/st-par3-cilk-s --nproc 6 2 2
+2000x2000 nodes 2D torus
+time: 1.284727
+2000x2000 nodes 2D torus
+time: 1.242532
+2000x2000 nodes 2D torus
+time: 1.274287
+cilk/st-par3-cilk --nproc 6 2 2
+2000x2000 nodes 2D torus
+time: 0.466352
+2000x2000 nodes 2D torus
+time: 0.450574
+2000x2000 nodes 2D torus
+time: 0.463664
+cilk/st-par3-cilk-s-800 --nproc 6 2 2
+2000x2000 nodes 2D torus
+time: 1.036662
+2000x2000 nodes 2D torus
+time: 1.014818
+2000x2000 nodes 2D torus
+time: 1.145046
+cilk/st-par3-cilk-800 --nproc 6 2 2
+2000x2000 nodes 2D torus
+time: 0.576050
+2000x2000 nodes 2D torus
+time: 0.635658
+2000x2000 nodes 2D torus
+time: 0.640937
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 6 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.550335
+2000x2000 nodes 2D torus
+time: 0.550932
+2000x2000 nodes 2D torus
+time: 0.547535
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 6 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.459437
+2000x2000 nodes 2D torus
+time: 0.455420
+2000x2000 nodes 2D torus
+time: 0.457807
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 6 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.555952
+2000x2000 nodes 2D torus
+time: 0.555842
+2000x2000 nodes 2D torus
+time: 0.557725
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 6 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.442365
+2000x2000 nodes 2D torus
+time: 0.446852
+2000x2000 nodes 2D torus
+time: 0.444506
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 6 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.840066
+2000x2000 nodes 2D torus
+time: 0.716377
+2000x2000 nodes 2D torus
+time: 0.825809
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 6 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.886504
+2000x2000 nodes 2D torus
+time: 0.705644
+2000x2000 nodes 2D torus
+time: 0.975939
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 6 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 64.734919
+2000x2000 nodes 2D torus
+time: 48.932144
+2000x2000 nodes 2D torus
+time: 68.752510
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 6 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.629635
+2000x2000 nodes 2D torus
+time: 0.559063
+2000x2000 nodes 2D torus
+time: 0.584549
+cilk/st-par3-cilk-s --nproc 7 2 2
+2000x2000 nodes 2D torus
+time: 1.323015
+2000x2000 nodes 2D torus
+time: 1.303682
+2000x2000 nodes 2D torus
+time: 1.307004
+cilk/st-par3-cilk --nproc 7 2 2
+2000x2000 nodes 2D torus
+time: 0.424804
+2000x2000 nodes 2D torus
+time: 0.428855
+2000x2000 nodes 2D torus
+time: 0.426990
+cilk/st-par3-cilk-s-800 --nproc 7 2 2
+2000x2000 nodes 2D torus
+time: 0.989417
+2000x2000 nodes 2D torus
+time: 0.991833
+2000x2000 nodes 2D torus
+time: 1.059977
+cilk/st-par3-cilk-800 --nproc 7 2 2
+2000x2000 nodes 2D torus
+time: 0.637110
+2000x2000 nodes 2D torus
+time: 0.597813
+2000x2000 nodes 2D torus
+time: 0.596830
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 7 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.505977
+2000x2000 nodes 2D torus
+time: 0.508373
+2000x2000 nodes 2D torus
+time: 0.506062
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 7 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.421592
+2000x2000 nodes 2D torus
+time: 0.417828
+2000x2000 nodes 2D torus
+time: 0.420269
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 7 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.548381
+2000x2000 nodes 2D torus
+time: 0.556184
+2000x2000 nodes 2D torus
+time: 0.553415
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 7 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.408779
+2000x2000 nodes 2D torus
+time: 0.412518
+2000x2000 nodes 2D torus
+time: 0.411801
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 7 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.828437
+2000x2000 nodes 2D torus
+time: 0.795928
+2000x2000 nodes 2D torus
+time: 0.761686
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 7 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.752123
+2000x2000 nodes 2D torus
+time: 0.751206
+2000x2000 nodes 2D torus
+time: 0.731240
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 7 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 42.430420
+2000x2000 nodes 2D torus
+time: 38.299590
+2000x2000 nodes 2D torus
+time: 69.015678
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 7 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.564117
+2000x2000 nodes 2D torus
+time: 0.552747
+2000x2000 nodes 2D torus
+time: 0.549962
+cilk/st-par3-cilk-s --nproc 8 2 2
+2000x2000 nodes 2D torus
+time: 1.379716
+2000x2000 nodes 2D torus
+time: 1.377608
+2000x2000 nodes 2D torus
+time: 1.371467
+cilk/st-par3-cilk --nproc 8 2 2
+2000x2000 nodes 2D torus
+time: 0.388032
+2000x2000 nodes 2D torus
+time: 0.410650
+2000x2000 nodes 2D torus
+time: 0.391987
+cilk/st-par3-cilk-s-800 --nproc 8 2 2
+2000x2000 nodes 2D torus
+time: 1.068488
+2000x2000 nodes 2D torus
+time: 1.083137
+2000x2000 nodes 2D torus
+time: 1.032439
+cilk/st-par3-cilk-800 --nproc 8 2 2
+2000x2000 nodes 2D torus
+time: 0.551349
+2000x2000 nodes 2D torus
+time: 0.636357
+2000x2000 nodes 2D torus
+time: 0.601883
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 8 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.484022
+2000x2000 nodes 2D torus
+time: 0.484924
+2000x2000 nodes 2D torus
+time: 0.483164
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 8 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.402584
+2000x2000 nodes 2D torus
+time: 0.403207
+2000x2000 nodes 2D torus
+time: 0.399310
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 8 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.546492
+2000x2000 nodes 2D torus
+time: 0.545690
+2000x2000 nodes 2D torus
+time: 0.539384
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 8 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.389812
+2000x2000 nodes 2D torus
+time: 0.387460
+2000x2000 nodes 2D torus
+time: 0.390153
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 8 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.786630
+2000x2000 nodes 2D torus
+time: 0.788929
+2000x2000 nodes 2D torus
+time: 0.751501
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 8 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.838359
+2000x2000 nodes 2D torus
+time: 0.763238
+2000x2000 nodes 2D torus
+time: 0.879868
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 8 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 63.867444
+2000x2000 nodes 2D torus
+time: 43.368783
+2000x2000 nodes 2D torus
+time: 51.819175
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 8 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.525757
+2000x2000 nodes 2D torus
+time: 0.460900
+2000x2000 nodes 2D torus
+time: 0.539782
+cilk/st-par3-cilk-s --nproc 16 2 2
+2000x2000 nodes 2D torus
+time: 1.638144
+2000x2000 nodes 2D torus
+time: 1.656720
+2000x2000 nodes 2D torus
+time: 1.684293
+cilk/st-par3-cilk --nproc 16 2 2
+2000x2000 nodes 2D torus
+time: 0.323005
+2000x2000 nodes 2D torus
+time: 0.327337
+2000x2000 nodes 2D torus
+time: 0.332134
+cilk/st-par3-cilk-s-800 --nproc 16 2 2
+2000x2000 nodes 2D torus
+time: 1.132289
+2000x2000 nodes 2D torus
+time: 1.117137
+2000x2000 nodes 2D torus
+time: 1.125197
+cilk/st-par3-cilk-800 --nproc 16 2 2
+2000x2000 nodes 2D torus
+time: 0.755750
+2000x2000 nodes 2D torus
+time: 0.714185
+2000x2000 nodes 2D torus
+time: 0.780888
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 16 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.316668
+2000x2000 nodes 2D torus
+time: 0.316021
+2000x2000 nodes 2D torus
+time: 0.317608
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 16 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.281124
+2000x2000 nodes 2D torus
+time: 0.280079
+2000x2000 nodes 2D torus
+time: 0.283255
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 16 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.486371
+2000x2000 nodes 2D torus
+time: 0.496266
+2000x2000 nodes 2D torus
+time: 0.480518
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 16 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.265009
+2000x2000 nodes 2D torus
+time: 0.261643
+2000x2000 nodes 2D torus
+time: 0.267349
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 16 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.611958
+2000x2000 nodes 2D torus
+time: 0.611815
+2000x2000 nodes 2D torus
+time: 0.527019
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 16 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.662518
+2000x2000 nodes 2D torus
+time: 0.611192
+2000x2000 nodes 2D torus
+time: 0.690818
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 16 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 69.080463
+2000x2000 nodes 2D torus
+time: 51.844184
+2000x2000 nodes 2D torus
+time: 44.842565
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 16 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.409035
+2000x2000 nodes 2D torus
+time: 0.367464
+2000x2000 nodes 2D torus
+time: 0.367984
+cilk/st-par3-cilk-s --nproc 32 2 2
+2000x2000 nodes 2D torus
+time: 1.918198
+2000x2000 nodes 2D torus
+time: 1.929969
+2000x2000 nodes 2D torus
+time: 1.940148
+cilk/st-par3-cilk --nproc 32 2 2
+2000x2000 nodes 2D torus
+time: 0.389953
+2000x2000 nodes 2D torus
+time: 0.368568
+2000x2000 nodes 2D torus
+time: 0.386204
+cilk/st-par3-cilk-s-800 --nproc 32 2 2
+2000x2000 nodes 2D torus
+time: 1.185175
+2000x2000 nodes 2D torus
+time: 1.241834
+2000x2000 nodes 2D torus
+time: 1.179951
+cilk/st-par3-cilk-800 --nproc 32 2 2
+2000x2000 nodes 2D torus
+time: 0.854838
+2000x2000 nodes 2D torus
+time: 0.864327
+2000x2000 nodes 2D torus
+time: 0.782315
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 32 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.280800
+2000x2000 nodes 2D torus
+time: 0.287362
+2000x2000 nodes 2D torus
+time: 0.280582
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 32 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.275450
+2000x2000 nodes 2D torus
+time: 0.267235
+2000x2000 nodes 2D torus
+time: 0.270009
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 32 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.444297
+2000x2000 nodes 2D torus
+time: 0.465924
+2000x2000 nodes 2D torus
+time: 0.471845
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 32 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.257216
+2000x2000 nodes 2D torus
+time: 0.251689
+2000x2000 nodes 2D torus
+time: 0.259559
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 32 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.503099
+2000x2000 nodes 2D torus
+time: 0.583952
+2000x2000 nodes 2D torus
+time: 0.485433
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 32 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.619292
+2000x2000 nodes 2D torus
+time: 0.657439
+2000x2000 nodes 2D torus
+time: 0.743243
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 32 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 60.794147
+2000x2000 nodes 2D torus
+time: 64.252419
+2000x2000 nodes 2D torus
+time: 51.848176
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 32 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.347862
+2000x2000 nodes 2D torus
+time: 0.304078
+2000x2000 nodes 2D torus
+time: 0.313914
+cilk/st-par3-cilk-s --nproc 64 2 2
+2000x2000 nodes 2D torus
+time: 2.232299
+2000x2000 nodes 2D torus
+time: 2.240655
+2000x2000 nodes 2D torus
+time: 2.307514
+cilk/st-par3-cilk --nproc 64 2 2
+2000x2000 nodes 2D torus
+time: 0.654595
+2000x2000 nodes 2D torus
+time: 0.665738
+2000x2000 nodes 2D torus
+time: 0.602875
+cilk/st-par3-cilk-s-800 --nproc 64 2 2
+2000x2000 nodes 2D torus
+time: 1.153673
+2000x2000 nodes 2D torus
+time: 1.133103
+2000x2000 nodes 2D torus
+time: 1.132825
+cilk/st-par3-cilk-800 --nproc 64 2 2
+2000x2000 nodes 2D torus
+time: 0.968346
+2000x2000 nodes 2D torus
+time: 0.881124
+2000x2000 nodes 2D torus
+time: 0.943744
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 64 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.432281
+2000x2000 nodes 2D torus
+time: 0.377415
+2000x2000 nodes 2D torus
+time: 0.399080
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 64 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.414117
+2000x2000 nodes 2D torus
+time: 0.361261
+2000x2000 nodes 2D torus
+time: 0.372293
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 64 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.567889
+2000x2000 nodes 2D torus
+time: 0.566642
+2000x2000 nodes 2D torus
+time: 0.520808
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 64 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.351268
+2000x2000 nodes 2D torus
+time: 0.370231
+2000x2000 nodes 2D torus
+time: 0.398703
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 64 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.473729
+2000x2000 nodes 2D torus
+time: 0.447054
+2000x2000 nodes 2D torus
+time: 0.505480
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 64 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.625969
+2000x2000 nodes 2D torus
+time: 0.604676
+2000x2000 nodes 2D torus
+time: 0.599243
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 64 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 79.961654
+2000x2000 nodes 2D torus
+time: 58.104266
+2000x2000 nodes 2D torus
+time: 81.713458
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 64 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.312027
+2000x2000 nodes 2D torus
+time: 0.290105
+2000x2000 nodes 2D torus
+time: 0.272655
+cilk/st-par3-cilk-s --nproc 128 2 2
+2000x2000 nodes 2D torus
+time: 2.750358
+2000x2000 nodes 2D torus
+time: 2.710246
+2000x2000 nodes 2D torus
+time: 2.722530
+cilk/st-par3-cilk --nproc 128 2 2
+2000x2000 nodes 2D torus
+time: 1.613345
+2000x2000 nodes 2D torus
+time: 1.617115
+2000x2000 nodes 2D torus
+time: 1.607107
+cilk/st-par3-cilk-s-800 --nproc 128 2 2
+2000x2000 nodes 2D torus
+time: 1.208730
+2000x2000 nodes 2D torus
+time: 1.265895
+2000x2000 nodes 2D torus
+time: 1.244799
+cilk/st-par3-cilk-800 --nproc 128 2 2
+2000x2000 nodes 2D torus
+time: 1.289305
+2000x2000 nodes 2D torus
+time: 1.231983
+2000x2000 nodes 2D torus
+time: 1.256604
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 128 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.746649
+2000x2000 nodes 2D torus
+time: 0.720503
+2000x2000 nodes 2D torus
+time: 0.725060
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 128 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.742956
+2000x2000 nodes 2D torus
+time: 0.674521
+2000x2000 nodes 2D torus
+time: 0.677374
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 128 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.840494
+2000x2000 nodes 2D torus
+time: 0.856456
+2000x2000 nodes 2D torus
+time: 0.841415
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 128 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.650441
+2000x2000 nodes 2D torus
+time: 0.657570
+2000x2000 nodes 2D torus
+time: 0.661456
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 128 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.592032
+2000x2000 nodes 2D torus
+time: 0.549177
+2000x2000 nodes 2D torus
+time: 0.600428
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 128 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.743055
+2000x2000 nodes 2D torus
+time: 0.609371
+2000x2000 nodes 2D torus
+time: 0.702145
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 128 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 88.045673
+2000x2000 nodes 2D torus
+time: 98.135306
+2000x2000 nodes 2D torus
+time: 98.179594
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 128 -a -i 4 2 3 0 0
+2000x2000 nodes 2D torus
+time: 0.391671
+2000x2000 nodes 2D torus
+time: 0.404616
+2000x2000 nodes 2D torus
+time: 0.337675
+./st-serial-call 4 1
+Depth 24 binary tree
+time: 2.555609
+Depth 24 binary tree
+time: 2.536147
+Depth 24 binary tree
+time: 2.535966
+./st-serial-call 4 2
+Depth 24 binary tree
+time: 2.824944
+Depth 24 binary tree
+time: 2.826018
+Depth 24 binary tree
+time: 2.824507
+./st-serial-call-membar 4 2
+Depth 24 binary tree
+time: 2.836955
+Depth 24 binary tree
+time: 2.837106
+Depth 24 binary tree
+time: 2.815830
+./st-serial-call-800 4 2
+Depth 24 binary tree
+time: 2.823501
+Depth 24 binary tree
+time: 2.822064
+Depth 24 binary tree
+time: 2.823404
+./st-serial-call-membar-800 4 2
+Depth 24 binary tree
+time: 2.841033
+Depth 24 binary tree
+time: 2.818075
+Depth 24 binary tree
+time: 2.845208
+cilk/st-par3-cilk-s --nproc 1 4 2
+Depth 24 binary tree
+time: 6.225380
+Depth 24 binary tree
+time: 6.224410
+Depth 24 binary tree
+time: 6.223922
+cilk/st-par3-cilk --nproc 1 4 2
+Depth 24 binary tree
+time: 5.200273
+Depth 24 binary tree
+time: 5.230945
+Depth 24 binary tree
+time: 5.230455
+cilk/st-par3-cilk-s-800 --nproc 1 4 2
+Depth 24 binary tree
+time: 6.197110
+Depth 24 binary tree
+time: 6.225311
+Depth 24 binary tree
+time: 6.189172
+cilk/st-par3-cilk-800 --nproc 1 4 2
+Depth 24 binary tree
+time: 5.200349
+Depth 24 binary tree
+time: 5.246248
+Depth 24 binary tree
+time: 5.200063
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 4.454789
+Depth 24 binary tree (16777215 vertices)
+time: 4.453480
+Depth 24 binary tree (16777215 vertices)
+time: 4.453828
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 3.387058
+Depth 24 binary tree (16777215 vertices)
+time: 3.387161
+Depth 24 binary tree (16777215 vertices)
+time: 3.387461
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 3.055658
+Depth 24 binary tree (16777215 vertices)
+time: 3.055908
+Depth 24 binary tree (16777215 vertices)
+time: 3.055645
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 3.451065
+Depth 24 binary tree (16777215 vertices)
+time: 3.450992
+Depth 24 binary tree (16777215 vertices)
+time: 3.450165
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 4.453396
+Depth 24 binary tree (16777215 vertices)
+time: 4.461375
+Depth 24 binary tree (16777215 vertices)
+time: 4.453891
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 3.387497
+Depth 24 binary tree (16777215 vertices)
+time: 3.387790
+Depth 24 binary tree (16777215 vertices)
+time: 3.387794
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 3.055702
+Depth 24 binary tree (16777215 vertices)
+time: 3.055730
+Depth 24 binary tree (16777215 vertices)
+time: 3.055650
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 1 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 3.451594
+Depth 24 binary tree (16777215 vertices)
+time: 3.450619
+Depth 24 binary tree (16777215 vertices)
+time: 3.451617
+cilk/st-par3-cilk-s --nproc 2 4 2
+Depth 24 binary tree
+time: 2.950040
+Depth 24 binary tree
+time: 2.956596
+Depth 24 binary tree
+time: 2.947585
+cilk/st-par3-cilk --nproc 2 4 2
+Depth 24 binary tree
+time: 2.625747
+Depth 24 binary tree
+time: 2.634749
+Depth 24 binary tree
+time: 2.634248
+cilk/st-par3-cilk-s-800 --nproc 2 4 2
+Depth 24 binary tree
+time: 2.948174
+Depth 24 binary tree
+time: 2.958942
+Depth 24 binary tree
+time: 2.821731
+cilk/st-par3-cilk-800 --nproc 2 4 2
+Depth 24 binary tree
+time: 2.629942
+Depth 24 binary tree
+time: 2.634352
+Depth 24 binary tree
+time: 2.634110
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 2.463983
+Depth 24 binary tree (16777215 vertices)
+time: 2.463508
+Depth 24 binary tree (16777215 vertices)
+time: 2.463705
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.886158
+Depth 24 binary tree (16777215 vertices)
+time: 1.886081
+Depth 24 binary tree (16777215 vertices)
+time: 1.886028
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.639221
+Depth 24 binary tree (16777215 vertices)
+time: 1.650261
+Depth 24 binary tree (16777215 vertices)
+time: 1.639234
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.881008
+Depth 24 binary tree (16777215 vertices)
+time: 1.880835
+Depth 24 binary tree (16777215 vertices)
+time: 1.880914
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 2.464159
+Depth 24 binary tree (16777215 vertices)
+time: 2.463744
+Depth 24 binary tree (16777215 vertices)
+time: 2.463797
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.886217
+Depth 24 binary tree (16777215 vertices)
+time: 1.886063
+Depth 24 binary tree (16777215 vertices)
+time: 1.886164
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.639271
+Depth 24 binary tree (16777215 vertices)
+time: 1.639239
+Depth 24 binary tree (16777215 vertices)
+time: 1.639314
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 2 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.880856
+Depth 24 binary tree (16777215 vertices)
+time: 1.880833
+Depth 24 binary tree (16777215 vertices)
+time: 1.880729
+cilk/st-par3-cilk-s --nproc 3 4 2
+Depth 24 binary tree
+time: 2.094764
+Depth 24 binary tree
+time: 2.093422
+Depth 24 binary tree
+time: 2.097117
+cilk/st-par3-cilk --nproc 3 4 2
+Depth 24 binary tree
+time: 1.789941
+Depth 24 binary tree
+time: 1.796464
+Depth 24 binary tree
+time: 1.786483
+cilk/st-par3-cilk-s-800 --nproc 3 4 2
+Depth 24 binary tree
+time: 2.087854
+Depth 24 binary tree
+time: 2.090622
+Depth 24 binary tree
+time: 2.079550
+cilk/st-par3-cilk-800 --nproc 3 4 2
+Depth 24 binary tree
+time: 1.775417
+Depth 24 binary tree
+time: 1.796744
+Depth 24 binary tree
+time: 1.797160
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.979602
+Depth 24 binary tree (16777215 vertices)
+time: 2.501026
+Depth 24 binary tree (16777215 vertices)
+time: 2.499042
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.908440
+Depth 24 binary tree (16777215 vertices)
+time: 1.541560
+Depth 24 binary tree (16777215 vertices)
+time: 1.908411
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.306404
+Depth 24 binary tree (16777215 vertices)
+time: 1.300728
+Depth 24 binary tree (16777215 vertices)
+time: 1.301054
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.896197
+Depth 24 binary tree (16777215 vertices)
+time: 1.896569
+Depth 24 binary tree (16777215 vertices)
+time: 1.896413
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.979504
+Depth 24 binary tree (16777215 vertices)
+time: 2.501146
+Depth 24 binary tree (16777215 vertices)
+time: 2.501153
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.908325
+Depth 24 binary tree (16777215 vertices)
+time: 1.908224
+Depth 24 binary tree (16777215 vertices)
+time: 1.541700
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.300974
+Depth 24 binary tree (16777215 vertices)
+time: 1.306417
+Depth 24 binary tree (16777215 vertices)
+time: 1.300766
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 3 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.523428
+Depth 24 binary tree (16777215 vertices)
+time: 1.896558
+Depth 24 binary tree (16777215 vertices)
+time: 1.896502
+cilk/st-par3-cilk-s --nproc 4 4 2
+Depth 24 binary tree
+time: 1.553121
+Depth 24 binary tree
+time: 1.578378
+Depth 24 binary tree
+time: 1.581764
+cilk/st-par3-cilk --nproc 4 4 2
+Depth 24 binary tree
+time: 1.347230
+Depth 24 binary tree
+time: 1.348336
+Depth 24 binary tree
+time: 1.351568
+cilk/st-par3-cilk-s-800 --nproc 4 4 2
+Depth 24 binary tree
+time: 1.581989
+Depth 24 binary tree
+time: 1.585130
+Depth 24 binary tree
+time: 1.580683
+cilk/st-par3-cilk-800 --nproc 4 4 2
+Depth 24 binary tree
+time: 1.346517
+Depth 24 binary tree
+time: 1.346603
+Depth 24 binary tree
+time: 1.347000
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.774554
+Depth 24 binary tree (16777215 vertices)
+time: 2.008118
+Depth 24 binary tree (16777215 vertices)
+time: 2.010415
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.573169
+Depth 24 binary tree (16777215 vertices)
+time: 1.387670
+Depth 24 binary tree (16777215 vertices)
+time: 1.573822
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.159313
+Depth 24 binary tree (16777215 vertices)
+time: 1.327443
+Depth 24 binary tree (16777215 vertices)
+time: 1.328121
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.537823
+Depth 24 binary tree (16777215 vertices)
+time: 1.370206
+Depth 24 binary tree (16777215 vertices)
+time: 1.218299
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 2.003498
+Depth 24 binary tree (16777215 vertices)
+time: 1.995515
+Depth 24 binary tree (16777215 vertices)
+time: 2.010631
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.386408
+Depth 24 binary tree (16777215 vertices)
+time: 1.387038
+Depth 24 binary tree (16777215 vertices)
+time: 1.387386
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.242847
+Depth 24 binary tree (16777215 vertices)
+time: 1.243471
+Depth 24 binary tree (16777215 vertices)
+time: 1.326760
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 4 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.366534
+Depth 24 binary tree (16777215 vertices)
+time: 1.549500
+Depth 24 binary tree (16777215 vertices)
+time: 1.537886
+cilk/st-par3-cilk-s --nproc 5 4 2
+Depth 24 binary tree
+time: 1.246897
+Depth 24 binary tree
+time: 1.271602
+Depth 24 binary tree
+time: 1.242973
+cilk/st-par3-cilk --nproc 5 4 2
+Depth 24 binary tree
+time: 1.053592
+Depth 24 binary tree
+time: 1.055483
+Depth 24 binary tree
+time: 1.056299
+cilk/st-par3-cilk-s-800 --nproc 5 4 2
+Depth 24 binary tree
+time: 1.240529
+Depth 24 binary tree
+time: 1.242127
+Depth 24 binary tree
+time: 1.266916
+cilk/st-par3-cilk-800 --nproc 5 4 2
+Depth 24 binary tree
+time: 1.053765
+Depth 24 binary tree
+time: 1.024312
+Depth 24 binary tree
+time: 1.083509
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.511202
+Depth 24 binary tree (16777215 vertices)
+time: 1.439346
+Depth 24 binary tree (16777215 vertices)
+time: 1.405932
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.150366
+Depth 24 binary tree (16777215 vertices)
+time: 1.032116
+Depth 24 binary tree (16777215 vertices)
+time: 1.210873
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.057648
+Depth 24 binary tree (16777215 vertices)
+time: 0.926578
+Depth 24 binary tree (16777215 vertices)
+time: 0.902531
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.119929
+Depth 24 binary tree (16777215 vertices)
+time: 1.054471
+Depth 24 binary tree (16777215 vertices)
+time: 1.078238
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.541448
+Depth 24 binary tree (16777215 vertices)
+time: 1.432354
+Depth 24 binary tree (16777215 vertices)
+time: 1.613052
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.047400
+Depth 24 binary tree (16777215 vertices)
+time: 1.020516
+Depth 24 binary tree (16777215 vertices)
+time: 1.168941
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.948491
+Depth 24 binary tree (16777215 vertices)
+time: 0.831686
+Depth 24 binary tree (16777215 vertices)
+time: 0.826016
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 5 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.099131
+Depth 24 binary tree (16777215 vertices)
+time: 1.125045
+Depth 24 binary tree (16777215 vertices)
+time: 1.082688
+cilk/st-par3-cilk-s --nproc 6 4 2
+Depth 24 binary tree
+time: 1.045455
+Depth 24 binary tree
+time: 1.060910
+Depth 24 binary tree
+time: 1.047843
+cilk/st-par3-cilk --nproc 6 4 2
+Depth 24 binary tree
+time: 0.859814
+Depth 24 binary tree
+time: 0.900924
+Depth 24 binary tree
+time: 0.899719
+cilk/st-par3-cilk-s-800 --nproc 6 4 2
+Depth 24 binary tree
+time: 1.061521
+Depth 24 binary tree
+time: 1.060881
+Depth 24 binary tree
+time: 1.046482
+cilk/st-par3-cilk-800 --nproc 6 4 2
+Depth 24 binary tree
+time: 0.906681
+Depth 24 binary tree
+time: 0.872823
+Depth 24 binary tree
+time: 0.898991
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.270728
+Depth 24 binary tree (16777215 vertices)
+time: 1.245326
+Depth 24 binary tree (16777215 vertices)
+time: 1.292549
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.956713
+Depth 24 binary tree (16777215 vertices)
+time: 0.905936
+Depth 24 binary tree (16777215 vertices)
+time: 0.872149
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.767337
+Depth 24 binary tree (16777215 vertices)
+time: 0.788545
+Depth 24 binary tree (16777215 vertices)
+time: 0.784960
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.925494
+Depth 24 binary tree (16777215 vertices)
+time: 0.906361
+Depth 24 binary tree (16777215 vertices)
+time: 0.998879
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.274081
+Depth 24 binary tree (16777215 vertices)
+time: 1.179357
+Depth 24 binary tree (16777215 vertices)
+time: 1.309565
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.877847
+Depth 24 binary tree (16777215 vertices)
+time: 0.899791
+Depth 24 binary tree (16777215 vertices)
+time: 0.880267
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.804526
+Depth 24 binary tree (16777215 vertices)
+time: 0.757860
+Depth 24 binary tree (16777215 vertices)
+time: 0.766103
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 6 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.937309
+Depth 24 binary tree (16777215 vertices)
+time: 0.889127
+Depth 24 binary tree (16777215 vertices)
+time: 0.936069
+cilk/st-par3-cilk-s --nproc 7 4 2
+Depth 24 binary tree
+time: 0.880549
+Depth 24 binary tree
+time: 0.901451
+Depth 24 binary tree
+time: 0.900830
+cilk/st-par3-cilk --nproc 7 4 2
+Depth 24 binary tree
+time: 0.774552
+Depth 24 binary tree
+time: 0.762857
+Depth 24 binary tree
+time: 0.756975
+cilk/st-par3-cilk-s-800 --nproc 7 4 2
+Depth 24 binary tree
+time: 0.894418
+Depth 24 binary tree
+time: 0.891934
+Depth 24 binary tree
+time: 0.880814
+cilk/st-par3-cilk-800 --nproc 7 4 2
+Depth 24 binary tree
+time: 0.781874
+Depth 24 binary tree
+time: 0.770163
+Depth 24 binary tree
+time: 0.779283
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.144084
+Depth 24 binary tree (16777215 vertices)
+time: 1.131728
+Depth 24 binary tree (16777215 vertices)
+time: 1.073271
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.800276
+Depth 24 binary tree (16777215 vertices)
+time: 0.800652
+Depth 24 binary tree (16777215 vertices)
+time: 0.788978
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.677065
+Depth 24 binary tree (16777215 vertices)
+time: 0.708784
+Depth 24 binary tree (16777215 vertices)
+time: 0.676389
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.849078
+Depth 24 binary tree (16777215 vertices)
+time: 0.814736
+Depth 24 binary tree (16777215 vertices)
+time: 0.801562
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.149465
+Depth 24 binary tree (16777215 vertices)
+time: 1.268473
+Depth 24 binary tree (16777215 vertices)
+time: 1.142652
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.774485
+Depth 24 binary tree (16777215 vertices)
+time: 0.849007
+Depth 24 binary tree (16777215 vertices)
+time: 0.796452
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.663304
+Depth 24 binary tree (16777215 vertices)
+time: 0.705325
+Depth 24 binary tree (16777215 vertices)
+time: 0.612086
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 7 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.803215
+Depth 24 binary tree (16777215 vertices)
+time: 0.820904
+Depth 24 binary tree (16777215 vertices)
+time: 0.828053
+cilk/st-par3-cilk-s --nproc 8 4 2
+Depth 24 binary tree
+time: 0.805833
+Depth 24 binary tree
+time: 0.815593
+Depth 24 binary tree
+time: 0.814577
+cilk/st-par3-cilk --nproc 8 4 2
+Depth 24 binary tree
+time: 0.669940
+Depth 24 binary tree
+time: 0.667767
+Depth 24 binary tree
+time: 0.694359
+cilk/st-par3-cilk-s-800 --nproc 8 4 2
+Depth 24 binary tree
+time: 0.814952
+Depth 24 binary tree
+time: 0.816197
+Depth 24 binary tree
+time: 0.816321
+cilk/st-par3-cilk-800 --nproc 8 4 2
+Depth 24 binary tree
+time: 0.666969
+Depth 24 binary tree
+time: 0.681250
+Depth 24 binary tree
+time: 0.670413
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.063743
+Depth 24 binary tree (16777215 vertices)
+time: 1.102641
+Depth 24 binary tree (16777215 vertices)
+time: 1.089475
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.772543
+Depth 24 binary tree (16777215 vertices)
+time: 0.774512
+Depth 24 binary tree (16777215 vertices)
+time: 0.761173
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.646537
+Depth 24 binary tree (16777215 vertices)
+time: 0.609272
+Depth 24 binary tree (16777215 vertices)
+time: 0.607822
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.888617
+Depth 24 binary tree (16777215 vertices)
+time: 0.854595
+Depth 24 binary tree (16777215 vertices)
+time: 0.807374
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 1.047791
+Depth 24 binary tree (16777215 vertices)
+time: 1.041494
+Depth 24 binary tree (16777215 vertices)
+time: 1.096024
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.785687
+Depth 24 binary tree (16777215 vertices)
+time: 0.824664
+Depth 24 binary tree (16777215 vertices)
+time: 0.823212
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.595336
+Depth 24 binary tree (16777215 vertices)
+time: 0.624563
+Depth 24 binary tree (16777215 vertices)
+time: 0.670279
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 8 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.739858
+Depth 24 binary tree (16777215 vertices)
+time: 0.843929
+Depth 24 binary tree (16777215 vertices)
+time: 0.789723
+cilk/st-par3-cilk-s --nproc 16 4 2
+Depth 24 binary tree
+time: 0.402524
+Depth 24 binary tree
+time: 0.400955
+Depth 24 binary tree
+time: 0.404501
+cilk/st-par3-cilk --nproc 16 4 2
+Depth 24 binary tree
+time: 0.352155
+Depth 24 binary tree
+time: 0.353607
+Depth 24 binary tree
+time: 0.354731
+cilk/st-par3-cilk-s-800 --nproc 16 4 2
+Depth 24 binary tree
+time: 0.401522
+Depth 24 binary tree
+time: 0.402919
+Depth 24 binary tree
+time: 0.402384
+cilk/st-par3-cilk-800 --nproc 16 4 2
+Depth 24 binary tree
+time: 0.356861
+Depth 24 binary tree
+time: 0.352276
+Depth 24 binary tree
+time: 0.357864
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 16 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.546692
+Depth 24 binary tree (16777215 vertices)
+time: 0.530833
+Depth 24 binary tree (16777215 vertices)
+time: 0.539184
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 16 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.391644
+Depth 24 binary tree (16777215 vertices)
+time: 0.387575
+Depth 24 binary tree (16777215 vertices)
+time: 0.384237
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 16 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.321544
+Depth 24 binary tree (16777215 vertices)
+time: 0.317421
+Depth 24 binary tree (16777215 vertices)
+time: 0.319958
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 16 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.391859
+Depth 24 binary tree (16777215 vertices)
+time: 0.383139
+Depth 24 binary tree (16777215 vertices)
+time: 0.409094
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 16 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.540962
+Depth 24 binary tree (16777215 vertices)
+time: 0.546220
+Depth 24 binary tree (16777215 vertices)
+time: 0.562871
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 16 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.391498
+Depth 24 binary tree (16777215 vertices)
+time: 0.395844
+Depth 24 binary tree (16777215 vertices)
+time: 0.365527
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 16 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.322275
+Depth 24 binary tree (16777215 vertices)
+time: 0.327103
+Depth 24 binary tree (16777215 vertices)
+time: 0.312668
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 16 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.399514
+Depth 24 binary tree (16777215 vertices)
+time: 0.398683
+Depth 24 binary tree (16777215 vertices)
+time: 0.385670
+cilk/st-par3-cilk-s --nproc 32 4 2
+Depth 24 binary tree
+time: 0.208938
+Depth 24 binary tree
+time: 0.212206
+Depth 24 binary tree
+time: 0.210248
+cilk/st-par3-cilk --nproc 32 4 2
+Depth 24 binary tree
+time: 0.198220
+Depth 24 binary tree
+time: 0.196780
+Depth 24 binary tree
+time: 0.194132
+cilk/st-par3-cilk-s-800 --nproc 32 4 2
+Depth 24 binary tree
+time: 0.215124
+Depth 24 binary tree
+time: 0.210906
+Depth 24 binary tree
+time: 0.210237
+cilk/st-par3-cilk-800 --nproc 32 4 2
+Depth 24 binary tree
+time: 0.198780
+Depth 24 binary tree
+time: 0.196247
+Depth 24 binary tree
+time: 0.192943
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 32 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.274753
+Depth 24 binary tree (16777215 vertices)
+time: 0.278540
+Depth 24 binary tree (16777215 vertices)
+time: 0.289401
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 32 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.188992
+Depth 24 binary tree (16777215 vertices)
+time: 0.191596
+Depth 24 binary tree (16777215 vertices)
+time: 0.191717
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 32 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.170946
+Depth 24 binary tree (16777215 vertices)
+time: 0.167511
+Depth 24 binary tree (16777215 vertices)
+time: 0.170167
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 32 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.203002
+Depth 24 binary tree (16777215 vertices)
+time: 0.203654
+Depth 24 binary tree (16777215 vertices)
+time: 0.209385
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 32 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.266893
+Depth 24 binary tree (16777215 vertices)
+time: 0.267412
+Depth 24 binary tree (16777215 vertices)
+time: 0.279578
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 32 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.193628
+Depth 24 binary tree (16777215 vertices)
+time: 0.191080
+Depth 24 binary tree (16777215 vertices)
+time: 0.201768
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 32 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.161437
+Depth 24 binary tree (16777215 vertices)
+time: 0.173523
+Depth 24 binary tree (16777215 vertices)
+time: 0.171843
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 32 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.203804
+Depth 24 binary tree (16777215 vertices)
+time: 0.199931
+Depth 24 binary tree (16777215 vertices)
+time: 0.196933
+cilk/st-par3-cilk-s --nproc 64 4 2
+Depth 24 binary tree
+time: 0.117835
+Depth 24 binary tree
+time: 0.119124
+Depth 24 binary tree
+time: 0.115356
+cilk/st-par3-cilk --nproc 64 4 2
+Depth 24 binary tree
+time: 0.149237
+Depth 24 binary tree
+time: 0.168386
+Depth 24 binary tree
+time: 0.176676
+cilk/st-par3-cilk-s-800 --nproc 64 4 2
+Depth 24 binary tree
+time: 0.115343
+Depth 24 binary tree
+time: 0.114968
+Depth 24 binary tree
+time: 0.116149
+cilk/st-par3-cilk-800 --nproc 64 4 2
+Depth 24 binary tree
+time: 0.150949
+Depth 24 binary tree
+time: 0.159747
+Depth 24 binary tree
+time: 0.162097
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 64 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.150869
+Depth 24 binary tree (16777215 vertices)
+time: 0.153612
+Depth 24 binary tree (16777215 vertices)
+time: 0.147130
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 64 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.108155
+Depth 24 binary tree (16777215 vertices)
+time: 0.107721
+Depth 24 binary tree (16777215 vertices)
+time: 0.112302
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 64 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.101762
+Depth 24 binary tree (16777215 vertices)
+time: 0.098910
+Depth 24 binary tree (16777215 vertices)
+time: 0.098464
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 64 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.112560
+Depth 24 binary tree (16777215 vertices)
+time: 0.113977
+Depth 24 binary tree (16777215 vertices)
+time: 0.110460
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 64 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.153435
+Depth 24 binary tree (16777215 vertices)
+time: 0.153263
+Depth 24 binary tree (16777215 vertices)
+time: 0.152081
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 64 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.111356
+Depth 24 binary tree (16777215 vertices)
+time: 0.111015
+Depth 24 binary tree (16777215 vertices)
+time: 0.111518
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 64 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.099323
+Depth 24 binary tree (16777215 vertices)
+time: 0.100621
+Depth 24 binary tree (16777215 vertices)
+time: 0.101112
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 64 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.112611
+Depth 24 binary tree (16777215 vertices)
+time: 0.114366
+Depth 24 binary tree (16777215 vertices)
+time: 0.114833
+cilk/st-par3-cilk-s --nproc 128 4 2
+Depth 24 binary tree
+time: 0.082315
+Depth 24 binary tree
+time: 0.078928
+Depth 24 binary tree
+time: 0.087524
+cilk/st-par3-cilk --nproc 128 4 2
+Depth 24 binary tree
+time: 0.238847
+Depth 24 binary tree
+time: 0.221787
+Depth 24 binary tree
+time: 0.201502
+cilk/st-par3-cilk-s-800 --nproc 128 4 2
+Depth 24 binary tree
+time: 0.075302
+Depth 24 binary tree
+time: 0.075922
+Depth 24 binary tree
+time: 0.084994
+cilk/st-par3-cilk-800 --nproc 128 4 2
+Depth 24 binary tree
+time: 0.244571
+Depth 24 binary tree
+time: 0.209226
+Depth 24 binary tree
+time: 0.229805
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 128 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.085560
+Depth 24 binary tree (16777215 vertices)
+time: 0.086016
+Depth 24 binary tree (16777215 vertices)
+time: 0.085839
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 128 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.069144
+Depth 24 binary tree (16777215 vertices)
+time: 0.068218
+Depth 24 binary tree (16777215 vertices)
+time: 0.068859
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 128 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.065917
+Depth 24 binary tree (16777215 vertices)
+time: 0.067428
+Depth 24 binary tree (16777215 vertices)
+time: 0.089073
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 128 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.067787
+Depth 24 binary tree (16777215 vertices)
+time: 0.066940
+Depth 24 binary tree (16777215 vertices)
+time: 0.068850
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 128 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.086603
+Depth 24 binary tree (16777215 vertices)
+time: 0.086798
+Depth 24 binary tree (16777215 vertices)
+time: 0.166612
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 128 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.070690
+Depth 24 binary tree (16777215 vertices)
+time: 0.066614
+Depth 24 binary tree (16777215 vertices)
+time: 0.068477
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 128 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.073019
+Depth 24 binary tree (16777215 vertices)
+time: 0.096334
+Depth 24 binary tree (16777215 vertices)
+time: 0.066428
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 128 -a -i 4 4 3 0 0
+Depth 24 binary tree (16777215 vertices)
+time: 0.068540
+Depth 24 binary tree (16777215 vertices)
+time: 0.069511
+Depth 24 binary tree (16777215 vertices)
+time: 0.069555

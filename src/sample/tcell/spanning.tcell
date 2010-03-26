@@ -1025,6 +1025,7 @@
     (case 3) (csym::make-ncube 20)                 (= gname "HCube20.graph") (break)
     (case 4) (csym::make-bintree 24)               (= gname "Bintree24.graph") (break)
     (case 5) (csym::make-ncube 21)                 (= gname "HCube21.graph") (break)
+    (case 6) (csym::make-2dt 4000)                 (= gname "2DTorus-4000.graph") (break)
     (case 11) (= gname "Random4000000.graph") (csym::read-graph gname) (break)
 ;     (case 12) (= gname "2DTorus.graph") (csym::read-graph gname) (break)
 ;     (case 13) (= gname "HCube20.graph") (csym::read-graph gname) (break)

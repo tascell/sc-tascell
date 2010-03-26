@@ -1,0 +1,409 @@
+
+cilk/st-par3-cilk-s --nproc 7 11 2
+70.051575
+v: 4000000 e: 15999723
+70.078028
+v: 4000000 e: 15999723
+69.828647
+v: 4000000 e: 15999723
+
+cilk/st-par3-cilk --nproc 7 11 2
+69.842781
+v: 4000000 e: 15999723
+69.865391
+v: 4000000 e: 15999723
+69.845362
+v: 4000000 e: 15999723
+
+cilk/st-par3-cilk-s-800 --nproc 7 11 2
+69.840065
+v: 4000000 e: 15999723
+69.865609
+v: 4000000 e: 15999723
+70.095153
+v: 4000000 e: 15999723
+
+cilk/st-par3-cilk-800 --nproc 7 11 2
+70.061405
+v: 4000000 e: 15999723
+69.992949
+v: 4000000 e: 15999723
+69.840895
+v: 4000000 e: 15999723
+
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 7 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 7 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 7 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 7 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 7 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 7 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 7 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 7 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+
+cilk/st-par3-cilk-s --nproc 8 11 2
+70.000202
+v: 4000000 e: 15999723
+69.865832
+v: 4000000 e: 15999723
+69.872047
+v: 4000000 e: 15999723
+
+cilk/st-par3-cilk --nproc 8 11 2
+69.839899
+v: 4000000 e: 15999723
+70.017694
+v: 4000000 e: 15999723
+70.129886
+v: 4000000 e: 15999723
+
+cilk/st-par3-cilk-s-800 --nproc 8 11 2
+69.835940
+v: 4000000 e: 15999723
+69.994978
+v: 4000000 e: 15999723
+70.019456
+v: 4000000 e: 15999723
+
+cilk/st-par3-cilk-800 --nproc 8 11 2
+69.831646
+v: 4000000 e: 15999723
+70.034052
+v: 4000000 e: 15999723
+70.155728
+v: 4000000 e: 15999723
+
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 8 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 8 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 8 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 8 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 8 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 8 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 8 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 8 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+
+cilk/st-par3-cilk-s --nproc 16 11 2
+70.164627
+v: 4000000 e: 15999723
+70.026131
+v: 4000000 e: 15999723
+70.276396
+v: 4000000 e: 15999723
+
+cilk/st-par3-cilk --nproc 16 11 2
+70.212003
+v: 4000000 e: 15999723
+70.001534
+v: 4000000 e: 15999723
+70.237614
+v: 4000000 e: 15999723
+
+cilk/st-par3-cilk-s-800 --nproc 16 11 2
+70.075506
+v: 4000000 e: 15999723
+70.263863
+v: 4000000 e: 15999723
+70.248542
+v: 4000000 e: 15999723
+
+cilk/st-par3-cilk-800 --nproc 16 11 2
+69.987956
+v: 4000000 e: 15999723
+70.198741
+v: 4000000 e: 15999723
+70.017452
+v: 4000000 e: 15999723
+
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 16 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 16 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-xcc-membar-30 -n 16 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-xcccl-membar-30 -n 16 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-clos-membar-800 -n 16 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-lw-membar-800 -n 16 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-xcc-membar-800 -n 16 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-xcccl-membar-800 -n 16 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+
+cilk/st-par3-cilk-s --nproc 32 11 2
+71.134356
+v: 4000000 e: 15999723
+70.890207
+v: 4000000 e: 15999723
+71.126803
+v: 4000000 e: 15999723
+
+cilk/st-par3-cilk --nproc 32 11 2
+70.743860
+v: 4000000 e: 15999723
+70.805782
+v: 4000000 e: 15999723
+70.959460
+v: 4000000 e: 15999723
+
+cilk/st-par3-cilk-s-800 --nproc 32 11 2
+71.028148
+v: 4000000 e: 15999723
+70.888949
+v: 4000000 e: 15999723
+71.201894
+v: 4000000 e: 15999723
+
+cilk/st-par3-cilk-800 --nproc 32 11 2
+70.972395
+v: 4000000 e: 15999723
+70.774702
+v: 4000000 e: 15999723
+70.843686
+v: 4000000 e: 15999723
+
+../spaa10-sparc-tcell/spanning-clos-membar-30 -n 32 -a -i 4 1 3 0 0
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+treq 0 any
+rslt 0
+
+
+../spaa10-sparc-tcell/spanning-lw-membar-30 -n 32 -a -i 4 1 3 0 0
+treq 0 any

@@ -1,0 +1,3988 @@
+Welcome to the Emacs shell
+
+~/work/sc/src/sample/tcell/eval-ppopp10 $ sh eval.sh
+./st-serial 1
+4000000 nodes random (2 edges per node)
+111.951389
+v: 4000000 e: 15999723
+search-s2  finished.
+time: 1.734809
+4000000 nodes random (2 edges per node)
+111.771561
+v: 4000000 e: 15999723
+search-s2  finished.
+time: 1.732064
+4000000 nodes random (2 edges per node)
+111.878771
+v: 4000000 e: 15999723
+search-s2  finished.
+time: 1.734136
+
+./st-serial-call 1 2
+4000000 nodes random (2 edges per node)
+111.853427
+v: 4000000 e: 15999723
+search serial_call finished.
+time: 1.487192
+4000000 nodes random (2 edges per node)
+111.958441
+v: 4000000 e: 15999723
+search serial_call finished.
+time: 1.489419
+4000000 nodes random (2 edges per node)
+111.877646
+v: 4000000 e: 15999723
+search serial_call finished.
+time: 1.502580
+
+./st-serial-call-cas 1 2
+4000000 nodes random (2 edges per node)
+111.827654
+v: 4000000 e: 15999723
+search cas finished.
+time: 1.814699
+4000000 nodes random (2 edges per node)
+111.829523
+v: 4000000 e: 15999723
+search cas finished.
+time: 1.816504
+4000000 nodes random (2 edges per node)
+111.819087
+v: 4000000 e: 15999723
+search cas finished.
+time: 1.815012
+
+./st-serial-call-membar 1 2
+4000000 nodes random (2 edges per node)
+112.048487
+v: 4000000 e: 15999723
+search membar finished.
+time: 1.782100
+4000000 nodes random (2 edges per node)
+111.920182
+v: 4000000 e: 15999723
+search membar finished.
+time: 1.785917
+4000000 nodes random (2 edges per node)
+112.004942
+v: 4000000 e: 15999723
+search membar finished.
+time: 1.783151
+
+./spanning-lw-cas -n 1 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.015809
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.848457
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.949217
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.848629
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.992040
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.843228
+rslt 0
+
+
+./spanning-lw-membar -n 1 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.872922
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.811498
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.032863
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.817951
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.005517
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.816383
+rslt 0
+
+
+./spanning-gcc-cas -n 1 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.884872
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.879480
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.951459
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.882983
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.854385
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.883612
+rslt 0
+
+
+./spanning-gcc-membar -n 1 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.007906
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.880573
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.973524
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.879025
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.865205
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.884066
+rslt 0
+
+
+./spanning-lw-cas -n 2 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.938013
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.668390
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.919393
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.669767
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.872476
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.670793
+rslt 0
+
+
+./spanning-lw-membar -n 2 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.891134
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.642824
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.030283
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.640643
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.974940
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.642911
+rslt 0
+
+
+./spanning-gcc-cas -n 2 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.895370
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.701479
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.934091
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.698613
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.793025
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.698728
+rslt 0
+
+
+./spanning-gcc-membar -n 2 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.845031
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.706311
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.883637
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.705037
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.908927
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.706636
+rslt 0
+
+
+./spanning-lw-cas -n 3 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.951943
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.950908
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.792847
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.956596
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.928265
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.964218
+rslt 0
+
+
+./spanning-lw-membar -n 3 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.859676
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.932982
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.913413
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.038463
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.868327
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.937495
+rslt 0
+
+
+./spanning-gcc-cas -n 3 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.894657
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.971392
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.910627
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.973422
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.888848
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.899838
+rslt 0
+
+
+./spanning-gcc-membar -n 3 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.001107
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.962213
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.982284
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.961594
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.015102
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.975088
+rslt 0
+
+
+./spanning-lw-cas -n 4 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.995880
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.776927
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.864315
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.972376
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.012048
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.820959
+rslt 0
+
+
+./spanning-lw-membar -n 4 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.952748
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.873821
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.011557
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.809824
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.771013
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.776924
+rslt 0
+
+
+./spanning-gcc-cas -n 4 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.922086
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.833711
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.825811
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.976720
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.826854
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.952107
+rslt 0
+
+
+./spanning-gcc-membar -n 4 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.877936
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.978415
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.857244
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.951918
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.894300
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.804883
+rslt 0
+
+
+./spanning-lw-cas -n 5 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.952722
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.731934
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.937827
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.648649
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.971845
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.696853
+rslt 0
+
+
+./spanning-lw-membar -n 5 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.036417
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.709744
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.839014
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.666044
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.071202
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.709314
+rslt 0
+
+
+./spanning-gcc-cas -n 5 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.951537
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.686853
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.841513
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.659025
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.835333
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.717671
+rslt 0
+
+
+./spanning-gcc-membar -n 5 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.909240
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.702200
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.991263
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.681698
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.946273
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.677404
+rslt 0
+
+
+./spanning-lw-cas -n 6 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.083237
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.585656
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.069610
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.630106
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.035012
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.606766
+rslt 0
+
+
+./spanning-lw-membar -n 6 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.823539
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.591467
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.983999
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.588268
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.963966
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.558975
+rslt 0
+
+
+./spanning-gcc-cas -n 6 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.952069
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.581875
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.820297
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.618772
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.893391
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.615665
+rslt 0
+
+
+./spanning-gcc-membar -n 6 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.919149
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.644801
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.847339
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.580015
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.928288
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.624357
+rslt 0
+
+
+./spanning-lw-cas -n 7 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.956848
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.565827
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.862716
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.567707
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.059071
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.600168
+rslt 0
+
+
+./spanning-lw-membar -n 7 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.823129
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.624349
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.007149
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.552431
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.849805
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.554511
+rslt 0
+
+
+./spanning-gcc-cas -n 7 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.945108
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.620810
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.878027
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.607489
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.862518
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.528062
+rslt 0
+
+
+./spanning-gcc-membar -n 7 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.775996
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.619630
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.942877
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.569315
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.090079
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.617025
+rslt 0
+
+
+./spanning-lw-cas -n 8 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.949482
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.565881
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.971371
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.525156
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.994966
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.535217
+rslt 0
+
+
+./spanning-lw-membar -n 8 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.045758
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.553651
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.984792
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.546822
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.973621
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.536120
+rslt 0
+
+
+./spanning-gcc-cas -n 8 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.867658
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.564161
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.941030
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.534268
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.939866
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.578941
+rslt 0
+
+
+./spanning-gcc-membar -n 8 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.970983
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.550985
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.056864
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.537024
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.966583
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.556287
+rslt 0
+
+
+./st-serial 2
+2000x2000 nodes 2D torus
+0.169321
+v: 4000000 e: 16000000
+search-s2  finished.
+time: 0.259114
+2000x2000 nodes 2D torus
+0.177087
+v: 4000000 e: 16000000
+search-s2  finished.
+time: 0.257882
+2000x2000 nodes 2D torus
+0.169583
+v: 4000000 e: 16000000
+search-s2  finished.
+time: 0.257704
+
+./st-serial-call 2 2
+2000x2000 nodes 2D torus
+0.169187
+v: 4000000 e: 16000000
+search serial_call finished.
+time: 0.272584
+2000x2000 nodes 2D torus
+0.172547
+v: 4000000 e: 16000000
+search serial_call finished.
+time: 0.277310
+2000x2000 nodes 2D torus
+0.169535
+v: 4000000 e: 16000000
+search serial_call finished.
+time: 0.276535
+
+./st-serial-call-cas 2 2
+2000x2000 nodes 2D torus
+0.169790
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.353646
+2000x2000 nodes 2D torus
+0.169310
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.352514
+2000x2000 nodes 2D torus
+0.169018
+v: 4000000 e: 16000000
+search cas finished.
+time: 0.353773
+
+./st-serial-call-membar 2 2
+2000x2000 nodes 2D torus
+0.172601
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.325452
+2000x2000 nodes 2D torus
+0.173518
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.325537
+2000x2000 nodes 2D torus
+0.169173
+v: 4000000 e: 16000000
+search membar finished.
+time: 0.325569
+
+./spanning-lw-cas -n 1 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199410
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.380614
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.196851
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.379315
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197127
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.379589
+rslt 0
+
+
+./spanning-lw-membar -n 1 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198644
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.358126
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.195905
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.359183
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197906
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.358349
+rslt 0
+
+
+./spanning-gcc-cas -n 1 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197869
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.381932
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198592
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.381960
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198280
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.381820
+rslt 0
+
+
+./spanning-gcc-membar -n 1 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199540
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.359032
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.196944
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.358801
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.196121
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.358274
+rslt 0
+
+
+./spanning-lw-cas -n 2 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.196202
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.267171
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.195815
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.268485
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.195824
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.264712
+rslt 0
+
+
+./spanning-lw-membar -n 2 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198548
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.243796
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197181
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.243364
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198175
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.244757
+rslt 0
+
+
+./spanning-gcc-cas -n 2 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.196448
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.265563
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198761
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.264671
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.196853
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.264453
+rslt 0
+
+
+./spanning-gcc-membar -n 2 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.207801
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.243625
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199452
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.244170
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199748
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.243574
+rslt 0
+
+
+./spanning-lw-cas -n 3 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198685
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.197902
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199024
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.200938
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199742
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.202030
+rslt 0
+
+
+./spanning-lw-membar -n 3 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.196912
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.188800
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.196842
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.186442
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197316
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.183461
+rslt 0
+
+
+./spanning-gcc-cas -n 3 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197551
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.198766
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.196738
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.199939
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197932
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.200723
+rslt 0
+
+
+./spanning-gcc-membar -n 3 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199415
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.187045
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197214
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.189886
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197391
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.188171
+rslt 0
+
+
+./spanning-lw-cas -n 4 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197786
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.191121
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197246
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.188099
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.196706
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.191208
+rslt 0
+
+
+./spanning-lw-membar -n 4 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.196498
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.176118
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.196918
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.179565
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198472
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.180439
+rslt 0
+
+
+./spanning-gcc-cas -n 4 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198113
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.189795
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199693
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.186990
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198558
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.188149
+rslt 0
+
+
+./spanning-gcc-membar -n 4 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197470
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.176421
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199916
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.174912
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197190
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.177265
+rslt 0
+
+
+./spanning-lw-cas -n 5 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198639
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.169999
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197587
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.171205
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197544
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.174896
+rslt 0
+
+
+./spanning-lw-membar -n 5 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199598
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.161516
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199413
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.159915
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199806
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.162494
+rslt 0
+
+
+./spanning-gcc-cas -n 5 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197440
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.168812
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.200162
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.169177
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199219
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.168839
+rslt 0
+
+
+./spanning-gcc-membar -n 5 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199973
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.159407
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199443
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.162387
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198350
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.157774
+rslt 0
+
+
+./spanning-lw-cas -n 6 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199392
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.159631
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197005
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.162064
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199125
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.153553
+rslt 0
+
+
+./spanning-lw-membar -n 6 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197545
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.147540
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197561
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.145211
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197202
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.148555
+rslt 0
+
+
+./spanning-gcc-cas -n 6 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.202721
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.158852
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.201332
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.154788
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.200588
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.154109
+rslt 0
+
+
+./spanning-gcc-membar -n 6 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.200529
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.152387
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197009
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.149199
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198043
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.153534
+rslt 0
+
+
+./spanning-lw-cas -n 7 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197907
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.151470
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198650
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.149729
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198867
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.151356
+rslt 0
+
+
+./spanning-lw-membar -n 7 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197128
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.143567
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197134
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.141958
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.200085
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.140848
+rslt 0
+
+
+./spanning-gcc-cas -n 7 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197391
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.149122
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.200058
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.147264
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197344
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.154450
+rslt 0
+
+
+./spanning-gcc-membar -n 7 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197299
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.144812
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198043
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.145803
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199444
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.181374
+rslt 0
+
+
+./spanning-lw-cas -n 8 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199127
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.139743
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198533
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.145832
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.200060
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.146402
+rslt 0
+
+
+./spanning-lw-membar -n 8 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197975
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.140427
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198581
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.139108
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.198513
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.135097
+rslt 0
+
+
+./spanning-gcc-cas -n 8 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.200580
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.148332
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197877
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.145788
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.197309
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.148613
+rslt 0
+
+
+./spanning-gcc-membar -n 8 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.200580
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.142725
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.201075
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.139895
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.202602
+v: 4000000 e: 16000000
+search-p finished.
+time: 0.166936
+rslt 0
+
+
+./st-serial 3
+20-D hypercube
+0.230796
+v: 1048576 e: 20971520
+search-s2  finished.
+time: 0.579917
+20-D hypercube
+0.234720
+v: 1048576 e: 20971520
+search-s2  finished.
+time: 0.581892
+20-D hypercube
+0.233446
+v: 1048576 e: 20971520
+search-s2  finished.
+time: 0.580153
+
+./st-serial-call 3 2
+20-D hypercube
+0.231146
+v: 1048576 e: 20971520
+search serial_call finished.
+time: 0.494321
+20-D hypercube
+0.230660
+v: 1048576 e: 20971520
+search serial_call finished.
+time: 0.492558
+20-D hypercube
+0.231002
+v: 1048576 e: 20971520
+search serial_call finished.
+time: 0.493026
+
+./st-serial-call-cas 3 2
+20-D hypercube
+0.229118
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.532634
+20-D hypercube
+0.228344
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.533013
+20-D hypercube
+0.232079
+v: 1048576 e: 20971520
+search cas finished.
+time: 0.534877
+
+./st-serial-call-membar 3 2
+20-D hypercube
+0.229649
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.525679
+20-D hypercube
+0.233245
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.524030
+20-D hypercube
+0.232268
+v: 1048576 e: 20971520
+search membar finished.
+time: 0.524541
+
+./spanning-lw-cas -n 1 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.273653
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.551832
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.273358
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.551766
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.275087
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.552245
+rslt 0
+
+
+./spanning-lw-membar -n 1 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.270048
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.545382
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.274663
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.545460
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.272419
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.546303
+rslt 0
+
+
+./spanning-gcc-cas -n 1 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.268667
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.563691
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.270171
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.564284
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.270293
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.563574
+rslt 0
+
+
+./spanning-gcc-membar -n 1 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.271909
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.549016
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.270515
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.548626
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.271780
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.549655
+rslt 0
+
+
+./spanning-lw-cas -n 2 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.257722
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.367921
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.266955
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.367421
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258399
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.366966
+rslt 0
+
+
+./spanning-lw-membar -n 2 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.257673
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.363787
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258268
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.365509
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259484
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.362658
+rslt 0
+
+
+./spanning-gcc-cas -n 2 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.256793
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.374247
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259492
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.374376
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.256739
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.373281
+rslt 0
+
+
+./spanning-gcc-membar -n 2 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258493
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.367166
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.272557
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.367620
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259204
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.365233
+rslt 0
+
+
+./spanning-lw-cas -n 3 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260319
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.249137
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259599
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.247868
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261333
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.247759
+rslt 0
+
+
+./spanning-lw-membar -n 3 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260692
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.241512
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259987
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.240250
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.257989
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.246341
+rslt 0
+
+
+./spanning-gcc-cas -n 3 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.256938
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.252511
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258866
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.252949
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.257501
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.253402
+rslt 0
+
+
+./spanning-gcc-membar -n 3 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.256455
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.247172
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.273148
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.248449
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.256868
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.243167
+rslt 0
+
+
+./spanning-lw-cas -n 4 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260172
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.218088
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.278282
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.223984
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.257339
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.221524
+rslt 0
+
+
+./spanning-lw-membar -n 4 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.272909
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.217796
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.274672
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.219341
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.273279
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.212676
+rslt 0
+
+
+./spanning-gcc-cas -n 4 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261026
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.226164
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.256788
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.226760
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259478
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.227597
+rslt 0
+
+
+./spanning-gcc-membar -n 4 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258044
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.220709
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259099
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.218828
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259231
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.221960
+rslt 0
+
+
+./spanning-lw-cas -n 5 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.263256
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.201267
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260678
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.198876
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.262314
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.196392
+rslt 0
+
+
+./spanning-lw-membar -n 5 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258515
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.198253
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258585
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.196084
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.257886
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.192810
+rslt 0
+
+
+./spanning-gcc-cas -n 5 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261025
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.197714
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.256704
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.199815
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260039
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.201692
+rslt 0
+
+
+./spanning-gcc-membar -n 5 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.257461
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.198011
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260163
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.193538
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.276724
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.199353
+rslt 0
+
+
+./spanning-lw-cas -n 6 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261548
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.191856
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259528
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.191468
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259961
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.191790
+rslt 0
+
+
+./spanning-lw-membar -n 6 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258165
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.190218
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.257699
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.187530
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258648
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.190586
+rslt 0
+
+
+./spanning-gcc-cas -n 6 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259132
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.194009
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259070
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.193865
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259518
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.191874
+rslt 0
+
+
+./spanning-gcc-membar -n 6 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258340
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.192694
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260205
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.191764
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258611
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.191173
+rslt 0
+
+
+./spanning-lw-cas -n 7 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258473
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.181157
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259422
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.176127
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259936
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.183524
+rslt 0
+
+
+./spanning-lw-membar -n 7 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259220
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.175034
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261545
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.176982
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259087
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.172515
+rslt 0
+
+
+./spanning-gcc-cas -n 7 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.256591
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.179434
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258455
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.180172
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.260012
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.178950
+rslt 0
+
+
+./spanning-gcc-membar -n 7 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261880
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.176985
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.262106
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.175999
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261449
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.178168
+rslt 0
+
+
+./spanning-lw-cas -n 8 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.266509
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.185788
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.263413
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.174124
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258818
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.173296
+rslt 0
+
+
+./spanning-lw-membar -n 8 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.274920
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.173088
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261684
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.173565
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259955
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.173432
+rslt 0
+
+
+./spanning-gcc-cas -n 8 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258337
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.173892
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261372
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.172580
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258388
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.176518
+rslt 0
+
+
+./spanning-gcc-membar -n 8 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.261368
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.175333
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259103
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.173438
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.259977
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.174938
+rslt 0
+
+
+./st-serial 4
+Depth 24 binary tree
+0.508622
+v: 16777215 e: 33554428
+search-s2  finished.
+time: 0.557802
+Depth 24 binary tree
+0.507845
+v: 16777215 e: 33554428
+search-s2  finished.
+time: 0.557185
+Depth 24 binary tree
+0.513119
+v: 16777215 e: 33554428
+search-s2  finished.
+time: 0.557599
+
+./st-serial-call 4 2
+Depth 24 binary tree
+0.511063
+v: 16777215 e: 33554428
+search serial_call finished.
+time: 0.626040
+Depth 24 binary tree
+0.509144
+v: 16777215 e: 33554428
+search serial_call finished.
+time: 0.625711
+Depth 24 binary tree
+0.516206
+v: 16777215 e: 33554428
+search serial_call finished.
+time: 0.631465
+
+./st-serial-call-cas 4 2
+Depth 24 binary tree
+0.509367
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.839422
+Depth 24 binary tree
+0.510557
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.840573
+Depth 24 binary tree
+0.508427
+v: 16777215 e: 33554428
+search cas finished.
+time: 0.839980
+
+./st-serial-call-membar 4 2
+Depth 24 binary tree
+0.507395
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.730169
+Depth 24 binary tree
+0.507837
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.731750
+Depth 24 binary tree
+0.510538
+v: 16777215 e: 33554428
+search membar finished.
+time: 0.730638
+
+./spanning-lw-cas -n 1 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.514244
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.952080
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511870
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.952907
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.514449
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.954913
+rslt 0
+
+
+./spanning-lw-membar -n 1 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.508528
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.839172
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512875
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.838360
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511717
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.839318
+rslt 0
+
+
+./spanning-gcc-cas -n 1 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512809
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.957132
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.509160
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.957017
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.513140
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.957447
+rslt 0
+
+
+./spanning-gcc-membar -n 1 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.509149
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.818309
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511548
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.820009
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512095
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.820460
+rslt 0
+
+
+./spanning-lw-cas -n 2 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.509536
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.494864
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.513185
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.494051
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.506662
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.494533
+rslt 0
+
+
+./spanning-lw-membar -n 2 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.508443
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.437500
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510274
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.437595
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.509886
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.437956
+rslt 0
+
+
+./spanning-gcc-cas -n 2 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.509935
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.522157
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.509058
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.521878
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510796
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.521924
+rslt 0
+
+
+./spanning-gcc-membar -n 2 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.508947
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.443899
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.508282
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.444123
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511814
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.443937
+rslt 0
+
+
+./spanning-lw-cas -n 3 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.507845
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.481004
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511371
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.368853
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510406
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.369514
+rslt 0
+
+
+./spanning-lw-membar -n 3 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.508931
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.430007
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511179
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.326925
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510561
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.326821
+rslt 0
+
+
+./spanning-gcc-cas -n 3 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.507704
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.509045
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.509730
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.509223
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511455
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.390339
+rslt 0
+
+
+./spanning-gcc-membar -n 3 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511482
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.331721
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.509860
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.429512
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512078
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.331635
+rslt 0
+
+
+./spanning-lw-cas -n 4 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.513114
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.312665
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.508795
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.368191
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511411
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.250742
+rslt 0
+
+
+./spanning-lw-membar -n 4 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511639
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.322994
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.508517
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.300785
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512724
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.275383
+rslt 0
+
+
+./spanning-gcc-cas -n 4 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510132
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.388720
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511762
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.327033
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512681
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.361971
+rslt 0
+
+
+./spanning-gcc-membar -n 4 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512395
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.278888
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510514
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.266755
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511002
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.304149
+rslt 0
+
+
+./spanning-lw-cas -n 5 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512943
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.225936
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511335
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.273845
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511141
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.251215
+rslt 0
+
+
+./spanning-lw-membar -n 5 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.509135
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.205475
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510854
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.224502
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511318
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.203563
+rslt 0
+
+
+./spanning-gcc-cas -n 5 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511335
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.264561
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.509034
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.255999
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510999
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.264325
+rslt 0
+
+
+./spanning-gcc-membar -n 5 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510448
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.214425
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.509147
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.254814
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.509610
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.226667
+rslt 0
+
+
+./spanning-lw-cas -n 6 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.509848
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.246706
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510872
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.218859
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.516562
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.225903
+rslt 0
+
+
+./spanning-lw-membar -n 6 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.514147
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.222968
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510030
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.199658
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510975
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.209442
+rslt 0
+
+
+./spanning-gcc-cas -n 6 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511095
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.265884
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512539
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.206444
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510185
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.250144
+rslt 0
+
+
+./spanning-gcc-membar -n 6 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511079
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.177621
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511351
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.182057
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510348
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.202585
+rslt 0
+
+
+./spanning-lw-cas -n 7 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510712
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.219833
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510224
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.194608
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510142
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.180170
+rslt 0
+
+
+./spanning-lw-membar -n 7 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.517400
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.171433
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512094
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.174058
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.515508
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.172686
+rslt 0
+
+
+./spanning-gcc-cas -n 7 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510531
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.202261
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.510712
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.195758
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511309
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.212959
+rslt 0
+
+
+./spanning-gcc-membar -n 7 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.511351
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.163199
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.513532
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.162422
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.515054
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.184401
+rslt 0
+
+
+./spanning-lw-cas -n 8 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512915
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.175946
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.515884
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.197707
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.514639
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.178166
+rslt 0
+
+
+./spanning-lw-membar -n 8 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512561
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.154716
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.551690
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.168929
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.516235
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.151832
+rslt 0
+
+
+./spanning-gcc-cas -n 8 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.516048
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.183688
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.514685
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.176877
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.515080
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.168907
+rslt 0
+
+
+./spanning-gcc-membar -n 8 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.517663
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.162408
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.514173
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.159615
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.517614
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.155750
+rslt 0
+
+
+~/work/sc/src/sample/tcell/eval-ppopp10 $ 

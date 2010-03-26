@@ -1,0 +1,8 @@
+# serial_call Random 1 core
+1 1.17
+# serial_call Hypercube21 1 core
+2 1.23
+# serial_call 2D-torus 1 core
+3 0.875
+# serial_call Bintree 1 core
+4 0.901

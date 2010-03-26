@@ -1,0 +1,98 @@
+
+######################################################3
+性能測定：
+gero:/work/hiraisi/tcell  を起点とする
+gero01
+
+** fib **
+逐次：fib-c
+task 0 0 0 1
+40
+<空行>
+Cilk: c-and-cilk/fib --nproc <nproc> <n>
+Tascell: fib-lw <nworker>   n=ワーカ数
+task 0 0 0 1
+40
+<空行>
+
+** nqueen **
+逐次: c-and-cilk/nqueen-seq <n>  n:問題サイズ
+Cilk: c-and-cilk/nqueen --nproc <nproc> <n>
+Tascell: nq-lw -n <nworker>
+task 0 0 0 0
+15                ; <問題サイズ>
+-1
+<空行>
+
+** pen **
+逐次 : c-and-cilk/pentomino-seq <n>   n:ピース数．12 で普通の
+Cilk: c-and-cilk/pentomino --nproc <nproc> <n>
+Tascell: pen6x17-lw -n <nworker>
+task 0 0 0 1
+12                ; <ピース数>
+<空行>
+
+** lu **
+c-and-cilk/lu-seq は根本的にアルゴリズムが違うので注意
+逐次: lu-c の後 Tascellと同様に
+Cilk: c-and-cilk/lu002 --nproc <nproc> <n> 2 ; n:問題サイズ，最後の2を忘れないこと（並列にならない）
+Tascell: lu-lw -n <nworker>
+task 0 0 0 0
+0                 ; 新規の問題
+2000              ; <問題サイズ>
+2                 ; 1: 逐次， 2: 並列
+0                 ; デバッグレベル
+
+** comp **
+逐次: c-and-cilk/cmp-seq <n>   n:配列長
+Cilk: c-and-cilk/cmp --nproc <nproc> <n>
+Tascell: cmp-lw -n <nworker>
+task 0 0 0 0
+30000            ; <配列長>
+-1
+<空行>
+
+** grav **
+逐次: grav-c -n <nworker> として下記
+Cilk: c-and-cilk/grav --nproc <nproc> <minx> <miny> <minz> <maxx> <maxx> <maxz> <x> <y> <z>
+Tascell: garv-lw -n <nworker>
+task 0 0 0 1
+-100
+-100
+-100
+100
+100
+100
+25
+25
+25
+<空行>
+※ <x>, <y>, <z> は浮動小数点数で100で割った値になる
+
+==== 分散版 ====
+gero: ~hiraisi/work/sc/soource/sample/tcell にて
+alisp 起動
+> :cl server.lsp
+> (gs)
+で拠点サーバ起動
+
+geroの別のターミナルで
+~hiraisi/bin/pbrsh <node数> /work/hiraisi/tcell/なんとか-lw -n <ノードごとワーカ数> -s gero00
+
+lisp側でaccept connection... のメッセージを確認後
+<fibのばあい>
+task 0 0 0:0 1   (3つめが0のかわりに 0:0，あとは上と共通)
+40
+とすると結果がかえってくる．
+つづけて taskをながしこみたい場合は，そのまえに
+rack 0:0
+としたあと
+task 0 0 0:0 1
+40
+<空行>
+....
+
+サーバを終了するには空行を入力
+ワーカのプロセスが生き残っているので
+~hiraisi/bin/pbrsh <node数> /worker/hiraisi/tcell/pgrep-kill なんとか-lw
+で後始末．

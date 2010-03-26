@@ -1,0 +1,8 @@
+# Cilk_membar Random 1 core
+1 0.705
+# Cilk_membar Hypercube21 1 core
+2 0.793
+# Cilk_membar 2D-torus 1 core
+3 0.478
+# Cilk_membar Bintree 1 core
+4 0.346

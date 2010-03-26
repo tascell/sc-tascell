@@ -1,0 +1,8 @@
+# Tascell_XCCL_cas Random 1 core
+1 1.13
+# Tascell_XCCL_cas Hypercube21 1 core
+2 0.988
+# Tascell_XCCL_cas 2D-torus 1 core
+3 0.845
+# Tascell_XCCL_cas Bintree 1 core
+4 0.643

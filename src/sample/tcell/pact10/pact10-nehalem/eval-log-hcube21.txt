@@ -1,0 +1,1291 @@
+Welcome to the Emacs shell
+
+/home/lab4/hiraisi/work/sc/src/sample/tcell/eval-ppopp10/cilk $ sh eval.sh
+/bin/sh: Can't open eval.sh
+/home/lab4/hiraisi/work/sc/src/sample/tcell/eval-ppopp10/cilk $ cd ..
+~/work/sc/src/sample/tcell/eval-ppopp10 $ sh eval.sh
+./st-serial 5
+21-D hypercube
+0.476813
+v: 2097152 e: 44040192
+search-s2  finished.
+time: 1.402439
+21-D hypercube
+0.481166
+v: 2097152 e: 44040192
+search-s2  finished.
+time: 1.401555
+21-D hypercube
+0.477123
+v: 2097152 e: 44040192
+search-s2  finished.
+time: 1.402497
+
+./st-serial-call 5 2
+21-D hypercube
+0.476844
+v: 2097152 e: 44040192
+search serial_call finished.
+time: 1.175336
+21-D hypercube
+0.476027
+v: 2097152 e: 44040192
+search serial_call finished.
+time: 1.175571
+21-D hypercube
+0.479118
+v: 2097152 e: 44040192
+search serial_call finished.
+time: 1.175338
+
+./st-serial-call-cas 5 2
+21-D hypercube
+0.477019
+v: 2097152 e: 44040192
+search cas finished.
+time: 1.260253
+21-D hypercube
+0.478493
+v: 2097152 e: 44040192
+search cas finished.
+time: 1.258931
+21-D hypercube
+0.477394
+v: 2097152 e: 44040192
+search cas finished.
+time: 1.262773
+
+./st-serial-call-membar 5 2
+21-D hypercube
+0.483057
+v: 2097152 e: 44040192
+search membar finished.
+time: 1.246771
+21-D hypercube
+0.478577
+v: 2097152 e: 44040192
+search membar finished.
+time: 1.243478
+21-D hypercube
+0.475647
+v: 2097152 e: 44040192
+search membar finished.
+time: 1.245661
+
+./cilk/affinity 1 ./cilk/st-par-cilk --nproc 1 5 2
+21-D hypercube
+0.529235
+v: 2097152 e: 44040192
+search cas finished.
+time: 1.379528
+21-D hypercube
+0.525496
+v: 2097152 e: 44040192
+search cas finished.
+time: 1.378195
+21-D hypercube
+0.527645
+v: 2097152 e: 44040192
+search cas finished.
+time: 1.377907
+
+./cilk/affinity 1 ./cilk/st-par3-cilk --nproc 1 5 2
+21-D hypercube
+0.529399
+v: 2097152 e: 44040192
+search membar finished.
+time: 1.361705
+21-D hypercube
+0.526505
+v: 2097152 e: 44040192
+search membar finished.
+time: 1.360525
+21-D hypercube
+0.525730
+v: 2097152 e: 44040192
+search membar finished.
+time: 1.361210
+
+./spanning-lw-cas -n 1 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.554261
+v: 2097152 e: 44040192
+search-p finished.
+time: 1.294248
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.550313
+v: 2097152 e: 44040192
+search-p finished.
+time: 1.294877
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.551621
+v: 2097152 e: 44040192
+search-p finished.
+time: 1.295836
+rslt 0
+
+
+./spanning-lw-membar -n 1 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.553150
+v: 2097152 e: 44040192
+search-p finished.
+time: 1.283256
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.551595
+v: 2097152 e: 44040192
+search-p finished.
+time: 1.281379
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.551378
+v: 2097152 e: 44040192
+search-p finished.
+time: 1.282840
+rslt 0
+
+
+./spanning-gcc-cas -n 1 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.551682
+v: 2097152 e: 44040192
+search-p finished.
+time: 1.324346
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.551833
+v: 2097152 e: 44040192
+search-p finished.
+time: 1.321810
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.554428
+v: 2097152 e: 44040192
+search-p finished.
+time: 1.323351
+rslt 0
+
+
+./spanning-gcc-membar -n 1 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.550416
+v: 2097152 e: 44040192
+search-p finished.
+time: 1.292830
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.551951
+v: 2097152 e: 44040192
+search-p finished.
+time: 1.291643
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.553959
+v: 2097152 e: 44040192
+search-p finished.
+time: 1.293521
+rslt 0
+
+
+./cilk/affinity 2 ./cilk/st-par-cilk --nproc 2 5 2
+21-D hypercube
+0.551204
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.905215
+21-D hypercube
+0.525309
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.894453
+21-D hypercube
+0.525378
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.905483
+
+./cilk/affinity 2 ./cilk/st-par3-cilk --nproc 2 5 2
+21-D hypercube
+0.530301
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.896288
+21-D hypercube
+0.524281
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.892093
+21-D hypercube
+0.527607
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.891804
+
+./spanning-lw-cas -n 2 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.531766
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.867639
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.524553
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.871957
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.528230
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.868215
+rslt 0
+
+
+./spanning-lw-membar -n 2 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.525313
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.864610
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.526826
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.856683
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.551869
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.857642
+rslt 0
+
+
+./spanning-gcc-cas -n 2 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.527548
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.885685
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.558030
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.884365
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.558330
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.880157
+rslt 0
+
+
+./spanning-gcc-membar -n 2 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.526501
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.868085
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.524064
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.871158
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.526824
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.865970
+rslt 0
+
+
+./cilk/affinity 3 ./cilk/st-par-cilk --nproc 3 5 2
+21-D hypercube
+0.682840
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.590037
+21-D hypercube
+0.721202
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.591743
+21-D hypercube
+0.784303
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.592379
+
+./cilk/affinity 3 ./cilk/st-par3-cilk --nproc 3 5 2
+21-D hypercube
+0.851364
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.581748
+21-D hypercube
+0.785559
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.582336
+21-D hypercube
+0.782259
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.582072
+
+./spanning-lw-cas -n 3 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.531222
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.577359
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.528154
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.567149
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.530071
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.565929
+rslt 0
+
+
+./spanning-lw-membar -n 3 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529452
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.556367
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.528922
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.560348
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.531658
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.569094
+rslt 0
+
+
+./spanning-gcc-cas -n 3 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.526961
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.576091
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529328
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.570602
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.525442
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.590579
+rslt 0
+
+
+./spanning-gcc-membar -n 3 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.526581
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.564089
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529320
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.572076
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.524923
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.563316
+rslt 0
+
+
+./cilk/affinity 4 ./cilk/st-par-cilk --nproc 4 5 2
+21-D hypercube
+0.701813
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.508253
+21-D hypercube
+0.769595
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.515389
+21-D hypercube
+0.747146
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.512508
+
+./cilk/affinity 4 ./cilk/st-par3-cilk --nproc 4 5 2
+21-D hypercube
+0.716340
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.497959
+21-D hypercube
+0.801403
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.504050
+21-D hypercube
+0.797771
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.494015
+
+./spanning-lw-cas -n 4 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.526067
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.504668
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.577963
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.511591
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.560465
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.514333
+rslt 0
+
+
+./spanning-lw-membar -n 4 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.531048
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.505864
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.528231
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.495617
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529233
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.502443
+rslt 0
+
+
+./spanning-gcc-cas -n 4 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.528174
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.517194
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.526823
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.527487
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529896
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.522851
+rslt 0
+
+
+./spanning-gcc-membar -n 4 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.528484
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.505623
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.526223
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.505012
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.526723
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.511898
+rslt 0
+
+
+./cilk/affinity 5 ./cilk/st-par-cilk --nproc 5 5 2
+21-D hypercube
+0.765142
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.464161
+21-D hypercube
+0.575685
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.458788
+21-D hypercube
+0.621426
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.458853
+
+./cilk/affinity 5 ./cilk/st-par3-cilk --nproc 5 5 2
+21-D hypercube
+0.606945
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.457018
+21-D hypercube
+0.637997
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.454248
+21-D hypercube
+0.676154
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.455991
+
+./spanning-lw-cas -n 5 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.556538
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.455848
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.530627
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.454630
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.530747
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.457772
+rslt 0
+
+
+./spanning-lw-membar -n 5 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.526262
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.451130
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.527736
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.453945
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.528480
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.454771
+rslt 0
+
+
+./spanning-gcc-cas -n 5 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.533269
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.456224
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.526512
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.461696
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529062
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.457737
+rslt 0
+
+
+./spanning-gcc-membar -n 5 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529089
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.456020
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.526917
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.447831
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529836
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.457879
+rslt 0
+
+
+./cilk/affinity 6 ./cilk/st-par-cilk --nproc 6 5 2
+21-D hypercube
+0.586123
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.447975
+21-D hypercube
+0.610184
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.449749
+21-D hypercube
+0.598381
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.450069
+
+./cilk/affinity 6 ./cilk/st-par3-cilk --nproc 6 5 2
+21-D hypercube
+0.565045
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.447590
+21-D hypercube
+0.641330
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.438245
+21-D hypercube
+0.599302
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.445648
+
+./spanning-lw-cas -n 6 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.530307
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.434027
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.559322
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.429452
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.527090
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.444762
+rslt 0
+
+
+./spanning-lw-membar -n 6 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.526125
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.441034
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.560360
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.442281
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.526688
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.445096
+rslt 0
+
+
+./spanning-gcc-cas -n 6 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.527283
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.447147
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529363
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.449308
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.528357
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.447386
+rslt 0
+
+
+./spanning-gcc-membar -n 6 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.524862
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.440350
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.537374
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.437215
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.524348
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.436042
+rslt 0
+
+./cilk/affinity 7 ./cilk/st-par-cilk --nproc 7 5 2
+21-D hypercube
+0.629773
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.418929
+21-D hypercube
+0.681722
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.417726
+21-D hypercube
+0.589894
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.416336
+
+./cilk/affinity 7 ./cilk/st-par-cilk --nproc 7 5 2
+21-D hypercube
+0.603436
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.502929
+21-D hypercube
+0.621276
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.466129
+21-D hypercube
+0.635473
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.418535
+
+./cilk/affinity 7 ./cilk/st-par3-cilk --nproc 7 5 2
+21-D hypercube
+0.621139
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.414886
+21-D hypercube
+0.654790
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.411782
+21-D hypercube
+0.588627
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.410105
+
+./spanning-lw-cas -n 7 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529654
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.409531
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.532165
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.409202
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529836
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.411619
+rslt 0
+
+
+./spanning-lw-membar -n 7 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.530942
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.407762
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.557701
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.408654
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529677
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.417825
+rslt 0
+
+
+./spanning-gcc-cas -n 7 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.525123
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.425613
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.556729
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.416618
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.560885
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.414039
+rslt 0
+
+
+./spanning-gcc-membar -n 7 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.526260
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.413115
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.526821
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.416183
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529817
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.419287
+rslt 0
+
+
+./cilk/affinity 8 ./cilk/st-par-cilk --nproc 8 5 2
+21-D hypercube
+0.721961
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.403378
+21-D hypercube
+0.609662
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.406525
+21-D hypercube
+0.629744
+v: 2097152 e: 44040192
+search cas finished.
+time: 0.407402
+
+./cilk/affinity 8 ./cilk/st-par3-cilk --nproc 8 5 2
+21-D hypercube
+0.622502
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.399211
+21-D hypercube
+0.583056
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.398396
+21-D hypercube
+0.587124
+v: 2097152 e: 44040192
+search membar finished.
+time: 0.399731
+
+./spanning-lw-cas -n 8 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.560531
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.408594
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529323
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.408803
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.557242
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.406939
+rslt 0
+
+
+./spanning-lw-membar -n 8 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.557313
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.401997
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.534041
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.408316
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529786
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.406728
+rslt 0
+
+
+./spanning-gcc-cas -n 8 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.529729
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.417720
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.530087
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.421204
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.532063
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.415741
+rslt 0
+
+
+./spanning-gcc-membar -n 8 -a -i 4 5 3 0 0
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.531041
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.413469
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.559268
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.413485
+rslt 0
+
+setaffinity enabled.
+treq 0 any
+21-D hypercube
+Graph constuction time: 0.533185
+v: 2097152 e: 44040192
+search-p finished.
+time: 0.403024
+rslt 0
+
+
+~/work/sc/src/sample/tcell/eval-ppopp10 $ ls

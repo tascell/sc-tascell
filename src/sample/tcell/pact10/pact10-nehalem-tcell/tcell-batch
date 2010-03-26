@@ -1,0 +1,38 @@
+#!/bin/sh
+
+set -x
+
+#ALISP='/cygdrive/c/Program Files/acl81/alisp'           # path/to/alisp
+if [ $ALISP = "" ]; then
+  ALISP=/usr/local/acl81/alisp
+fi
+
+SERVER_CMDLINE="server-cmdline.lsp"
+
+if [ $# -lt 4 ]; then
+    echo "usage: $0 <worker_command> <n_node> <initial_task> <hostname> [<port_num>]"
+    exit
+fi
+WORKER_CMD=$1
+NNODE=$2
+INITIAL_TASK=$3
+HOSTNAME=$4
+if [ $# -ge 5 ]; then
+    PORT_NUM=$5
+else
+    PORT_NUM=8888
+fi
+
+set -x
+
+"$ALISP" -batch -L $SERVER_CMDLINE -- -h $HOSTNAME -p $PORT_NUM -n $NNODE -t "$INITIAL_TASK" &
+sleep 5
+
+i=1
+while [ $i -lt $NNODE ]; do
+    ./tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD &
+    sleep 1
+    i=`expr $i + 1`
+done
+# ./tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD
+$WORKER_CMD -s $HOSTNAME -p $PORT_NUM

@@ -1,0 +1,257 @@
+;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; All rights reserved.
+
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+;;; 1. Redistributions of source code must retain the above copyright
+;;;    notice, this list of conditions and the following disclaimer.
+;;; 2. Redistributions in binary form must reproduce the above copyright
+;;;    notice, this list of conditions and the following disclaimer in the
+;;;    documentation and/or other materials provided with the distribution.
+
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE
+;;; FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+;;; OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+;;; LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+;;; SUCH DAMAGE.
+
+;;; Find all the solutions of Pentomino puzzle (with copying working spaces)
+
+;; task 0 0 0 1
+;; <n>
+
+(c-exp "#include<sys/time.h>")
+
+(%include "rule/tcell-setrule.sh")
+(%include "clib.sh")
+(%cinclude "sendrecv.h" (:macro))
+
+(%defconstant ASIZE 20)
+(%defconstant BSIZE 119)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (task pentomino)
+  (def r int :out)
+  (def k int :in)
+  (def i0 int :in)
+  (def i1 int :in)
+  (def i2 int :in)
+  (def maxp int :in)  ; number of pieces
+  (def maxk int :in)  ; the last empty cell
+  (def a (array int ASIZE) :in)
+  (def b (array int BSIZE) :in))
+
+;; task/rslt-sender/receiver = default
+
+(decl (search k j0 j1 j2 maxp maxk tsk) (wfn int int int int int int int (ptr (struct pentomino))))
+(def (task-body pentomino)
+  (decl i int)
+  (def k int (fref this k))
+  (def i0 int (fref this i0))
+  (def i1 int (fref this i1))
+  (def i2 int (fref this i2))
+  (def maxp int (fref this maxp))
+  (def maxk int (fref this maxk))
+  (csym::fprintf stderr "start %d %d %d %d %d %d~%" k i0 i1 i2 maxp maxk)
+  (= (fref this r) (search k i0 i1 i2 maxp maxk (ptr this)))
+  (csym::fprintf stderr "end %d~%" (fref this r)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (task start-pentomino)
+  (def maxp int :in) ; number of pieces
+  (def r int :out))
+
+(def (csym::elapsed-time tp) 
+    (fn double (array (struct timeval) 2))
+  (return (+ (- (fref (aref tp 1) tv-sec)
+                (fref (aref tp 0) tv-sec))
+             (* 0.000001
+                (- (fref (aref tp 1) tv-usec)
+                   (fref (aref tp 0) tv-usec))))))
+
+;; 新しい問題を解く
+(def (task-body start-pentomino)
+  (decl tp (array (struct timeval) 2))
+  (def pen (struct pentomino))
+  (def maxp int (fref this maxp))
+  (def i int)
+  (def kk int)
+  (if (or (< maxp 0) (> maxp 20))
+      (begin
+        (csym::fprintf stderr "maxp=%d: no more than 20 pieces~%" maxp)
+        (= maxp 12)))
+  (for ((= i 0) (< i ASIZE) (inc i)) (= (aref (fref pen a) i) 0))
+  (for ((= i 0) (< i maxp) (inc i)) (= (aref (fref pen a) i) i))
+  (for ((= i 0) (< i BSIZE) (inc i)) (= (aref (fref pen b) i) 0))
+  (for ((= i 6) (< i BSIZE) (+= i 7))
+    (= (aref (fref pen b) i) #\Newline)) ; right side wall
+  ;; piece数*5 個目より先の穴は埋める
+  (= kk 0)
+  (for ((= i 0) (< i (* maxp 5)) (inc i))
+       (for ((inc kk) (< kk BSIZE) (inc kk)) (if (== (aref (fref pen b) kk) 0)
+                                                 (break))))
+  (= (fref pen maxk) kk)
+  (for ((< kk BSIZE) (inc kk)) (if (== (aref (fref pen b) kk) 0)
+                                   (= (aref (fref pen b) kk) #\*)))
+  (= (fref pen maxp) maxp)
+  (csym::gettimeofday tp 0)
+  (= (fref this r) (search 0 0 0 maxp maxp (fref pen maxk) (ptr pen)))
+  (csym::gettimeofday (+ tp 1) 0)
+  (fprintf stderr "time: %lf~%"  (csym::elapsed-time tp)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def ps (array int 73 5)
+  (array
+   (array 1 1 1 1) (array 7 7 7 7)      ; ***** とその縦向き
+   (array 4 1 1 1) (array 7 7 6 1)      ;    *    *
+                                        ; ****    *
+                                        ;         *
+                                        ;        **
+   (array 6 1 1 1) (array 5 1 1 1) (array 1 1 1 5) (array 1 1 1 6)
+   ;;     *                 *            ****          ****
+   ;;    ****             ****            *              * 
+   (array 7 1 6 7) (array 7 7 1 6) (array 7 6 1 7) (array 6 1 7 7)
+   ;;     *                 *              *                *
+   ;;     **                *              *               **
+   ;;     *                 **            **                *
+   ;;     *                 *              *                *
+   (array 7 7 1 1) (array 1 1 5 7) (array 1 1 7 7) (array 7 5 1 1)
+   ;;     *                 ***          ***               *
+   ;;     *                 *              *               *
+   ;;     ***               *              *             ***
+   (array 2 5 1 1) (array 1 1 5 2) (array 1 6 7 1) (array 1 7 6 1)
+   ;;     * *              ***            **              **
+   ;;     ***              * *            *                *
+   ;;                                     **              **
+   (array 7 1 1 5) (array 5 1 1 7) (array 7 6 1 1) (array 1 1 6 7)
+   ;;     *                 *              *              ***
+   ;;     ***             ***              *               *
+   ;;     *                 *             ***              *
+   (array 7 1 1 6) (array 5 1 1 6) (array 6 1 1 5) (array 6 1 1 7) 
+   ;;     *                 *              *              *
+   ;;     ***             ***             ***            ***
+   ;;      *               *              *                *
+   (array 1 7 1 6) (array 7 1 5 1) (array 1 5 1 7) (array 6 1 7 1) 
+   ;;     **               *              **              *
+   ;;      **              **            **              **
+   ;;      *              **              *               **
+   (array 7 1 1 7) (array 5 1 1 5) (array 1 7 7 1) (array 1 6 6 1)
+   ;;      *               *              **              **
+   ;;      ***           ***               *              *
+   ;;        *           *                 **            **
+   (array 6 1 1 6)
+   ;;      * 
+   ;;     ***
+   ;;      * 
+   (array 1 6 1 1) (array 1 1 5 1) (array 1 5 1 1) (array 1 1 6 1)
+   ;;      **               ***            **             ***
+   ;;      ***              **            ***              **
+   (array 7 1 6 1) (array 1 6 1 6) (array 6 1 6 1) (array 1 6 1 7)
+   ;;      *               **              *               **
+   ;;      **              **             **               **
+   ;;      **              *              **                *
+   (array 1 4 1 1) (array 1 1 7 1) (array 1 7 1 1) (array 1 1 4 1)
+   ;;      **              ***            **               ***
+   ;;    ***                 **            ***            **
+   (array 7 1 7 7) (array 7 6 1 6) (array 6 1 6 7) (array 7 7 1 7)
+   ;;      *                *              *              *
+   ;;      **               *             **              *
+   ;;       *              **             *               **
+   ;;       *              *              *                *
+   (array 7 1 7 1) (array 1 5 1 6) (array 1 7 1 7) (array 6 1 5 1)
+   ;;      *                **              **              *
+   ;;      **              **                **            **
+   ;;       **             *                  *           **
+   ;; ; extension
+   (array 1 1 1 1) (array 7 7 7 7)
+   (array 1 1 1 1) (array 7 7 7 7)
+   (array 1 1 1 1) (array 7 7 7 7)
+   (array 1 1 1 1) (array 7 7 7 7)
+   (array 1 1 1 1) (array 7 7 7 7)
+   (array 1 1 1 1) (array 7 7 7 7)
+   (array 1 1 1 1) (array 7 7 7 7)
+   (array 1 1 1 1) (array 7 7 7 7)
+   ))
+
+(def pos (array int 21) (array 0 2 4 12 16 20 24 32 36 37 45 53 57
+                               ;; extension
+                               59 61 63 65 67 69 71 73))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; k: 最初の空きセル
+;; j0:
+;; j1--j2: 試すビースの種類
+(def (search k j0 j1 j2 maxp maxk tsk) (wfn int int int int int int int (ptr (struct pentomino)))
+  (def s int 0)
+  (def this-tsk (struct pentomino))
+  (def st (ptr (struct pentomino)))
+  (= st (ptr this-tsk))
+  (do-many for p from j1 to j2
+     (def ap int (aref (fref (mref tsk) a) p))
+     (def i int)
+     (for ((= i (aref pos ap)) (< i (aref pos (+ ap 1))) (inc i))     
+       ;;  examine the "i"-th (piece, direction)
+       ;;  at the first empty location "k"
+       (def pss (ptr int) (aref ps i))
+       (def kk int k)  (decl l int)
+       (for ((= l 0) (< l 4) (inc l))
+	 (if (or (>= (+= kk (aref pss l)) maxk)
+		 (!= (aref (fref (mref tsk) b) kk) 0))
+	     (goto Ln)))
+       (begin
+        (begin
+         (= (mref st) (mref tsk))
+         )
+	(begin
+	 (= (aref (fref (mref st) b)
+		  (= kk k))
+	    (+ p #\A))
+	 (for ((= l 0) (< l 4) (inc l))
+	   (= (aref (fref (mref st) b)
+		    (+= kk (aref pss l)))
+	      (+ p #\A)))
+	 (= (aref (fref (mref st) a) p)
+	    (aref (fref (mref st) a) j0))
+	 (= (aref (fref (mref st) a) j0) ap))
+	(begin
+	 (for ((= kk k) (< kk maxk) (inc kk))
+	   (if (== (aref (fref (mref st) b) kk) 0) (break)))
+	 (if (== kk maxk)
+	     (+= s 1)
+	     (if (and (or (>= (+ kk 7) maxk)
+			  (!= (aref (fref (mref st) b) (+ kk 7)) 0))
+		      (or (!= (aref (fref (mref st) b) (+ kk 1)) 0)
+			  (and (or (>= (+ kk 8) maxk)
+				   (!= (aref (fref (mref st) b) (+ kk 8)) 0))
+			       (!= (aref (fref (mref st) b) (+ kk 2)) 0))))
+		 ()
+		 (+= s (search kk (+ j0 1) (+ j0 1) maxp maxp maxk st)))))
+; 	(begin
+; 	 (= ap (aref (fref (mref st) a) j0))
+; 	 (= (aref (fref (mref st) a) j0) (aref (fref (mref st) a) p))
+; 	 (= (aref (fref (mref st) a) p) ap)
+; 	 (= (aref (fref (mref st) b) (= kk k)) 0)
+; 	 (for ((= l 0) (< l 4) (inc l))
+;               (= (aref (fref (mref st) b) (+= kk (aref pss l))) 0))
+;          )
+	)
+       (label Ln (continue))
+       )
+     ;; put/get pentomino task/result
+     (pentomino
+      (:put from i1 to i2
+       (= this (mref tsk))
+       (= (fref this k) k)
+       (= (fref this i0) j0)
+       (= (fref this i1) i1)
+       (= (fref this i2) i2))
+      (:get
+       (+= s (fref this r)))))
+  (return s))

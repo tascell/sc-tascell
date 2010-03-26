@@ -1,0 +1,313 @@
+Welcome to the Emacs shell
+
+/home/lab4/hiraisi/work/sc/src/sample/tcell/eval-ppopp10 $ cd statistics/
+~/work/sc/src/sample/tcell/eval-ppopp10/statistics $ ls
+spanning-gcc-cas-statistics     spanning-lw-cas-statistics
+spanning-gcc-membar-statistics  spanning-lw-membar-statistics
+~/work/sc/src/sample/tcell/eval-ppopp10/statistics $ sh statistics.sh 
+./spanning-lw-membar-statistics -n 1 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 112.069158
+v: 4000000 e: 15999723
+search-p finished.
+time: 1.839473
+Iterations: 1
+iter(  1): list-length=      443         visited=   442948
+rslt 0
+
+
+./spanning-lw-membar-statistics -n 8 -a -i 4 1 3 0 0
+setaffinity enabled.
+treq 0 any
+4000000 nodes random (2 edges per node)
+Graph constuction time: 111.894194
+v: 4000000 e: 15999723
+search-p finished.
+time: 0.578774
+Iterations: 1
+iter(  1): list-length=     1011         visited=   800291
+rslt 0
+
+
+./spanning-lw-membar-statistics -n 1 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.199485
+v: 4000000 e: 16000000
+search-p finished.
+time: 3.802410
+Iterations: 102
+iter(  1): list-length=        1         visited=      477
+iter(  2): list-length=        1         visited=     2042
+iter(  3): list-length=        2         visited=     4633
+iter(  4): list-length=        2         visited=     8229
+iter(  5): list-length=        2         visited=    12619
+iter(  6): list-length=        3         visited=    18549
+iter(  7): list-length=        4         visited=    25805
+iter(  8): list-length=        4         visited=    33788
+iter(  9): list-length=        5         visited=    43500
+iter( 10): list-length=        5         visited=    54716
+iter( 11): list-length=        5         visited=    66116
+iter( 12): list-length=        6         visited=    79023
+iter( 13): list-length=        6         visited=    93037
+iter( 14): list-length=        7         visited=   108944
+iter( 15): list-length=        8         visited=   126000
+iter( 16): list-length=        8         visited=   143338
+iter( 17): list-length=        9         visited=   162527
+iter( 18): list-length=        9         visited=   183129
+iter( 19): list-length=       10         visited=   205596
+iter( 20): list-length=       10         visited=   228332
+iter( 21): list-length=       11         visited=   253355
+iter( 22): list-length=       12         visited=   279775
+iter( 23): list-length=       12         visited=   305941
+iter( 24): list-length=       12         visited=   333597
+iter( 25): list-length=       13         visited=   362231
+iter( 26): list-length=       14         visited=   393674
+iter( 27): list-length=       14         visited=   425834
+iter( 28): list-length=       14         visited=   458992
+iter( 29): list-length=       14         visited=   491892
+iter( 30): list-length=       16         visited=   527466
+iter( 31): list-length=       16         visited=   564225
+iter( 32): list-length=       16         visited=   601853
+iter( 33): list-length=       17         visited=   641885
+iter( 34): list-length=       17         visited=   681640
+iter( 35): list-length=       19         visited=   724442
+iter( 36): list-length=       19         visited=   768706
+iter( 37): list-length=       19         visited=   812888
+iter( 38): list-length=       19         visited=   857641
+iter( 39): list-length=       20         visited=   904259
+iter( 40): list-length=       20         visited=   950506
+iter( 41): list-length=       21         visited=  1000144
+iter( 42): list-length=       22         visited=  1051756
+iter( 43): list-length=       22         visited=  1102810
+iter( 44): list-length=       23         visited=  1155326
+iter( 45): list-length=       23         visited=  1209657
+iter( 46): list-length=       24         visited=  1265212
+iter( 47): list-length=       25         visited=  1322951
+iter( 48): list-length=       25         visited=  1380944
+iter( 49): list-length=       26         visited=  1440240
+iter( 50): list-length=       26         visited=  1501334
+iter( 51): list-length=       27         visited=  1563580
+iter( 52): list-length=       27         visited=  1625909
+iter( 53): list-length=       28         visited=  1690545
+iter( 54): list-length=       29         visited=  1757237
+iter( 55): list-length=       28         visited=  1823414
+iter( 56): list-length=       29         visited=  1890327
+iter( 57): list-length=       30         visited=  1959686
+iter( 58): list-length=       31         visited=  2031216
+iter( 59): list-length=       30         visited=  2102582
+iter( 60): list-length=       31         visited=  2175650
+iter( 61): list-length=       32         visited=  2250460
+iter( 62): list-length=       32         visited=  2325859
+iter( 63): list-length=       32         visited=  2401145
+iter( 64): list-length=       32         visited=  2477104
+iter( 65): list-length=       32         visited=  2553269
+iter( 66): list-length=       34         visited=  2632589
+iter( 67): list-length=       35         visited=  2715067
+iter( 68): list-length=       35         visited=  2796754
+iter( 69): list-length=       36         visited=  2881596
+iter( 70): list-length=       37         visited=  2968601
+iter( 71): list-length=       37         visited=  3054887
+iter( 72): list-length=       34         visited=  3136325
+iter( 73): list-length=       31         visited=  3210797
+iter( 74): list-length=       28         visited=  3277027
+iter( 75): list-length=       27         visited=  3339039
+iter( 76): list-length=       25         visited=  3398061
+iter( 77): list-length=       23         visited=  3452151
+iter( 78): list-length=       22         visited=  3503667
+iter( 79): list-length=       20         visited=  3550661
+iter( 80): list-length=       20         visited=  3597468
+iter( 81): list-length=       18         visited=  3639290
+iter( 82): list-length=       17         visited=  3678761
+iter( 83): list-length=       16         visited=  3714880
+iter( 84): list-length=       14         visited=  3747849
+iter( 85): list-length=       13         visited=  3777915
+iter( 86): list-length=       12         visited=  3805623
+iter( 87): list-length=       11         visited=  3830034
+iter( 88): list-length=       10         visited=  3853295
+iter( 89): list-length=       10         visited=  3875437
+iter( 90): list-length=        9         visited=  3895332
+iter( 91): list-length=        8         visited=  3912562
+iter( 92): list-length=        7         visited=  3928374
+iter( 93): list-length=        6         visited=  3942577
+iter( 94): list-length=        6         visited=  3954882
+iter( 95): list-length=        5         visited=  3966052
+iter( 96): list-length=        4         visited=  3975388
+iter( 97): list-length=        4         visited=  3983489
+iter( 98): list-length=        3         visited=  3989968
+iter( 99): list-length=        2         visited=  3994499
+iter(100): list-length=        2         visited=  3997480
+iter(101): list-length=        1         visited=  3999630
+iter(102): list-length=        1         visited=  4000000
+rslt 0
+
+
+./spanning-lw-membar-statistics -n 8 -a -i 4 2 3 0 0
+setaffinity enabled.
+treq 0 any
+2000x2000 nodes 2D torus
+Graph constuction time: 0.196542
+v: 4000000 e: 16000000
+search-p finished.
+time: 3.485744
+Iterations: 101
+iter(  1): list-length=        3         visited=      517
+iter(  2): list-length=        6         visited=     2186
+iter(  3): list-length=        9         visited=     5126
+iter(  4): list-length=        9         visited=     9124
+iter(  5): list-length=       11         visited=    14085
+iter(  6): list-length=       13         visited=    20667
+iter(  7): list-length=       17         visited=    28111
+iter(  8): list-length=       16         visited=    36941
+iter(  9): list-length=       17         visited=    46400
+iter( 10): list-length=       16         visited=    57655
+iter( 11): list-length=       19         visited=    70132
+iter( 12): list-length=       19         visited=    83496
+iter( 13): list-length=       24         visited=    97875
+iter( 14): list-length=       23         visited=   114004
+iter( 15): list-length=       25         visited=   131037
+iter( 16): list-length=       23         visited=   149907
+iter( 17): list-length=       24         visited=   170018
+iter( 18): list-length=       22         visited=   190100
+iter( 19): list-length=       23         visited=   211784
+iter( 20): list-length=       26         visited=   234735
+iter( 21): list-length=       28         visited=   259241
+iter( 22): list-length=       24         visited=   284000
+iter( 23): list-length=       27         visited=   311786
+iter( 24): list-length=       27         visited=   339949
+iter( 25): list-length=       30         visited=   368418
+iter( 26): list-length=       34         visited=   399073
+iter( 27): list-length=       29         visited=   430596
+iter( 28): list-length=       37         visited=   462928
+iter( 29): list-length=       32         visited=   496815
+iter( 30): list-length=       33         visited=   531126
+iter( 31): list-length=       27         visited=   567391
+iter( 32): list-length=       37         visited=   604661
+iter( 33): list-length=       35         visited=   642622
+iter( 34): list-length=       46         visited=   683595
+iter( 35): list-length=       41         visited=   725026
+iter( 36): list-length=       38         visited=   767363
+iter( 37): list-length=       38         visited=   812520
+iter( 38): list-length=       40         visited=   856663
+iter( 39): list-length=       41         visited=   904113
+iter( 40): list-length=       40         visited=   952371
+iter( 41): list-length=       41         visited=  1001096
+iter( 42): list-length=       36         visited=  1052443
+iter( 43): list-length=       36         visited=  1104625
+iter( 44): list-length=       43         visited=  1158549
+iter( 45): list-length=       44         visited=  1213745
+iter( 46): list-length=       48         visited=  1270703
+iter( 47): list-length=       49         visited=  1328148
+iter( 48): list-length=       45         visited=  1387710
+iter( 49): list-length=       45         visited=  1445999
+iter( 50): list-length=       52         visited=  1506507
+iter( 51): list-length=       51         visited=  1567969
+iter( 52): list-length=       49         visited=  1631958
+iter( 53): list-length=       57         visited=  1697103
+iter( 54): list-length=       54         visited=  1762526
+iter( 55): list-length=       46         visited=  1829393
+iter( 56): list-length=       44         visited=  1896440
+iter( 57): list-length=       50         visited=  1963585
+iter( 58): list-length=       52         visited=  2032432
+iter( 59): list-length=       51         visited=  2103102
+iter( 60): list-length=       50         visited=  2175145
+iter( 61): list-length=       62         visited=  2248242
+iter( 62): list-length=       52         visited=  2322007
+iter( 63): list-length=       58         visited=  2398814
+iter( 64): list-length=       52         visited=  2476832
+iter( 65): list-length=       53         visited=  2556106
+iter( 66): list-length=       53         visited=  2633626
+iter( 67): list-length=       58         visited=  2714402
+iter( 68): list-length=       50         visited=  2797334
+iter( 69): list-length=       54         visited=  2880895
+iter( 70): list-length=       60         visited=  2966248
+iter( 71): list-length=       57         visited=  3052594
+iter( 72): list-length=       55         visited=  3139696
+iter( 73): list-length=       46         visited=  3219765
+iter( 74): list-length=       43         visited=  3288327
+iter( 75): list-length=       39         visited=  3348184
+iter( 76): list-length=       41         visited=  3403915
+iter( 77): list-length=       38         visited=  3457778
+iter( 78): list-length=       36         visited=  3508481
+iter( 79): list-length=       38         visited=  3555507
+iter( 80): list-length=       36         visited=  3599607
+iter( 81): list-length=       30         visited=  3640151
+iter( 82): list-length=       26         visited=  3678309
+iter( 83): list-length=       36         visited=  3713552
+iter( 84): list-length=       25         visited=  3746967
+iter( 85): list-length=       21         visited=  3777701
+iter( 86): list-length=       27         visited=  3805245
+iter( 87): list-length=       28         visited=  3830404
+iter( 88): list-length=       34         visited=  3853966
+iter( 89): list-length=       22         visited=  3876420
+iter( 90): list-length=       23         visited=  3896236
+iter( 91): list-length=       25         visited=  3914346
+iter( 92): list-length=       23         visited=  3930576
+iter( 93): list-length=       18         visited=  3945072
+iter( 94): list-length=       18         visited=  3958177
+iter( 95): list-length=       13         visited=  3968407
+iter( 96): list-length=       18         visited=  3978236
+iter( 97): list-length=       17         visited=  3985767
+iter( 98): list-length=       14         visited=  3991939
+iter( 99): list-length=       11         visited=  3996391
+iter(100): list-length=        8         visited=  3999091
+iter(101): list-length=        5         visited=  3999968
+rslt 0
+
+
+./spanning-lw-membar-statistics -n 1 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.272485
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.566565
+Iterations: 2
+iter(  1): list-length=      844         visited=   707860
+iter(  2): list-length=       92         visited=  1048576
+rslt 0
+
+
+./spanning-lw-membar-statistics -n 8 -a -i 4 3 3 0 0
+setaffinity enabled.
+treq 0 any
+20-D hypercube
+Graph constuction time: 0.258395
+v: 1048576 e: 20971520
+search-p finished.
+time: 0.194697
+Iterations: 2
+iter(  1): list-length=      857         visited=   749055
+iter(  2): list-length=        7         visited=  1048576
+rslt 0
+
+
+./spanning-lw-membar-statistics -n 1 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512107
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.839048
+Iterations: 0
+rslt 0
+
+
+./spanning-lw-membar-statistics -n 8 -a -i 4 4 3 0 0
+setaffinity enabled.
+treq 0 any
+Depth 24 binary tree (16777215 vertices)
+Graph constuction time: 0.512566
+v: 16777215 e: 33554428
+search-p finished.
+time: 0.158944
+Iterations: 0
+rslt 0
+
+
+~/work/sc/src/sample/tcell/eval-ppopp10/statistics $ sh
