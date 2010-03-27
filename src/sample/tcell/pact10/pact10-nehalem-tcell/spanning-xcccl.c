@@ -486,7 +486,7 @@ void search (int v)
   (VV[v]).parent = v + 1;
   V_List = alloc_v_list (0);
   V_List_Length = 1;
-  search1 (v, 800);
+  search1 (v, 1073741824);
   {
   }
   do
@@ -504,7 +504,7 @@ void search (int v)
             j = (*my_v_list).i;
             for (; j < 600; j++)
               {
-                search1 (((*my_v_list).v)[j], 800);
+                search1 (((*my_v_list).v)[j], 1073741824);
               }
           }
       }
@@ -691,7 +691,7 @@ void search_p (int (*_bk) closure (void), struct thread_data *_thr, int v)
   (*((struct worker_data *) (*_thr).wdptr)).V_List.length = 1;
   (*((struct worker_data *) (*_thr).wdptr)).V_List.last =
     (*((struct worker_data *) (*_thr).wdptr)).V_List.first;
-  search1_p (_bk, _thr, v, 800, 0, (VV[v]).degree);
+  search1_p (_bk, _thr, v, 1073741824, 0, (VV[v]).degree);
   {
   }
   while ((*((struct worker_data *) (*_thr).wdptr)).V_List.length > 1
@@ -858,7 +858,7 @@ void search_p_array (int (*_bk) closure (void), struct thread_data *_thr, int v)
   (*((struct worker_data *) (*_thr).wdptr)).V_List.length = 1;
   (*((struct worker_data *) (*_thr).wdptr)).V_List.last =
     (*((struct worker_data *) (*_thr).wdptr)).V_List.first;
-  search1_p (_bk, _thr, v, 800, 0, (VV[v]).degree);
+  search1_p (_bk, _thr, v, 1073741824, 0, (VV[v]).degree);
   {
   }
   my_v_array = 0;
@@ -1112,7 +1112,7 @@ void search_p_c (int (*_bk) closure (void), struct thread_data *_thr,
     else;
     for (; j < J_end; j++)
       {
-        search1_p (do_many_bk4, _thr, ((*my_v_list_cur).v)[j], 800, 0,
+        search1_p (do_many_bk4, _thr, ((*my_v_list_cur).v)[j], 1073741824, 0,
                    (VV[((*my_v_list_cur).v)[j]]).degree);
       }
     while (spawned4-- > 0)
@@ -1609,7 +1609,7 @@ void do_spanning_start_task (struct thread_data *_thr,
   char *algstr;
   char *gname;
 
-  fprintf (stderr, "CALL-BOUND: %d\n", 800);
+  fprintf (stderr, "CALL-BOUND: %d\n", 1073741824);
   fprintf (stderr, "BARRIER: %s\n",
            "type 3 (atomic_read->atomic_write_to_start_read)");
   gettimeofday (tp, 0);
@@ -1644,9 +1644,22 @@ void do_spanning_start_task (struct thread_data *_thr,
       read_graph (gname);
       break;
     default:
-      make_random (2000 * 2000, 2);
-      gname = "Random4000000.graph";
-      break;
+      if ((*pthis).graph > 20000 && (*pthis).graph < 30000)
+        {
+          make_2dt ((*pthis).graph - 20000);
+          gname = "2DTorus.graph";
+        }
+      else if ((*pthis).graph > 30000 && (*pthis).graph < 40000)
+        {
+          make_ncube ((*pthis).graph - 30000);
+          gname = "HCube.graph";
+        }
+      else
+        {
+          make_random (2000 * 2000, 2);
+          gname = "Random4000000.graph";
+          break;
+        }
     }
   gettimeofday (tp + 1, 0);
   fprintf (stderr, "Graph constuction time: %lf\n", elapsed_time (tp));

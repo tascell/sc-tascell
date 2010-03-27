@@ -2,7 +2,7 @@
 1 0.708
 # Cilk_R_membar Hypercube21 1 core
 2 0.806
-# Cilk_R_membar 2D-torus 1 core
-3 0.531
+# Cilk_R_membar 2D-torus-4000 1 core
+3 0.485
 # Cilk_R_membar Bintree 1 core
 4 0.337

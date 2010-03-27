@@ -1,31 +1,23 @@
-This is pTeXk, Version 3.141592-p3.1.10 (euc) (Web2C 7.5.4) (format=platex 2009.3.15)  12 JAN 2010 22:25
- %&-line parsing enabled.
+This is pTeX, Version 3.14159-p3.1.3 (euc) (Web2C 7.4.5) (format=platex-euc 2007.11.9)  27 MAR 2010 13:37
 **speedup.tex
 (./speedup.tex
-pLaTeX2e <2006/11/10>+0 (based on LaTeX2e <2005/12/01> patch level 0)
-(/usr/share/texmf/ptex/platex/base/jarticle.cls
-Document Class: jarticle 2006/06/27 v1.6 Standard pLaTeX class
-\c@@paper=\count81
-(/usr/share/texmf/ptex/platex/base/jsize10.clo
-File: jsize10.clo 2006/06/27 v1.6 Standard pLaTeX file (size option)
+pLaTeX2e <2001/09/04>+0 (based on LaTeX2e <2001/06/01> patch level 0)
+(/usr/share/texmf/tex/latex/base/article.cls
+Document Class: article 2001/04/21 v1.4e Standard LaTeX document class
+(/usr/share/texmf/tex/latex/base/size10.clo
+File: size10.clo 2001/04/21 v1.4e Standard LaTeX file (size option)
 )
-\c@part=\count82
-\c@section=\count83
-\c@subsection=\count84
-\c@subsubsection=\count85
-\c@paragraph=\count86
-\c@subparagraph=\count87
-\c@figure=\count88
-\c@table=\count89
+\c@part=\count81
+\c@section=\count82
+\c@subsection=\count83
+\c@subsubsection=\count84
+\c@paragraph=\count85
+\c@subparagraph=\count86
+\c@figure=\count87
+\c@table=\count88
 \abovecaptionskip=\skip41
 \belowcaptionskip=\skip42
-\symmincho=\mathgroup4
-LaTeX Font Info:    Overwriting symbol font `mincho' in version `bold'
-(Font)                  JY1/mc/m/n --> JY1/gt/m/n on input line 601.
-\toclineskip=\dimen118
-\@lnumwidth=\dimen119
-\bibindent=\dimen120
-\heisei=\count90
+\bibindent=\dimen118
 ) (./speedup.aux)
 \openout1 = `speedup.aux'.
 
@@ -50,51 +42,35 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <5> on input line 9.
 
-Overfull \hbox (24.21765pt too wide) in paragraph at lines 8--73
+Overfull \hbox (73.61758pt too wide) in paragraph at lines 8--37
+[][] 
+ []
+
+
+Overfull \hbox (73.61758pt too wide) in paragraph at lines 39--68
 [][] 
  []
 
 [1
 
 ]
-Overfull \vbox (25.41019pt too high) has occurred while \output is active []
-
+Overfull \hbox (83.61761pt too wide) in paragraph at lines 70--99
+[][] 
+ []
 
 [2]
-Overfull \hbox (19.21764pt too wide) in paragraph at lines 75--140
+Overfull \hbox (85.83984pt too wide) in paragraph at lines 101--130
 [][] 
  []
 
-[3]
-Overfull \vbox (25.41019pt too high) has occurred while \output is active []
-
-
-[4]
-Overfull \hbox (54.21774pt too wide) in paragraph at lines 142--207
-[][] 
- []
-
-[5]
-Overfull \vbox (25.41019pt too high) has occurred while \output is active []
-
-
-[6]
-Overfull \hbox (31.4399pt too wide) in paragraph at lines 209--274
-[][] 
- []
-
-[7]
-Overfull \vbox (25.41019pt too high) has occurred while \output is active []
-
-
-[8] (./speedup.aux) ) 
+[3] [4] (./speedup.aux) ) 
 Here is how much of TeX's memory you used:
- 251 strings out of 95531
- 2495 string characters out of 1191153
- 77083 words of memory out of 1500000
- 3496 multiletter control sequences out of 10000+50000
- 7511 words of font info for 31 fonts, out of 1200000 for 2000
- 14 hyphenation exceptions out of 8191
- 22i,7n,19p,154b,242s stack positions out of 5000i,500n,6000p,200000b,5000s
+ 202 strings out of 95599
+ 2075 string characters out of 1192651
+ 71699 words of memory out of 1000001
+ 3385 multiletter control sequences out of 10000+50000
+ 7519 words of font info for 31 fonts, out of 500000 for 1000
+ 14 hyphenation exceptions out of 1000
+ 22i,7n,17p,120b,212s stack positions out of 1500i,500n,5000p,200000b,5000s
 
-Output written on speedup.dvi (8 pages, 67632 bytes).
+Output written on speedup.dvi (4 pages, 27232 bytes).

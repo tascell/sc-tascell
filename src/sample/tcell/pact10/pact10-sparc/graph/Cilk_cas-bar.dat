@@ -2,7 +2,7 @@
 1 0.919
 # Cilk_cas Hypercube21 1 core
 2 0.947
-# Cilk_cas 2D-torus 1 core
-3 0.338
+# Cilk_cas 2D-torus-4000 1 core
+3 0.316
 # Cilk_cas Bintree 1 core
 4 0.424

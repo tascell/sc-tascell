@@ -1,0 +1,21 @@
+cilk/affinity 1 cilk/st-par3-cilk-s --nproc 1 6 2
+4000x4000 nodes 2D torus
+time: 2.780065
+4000x4000 nodes 2D torus
+time: 2.780244
+4000x4000 nodes 2D torus
+time: 2.794421
+cilk/affinity 1 cilk/st-par3-cilk --nproc 1 6 2
+4000x4000 nodes 2D torus
+time: 2.345763
+4000x4000 nodes 2D torus
+time: 2.345255
+4000x4000 nodes 2D torus
+time: 2.344624
+../pact10-nehalem-tcell/spanning-xcccl-membar-30 -n 1 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 1.818735
+4000x4000 nodes 2D torus
+time: 1.818703
+4000x4000 nodes 2D torus
+time: 1.820583

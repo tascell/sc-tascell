@@ -584,7 +584,13 @@ cilk int cilk_main(int argc, char *argv[]){
       make_2dt (4000);
       break;
     default:
-      make_random (2000 * 2000, 2);
+      if (graph > 20000 && graph < 30000) {
+        make_2dt (graph-20000);
+      } else if (graph > 30000 && graph < 40000) {
+        make_ncube (graph-30000);
+      } else {
+        make_random (2000 * 2000, 2);
+      }
       break;
     }
   // make_random(2000*2000, 2);

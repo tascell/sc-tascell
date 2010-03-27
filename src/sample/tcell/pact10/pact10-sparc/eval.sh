@@ -1,10 +1,14 @@
 #/bin/sh
 # Sparc (Niagara2)
-graphs="11 5 6 4" # 1:random(4M) 2:2dt(2000) 3:ncube(20) 4: bintree(24) 5: ncube(21)
+graphs="1 5 6 4"  # 1:random(4M) 2:2dt(2000) 3:ncube(20) 4: bintree(24) 5: ncube(21)
                   # 6:2dt(4000) 11:random4000000.graph
 # to overwrite default
 graphs="6"
+
 procs="1 2 3 4 5 6 7 8 16 32 64 128"
+# to overwrite default
+procs="1"
+
 time=3
 cilk_dir=cilk
 tcell_dir=../pact10-sparc-tcell
@@ -27,42 +31,42 @@ tcell_dir=../pact10-sparc-tcell
 
 for g in $graphs; do
 # #   *  serial (逐次Cで，単に頂点スタックのみ search_s2)
-    ntimes $time ./st-serial-call $g 1
+    # ntimes $time ./st-serial-call $g 1
 
 # *  serial_call (逐次Cで，呼び出しと頂点スタックを使う，
 #          TascellやCilkでの並列化はされていない．
 #          cas_int, membar (XXX_to_start_readなど) などは使わない．)
-    ntimes $time ./st-serial-call $g 2
+    # ntimes $time ./st-serial-call $g 2
 
 #   *  serial_call_cas  (逐次Cで，呼び出しと頂点スタックを使う，
 #          TascellやCilkでの並列化はされていない．
 #          cas_int (PARALLEL_SEARCH )を使う．)
-    ntimes $time ./st-serial-call-cas $g 2
+    # ntimes $time ./st-serial-call-cas $g 2
 
 #   *  serial_call_membar  (逐次Cで，呼び出しと頂点スタックを使う，
 #          TascellやCilkでの並列化はされていない．
 #          membar (PARALLEL_SEARCH3) を使う．)
-    ntimes $time ./st-serial-call-membar $g 2
+    # ntimes $time ./st-serial-call-membar $g 2
 
 #   CALL_BOUND = 800
-    ntimes $time ./st-serial-call-800 $g 2
-    ntimes $time ./st-serial-call-cas-800 $g 2
-    ntimes $time ./st-serial-call-membar-800 $g 2
+    # ntimes $time ./st-serial-call-800 $g 2
+    # ntimes $time ./st-serial-call-cas-800 $g 2
+    # ntimes $time ./st-serial-call-membar-800 $g 2
     
     for p in $procs; do
         echo
 #   *  SYNCHED を使わない Cilk があってもよいかな...
-        # ntimes $time $cilk_dir/st-par-cilk-s --nproc $p $g 2
-        ntimes $time $cilk_dir/st-par3-cilk-s --nproc $p $g 2
+        ntimes $time $cilk_dir/st-par-cilk-s --nproc $p $g 2
+        # ntimes $time $cilk_dir/st-par3-cilk-s --nproc $p $g 2
 #   *  Cilk_cas
 #   *  Cilk_membar
         # ntimes $time $cilk_dir/st-par-cilk --nproc $p $g 2
-        ntimes $time $cilk_dir/st-par3-cilk --nproc $p $g 2
+        # ntimes $time $cilk_dir/st-par3-cilk --nproc $p $g 2
 #   CALL_BOUND = 800
         # ntimes $time $cilk_dir/st-par-cilk-s-800 --nproc $p $g 2
-        ntimes $time $cilk_dir/st-par3-cilk-s-800 --nproc $p $g 2
+        # ntimes $time $cilk_dir/st-par3-cilk-s-800 --nproc $p $g 2
         # ntimes $time $cilk_dir/st-par-cilk-800 --nproc $p $g 2
-        ntimes $time $cilk_dir/st-par3-cilk-800 --nproc $p $g 2
+        # ntimes $time $cilk_dir/st-par3-cilk-800 --nproc $p $g 2
         
 #   *  Tascell_cas    (list->array はどうしましょうか....)
 #   *  Tascell_membar
@@ -73,7 +77,7 @@ for g in $graphs; do
         # ntimes $time $tcell_dir/spanning-xcc-cas-30 -n $p -a -i "4 $g 3 0 0"
         # ntimes $time $tcell_dir/spanning-xcc-membar-30 -n $p -a -i "4 $g 3 0 0"
         # ntimes $time $tcell_dir/spanning-xcccl-cas-30 -n $p -a -i "4 $g 3 0 0"
-        ntimes $time $tcell_dir/spanning-xcccl-membar-30 -n $p -a -i "4 $g 3 0 0"
+        # ntimes $time $tcell_dir/spanning-xcccl-membar-30 -n $p -a -i "4 $g 3 0 0"
 #   CALL_BOUND = 800
         # ntimes $time $tcell_dir/spanning-clos-cas-800 -n $p -a -i "4 $g 3 0 0"
         # ntimes $time $tcell_dir/spanning-clos-membar-800 -n $p -a -i "4 $g 3 0 0"
@@ -81,14 +85,14 @@ for g in $graphs; do
         # ntimes $time $tcell_dir/spanning-lw-membar-800 -n $p -a -i "4 $g 3 0 0"
         # ntimes $time $tcell_dir/spanning-xcc-cas-800 -n $p -a -i "4 $g 3 0 0"
         # ntimes $time $tcell_dir/spanning-xcc-membar-800 -n $p -a -i "4 $g 3 0 0"
-        # ntimes $time $tcell_dir/spanning-xcccl-cas-800 -n $p -a -i "4 $g 3 0 0"
-        ntimes $time $tcell_dir/spanning-xcccl-membar-800 -n $p -a -i "4 $g 3 0 0"
+        ntimes $time $tcell_dir/spanning-xcccl-cas-800 -n $p -a -i "4 $g 3 0 0"
+        # ntimes $time $tcell_dir/spanning-xcccl-membar-800 -n $p -a -i "4 $g 3 0 0"
         
 # #   *  Tascell_gcc_cas
-#         ntimes $time ./spanning-gcc-cas -n $p -a -i "4 $g 3 0 0"
+        # ntimes $time ./spanning-gcc-cas -n $p -a -i "4 $g 3 0 0"
 
 # #   *  Tascell_gcc_membar
-#         ntimes $time ./spanning-gcc-membar -n $p -a -i "4 $g 3 0 0"
+        # ntimes $time ./spanning-gcc-membar -n $p -a -i "4 $g 3 0 0"
     done
 done
 

@@ -1,0 +1,84 @@
+
+cilk/st-par-cilk --nproc 1 1 2
+4000000 nodes random (2 edges per node)
+CALL_BOUND: 30
+search cas (with SYNCHED 0717-2) finished.
+time: 5.216276
+159.286228
+v: 4000000 e: 15999723
+4000000 nodes random (2 edges per node)
+CALL_BOUND: 30
+search cas (with SYNCHED 0717-2) finished.
+time: 5.282853
+161.426506
+v: 4000000 e: 15999723
+4000000 nodes random (2 edges per node)
+CALL_BOUND: 30
+search cas (with SYNCHED 0717-2) finished.
+time: 5.273858
+161.432410
+v: 4000000 e: 15999723
+
+
+cilk/st-par-cilk --nproc 1 5 2
+21-D hypercube
+CALL_BOUND: 30
+search cas (with SYNCHED 0717-2) finished.
+time: 5.520198
+5.096027
+v: 2097152 e: 44040192
+21-D hypercube
+CALL_BOUND: 30
+search cas (with SYNCHED 0717-2) finished.
+time: 5.465179
+5.096073
+v: 2097152 e: 44040192
+21-D hypercube
+CALL_BOUND: 30
+search cas (with SYNCHED 0717-2) finished.
+time: 5.517817
+5.104325
+v: 2097152 e: 44040192
+
+
+cilk/st-par-cilk --nproc 1 6 2
+4000x4000 nodes 2D torus
+CALL_BOUND: 30
+search cas (with SYNCHED 0717-2) finished.
+time: 9.723802
+5.252241
+v: 16000000 e: 64000000
+4000x4000 nodes 2D torus
+CALL_BOUND: 30
+search cas (with SYNCHED 0717-2) finished.
+time: 9.708719
+5.260969
+v: 16000000 e: 64000000
+4000x4000 nodes 2D torus
+CALL_BOUND: 30
+search cas (with SYNCHED 0717-2) finished.
+time: 9.781868
+5.348803
+v: 16000000 e: 64000000
+
+
+cilk/st-par-cilk --nproc 1 4 2
+Depth 24 binary tree
+CALL_BOUND: 30
+search cas (with SYNCHED 0717-2) finished.
+time: 5.799608
+4.300985
+v: 16777215 e: 33554428
+Depth 24 binary tree
+CALL_BOUND: 30
+search cas (with SYNCHED 0717-2) finished.
+time: 5.766576
+4.202880
+v: 16777215 e: 33554428
+Depth 24 binary tree
+CALL_BOUND: 30
+search cas (with SYNCHED 0717-2) finished.
+time: 5.798702
+4.285041
+v: 16777215 e: 33554428
+

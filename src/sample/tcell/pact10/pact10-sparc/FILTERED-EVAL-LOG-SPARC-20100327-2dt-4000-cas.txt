@@ -1,0 +1,14 @@
+cilk/st-par-cilk-s --nproc 1 6 2
+4000x4000 nodes 2D torus
+time: 15.182112
+4000x4000 nodes 2D torus
+time: 15.199062
+4000x4000 nodes 2D torus
+time: 15.262143
+../pact10-sparc-tcell/spanning-xcccl-cas-800 -n 1 -a -i 4 6 3 0 0
+4000x4000 nodes 2D torus
+time: 7.904005
+4000x4000 nodes 2D torus
+time: 7.917063
+4000x4000 nodes 2D torus
+time: 7.905339

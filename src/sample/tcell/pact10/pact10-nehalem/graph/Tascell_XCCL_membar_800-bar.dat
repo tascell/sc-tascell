@@ -1,8 +1,0 @@
-# Tascell_XCCL_membar_800 Random 1 core
-1 0.784
-# Tascell_XCCL_membar_800 Hypercube21 1 core
-2 0.887
-# Tascell_XCCL_membar_800 2D-torus 1 core
-3 0.612
-# Tascell_XCCL_membar_800 Bintree 1 core
-4 0.460

@@ -2,7 +2,7 @@
 1 0.904
 # serial_call_membar Hypercube21 1 core
 2 0.948
-# serial_call_membar 2D-torus 1 core
-3 0.717
+# serial_call_membar 2D-torus-4000 1 core
+3 0.644
 # serial_call_membar Bintree 1 core
 4 0.460

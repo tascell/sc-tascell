@@ -2,7 +2,7 @@
 1 1.19
 # serial_call Hypercube21 1 core
 2 1.05
-# serial_call 2D-torus 1 core
-3 0.928
+# serial_call 2D-torus-4000 1 core
+3 0.826
 # serial_call Bintree 1 core
 4 0.763

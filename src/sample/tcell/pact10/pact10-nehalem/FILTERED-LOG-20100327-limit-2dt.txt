@@ -1,0 +1,252 @@
+cilk/affinity 4 cilk/st-par-cilk-s --nproc 4 20016 2
+16x16 nodes 2D torus
+time: 0.000037
+16x16 nodes 2D torus
+time: 0.000034
+16x16 nodes 2D torus
+time: 0.000030
+cilk/affinity 4 cilk/st-par-cilk-s-1G --nproc 4 20016 2
+16x16 nodes 2D torus
+time: 0.000051
+16x16 nodes 2D torus
+time: 0.000038
+16x16 nodes 2D torus
+time: 0.000037
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 4 -a -i 4 20016 3 0 0
+16x16 nodes 2D torus
+time: 0.000076
+16x16 nodes 2D torus
+time: 0.000060
+16x16 nodes 2D torus
+time: 0.000075
+../pact10-nehalem-tcell/spanning-xcccl-cas-1G -n 4 -a -i 4 20016 3 0 0
+16x16 nodes 2D torus
+time: 0.000051
+16x16 nodes 2D torus
+time: 0.000053
+16x16 nodes 2D torus
+time: 0.000053
+cilk/affinity 4 cilk/st-par-cilk-s --nproc 4 20032 2
+32x32 nodes 2D torus
+time: 0.000104
+32x32 nodes 2D torus
+time: 0.000109
+32x32 nodes 2D torus
+time: 0.000099
+cilk/affinity 4 cilk/st-par-cilk-s-1G --nproc 4 20032 2
+32x32 nodes 2D torus
+time: 0.000141
+32x32 nodes 2D torus
+time: 0.000145
+32x32 nodes 2D torus
+time: 0.000141
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 4 -a -i 4 20032 3 0 0
+32x32 nodes 2D torus
+time: 0.000078
+32x32 nodes 2D torus
+time: 0.000091
+32x32 nodes 2D torus
+time: 0.000093
+../pact10-nehalem-tcell/spanning-xcccl-cas-1G -n 4 -a -i 4 20032 3 0 0
+32x32 nodes 2D torus
+time: 0.000073
+32x32 nodes 2D torus
+time: 0.000102
+32x32 nodes 2D torus
+time: 0.000075
+cilk/affinity 4 cilk/st-par-cilk-s --nproc 4 20064 2
+64x64 nodes 2D torus
+time: 0.000364
+64x64 nodes 2D torus
+time: 0.000363
+64x64 nodes 2D torus
+time: 0.000357
+cilk/affinity 4 cilk/st-par-cilk-s-1G --nproc 4 20064 2
+64x64 nodes 2D torus
+time: 0.000564
+64x64 nodes 2D torus
+time: 0.000531
+64x64 nodes 2D torus
+time: 0.000541
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 4 -a -i 4 20064 3 0 0
+64x64 nodes 2D torus
+time: 0.000155
+64x64 nodes 2D torus
+time: 0.000160
+64x64 nodes 2D torus
+time: 0.000147
+../pact10-nehalem-tcell/spanning-xcccl-cas-1G -n 4 -a -i 4 20064 3 0 0
+64x64 nodes 2D torus
+time: 0.000147
+64x64 nodes 2D torus
+time: 0.000235
+64x64 nodes 2D torus
+time: 0.000174
+cilk/affinity 4 cilk/st-par-cilk-s --nproc 4 20128 2
+128x128 nodes 2D torus
+time: 0.003365
+128x128 nodes 2D torus
+time: 0.002239
+128x128 nodes 2D torus
+time: 0.001487
+cilk/affinity 4 cilk/st-par-cilk-s-1G --nproc 4 20128 2
+128x128 nodes 2D torus
+time: 0.003223
+128x128 nodes 2D torus
+time: 0.002620
+128x128 nodes 2D torus
+time: 0.007610
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 4 -a -i 4 20128 3 0 0
+128x128 nodes 2D torus
+time: 0.000401
+128x128 nodes 2D torus
+time: 0.000431
+128x128 nodes 2D torus
+time: 0.000386
+../pact10-nehalem-tcell/spanning-xcccl-cas-1G -n 4 -a -i 4 20128 3 0 0
+128x128 nodes 2D torus
+time: 0.001472
+128x128 nodes 2D torus
+time: 0.001266
+128x128 nodes 2D torus
+time: 0.001017
+cilk/affinity 4 cilk/st-par-cilk-s --nproc 4 20256 2
+256x256 nodes 2D torus
+time: 0.002832
+256x256 nodes 2D torus
+time: 0.003810
+256x256 nodes 2D torus
+time: 0.002532
+cilk/affinity 4 cilk/st-par-cilk-s-1G --nproc 4 20256 2
+256x256 nodes 2D torus
+time: 0.035556
+256x256 nodes 2D torus
+time: 0.016182
+256x256 nodes 2D torus
+time: 0.022040
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 4 -a -i 4 20256 3 0 0
+256x256 nodes 2D torus
+time: 0.001300
+256x256 nodes 2D torus
+time: 0.001269
+256x256 nodes 2D torus
+time: 0.001303
+../pact10-nehalem-tcell/spanning-xcccl-cas-1G -n 4 -a -i 4 20256 3 0 0
+256x256 nodes 2D torus
+time: 0.008461
+256x256 nodes 2D torus
+time: 0.009177
+256x256 nodes 2D torus
+time: 0.044234
+cilk/affinity 4 cilk/st-par-cilk-s --nproc 4 20512 2
+512x512 nodes 2D torus
+time: 0.010806
+512x512 nodes 2D torus
+time: 0.011077
+512x512 nodes 2D torus
+time: 0.010808
+cilk/affinity 4 cilk/st-par-cilk-s-1G --nproc 4 20512 2
+512x512 nodes 2D torus
+time: 0.041799
+512x512 nodes 2D torus
+time: 0.035696
+512x512 nodes 2D torus
+time: 0.031310
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 4 -a -i 4 20512 3 0 0
+512x512 nodes 2D torus
+time: 0.006503
+512x512 nodes 2D torus
+time: 0.006495
+512x512 nodes 2D torus
+time: 0.006995
+../pact10-nehalem-tcell/spanning-xcccl-cas-1G -n 4 -a -i 4 20512 3 0 0
+512x512 nodes 2D torus
+time: 0.097341
+512x512 nodes 2D torus
+time: 0.080066
+512x512 nodes 2D torus
+time: 0.069100
+cilk/affinity 4 cilk/st-par-cilk-s --nproc 4 21024 2
+1024x1024 nodes 2D torus
+time: 0.044044
+1024x1024 nodes 2D torus
+time: 0.045317
+1024x1024 nodes 2D torus
+time: 0.043757
+cilk/affinity 4 cilk/st-par-cilk-s-1G --nproc 4 21024 2
+1024x1024 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  5803 セグメンテーション違反です  "$@"
+1024x1024 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  5809 セグメンテーション違反です  "$@"
+1024x1024 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  5816 セグメンテーション違反です  "$@"
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 4 -a -i 4 21024 3 0 0
+1024x1024 nodes 2D torus
+time: 0.030739
+1024x1024 nodes 2D torus
+time: 0.029906
+1024x1024 nodes 2D torus
+time: 0.030617
+../pact10-nehalem-tcell/spanning-xcccl-cas-1G -n 4 -a -i 4 21024 3 0 0
+1024x1024 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  5846 セグメンテーション違反です  "$@"
+1024x1024 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  5853 セグメンテーション違反です  "$@"
+1024x1024 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  5859 セグメンテーション違反です  "$@"
+cilk/affinity 4 cilk/st-par-cilk-s --nproc 4 22048 2
+2048x2048 nodes 2D torus
+time: 0.179655
+2048x2048 nodes 2D torus
+time: 0.180355
+2048x2048 nodes 2D torus
+time: 0.179245
+cilk/affinity 4 cilk/st-par-cilk-s-1G --nproc 4 22048 2
+2048x2048 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  5890 セグメンテーション違反です  "$@"
+2048x2048 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  5896 セグメンテーション違反です  "$@"
+2048x2048 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  5902 セグメンテーション違反です  "$@"
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 4 -a -i 4 22048 3 0 0
+2048x2048 nodes 2D torus
+time: 0.131131
+2048x2048 nodes 2D torus
+time: 0.130983
+2048x2048 nodes 2D torus
+time: 0.131834
+../pact10-nehalem-tcell/spanning-xcccl-cas-1G -n 4 -a -i 4 22048 3 0 0
+2048x2048 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  5940 セグメンテーション違反です  "$@"
+2048x2048 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  5947 セグメンテーション違反です  "$@"
+2048x2048 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  5953 セグメンテーション違反です  "$@"
+cilk/affinity 4 cilk/st-par-cilk-s --nproc 4 24096 2
+4096x4096 nodes 2D torus
+time: 0.795847
+4096x4096 nodes 2D torus
+time: 0.798911
+4096x4096 nodes 2D torus
+time: 0.800754
+cilk/affinity 4 cilk/st-par-cilk-s-1G --nproc 4 24096 2
+4096x4096 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  5988 セグメンテーション違反です  "$@"
+4096x4096 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  5995 セグメンテーション違反です  "$@"
+4096x4096 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  6002 セグメンテーション違反です  "$@"
+../pact10-nehalem-tcell/spanning-xcccl-cas-30 -n 4 -a -i 4 24096 3 0 0
+4096x4096 nodes 2D torus
+time: 0.578198
+4096x4096 nodes 2D torus
+time: 0.577268
+4096x4096 nodes 2D torus
+time: 0.578083
+../pact10-nehalem-tcell/spanning-xcccl-cas-1G -n 4 -a -i 4 24096 3 0 0
+4096x4096 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  6033 セグメンテーション違反です  "$@"
+4096x4096 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  6039 セグメンテーション違反です  "$@"
+4096x4096 nodes 2D torus
+/home/lab4/hiraisi/bin/ntimes: line 11:  6048 セグメンテーション違反です  "$@"
