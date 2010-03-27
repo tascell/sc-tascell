@@ -31,8 +31,15 @@ set xtics (1, 2, 4, 8, 16, 32, 64, 128)
 set ytics (0.125, 0.25, 0.5, 1, 2, 4, 8, 16, 32, 64)
 # set bmargin 0# set bmargin 0
 
+# SPAA10
+# plot \
+# "%1%-Cilk_cas%2%.dat"  using 1:2 title "Cilk\\_cas"     with linespoints lt 4 pt 1,\
+# "%1%-Tascell_XCCC_cas%2%.dat"  using 1:2 title "Tascell\\_cas"     with linespoints lt -1 pt 1
+
+# PACT10
 plot \
-"%1%-Cilk_membar%2%.dat"  using 1:2 title "Cilk\\_membar"     with linespoints lt 4 pt 2,\
-"%1%-Tascell_XCCC_membar%2%.dat"  using 1:2 title "Tascell\\_membar"     with linespoints lt -1 pt 2
+"%1%-Cilk_membar%2%.dat"  using 1:2 title "short-term workspaces (Cilk)" with linespoints lt 4 pt 6,\
+"%1%-Cilk_R_membar%2%.dat"  using 1:2 title "long-term workspaces (Cilk)" with linespoints lt -1 pt 6,\
+"%1%-Tascell_XCCC_membar%2%.dat"  using 1:2 title "long-term workspaces (Tascell)" with linespoints lt -1 pt 4
 
 # set nomultiplot

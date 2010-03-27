@@ -8,7 +8,7 @@ for b in "" ; do  # "_800" ; do
         if [ $g = "2D-torus-4000" ]; then
             sed "s/%1%/$g/g" oresen.plt.template | \
                 sed "s/%2%/$b/g" | \
-                sed "s/%3%/left top/g" | gnuplot
+                sed "s/%3%/64,50/g" | gnuplot
         else
             sed "s/%1%/$g/g" oresen.plt.template | \
                 sed "s/%2%/$b/g" | \

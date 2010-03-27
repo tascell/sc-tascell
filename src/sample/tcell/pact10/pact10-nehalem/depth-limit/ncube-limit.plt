@@ -38,9 +38,10 @@ set ylabel 'elapsed time (sec)' # 'elapsed time (sec)'
 # "%1%-Tascell_membar%2%.dat"  using 1:2 title "Tascell\\_membar"     with linespoints lt -1 pt 2
 
 plot \
-"ncube-cilk-30.dat"  using 1:2 title "Cilk\\_cas"     with linespoints lt 4 pt 1,\
-"ncube-cilk-1G.dat"  using 1:2 title "Cilk\\_cas (w/o depth limit)"     with linespoints lt 4 pt 4,\
-"ncube-tascell-30.dat"  using 1:2 title "Tascell\\_cas"     with linespoints lt -1 pt 1,\
-"ncube-tascell-1G.dat"  using 1:2 title "Tascell\\_cas (w/o depth limit)"     with linespoints lt -1 pt 4
+"ncube-cilk-1G.dat"  using 1:2 title "no depth limit"   with linespoints lt 4 pt 6,\
+"ncube-cilk-30.dat"  using 1:2 title "depth-limiting (w/ short-term workspaces)" with linespoints lt -1 pt 6,\
+"ncube-tascell-30.dat"  using 1:2 title "depth-limiting (w/ long-term workspaces)" with linespoints lt -1 pt 1
+
+# "ncube-tascell-1G.dat"  using 1:2 title "Tascell\\_cas (w/o depth limit)"     with linespoints lt -1 pt 4
 
 # set nomultiplot

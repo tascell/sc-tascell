@@ -1,12 +1,12 @@
 #!/usr/bin/env gnuplot
 #set terminal tgif color "Times-Roman" 30 # monochrome
-set term postscript eps enhanced color "Times-Roman" 8
+set term postscript eps enhanced color "Times-Roman" 7.3
 # set terminal epslatex color #"Times-Roman" 30
 # set output '%1%%2%.obj'
 set output '2dt-limit.eps'
 
 set size 0.36,0.36                   # set size 1,0.75
-set pointsize 0.7
+set pointsize 0.
 
 # set multiplot
 ## common settings
@@ -17,6 +17,7 @@ set key right bottom
 set logscale xy
 set xrange [64:4096]
 set xtic 2
+unset mxtics
 set yrange [0.0001:1]
 # set ytic 10
 
@@ -38,9 +39,10 @@ set ylabel 'elapsed time (sec)' # 'elapsed time (sec)'
 # "%1%-Tascell_membar%2%.dat"  using 1:2 title "Tascell\\_membar"     with linespoints lt -1 pt 2
 
 plot \
-"2dt-cilk-30.dat"  using 1:2 title "Cilk\\_cas"     with linespoints lt 4 pt 1,\
-"2dt-cilk-1G.dat"  using 1:2 title "Cilk\\_cas (w/o depth limit)"     with linespoints lt 4 pt 4,\
-"2dt-tascell-30.dat"  using 1:2 title "Tascell\\_cas"     with linespoints lt -1 pt 1,\
-"2dt-tascell-1G.dat"  using 1:2 title "Tascell\\_cas (w/o depth limit)"     with linespoints lt -1 pt 4
+"2dt-cilk-1G.dat"  using 1:2 title "no depth limit"   with linespoints lt 4 pt 6,\
+"2dt-cilk-30.dat"  using 1:2 title "depth-limiting (w/ short-term workspaces)" with linespoints lt -1 pt 6,\
+"2dt-tascell-30.dat"  using 1:2 title "depth-limiting (w/ long-term workspaces)" with linespoints lt -1 pt 1
+
+# "2dt-tascell-1G.dat"  using 1:2 title "Tascell\\_cas (w/o depth limit)"     with linespoints lt -1 pt 4
 
 # set nomultiplot
