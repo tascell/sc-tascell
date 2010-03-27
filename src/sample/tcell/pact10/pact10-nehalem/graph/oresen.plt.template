@@ -1,6 +1,6 @@
 #!/usr/bin/env gnuplot
 #set terminal tgif color "Times-Roman" 30 # monochrome
-set term postscript eps enhanced color "Times-Roman" 7.3
+set term postscript eps enhanced color "Times-Roman" 9
 # set terminal epslatex color #"Times-Roman" 30
 # set output '%1%%2%.obj'
 set output '%1%%2%.eps'

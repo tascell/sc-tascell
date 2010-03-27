@@ -6,7 +6,7 @@ set term postscript eps enhanced color "Times-Roman" 8.5
 set output '2dt-limit.eps'
 
 set size 0.36,0.36                   # set size 1,0.75
-set pointsize 0.
+set pointsize 0.7
 
 # set multiplot
 ## common settings
