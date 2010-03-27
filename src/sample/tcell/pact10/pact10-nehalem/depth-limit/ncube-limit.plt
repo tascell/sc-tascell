@@ -1,6 +1,6 @@
 #!/usr/bin/env gnuplot
 #set terminal tgif color "Times-Roman" 30 # monochrome
-set term postscript eps enhanced color "Times-Roman" 8
+set term postscript eps enhanced color "Times-Roman" 8.5
 # set terminal epslatex color #"Times-Roman" 30
 # set output '%1%%2%.obj'
 set output 'ncube-limit.eps'
@@ -39,8 +39,8 @@ set ylabel 'elapsed time (sec)' # 'elapsed time (sec)'
 
 plot \
 "ncube-cilk-1G.dat"  using 1:2 title "no depth limit"   with linespoints lt 4 pt 6,\
-"ncube-cilk-30.dat"  using 1:2 title "depth-limiting (w/ short-term workspaces)" with linespoints lt -1 pt 6,\
-"ncube-tascell-30.dat"  using 1:2 title "depth-limiting (w/ long-term workspaces)" with linespoints lt -1 pt 1
+"ncube-cilk-30.dat"  using 1:2 title "depth limiting (short term, Cilk)" with linespoints lt -1 pt 6,\
+"ncube-tascell-30.dat"  using 1:2 title "depth limiting (long term, Tascell)" with linespoints lt -1 pt 1
 
 # "ncube-tascell-1G.dat"  using 1:2 title "Tascell\\_cas (w/o depth limit)"     with linespoints lt -1 pt 4
 

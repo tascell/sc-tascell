@@ -31,9 +31,9 @@ set style fill pattern border
 ## with Cilk_R
 plot \
 "serial-bar.dat" usi ($1*40):(1/$2):(3) title "serial" w boxes lt 1 fs solid 1 border -1,\
-"serial_call%2%-bar.dat" usi ($1*40+3):(1/$2):(3) title "depth-limiting (serial)" w boxes lt 1 fs solid 0.2 border -1,\
-"serial_call_cas%2%-bar.dat" usi ($1*40+6):(1/$2):(3) title "depth-limiting (serial, cas)" w boxes lt 2 fs pattern 4 border -1,\
-"serial_call_membar%2%-bar.dat" usi ($1*40+9):(1/$2):(3) title "depth-limiting (serial, membar)" w boxes lt 2 fs pattern 2 border -1,\
+"serial_call%2%-bar.dat" usi ($1*40+3):(1/$2):(3) title "depth limiting (serial)" w boxes lt 1 fs solid 0.2 border -1,\
+"serial_call_cas%2%-bar.dat" usi ($1*40+6):(1/$2):(3) title "depth limiting (serial, cas)" w boxes lt 2 fs pattern 4 border -1,\
+"serial_call_membar%2%-bar.dat" usi ($1*40+9):(1/$2):(3) title "depth limiting (serial, membar)" w boxes lt 2 fs pattern 2 border -1,\
 "Cilk_cas%2%-bar.dat" usi ($1*40+12):(1/$2):(3) title "short-term workspaces (Cilk, cas)" w boxes lt 4 fs solid 1 border -1,\
 "Cilk_membar%2%-bar.dat" usi ($1*40+15):(1/$2):(3) title "short-term workspaces (Cilk, membar)" w boxes lt 4 fs solid 0.2 border -1,\
 "Cilk_R_cas%2%-bar.dat" usi ($1*40+18):(1/$2):(3) title "long-term workspaces (Cilk, cas)" w boxes lt 3 fs pattern 4 border -1,\

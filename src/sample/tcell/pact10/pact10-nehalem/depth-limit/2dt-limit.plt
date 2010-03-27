@@ -1,6 +1,6 @@
 #!/usr/bin/env gnuplot
 #set terminal tgif color "Times-Roman" 30 # monochrome
-set term postscript eps enhanced color "Times-Roman" 7.3
+set term postscript eps enhanced color "Times-Roman" 8.5
 # set terminal epslatex color #"Times-Roman" 30
 # set output '%1%%2%.obj'
 set output '2dt-limit.eps'
@@ -12,7 +12,8 @@ set pointsize 0.
 ## common settings
 
 set grid noxtics ytics
-set key right bottom
+# set key right bottom
+set key 4096,0.00075
 
 set logscale xy
 set xrange [64:4096]
@@ -40,8 +41,8 @@ set ylabel 'elapsed time (sec)' # 'elapsed time (sec)'
 
 plot \
 "2dt-cilk-1G.dat"  using 1:2 title "no depth limit"   with linespoints lt 4 pt 6,\
-"2dt-cilk-30.dat"  using 1:2 title "depth-limiting (w/ short-term workspaces)" with linespoints lt -1 pt 6,\
-"2dt-tascell-30.dat"  using 1:2 title "depth-limiting (w/ long-term workspaces)" with linespoints lt -1 pt 1
+"2dt-cilk-30.dat"  using 1:2 title "depth limiting (short term, Cilk)" with linespoints lt -1 pt 6,\
+"2dt-tascell-30.dat"  using 1:2 title "depth limiting (long term, Tascell)" with linespoints lt -1 pt 1
 
 # "2dt-tascell-1G.dat"  using 1:2 title "Tascell\\_cas (w/o depth limit)"     with linespoints lt -1 pt 4
 
