@@ -4,8 +4,8 @@
 
 for b in "" ; do  # "_800" ; do
     sed "s/%2%/$b/g" bars.plt.template | gnuplot
-    for g in "Random" "Hypercube21" "Bintree" "2D-torus" ; do
-        if [ $g = "2D-torus" ]; then
+    for g in "Random" "Hypercube21" "Bintree" "2D-torus-4000" ; do
+        if [ $g = "2D-torus-4000" ]; then
             sed "s/%1%/$g/g" oresen.plt.template | \
                 sed "s/%2%/$b/g" | \
                 sed "s/%3%/left top/g" | gnuplot
