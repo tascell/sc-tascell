@@ -1,4 +1,0 @@
-#!/bin/sh
-WORKHOME=/work/hiraisi
-TCELLDIR=`pwd`
-rsync -ruvt $TCELLDIR ${WORKHOME}/./$1
