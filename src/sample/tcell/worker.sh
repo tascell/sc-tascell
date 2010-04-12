@@ -10,7 +10,17 @@
  (%defmacro DEBUG-STMTS (n &rest stmts) `(begin))
  (%defmacro DEBUG-PRINT (n &rest args) `(begin)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Implementation of nested functions
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE GCC))           ; one of GCC LW-SC CL-SC XCC XCCCL
+
+;;; Use setaffinity to bind CPU cores to workers
+(%ifndef* USE-AFFINITY
+  (%defconstant USE-AFFINITY SCHED))    ; one of SCHED(for Linux), PBIND(for Solaris)
+
+;;;
+
+;;; Sizes
 (%defconstant BUFSIZE 1280)             ; コマンド行の文字数の最大+1
 (%defconstant MAXCMDC 4)                ; コマンドのargument数の最大（コマンド名自身含む）
 (%defconstant ARG-SIZE-MAX 16)          ; コマンドの各引数の許される長さ

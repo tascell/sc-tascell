@@ -25,13 +25,10 @@
 
 ;;;; Tascell worker
 
-(%ifndef* NF-TYPE
-  (%defconstant NF-TYPE GCC))           ; one of GCC LW-SC CL-SC XCC XCCCL
+;;; Affected by NF-TYPE (see worker.sh)
 (%include "rule/nestfunc-setrule.sh")
 
-;; sched_setaffinityによってコアをワーカに貼り付ける
-(%ifndef* USE-AFFINITY
-  (%defconstant USE-AFFINITY SCHED))    ; one of SCHED(for Linux), PBIND(for Solaris)
+;; Affectedy by USE-AFFINITY (see worker.sh)
 (%if* (eq 'USE-AFFINITY 'SCHED)
   (c-exp "#define _GNU_SOURCE")
   (c-exp "#include<sched.h>"))
@@ -39,8 +36,9 @@
   (c-exp "#include <sys/types.h>")
   (c-exp "#include <sys/processor.h>")
   (c-exp "#include <sys/procset.h>"))
-   
-;; (c-exp "#define NDEBUG")
+
+(%if* VERBOSE
+  (c-exp "#define NDEBUG"))
 (c-exp "#include<assert.h>")
 
 (c-exp "#include<stdio.h>")
