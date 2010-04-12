@@ -24,6 +24,9 @@
 
 
 ;;;; Tascell worker
+
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE GCC))           ; one of GCC LW-SC CL-SC XCC XCCCL
 (%include "rule/nestfunc-setrule.sh")
 
 ;; sched_setaffinityによってコアをワーカに貼り付ける

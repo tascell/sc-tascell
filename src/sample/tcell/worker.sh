@@ -1,4 +1,14 @@
-(%include "dprint.sh")
+;;;; Compile-time options
+
+;;; Debug print
+(%defconstant VERBOSE 1)                ; non-nil: Debug print ON
+(%if* VERBOSE
+ (%defmacro DEBUG-STMTS (n &rest stmts) `(if (>= option.verbose ,n) (begin ,@stmts)))
+ (%defmacro DEBUG-PRINT (n &rest args)
+  `(if (>= option.verbose ,n) (csym::fprintf stderr ,@args)))
+ %else
+ (%defmacro DEBUG-STMTS (n &rest stmts) `(begin))
+ (%defmacro DEBUG-PRINT (n &rest args) `(begin)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (%defconstant BUFSIZE 1280)             ; コマンド行の文字数の最大+1
@@ -11,9 +21,9 @@
 (%defconstant DELAY-MAX (* 1 1000 1000 1000))          ; none時->treq再送信までの時間の上限 [nsec]
 ; (%defconstant BUSYWAIT)                 ; ワーカがtreqの返事をbusywaitで待つならuncomment
 
-(%defconstant clsc)
-
 (%cinclude "sock.h" (:macro))           ; 通信関係
+
+;;;; Declarations
 
 ;; 0以上の数はthread-idに相当するので，enum idには負の数を割り当てる
 (def (enum node) (OUTSIDE -1) (INSIDE -2) (ANY -3) (PARENT -4) (FORWARD -5) (TERM -99))
