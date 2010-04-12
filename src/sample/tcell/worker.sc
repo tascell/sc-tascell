@@ -302,12 +302,11 @@
     (= (aref rcmd.v 0 1) TERM))
   (csym::copy-address (aref rcmd.v 1) treq-head) ; 要求先
 
+  ;; Send a treq message repeatedly until get a new task (task message)
   (do-while (!= tx->stat TASK-INITIALIZED)
-    ;; 最初にtreqがたまっていたら，noneを送る
-    ;; これをやると treq が飛び交うかもしれないが，
-    ;; none を送らないとだけすると，
-    ;; 互いに none or task が送られているのを待つ
-    ;; というタイプのデッドロックとなる．
+    ;; 最初にtreqがたまっていたら，noneを送る．
+    ;; これをやると treq が飛び交うかもしれないが，noneを送らないとだけすると，
+    ;; 互いに none or task が送られているのを待つというタイプのデッドロックとなる．
     (csym::flush-treq-with-none thr)
     (= tx->stat TASK-ALLOCATED)
     (begin

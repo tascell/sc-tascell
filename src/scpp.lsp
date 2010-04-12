@@ -188,7 +188,8 @@
          (if (case directive
                ((sc::%ifdef)  (macro-find (entry-and-normalize-id cnd)))
                ((sc::%ifndef) (not (macro-find (entry-and-normalize-id cnd))))
-               ((sc::%if)     (eval (car (scpp-1exp cnd)))))
+               ((sc::%if)     (let ((val (eval (car (scpp-1exp cnd)))))
+                                (and val (not (eql val 0))))))
              (scpp-list then-list)
            (scpp-list else-list))))
       ((sc::%ifdef* sc::%ifndef* sc::%if*) ; (%ifdef* ... %else ...) = (%ifdef (...) (...))
