@@ -216,17 +216,17 @@
 ;;; ノード内/外ワーカにコマンドを送信
 ;;; bodyはtask, rsltの本体．それ以外のコマンドではNULLに
 (def (csym::send-command pcmd body task-no) (csym::fn void (ptr (struct cmd)) (ptr void) int)
-  (if (== pcmd->node OUTSIDE)
-      (begin
-       (DEBUG-STMTS 1 (csym::proto-error "OUTSIDE" pcmd))
-       (csym::send-out-command pcmd body task-no) ; 外部に送信
-       )
+  (if (== pcmd->node INSIDE)
       (begin         ; 内部に送信（というかworker自身がコマンド処理）
        (DEBUG-STMTS 3 (if (or (>= option.verbose 4)
                               (and (!= TREQ pcmd->w) (!= NONE pcmd->w)))
                           (csym::proto-error "INSIDE" pcmd)))
-       (csym::proc-cmd pcmd body)
-       )))
+       (csym::proc-cmd pcmd body))
+    (begin
+      (DEBUG-STMTS 1 (csym::proto-error "OUTSIDE" pcmd))
+      (csym::send-out-command pcmd body task-no) ; 外部に送信
+      )
+    ))
 
 (def threads (array (struct thread-data) 128))
 (def prefetch-thr (ptr (struct thread-data)))
@@ -286,19 +286,20 @@
                         (if-exp (> nsec 999999999) 1 0)))
   )
 
-;;; TREQを送信して thr->task-topの指すtaskをTASK-INITIALIZEDにする
-;;; (treq-head,req-to): recv-exec-send の引数そのまま
+;;; TREQを送信して，TASKを受け取れたら，
+;;; thr->task-topの指すtaskを初期化（TASK-INITIALIZEDに）する
+;;; treq-head, req-to: どこにタスク要求を出すか（recv-exec-send の引数そのまま）
 ;;; 受付中のtreqのフラッシュや，rsltが来たときの対応も行う
 ;;; INITIALIZEDできた->1 そうでなければ->0 を返す
 (def (csym::send-treq-to-initialize-task thr treq-head req-to)
-    (fn int (ptr (struct thread-data)) (ptr (enum node)) (enum node))
+    (fn int (ptr (struct thread-data)) (ptr (enum addr)) (enum node))
   (def rcmd (struct cmd))
   (def delay long 1000)     ; none が返ってきたとき待つ時間[nsec]
   (def tx (ptr (struct task)) thr->task-top)
 
   ;; Treqコマンド
   (= rcmd.c 2)
-  (= rcmd.node req-to) ; 取り返しであれば取り返し先，そうでなければANY
+  (= rcmd.node req-to) ; 取り返し先の種別（INSIDE|OUTSIDE）
   (= rcmd.w TREQ)
   (= (aref rcmd.v 0 0) thr->id)
   (if (and (!= req-to ANY) thr->sub)
@@ -372,9 +373,9 @@
 ;;; （後者は外に投げたタスクの結果待ち中に別の仕事をやろうとする時）
 ;;; タスク要求 -> 受け取り -> 計算 -> 結果送信
 ;;; thr->mut はロック済
-;;; (treq-head,req-to): どこにタスク要求を出すか（any or 取り返し）
+;;; treq-head, req-to: どこにタスク要求を出すか（any or 取り返し先）
 (def (recv-exec-send thr treq-head req-to)
-    (fn void (ptr (struct thread-data)) (ptr (enum node)) (enum node))
+    (fn void (ptr (struct thread-data)) (ptr (enum addr)) (enum node))
   (def tx (ptr (struct task)))
   (def old-ndiv int)
   (def rcmd (struct cmd))               ; for RSLT command
@@ -467,14 +468,14 @@
   (csym::worker-init thr)
   (csym::pthread-mutex-lock (ptr thr->mut))
   (loop
-    (recv-exec-send thr (init (array (enum node) 2) (array ANY TERM)) ANY))
+    (recv-exec-send thr (init (array (enum addr) 2) (array ANY TERM)) INSIDE))
   (csym::pthread-mutex-unlock (ptr thr->mut)))
 
 
 ;;; 投機的にtreqを送ってtaskを受信するスレッドのループ
 ;;; 今のところ投機的にとれる仕事の数は1で固定
 (def (prefetcher thr0) (fn (ptr void) (ptr void))
-  (def treq-head (array (enum node) 2))
+  (def treq-head (array (enum addr) 2))
   (def req-to (enum node) OUTSIDE)
   (def thr (ptr (struct thread-data)) (cast (ptr (struct thread-data)) thr0))
   (= (aref treq-head 0) ANY) (= (aref treq-head 1) TERM)
@@ -520,7 +521,7 @@
 
 ;;; 外からprefetchスレッドへのtreq（取り返し）に対し，まだその仕事を始めてなければ
 ;;; そのまま返却する．返却した->1, しなかった->0 を返す．
-(def (csym::try-take-back-prefetched-task treq-head) (fn int (ptr (enum node)))
+(def (csym::try-take-back-prefetched-task treq-head) (fn int (ptr (enum addr)))
   (def tx (ptr (struct task)))
   (def retval int)
   (csym::pthread-mutex-lock (ptr prefetch-thr->mut))
@@ -548,7 +549,7 @@
 (def (csym::recv-task pcmd body) (csym::fn void (ptr (struct cmd)) (ptr void))
   (def tx (ptr (struct task)))
   (def thr (ptr (struct thread-data)))
-  (def id (enum node))
+  (def id (enum addr))
   (def task-no int)
   (def len size-t)
   ;; パラメータ数チェック
@@ -588,7 +589,7 @@
 ;;; none <送信先>
 (def (csym::recv-none pcmd) (csym::fn void (ptr (struct cmd)))
   (def thr (ptr (struct thread-data)))
-  (def id (enum node))
+  (def id (enum addr))
   (def len size-t)
   (if (< pcmd->c 1) (csym::proto-error "Wrong none" pcmd))
   (= id (aref pcmd->v 0 0))
@@ -618,7 +619,7 @@
   (def thr (ptr (struct thread-data)))
   (def tx (ptr (struct task)))
   (def hx (ptr (struct task-home)))
-  (def thr-id (enum node))
+  (def thr-id (enum addr))
   (def tsk-id int)
   (if (< pcmd->c 1) (csym::proto-error "Wrong back" pcmd))                  ; 引数の数チェック．0:送信先
   (= thr-id (aref pcmd->v 0 0)) (= tsk-id (aref pcmd->v 0 1))
@@ -652,7 +653,7 @@
   (def rcmd (struct cmd))               ; rackコマンド
   (def thr (ptr (struct thread-data)))
   (def hx (ptr (struct task-home)))
-  (def tid (enum node))
+  (def tid (enum addr))
   (def sid int)
   ;; 引数の数チェック
   (if (< pcmd->c 1)
@@ -697,9 +698,9 @@
   (csym::pthread-mutex-unlock (ptr thr->mut))
   (csym::send-command (ptr rcmd) 0 0))  ;rack送信
 
-;; The Thread 'thr' has the task specified by [<node>,...,<ID>] ?
+;; The Thread 'thr' has the task specified by [<addr>,...,<ID>] ?
 (def (csym::have-task thr task-spec) 
-    (csym::fn int (ptr (struct thread-data)) (ptr (enum node)))
+    (csym::fn int (ptr (struct thread-data)) (ptr (enum addr)))
   (def tx (ptr (struct task)))
   (= tx thr->task-top)
   (while tx
@@ -713,12 +714,12 @@
 (decl task-stat-strings (array (ptr char)))
 ;;; threads[id] にtreqを試みる
 (def (csym::try-treq pcmd id from-addr)
-    (csym::fn int (ptr (struct cmd)) (enum node) (ptr (enum node)))
+    (csym::fn int (ptr (struct cmd)) (enum addr) (ptr (enum addr)))
   (def hx (ptr (struct task-home)))
   (def thr (ptr (struct thread-data)))
   (def fail-reason int 0)
   (def avail int 0)
-  (def from-head (enum node) (aref from-addr 0))
+  (def from-head (enum addr) (aref from-addr 0))
 
   (= thr (+ threads id))
 
@@ -736,7 +737,7 @@
                  (== thr->task-top->stat TASK-INITIALIZED)))
         (= fail-reason 3)))
    (else                                ; * for stealing-back request...
-    (if (not (csym::have-task thr (aref pcmd->v 1)))
+    (if (not (csym::have-task thr from-addr))
                                         ; the task is already finished
         (= fail-reason 4))))
   (= avail (not fail-reason))
@@ -754,7 +755,7 @@
             (case 3)
             (csym::sprintf rsn-str "the task is %s" (aref task-stat-strings thr->task-top->stat)) (break)
             (case 4)
-            (csym::serialize-arg buf1 (aref pcmd->v 1))
+            (csym::serialize-arg buf1 from-addr)
             (csym::sprintf rsn-str "%s is already finished" buf1) (break)
             (default)
             (csym::strcpy rsn-str "Unexpected reason") (break))
@@ -793,10 +794,10 @@
 
 ;;; treq any処理中に呼ばれ，要求元がどこかに応じて
 ;;; 適当な戦略で，最初にどのワーカに問い合わせるかを決める
-(def (csym::choose-treq from-node) (fn int (enum node))
+(def (csym::choose-treq from-addr) (fn int (enum addr))
   (cond
-   ((<= 0 from-node)                    ; 内部から
-    (let ((thr (ptr (struct thread-data)) (+ threads from-node)))
+   ((<= 0 from-addr)                    ; 内部から
+    (let ((thr (ptr (struct thread-data)) (+ threads from-addr)))
       ;; 戦略を前回と変える
       (= thr->last-choose (% (+ 1 thr->last-choose) NKIND-CHOOSE))
       (cond
@@ -809,7 +810,7 @@
         (return thr->last-treq))
        (else
         (return 0)))))
-   ((== PARENT from-node)               ; 外部から
+   ((== PARENT from-addr)               ; 外部から
     (return (csym::my-random num-thrs (ptr random-seed1) (ptr random-seed2))))
    (else
     (return 0))))
@@ -822,7 +823,7 @@
 ;;; ただし，0番ワーカがANY要求をしている場合はtreqメッセージを外部に転送する．
 (def (csym::recv-treq pcmd) (csym::fn void (ptr (struct cmd)))
   (def rcmd (struct cmd))
-  (def dst0 (enum node))
+  (def dst0 (enum addr))
   (if (< pcmd->c 2)                     ; 引数の数チェック 0:from, 1:to
       (csym::proto-error "Wrong treq" pcmd))
   ;; 仕事を要求するスレッドを決めて，要求を出す
@@ -883,7 +884,7 @@
                                   (exps (csym::serialize-arg buf1 (aref pcmd->v 0)) buf1) dst0))))
    )
   ;; 内部のワーカが，渡せる仕事がなかった場合のみここに来る
-  (if (and (== pcmd->node ANY)
+  (if (and (== dst0 ANY)
            (== (aref pcmd->v 0 0) 0))    ; v[0]:from
       ;; 0番workerからのtreqの場合は外部に問い合わせる
       (if option.prefetch
@@ -899,7 +900,7 @@
   ;; 外へのtreq転送もしなかった場合のみここに来る
   ;; noneを返す
   (= rcmd.c 1)
-  (= rcmd.node (if-exp (== pcmd->node ANY) INSIDE pcmd->node)) ; [INSIDE|OUTSIDE]
+  (= rcmd.node pcmd->node)              ; [INSIDE|OUTSIDE]
   (= rcmd.w NONE)
   (csym::copy-address (aref rcmd.v 0) (aref pcmd->v 0))
   (csym::send-command (ptr rcmd) 0 0))
@@ -909,7 +910,7 @@
 (def (csym::recv-rack pcmd) (csym::fn void (ptr (struct cmd)))
   (def tx (ptr (struct task)))
   (def thr (ptr (struct thread-data)))
-  (def id (enum node))
+  (def id (enum addr))
   (def len size-t)
   (if (< pcmd->c 1)                     ; 引数の数チェック 0:返送先（スレッドid）
       (csym::proto-error "Wrong rack" pcmd))
@@ -989,7 +990,7 @@
 
 ;; thread-id=tid, id=sidのtask-homeを持つtaskから見て，
 ;; 最初の外部ノードにある祖先のtask-homeのアドレスをheadにコピー
-(def (csym::get-first-outside-ancestor-task-address head tid sid) (csym::fn int (ptr (enum node)) int int)
+(def (csym::get-first-outside-ancestor-task-address head tid sid) (csym::fn int (ptr (enum addr)) int int)
   (def thr (ptr (struct thread-data)))
   (def hx (ptr (struct task-home)))
   (def ok int)
@@ -1128,7 +1129,7 @@
 ;; dreq <data要求元header> <data要求先(<thread-id>:<task-home-id>)> <data要求範囲(<data-start>:<data-end>)>
 (def (csym::recv-dreq pcmd) (csym::fn void (ptr (struct cmd)))
   (def tx (ptr (struct task)))
-  (def tid (enum node))
+  (def tid (enum addr))
   (def sid int)
   (def parg (ptr (struct dhandler-arg)))
   (def len size-t)
@@ -1206,14 +1207,12 @@
 ;;; taskの情報を出力
 (def task-stat-strings (array (ptr char)) ; enum task-statに対応
   (array "TASK-ALLOCTED" "TASK-INITIALIZED" "TASK-STARTED" "TASK-DONE" "TASK-NONE" "TASK-SUSPENDED"))
-(def (csym::node-to-string buf node) (csym::fn void (ptr char) (enum node)) ; enum nodeに対応
-  (switch node
-    (case OUTSIDE) (csym::sprintf buf "OUTSIDE") (break)
-    (case INSIDE)  (csym::sprintf buf "INSIDE")  (break)
+(def (csym::addr-to-string buf addr) (csym::fn void (ptr char) (enum addr)) ; enum addrに対応
+  (switch addr
     (case ANY)     (csym::sprintf buf "ANY")     (break)
     (case PARENT)  (csym::sprintf buf "PARENT")  (break)
     (case TERM)    (csym::sprintf buf "TERM")    (break)
-    (default)      (csym::sprintf buf "%d" node) (break)))
+    (default)      (csym::sprintf buf "%d" addr) (break)))
 
 (def (csym::print-task-list task-top name) (csym::fn void (ptr (struct task)) (ptr char))
   (def cur (ptr (struct task)))
@@ -1222,7 +1221,7 @@
   (for ((= cur task-top) cur (= cur cur->next))
     (csym::fprintf stderr "{stat=%s, task-no=%d, body=%p, ndiv=%d, rslt-to=%s, rslt-head=%s}, "
                    (aref task-stat-strings cur->stat) cur->task-no cur->body cur->ndiv
-                   (exps (csym::node-to-string buf1 cur->rslt-to) buf1)
+                   (exps (csym::addr-to-string buf1 cur->rslt-to) buf1)
                    (exps (csym::serialize-arg buf2 cur->rslt-head) buf2)))
   (csym::fprintf stderr "}, ")
   (return))
@@ -1237,7 +1236,7 @@
   (for ((= cur treq-top) cur (= cur cur->next))
     (csym::fprintf stderr "{stat=%s, id=%d, owner=%p, task-no=%d, body=%p, req-from=%s, task-head=%s}, "
                    (aref task-home-stat-strings cur->stat) cur->id cur->owner cur->task-no cur->body
-                   (exps (csym::node-to-string buf1 cur->req-from) buf1)
+                   (exps (csym::addr-to-string buf1 cur->req-from) buf1)
                    (exps (csym::serialize-arg buf2 cur->task-head) buf2)))
   (csym::fprintf stderr "}, ")
   (return))

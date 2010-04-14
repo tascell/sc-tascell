@@ -36,7 +36,8 @@
 ;;;; Declarations
 
 ;; 0以上の数はthread-idに相当するので，enum idには負の数を割り当てる
-(def (enum node) (OUTSIDE -1) (INSIDE -2) (ANY -3) (PARENT -4) (FORWARD -5) (TERM -99))
+(def (enum addr) (ANY -3) (PARENT -4) (FORWARD -5) (TERM -99))
+(def (enum node) INSIDE OUTSIDE)
 (def (enum command)
     TASK RSLT TREQ NONE BACK RACK DREQ DATA
     STAT VERB EXIT WRNG)
@@ -52,7 +53,7 @@
   (def w (enum command))                ; コマンドの種類
   (def c int)                           ; コマンドのargument数（コマンド名自身も含む）
   (def node (enum node))                ; どこに送るメッセージか INSIDE|OUTSIDE|ANY
-  (def v (array (enum node) MAXCMDC ARG-SIZE-MAX)) ; v[i]: i-th argument of the command
+  (def v (array (enum addr) MAXCMDC ARG-SIZE-MAX)) ; v[i]: i-th argument of the command
                                         ; TERMでおわる[enum定数|0以上の整数]の配列
   )
 
@@ -129,8 +130,8 @@
   (def task-no int)                 ; 実行するタスク番号（tcell追加）
   (def body (ptr void))             ; task object構造体へのポインタ
   (def ndiv int)                    ; 何回分裂してできたタスク (task cell)か
-  (def rslt-to (enum node))         ; 結果送信先の種別（別ノード or ノード内 or any）
-  (def rslt-head (array (enum node) ARG-SIZE-MAX))) ; 結果送信先アドレス
+  (def rslt-to (enum node))         ; 結果送信先の種別（INSIDE or OUTSIDE）
+  (def rslt-head (array (enum addr) ARG-SIZE-MAX))) ; 結果送信先アドレス
 
 ;; Workerが作ったサブタスク管理情報
 (def (struct task-home)
@@ -138,10 +139,10 @@
   (def id int)                          ; 初期化時に割当てられるID（各ワーカで一意）
   (def owner (ptr (struct task)))       ; このサブタスクをspawnしたタスク
   (def task-no int)                     ; 実行するタスク番号（tcell追加）
-  (def req-from (enum node))            ; 仕事送信先の種別（別ノード or ノード内 or any）
+  (def req-from (enum node))            ; 仕事送信先の種別（INSIDE or OUTSIDE）
   (def next (ptr (struct task-home)))   ; リンク（次の空きセル or スタックの1コ下）
   (def body (ptr void))                 ; task-data構造体へのポインタ
-  (def task-head (array (enum node) ARG-SIZE-MAX))
+  (def task-head (array (enum addr) ARG-SIZE-MAX))
                                         ; タスクの送り先（取り返し先，rackの送り先）
   )
 
@@ -178,7 +179,7 @@
 ;; dreq処理関数に渡す引数
 (def (struct dhandler-arg)
   (def data-to (enum node))                   ; データのrequester (INSIDE|OUTSIDE)
-  (def head (array (enum node) ARG-SIZE-MAX)) ; データのrequester
+  (def head (array (enum addr) ARG-SIZE-MAX)) ; データのrequester
   (def dreq-cmd (struct cmd))           ; さらに親にdreqを投げる際の雛形 (for DATA-NONE)
   (def dreq-cmd-fwd (struct cmd))       ; さらに親にdreqを投げる際の雛形 (for DATA-REQUESTING)
   (def start int)                       ; データの要求範囲
@@ -214,13 +215,13 @@
 ;;;; cmd-serial.sc の関数プロトタイプ宣言
 (decl (csym::serialize-cmdname buf w) (fn int (ptr char) (enum command)))
 (decl (csym::deserialize-cmdname buf str) (fn int (ptr (enum command)) (ptr char)))
-(decl (csym::serialize-arg buf arg) (fn int (ptr char) (ptr (enum node))))
-(decl (csym::deserialize-node str) (fn (enum node) (ptr char)))
-(decl (csym::deserialize-arg buf str) (fn int (ptr (enum node)) (ptr char)))
+(decl (csym::serialize-arg buf arg) (fn int (ptr char) (ptr (enum addr))))
+(decl (csym::deserialize-addr str) (fn (enum addr) (ptr char)))
+(decl (csym::deserialize-arg buf str) (fn int (ptr (enum addr)) (ptr char)))
 (decl (csym::serialize-cmd buf pcmd) (fn int (ptr char) (ptr (struct cmd))))
 (decl (csym::deserialize-cmd pcmd str) (fn int (ptr (struct cmd)) (ptr char)))
-(decl (csym::copy-address dst src) (fn int (ptr (enum node)) (ptr (enum node))))
-(decl (csym::address-equal adr1 adr2) (fn int (ptr (enum node)) (ptr (enum node))))
+(decl (csym::copy-address dst src) (fn int (ptr (enum addr)) (ptr (enum addr))))
+(decl (csym::address-equal adr1 adr2) (fn int (ptr (enum addr)) (ptr (enum addr))))
 
 ;;;; Command line options
 (%defconstant HOSTNAME-MAXSIZE 256)

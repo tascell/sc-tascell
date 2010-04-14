@@ -64,7 +64,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;
-;; (enum node)の値が配列添字に対応
+;; (enum command)の値が配列添字に対応
 ;; ここを変えると deserilalize-cmdname の「ゆるい文字列比較」も変える必要があるので注意
 (def cmd-strings (array (ptr char))
   (array "task" "rslt" "treq" "none" "back" "rack" "dreq" "data"
@@ -138,28 +138,28 @@
 
 ;;;;;;;;;;
 ;; [整数|ノード]列->文字列 (returns 書いた文字数)
-(def (csym::serialize-arg buf arg) (fn int (ptr char) (ptr (enum node)))
+(def (csym::serialize-arg buf arg) (fn int (ptr char) (ptr (enum addr)))
   (def p (ptr char) buf)
-  (def node (enum node))
+  (def addr (enum addr))
   (def i int)
-  (for ((= i 0) (!= TERM (= node (aref arg i))) (inc i))
+  (for ((= i 0) (!= TERM (= addr (aref arg i))) (inc i))
        (cond
-        ((== ANY node)
+        ((== ANY addr)
          (csym::strcpy p "any")
          (+= p 3))
-        ((== PARENT node)
+        ((== PARENT addr)
          (= (mref (inc p)) #\p))
-        ((== FORWARD node)
+        ((== FORWARD addr)
          (= (mref (inc p)) #\f))
         (else
-         (+= p (csym::sprintf p "%d" node))))
+         (+= p (csym::sprintf p "%d" addr))))
        (= (mref (inc p)) #\:))
   (if (== i 0) (inc p))
   (= (mref (-- p)) #\NULL)
   (return (- p buf)))
 
 ;; 文字列->ノード
-(def (csym::deserialize-node str) (fn (enum node) (ptr char))
+(def (csym::deserialize-addr str) (fn (enum addr) (ptr char))
   (cond
    ((== #\p (aref str 0))
     (return PARENT))
@@ -171,23 +171,23 @@
     (return (csym::atoi str)))))
 
 ;; 文字列->[整数|ノード]列 (returns 読んだ文字数)
-(def (csym::deserialize-arg buf str) (fn int (ptr (enum node)) (ptr char))
+(def (csym::deserialize-arg buf str) (fn int (ptr (enum addr)) (ptr char))
   (defs (ptr char) p0 p1)
   (def ch int)
-  (def pnode (ptr (enum node)))
+  (def paddr (ptr (enum addr)))
   (= p0 str) (= p1 str)
-  (= pnode buf)
+  (= paddr buf)
   (for (1 (inc p1))
     (= ch (mref p1))
     (cond 
      ((or (== ch #\:) (== ch #\Space) (== ch #\Newline) (== ch #\NULL))
       (= (mref p1) #\NULL)
-      (= (mref (inc pnode)) (csym::deserialize-node p0)) ; p0--p1までdeserialize
+      (= (mref (inc paddr)) (csym::deserialize-addr p0)) ; p0--p1までdeserialize
       (= (mref p1) ch)
       (if (!= ch #\:)                   ; NULL, Space, Newline
           (break))
       (= p0 (+ 1 p1)))))
-  (= (mref pnode) TERM)  ; 番兵
+  (= (mref paddr) TERM)  ; 番兵
   (= p1 (csym::skip-whitespace p1))
   (return (- p1 str)))
 
@@ -230,7 +230,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ノード列コピー (returns TERMを除くノード数)
-(def (csym::copy-address dst src) (fn int (ptr (enum node)) (ptr (enum node)))
+(def (csym::copy-address dst src) (fn int (ptr (enum addr)) (ptr (enum addr)))
   (def i int)
   (for ((= i 0) (!= TERM (aref src i)) (inc i))
     (= (aref dst i) (aref src i)))
@@ -238,7 +238,7 @@
   (return i))
 
 ;; ノード列比較 (同一なら非0)
-(def (csym::address-equal adr1 adr2) (fn int (ptr (enum node)) (ptr (enum node)))
+(def (csym::address-equal adr1 adr2) (fn int (ptr (enum addr)) (ptr (enum addr)))
   (def i int)
   (for ((= i 0) (< i MAXCMDC) (inc i))
     (if (!= (aref adr1 i) (aref adr2 i)) (return 0))
