@@ -744,24 +744,22 @@
     (if (not avail)
         (let ((from-str (array char BUFSIZE))
               (buf1 (array char BUFSIZE))
-              (buf2 (array char BUFSIZE))
               (rsn-str (array char BUFSIZE)))
           (csym::serialize-arg from-str from-addr)
           (switch fail-reason
             (case 1)
-            (csym::strcpy rsn-str "w-rack") (break)
+            (csym::sprintf rsn-str "w-rack=%d" thr->w-rack) (break)
             (case 2)
-            (csym::strcpy rsn-str "having no task") (break)
+            (csym::strcpy rsn-str "of having no task") (break)
             (case 3)
             (csym::sprintf rsn-str "the task is %s" (aref task-stat-strings thr->task-top->stat)) (break)
             (case 4)
-            (csym::serialize-arg buf1 thr->task-top->rslt-head)
-            (csym::serialize-arg buf2 (aref pcmd->v 1))
-            (csym::sprintf rsn-str "rslt-head:%s != treq-head:%s" buf1 buf2) (break)
+            (csym::serialize-arg buf1 (aref pcmd->v 1))
+            (csym::sprintf rsn-str "%s is already finished" buf1) (break)
             (default)
             (csym::strcpy rsn-str "Unexpected reason") (break))
           (csym::fprintf 
-           stderr "(%d): Thread %d refused treq from %s because of %s.~%"
+           stderr "(%d): Thread %d refused treq from %s because %s.~%"
            (csym::get-universal-real-time) id from-str rsn-str))))
   (csym::pthread-mutex-unlock (ptr thr->rack-mut))
 
@@ -1554,7 +1552,14 @@
   (defs int i j)
   (def pcmd (ptr (struct cmd)))         ; 外部から受信したコマンド
 
-  ;; コマンドラインオプション
+  ;; show compile-time option
+  (fprintf stderr (%string "compile-time options: "
+                           "VERBOSE=" VERBOSE " "
+                           "NF-TYPE=" NF-TYPE " "
+                           "USE-AFFINITY=" USE-AFFINITY
+                           "~%"))
+  
+  ;; get command-line options
   #+tcell-gtk (csym::gtk-init (ptr argc) (ptr argv))
   (csym::set-option argc argv)
 

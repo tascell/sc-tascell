@@ -200,6 +200,9 @@
            (assert tag)
            (scpp-1exp ~(,tag ,(second x)
                              ,then-forms ,(cdr else-forms))))))
+      ((sc::%string)
+       (let ((ret (scpp-list (cdr x))))
+         (list (strcat (mapcar #'princ-to-string ret)))))
       ((sc::%line)
        (list `(sc::c-exp ,(format nil "#line ~D \"~a\""
                             (second x)
