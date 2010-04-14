@@ -18,7 +18,7 @@
 (%ifndef* USE-AFFINITY
   (%defconstant USE-AFFINITY SCHED))    ; one of SCHED(for Linux), PBIND(for Solaris)
 
-;;;
+;;; 
 
 ;;; Sizes
 (%defconstant BUFSIZE 1280)             ; コマンド行の文字数の最大+1
@@ -156,7 +156,7 @@
   (def random-seed1 double)             ; 乱数の種 treq anyで使用・更新
   (def random-seed2 double)             ; 乱数の種 treq anyで使用・更新
   (def task-free (ptr (struct task)))   ; タスク確保用フリーリスト
-  (def task-top (ptr (struct task)))    ; スレッドに与えられた仕事のリスト
+  (def task-top (ptr (struct task)))    ; スレッドに与えられた仕事のリスト（スタック）のトップ
   ;; treq-freeから始まるフリーリストから
   ;; 2つのスタック（treq-topスタックとsubスタック）を確保している
   (def treq-free (ptr (struct task-home))) ; タスク作成待ちスタック確保用フリーリスト

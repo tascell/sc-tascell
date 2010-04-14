@@ -37,10 +37,6 @@
   (c-exp "#include <sys/processor.h>")
   (c-exp "#include <sys/procset.h>"))
 
-(%if* VERBOSE
-  (c-exp "#define NDEBUG"))
-(c-exp "#include<assert.h>")
-
 (c-exp "#include<stdio.h>")
 (c-exp "#include<stdlib.h>")
 (c-exp "#include<string.h>")
@@ -49,8 +45,13 @@
 (c-exp "#include<sys/time.h>")
 (c-exp "#include<getopt.h>")
 #+tcell-gtk (c-exp "#include<gtk/gtk.h>")
-(%include "worker.sh")
 (%cinclude "sock.h")
+
+(%include "worker.sh")
+
+(%if* VERBOSE
+  (c-exp "#define NDEBUG"))
+(c-exp "#include<assert.h>")
 
 ;;; デバッグ情報出力用の変数
 (%ifdef* VERBOSE
@@ -239,18 +240,25 @@
 (def (csym::flush-treq-with-none thr) (csym::fn void (ptr (struct thread-data)))
   (def rcmd (struct cmd))
   (def hx (ptr (struct task-home)))
+  (def n int 0)
   (= rcmd.c 1)
   (= rcmd.w NONE)
   (while (= hx thr->treq-top)
+    (DEBUG-STMTS 2 (inc n))
     (= rcmd.node hx->req-from)          ; 外部or内部
     (csym::copy-address (aref rcmd.v 0) hx->task-head)
     (csym::send-command (ptr rcmd) 0 0)
     (= thr->treq-top hx->next)          ; treqスタックをpop
     (= hx->next thr->treq-free)         ; フリーリストに...
     (= thr->treq-free hx))              ; ...領域を返却
+  (DEBUG-STMTS 2
+               (if (> n 0)
+                   (csym::fprintf stderr "(%d): (Thread %d) flushed %d treqs in flush-treq-with-none~%"
+                                  (get-universal-real-time) thr->id n)))
   )
 
-;;; スレッドthr(ロック済)の持つtaskのフリーリストから1つぶんallocateして，そこへのポインタを返す
+;;; allocate a task in thr's task stack and return the pointer to the task.
+;;; thr's lock must have been acquired before calling this function.
 (def (csym::allocate-task thr) (fn (ptr (struct task)) (ptr (struct thread-data)))
   (def tx (ptr (struct task)))
   (= tx thr->task-free)
@@ -260,10 +268,10 @@
   (= thr->task-free tx->prev)
   (return tx))
 
-;;; スレッドthr(ロック済)の持つtaskのリストから1つぶんフリーリストに返す
+;;; Deallocate a task of the thread 'thr' in the task stack
 (def (csym::deallocate-task thr) (fn void (ptr (struct thread-data)))
   (def tx (ptr (struct task)) thr->task-top)
-  (= thr->task-free tx)
+  (= thr->task-free tx)                 ; return the space to the free lists.
   (= thr->task-top tx->next)
   (return))
 
@@ -689,6 +697,18 @@
   (csym::pthread-mutex-unlock (ptr thr->mut))
   (csym::send-command (ptr rcmd) 0 0))  ;rack送信
 
+;; The Thread 'thr' has the task specified by [<node>,...,<ID>] ?
+(def (csym::have-task thr task-spec) 
+    (csym::fn int (ptr (struct thread-data)) (ptr (enum node)))
+  (def tx (ptr (struct task)))
+  (= tx thr->task-top)
+  (while tx
+    (if (csym::address-equal tx->rslt-head task-spec)
+        (return 1))
+    (= tx tx->next))
+  (return 0))
+
+
 
 (decl task-stat-strings (array (ptr char)))
 ;;; threads[id] にtreqを試みる
@@ -696,51 +716,56 @@
     (csym::fn int (ptr (struct cmd)) (enum node) (ptr (enum node)))
   (def hx (ptr (struct task-home)))
   (def thr (ptr (struct thread-data)))
+  (def fail-reason int 0)
   (def avail int 0)
   (def from-head (enum node) (aref from-addr 0))
 
   (= thr (+ threads id))
+
   (csym::pthread-mutex-lock (ptr thr->mut))
+
+  ;; Check whether worker can accept treq
   (csym::pthread-mutex-lock (ptr thr->rack-mut))
-  (if (and (== thr->w-rack 0)           ; rack待ちならだめ
-           (or #+comment (and (== ANY pcmd->node) ; 弟からのANY要求ならとりあえず受理して待たせておく
-                              (< id from-head) ; 「弟から」の制限は，お互いにtreq受理の場合のデッドロック防止
-                              (== TERM (aref from-addr 1)))
-               (and thr->task-top       ; 仕事中なら普通に受理
-                    (or (== thr->task-top->stat TASK-STARTED)
-                        (== thr->task-top->stat TASK-INITIALIZED))
-                    (or (== (aref pcmd->v 1 0) ANY) ; ただし，取り返しの場合
-                        (csym::address-equal thr->task-top->rslt-head (aref pcmd->v 1))
-                                        ; 取り返し対象のタスクを実行中であること
-                        ))))
-      (= avail 1)
-      (DEBUG-STMTS 2
-                   (let ((buf1 (array char BUFSIZE))
-                         (buf2 (array char BUFSIZE))
-                         (buf3 (array char BUFSIZE)))
-                     (csym::fprintf 
-                      stderr "(%d): Thread %d refused treq from %s because of %s.~%"
-                      (csym::get-universal-real-time)
-                      id
-                      (exps (csym::serialize-arg buf1 from-addr) buf1)
-                      (if-exp (> thr->w-rack 0)
-                          "w-rack"
-                        (if-exp (not thr->task-top)
-                            "having no task"
-                          (if-exp (not (or (== thr->task-top->stat TASK-STARTED)
-                                           (== thr->task-top->stat TASK-INITIALIZED)))
-                              (aref task-stat-strings thr->task-top->stat)
-                            (if-exp (not (or (== (aref pcmd->v 1 0) ANY)
-                                             (csym::address-equal thr->task-top->rslt-head (aref pcmd->v 1))))
-                                (exps (csym::serialize-arg buf1 thr->task-top->rslt-head)
-                                      (csym::serialize-arg buf2 (aref pcmd->v 1))
-                                      (csym::sprintf buf3 "rslt-head:%s != treq-head:%s" buf1 buf2)
-                                      buf3)
-                              "unexpected reason")))))))
-      )
+  (cond
+   ((> thr->w-rack 0)                   ; waiting rack message
+    (= fail-reason 1))                  ;  (it is possible that the treq sender is ill-prepared for a task message)
+   ((not thr->task-top)                 ; having no task
+    (= fail-reason 2))
+   ((== (aref pcmd->v 1 0) ANY)         ; * for 'any' request...
+    (if (not (or (== thr->task-top->stat TASK-STARTED) ; the task is ill-prepared for being divided
+                 (== thr->task-top->stat TASK-INITIALIZED)))
+        (= fail-reason 3)))
+   (else                                ; * for stealing-back request...
+    (if (not (csym::have-task thr (aref pcmd->v 1)))
+                                        ; the task is already finished
+        (= fail-reason 4))))
+  (= avail (not fail-reason))
+  (DEBUG-STMTS 2
+    (if (not avail)
+        (let ((from-str (array char BUFSIZE))
+              (buf1 (array char BUFSIZE))
+              (buf2 (array char BUFSIZE))
+              (rsn-str (array char BUFSIZE)))
+          (csym::serialize-arg from-str from-addr)
+          (switch fail-reason
+            (case 1)
+            (csym::strcpy rsn-str "w-rack") (break)
+            (case 2)
+            (csym::strcpy rsn-str "having no task") (break)
+            (case 3)
+            (csym::sprintf rsn-str "the task is %s" (aref task-stat-strings thr->task-top->stat)) (break)
+            (case 4)
+            (csym::serialize-arg buf1 thr->task-top->rslt-head)
+            (csym::serialize-arg buf2 (aref pcmd->v 1))
+            (csym::sprintf rsn-str "rslt-head:%s != treq-head:%s" buf1 buf2) (break)
+            (default)
+            (csym::strcpy rsn-str "Unexpected reason") (break))
+          (csym::fprintf 
+           stderr "(%d): Thread %d refused treq from %s because of %s.~%"
+           (csym::get-universal-real-time) id from-str rsn-str))))
   (csym::pthread-mutex-unlock (ptr thr->rack-mut))
 
-  ;; 成功ならtask-home（仕事の結果待ち） スタックにpush
+  ;; If succeeded, push the entry into the requestee's task-home queue.
   (if avail
       (begin
        (= hx thr->treq-free)
@@ -1528,7 +1553,7 @@
 (def (main argc argv) (fn int int (ptr (ptr char)))
   (defs int i j)
   (def pcmd (ptr (struct cmd)))         ; 外部から受信したコマンド
-  
+
   ;; コマンドラインオプション
   #+tcell-gtk (csym::gtk-init (ptr argc) (ptr argv))
   (csym::set-option argc argv)
