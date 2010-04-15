@@ -1207,11 +1207,16 @@
 ;;; taskの情報を出力
 (def task-stat-strings (array (ptr char)) ; enum task-statに対応
   (array "TASK-ALLOCTED" "TASK-INITIALIZED" "TASK-STARTED" "TASK-DONE" "TASK-NONE" "TASK-SUSPENDED"))
-(def (csym::addr-to-string buf addr) (csym::fn void (ptr char) (enum addr)) ; enum addrに対応
+(def (csym::node-to-string buf node) (csym::fn void (ptr char) (enum node))
+  (switch node
+    (case INSIDE)   (csym::strcpy buf "INSIDE")      (break)
+    (case OUTSIDE)  (csym::strcpy buf "OUTSIDE")     (break)
+    (default)       (csym::strcpy buf "wrong-value") (break)))
+(def (csym::addr-to-string buf addr) (csym::fn void (ptr char) (enum addr))
   (switch addr
-    (case ANY)     (csym::sprintf buf "ANY")     (break)
-    (case PARENT)  (csym::sprintf buf "PARENT")  (break)
-    (case TERM)    (csym::sprintf buf "TERM")    (break)
+    (case ANY)     (csym::strcpy  buf "ANY")     (break)
+    (case PARENT)  (csym::strcpy  buf "PARENT")  (break)
+    (case TERM)    (csym::strcpy  buf "TERM")    (break)
     (default)      (csym::sprintf buf "%d" addr) (break)))
 
 (def (csym::print-task-list task-top name) (csym::fn void (ptr (struct task)) (ptr char))
@@ -1236,7 +1241,7 @@
   (for ((= cur treq-top) cur (= cur cur->next))
     (csym::fprintf stderr "{stat=%s, id=%d, owner=%p, task-no=%d, body=%p, req-from=%s, task-head=%s}, "
                    (aref task-home-stat-strings cur->stat) cur->id cur->owner cur->task-no cur->body
-                   (exps (csym::addr-to-string buf1 cur->req-from) buf1)
+                   (exps (csym::node-to-string buf1 cur->req-from) buf1)
                    (exps (csym::serialize-arg buf2 cur->task-head) buf2)))
   (csym::fprintf stderr "}, ")
   (return))
