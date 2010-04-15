@@ -1226,7 +1226,7 @@
   (for ((= cur task-top) cur (= cur cur->next))
     (csym::fprintf stderr "{stat=%s, task-no=%d, body=%p, ndiv=%d, rslt-to=%s, rslt-head=%s}, "
                    (aref task-stat-strings cur->stat) cur->task-no cur->body cur->ndiv
-                   (exps (csym::addr-to-string buf1 cur->rslt-to) buf1)
+                   (exps (csym::node-to-string buf1 cur->rslt-to) buf1)
                    (exps (csym::serialize-arg buf2 cur->rslt-head) buf2)))
   (csym::fprintf stderr "}, ")
   (return))
