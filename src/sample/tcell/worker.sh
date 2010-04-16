@@ -112,8 +112,8 @@
   TASK-NONE        ; ALLOC後treqしたがnoneが返ってきた
   TASK-SUSPENDED)  ; 待ち状態
 ;; -(treq送信)-> ALLOCATED --(task受け取り)--> INITIALIZED --> STARTED --> DONE -->
-;;                 |  |none受け取り                               |
-;;           再挑戦|  |                                           |
+;;                 |  |none受け取り                            |     |結果受取
+;;           再挑戦|  |                                結果待ち|     |
 ;;                 NONE                                        SUSPENDED
 
 (def (enum task-home-stat)
@@ -133,17 +133,18 @@
   (def rslt-to (enum node))         ; 結果送信先の種別（INSIDE or OUTSIDE）
   (def rslt-head (array (enum addr) ARG-SIZE-MAX))) ; 結果送信先アドレス
 
-;; Workerが作ったサブタスク管理情報
+;; Information of a subtask assigned to another task
 (def (struct task-home)
-  (def stat (enum task-home-stat))      ; 状態
-  (def id int)                          ; 初期化時に割当てられるID（各ワーカで一意）
-  (def owner (ptr (struct task)))       ; このサブタスクをspawnしたタスク
-  (def task-no int)                     ; 実行するタスク番号（tcell追加）
-  (def req-from (enum node))            ; 仕事送信先の種別（INSIDE or OUTSIDE）
-  (def next (ptr (struct task-home)))   ; リンク（次の空きセル or スタックの1コ下）
-  (def body (ptr void))                 ; task-data構造体へのポインタ
+  (def stat (enum task-home-stat))      ; status
+  (def id int)                          ; ID (unique in each worker)
+  (def owner (ptr (struct task)))       ; the task that spawned this subtask
+  (def task-no int)                     ; task number (corresponds to a task function)
+  (def req-from (enum node))            ; where to send this subtask (INSIDE or OUTSIDE)
   (def task-head (array (enum addr) ARG-SIZE-MAX))
-                                        ; タスクの送り先（取り返し先，rackの送り先）
+                                        ; the address of the worker which this task is sent to
+                                        ; (referred when sending stealing back "treq" or "rack")
+  (def next (ptr (struct task-home)))   ; link to the next task-home
+  (def body (ptr void))                 ; task object
   )
 
 (def (struct thread-data)
@@ -160,9 +161,9 @@
   (def task-top (ptr (struct task)))    ; スレッドに与えられた仕事のリスト（スタック）のトップ
   ;; treq-freeから始まるフリーリストから
   ;; 2つのスタック（treq-topスタックとsubスタック）を確保している
-  (def treq-free (ptr (struct task-home))) ; タスク作成待ちスタック確保用フリーリスト
-  (def treq-top (ptr (struct task-home))) ; 上記スタックのトップ
-  (def sub (ptr (struct task-home)))    ; サブタスク(initialized)スタック．
+  (def treq-free (ptr (struct task-home))) ; free list for task-home
+  (def treq-top (ptr (struct task-home))) ; stack of subtasks to be initialized (corresponds accepted "treq")
+  (def sub (ptr (struct task-home)))      ; stack of initialized subtasks (corresponds already sent "task")
   (def mut pthread-mutex-t)             ; mutex
   (def rack-mut pthread-mutex-t)        ; rack mutex
   (def cond pthread-cond-t)             ; task, none待ちで眠らせるときの条件変数

@@ -362,7 +362,7 @@
                (+= delay delay)         ; 次回の待ち時間を増やす
                (if (> delay DELAY-MAX) (= delay DELAY-MAX))
                ))
-         ;; rsltが到着していたらtreqリトライせず，そちらの処理を優先
+         ;; rsltが到着していたら自分のtreqリトライせず，そちらの処理を優先
          (if (and thr->sub
                   (== thr->sub->stat TASK-HOME-DONE))
              (return 0))))
@@ -1206,7 +1206,7 @@
 
 ;;; taskの情報を出力
 (def task-stat-strings (array (ptr char)) ; enum task-statに対応
-  (array "TASK-ALLOCTED" "TASK-INITIALIZED" "TASK-STARTED" "TASK-DONE" "TASK-NONE" "TASK-SUSPENDED"))
+  (array "TASK-ALLOCATED" "TASK-INITIALIZED" "TASK-STARTED" "TASK-DONE" "TASK-NONE" "TASK-SUSPENDED"))
 (def (csym::node-to-string buf node) (csym::fn void (ptr char) (enum node))
   (switch node
     (case INSIDE)   (csym::strcpy buf "INSIDE")      (break)
@@ -1257,8 +1257,11 @@
   (csym::fprintf stderr "last-treq=%d, " thr->last-treq)
   (csym::fprintf stderr "last-choose=%s, " (aref choose-strings thr->last-choose))
   (csym::fprintf stderr "random-seed(1,2)=(%f,%f), " thr->random-seed1 thr->random-seed2)
+  (csym::fprintf stderr "~%")
   (csym::print-task-list thr->task-top "tasks")
+  (csym::fprintf stderr "~%")
   (csym::print-task-home-list thr->treq-top "treq-top")
+  (csym::fprintf stderr "~%")
   (csym::print-task-home-list thr->sub "sub")
   (csym::fprintf stderr "~%")
   (return)
@@ -1354,10 +1357,9 @@
   (csym::pthread-mutex-lock (ptr thr->mut))
   (= sub thr->sub)                      ; スレッドのサブタスク置き場
   (while (!= sub->stat TASK-HOME-DONE)
-    ;; (csym::flush-treq-with-none thr)
-    ;; (= (fref thr -> task-top -> stat) TASK-SUSPENDED)
+    (= thr->task-top->stat TASK-SUSPENDED)
     ;; 外部ノードに送った仕事ならちょっと待つ
-    (if (== PARENT (aref sub->task-head 0))
+    (if (== OUTSIDE sub->req-from)
         (let ((now (struct timeval))
               (t-until (struct timespec)))
           (csym::gettimeofday (ptr now) 0)
@@ -1365,7 +1367,6 @@
           (csym::pthread-cond-timedwait (ptr thr->cond-r) (ptr thr->mut)
                                         (ptr t-until))
           ))
-    (= thr->task-top->stat TASK-STARTED)
     (if (== sub->stat TASK-HOME-DONE) (break))
     ;; 取り返しにいく (leapfrogging)
     (recv-exec-send thr sub->task-head sub->req-from))
@@ -1373,6 +1374,7 @@
   (= thr->sub sub->next)                ; サブタスクstackをpop
   (= sub->next thr->treq-free)          ; popした部分を...
   (= thr->treq-free sub)                ; ...フリーリストに返す
+  (= thr->task-top->stat TASK-STARTED)
   (csym::pthread-mutex-unlock (ptr thr->mut))
   (return body))
 
