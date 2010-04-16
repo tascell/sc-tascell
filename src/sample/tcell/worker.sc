@@ -704,11 +704,13 @@
   (def tx (ptr (struct task)))
   (= tx thr->task-top)
   (while tx
-    (if (csym::address-equal tx->rslt-head task-spec)
+    (if (and (or (== tx->stat TASK-INITIALIZED)
+                 (== tx->stat TASK-SUSPENDED)
+                 (== tx->stat TASK-STARTED))
+             (csym::address-equal tx->rslt-head task-spec))
         (return 1))
     (= tx tx->next))
   (return 0))
-
 
 
 (decl task-stat-strings (array (ptr char)))
