@@ -87,7 +87,7 @@ $(ICC_C_PROGS): %: $(WORKER_GCC) $(LIBS) %.c
 	$(ICC) $(OPT) $(LIBOPTS) $+ -o $@
 
 # GCC nested function
-$(WORKER_GCC): %-gcc.c: %.sc worker.sh
+$(WORKER_GCC): %-gcc.c: %.sc worker.sh dprint.sh
 	$(SC2C) $(SC2C_OPT) -D NF-TYPE=GCC $<
 $(addsuffix .c,$(GCC_PROGS)): %-gcc.c: %.tcell
 	$(SC2C) $(SC2C_OPT) -D NF-TYPE=GCC $<
@@ -95,7 +95,7 @@ $(GCC_PROGS): %: $(WORKER_GCC) $(LIBS) %.c
 	$(GCC) $(OPT) $(LIBOPTS) $+ -o $@
 
 # LW-SC
-$(WORKER_LW): %-lw.c: %.sc worker.sh
+$(WORKER_LW): %-lw.c: %.sc worker.sh dprint.sh
 	$(SC2C) $(SC2C_OPT) -D NF-TYPE=LW-SC $<
 $(addsuffix .c,$(GCCLW_PROGS)): %-lw.c: %.tcell
 	$(SC2C) $(SC2C_OPT) -D NF-TYPE=LW-SC $<
@@ -106,7 +106,7 @@ $(ICC_LW_PROGS): %: $(WORKER_LW) $(LIBS) nestfunc.c %.c
 	$(ICC) $(OPT) $(LIBOPTS) $+ -o $@
 
 # CL-SC
-$(WORKER_CLOS): %-clos.c: %.sc worker.sh
+$(WORKER_CLOS): %-clos.c: %.sc worker.sh dprint.sh
 	$(SC2C) $(SC2C_OPT) -D NF-TYPE=CL-SC $<
 $(addsuffix .c,$(GCCCLOS_PROGS)): %-clos.c: %.tcell
 	$(SC2C) $(SC2C_OPT) -D NF-TYPE=CL-SC $<
@@ -117,7 +117,7 @@ $(ICC_CLOS_PROGS): %: $(WORKER_CLOS) $(LIBS) nestfunc.c %.c
 	$(ICC) $(OPT) $(LIBOPTS) $+ -o $@
 
 # XCC nested function (lightweight)
-$(WORKER_XCC): %-xcc.c: %.sc worker.sh
+$(WORKER_XCC): %-xcc.c: %.sc worker.sh dprint.sh
 	$(SC2C) $(SC2C_OPT) -D NF-TYPE=XCC $<
 $(addsuffix .c,$(XCCLW_PROGS)): %-xcc.c: %.tcell
 	$(SC2C) $(SC2C_OPT) -D NF-TYPE=XCC $<
@@ -125,7 +125,7 @@ $(XCCLW_PROGS): %: $(WORKER_XCC) $(LIBS) %.c
 	$(XCC) $(OPT) $(LIBOPTS) -fno-omit-frame-pointer $+ -o $@
 
 # XCC nested function (closure)
-$(WORKER_XCCCL): %-xcccl.c: %.sc worker.sh
+$(WORKER_XCCCL): %-xcccl.c: %.sc worker.sh dprint.sh
 	$(SC2C) $(SC2C_OPT) -D NF-TYPE=XCCCL $<
 $(addsuffix .c,$(XCCCL_PROGS)): %-xcccl.c: %.tcell
 	$(SC2C) $(SC2C_OPT) -D NF-TYPE=XCCCL $<
