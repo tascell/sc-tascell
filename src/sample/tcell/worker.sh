@@ -52,7 +52,7 @@
 (def (struct cmd)
   (def w (enum command))                ; コマンドの種類
   (def c int)                           ; コマンドのargument数（コマンド名自身も含む）
-  (def node (enum node))                ; どこに送るメッセージか INSIDE|OUTSIDE|ANY
+  (def node (enum node))                ; どこに送るメッセージか INSIDE|OUTSIDE
   (def v (array (enum addr) MAXCMDC ARG-SIZE-MAX)) ; v[i]: i-th argument of the command
                                         ; TERMでおわる[enum定数|0以上の整数]の配列
   )
@@ -137,6 +137,9 @@
 (def (struct task-home)
   (def stat (enum task-home-stat))      ; status
   (def id int)                          ; ID (unique in each worker)
+  (def waiting-head (array (enum addr) ARG-SIZE-MAX))
+                                        ; for stealing-back treq, the task head of which
+                                        ; the requester is waiting for the result
   (def owner (ptr (struct task)))       ; the task that spawned this subtask
   (def task-no int)                     ; task number (corresponds to a task function)
   (def req-from (enum node))            ; where to send this subtask (INSIDE or OUTSIDE)

@@ -234,27 +234,60 @@
 (def num-thrs unsigned-int)
 
 
-;;; recv-exec-send および wait-rslt から
-;;; thr（lock済）のtreq（一旦treqを受け付けたが未初期化） がたまっていたら
-;;; それらを破棄したうえで noneを送る．
-(def (csym::flush-treq-with-none thr) (csym::fn void (ptr (struct thread-data)))
+;;; Called by recv-exec-send and wait-rslt.
+;;; The lock for 'thr' must have been acquried.
+;;; Flushes treq messages that have been once accepted, and sends none messages for them.
+;;; Stealing-back treq is not be flushed, unless the task of which the requester waiting
+;;; for the result of equals to the specified by rslt-head and rslt-to
+(def (csym::flush-treq-with-none thr rslt-head rslt-to)
+    (csym::fn void (ptr (struct thread-data)) (ptr (enum addr)) (enum node))
   (def rcmd (struct cmd))
+  (def pcur-hx (ptr (ptr (struct task-home))) (ptr thr->treq-top)) ; ref to task-home link to be updated
   (def hx (ptr (struct task-home)))
-  (def n int 0)
+  (def flush int)
+  (def ignored int 0)
+  (def flushed-any-treq int 0)
+  (def flushed-stealing-back-head (ptr (enum addr)) 0)
   (= rcmd.c 1)
   (= rcmd.w NONE)
-  (while (= hx thr->treq-top)
-    (DEBUG-STMTS 2 (inc n))
-    (= rcmd.node hx->req-from)          ; 外部or内部
-    (csym::copy-address (aref rcmd.v 0) hx->task-head)
-    (csym::send-command (ptr rcmd) 0 0)
-    (= thr->treq-top hx->next)          ; treqスタックをpop
-    (= hx->next thr->treq-free)         ; フリーリストに...
-    (= thr->treq-free hx))              ; ...領域を返却
+  (while (= hx (mref pcur-hx))
+    (cond 
+     ((== TERM (aref hx->waiting-head 0)) ; flush if non-stealing-back treq
+      (DEBUG-STMTS 2 (inc flushed-any-treq))
+      (= flush 1))
+     ((and rslt-head                    ; flush if stealing-back but specified to flush
+           (== hx->req-from rslt-to)
+           (csym::address-equal hx->waiting-head rslt-head))
+      (DEBUG-STMTS 2
+                   (= flushed-stealing-back-head rslt-head)
+                   (= rslt-head 0))
+      (= flush 1))
+     (else
+      (DEBUG-STMTS 2 (inc ignored))
+      (= flush 0)))
+    (if flush
+        (begin
+          (= rcmd.node hx->req-from)    ; 外部or内部
+          (csym::copy-address (aref rcmd.v 0) hx->task-head)
+          (csym::send-command (ptr rcmd) 0 0)
+          (= (mref pcur-hx) hx->next)    ; treqスタックをpop
+          (= hx->next thr->treq-free)   ; フリーリストに...
+          (= thr->treq-free hx))        ; ...領域を返却
+      (begin
+        ;; ignores stealing back treq
+        (= pcur-hx (ptr hx->next)))))
   (DEBUG-STMTS 2
-               (if (> n 0)
-                   (csym::fprintf stderr "(%d): (Thread %d) flushed %d treqs in flush-treq-with-none~%"
-                                  (get-universal-real-time) thr->id n)))
+               (defs (array char BUFSIZE) buf0 buf1)
+               (if (or (> flushed-any-treq 0) (> ignored 0) flushed-stealing-back-head)
+                   (csym::fprintf stderr "(%d): (Thread %d) flushed %d any %s and ignored %d stealing-back treqs in flush-treq-with-none~%"
+                                  (get-universal-real-time) thr->id flushed-any-treq
+                                  (if-exp flushed-stealing-back-head
+                                      (exps
+                                       (csym::serialize-arg buf1 flushed-stealing-back-head)
+                                       (csym::sprintf buf0 "and stealing-back from %s" buf1)
+                                       buf0)
+                                    "")
+                                  ignored)))
   )
 
 ;;; allocate a task in thr's task stack and return the pointer to the task.
@@ -313,10 +346,11 @@
 
   ;; Send a treq message repeatedly until get a new task (task message)
   (do-while (!= tx->stat TASK-INITIALIZED)
-    ;; 最初にtreqがたまっていたら，noneを送る．
-    ;; これをやると treq が飛び交うかもしれないが，noneを送らないとだけすると，
-    ;; 互いに none or task が送られているのを待つというタイプのデッドロックとなる．
-    (csym::flush-treq-with-none thr)
+    ;; Before sending treq, flushes all the once accepted treqs (except stealing-back ones)
+    ;; by sending nones.
+    ;; This is for preventing dead-lock by workers waiting for a none or task message
+    ;; (as a reply to treq) each other.
+    (csym::flush-treq-with-none thr 0 0)
     (= tx->stat TASK-ALLOCATED)
     (begin
      (csym::pthread-mutex-unlock (ptr thr->mut))
@@ -414,12 +448,13 @@
        (inc thr->w-rack)
        (csym::pthread-mutex-unlock (ptr thr->rack-mut))
        (csym::pthread-mutex-lock (ptr thr->mut))
-       ;; ここでもtreqがたまっていたら noneを送る
-       (csym::flush-treq-with-none thr)
        (= thr->ndiv old-ndiv)))
 
   ;; タスクstackをpopしてフリーリストに返す
-  (= tx->stat TASK-DONE)                ; 現状，必須ではないがデバッグ出力で有効
+  (= tx->stat TASK-DONE)
+  ;; Flushes all the once accepted treqs by sending nones.
+  ;; Notice that stealing-back to the task of which just sent the result should be flushed, too.
+  (csym::flush-treq-with-none thr tx->rslt-head tx->rslt-to)
   (csym::deallocate-task thr)
   )
 
@@ -698,15 +733,16 @@
   (csym::pthread-mutex-unlock (ptr thr->mut))
   (csym::send-command (ptr rcmd) 0 0))  ;rack送信
 
-;; The Thread 'thr' has the task specified by [<addr>,...,<ID>] ?
-(def (csym::have-task thr task-spec) 
-    (csym::fn int (ptr (struct thread-data)) (ptr (enum addr)))
+;; The Thread 'thr' has the task specified by [<addr>,...,<ID>]x(INSIDE|OUTSIDE) ?
+(def (csym::have-task thr task-spec task-from) 
+    (csym::fn int (ptr (struct thread-data)) (ptr (enum addr)) (enum node))
   (def tx (ptr (struct task)))
   (= tx thr->task-top)
   (while tx
     (if (and (or (== tx->stat TASK-INITIALIZED)
                  (== tx->stat TASK-SUSPENDED)
                  (== tx->stat TASK-STARTED))
+             (== tx->rslt-to task-from)
              (csym::address-equal tx->rslt-head task-spec))
         (return 1))
     (= tx tx->next))
@@ -714,14 +750,16 @@
 
 
 (decl task-stat-strings (array (ptr char)))
-;;; threads[id] にtreqを試みる
-(def (csym::try-treq pcmd id from-addr)
-    (csym::fn int (ptr (struct cmd)) (enum addr) (ptr (enum addr)))
+;;; Check if the id-th worker can spawn a task by the 'pcmd' treq message.
+;;; If ok, the worker allocate a task-home.
+(def (csym::try-treq pcmd id)
+    (csym::fn int (ptr (struct cmd)) (enum addr))
+  (def from-addr (ptr (enum addr)) (aref pcmd->v 0))
+  (def dest-addr (ptr (enum addr)) (aref pcmd->v 1))
   (def hx (ptr (struct task-home)))
   (def thr (ptr (struct thread-data)))
   (def fail-reason int 0)
   (def avail int 0)
-  (def from-head (enum addr) (aref from-addr 0))
 
   (= thr (+ threads id))
 
@@ -734,12 +772,12 @@
     (= fail-reason 1))                  ;  (it is possible that the treq sender is ill-prepared for a task message)
    ((not thr->task-top)                 ; having no task
     (= fail-reason 2))
-   ((== (aref pcmd->v 1 0) ANY)         ; * for 'any' request...
+   ((== (aref dest-addr 0) ANY)         ; * for 'any' request...
     (if (not (or (== thr->task-top->stat TASK-STARTED) ; the task is ill-prepared for being divided
                  (== thr->task-top->stat TASK-INITIALIZED)))
         (= fail-reason 3)))
    (else                                ; * for stealing-back request...
-    (if (not (csym::have-task thr from-addr))
+    (if (not (csym::have-task thr from-addr pcmd->node))
                                         ; the task is already finished
         (= fail-reason 4))))
   (= avail (not fail-reason))
@@ -775,6 +813,9 @@
        (= thr->treq-free hx->next)      ; フリーリストから領域を確保
        (= hx->next thr->treq-top)       ; これよりnextはスタックのリンク
        (= hx->stat TASK-HOME-ALLOCATED)
+       (if (== (aref dest-addr 0) ANY)
+           (= (aref hx->waiting-head 0) TERM)
+         (csym::copy-address hx->waiting-head from-addr))
        (csym::copy-address hx->task-head (aref pcmd->v 0)) ; v[0]: 返答先
        (if (!= pcmd->node OUTSIDE)
            (= hx->req-from INSIDE)
@@ -841,7 +882,7 @@
         (if (and (!= pcmd->node OUTSIDE)
                  (== id myid))
             (continue))                 ; 自分自身には要求を出さない
-        (if (csym::try-treq pcmd id (aref pcmd->v 0))
+        (if (csym::try-treq pcmd id)
             (begin
              (DEBUG-PRINT 2 "(%d): treq(any) %d->%d... accepted.~%"
                           (csym::get-universal-real-time) myid id)
@@ -871,7 +912,7 @@
    (else
     (if (not (and (<= 0 dst0) (< dst0 num-thrs)))
         (csym::proto-error "Wrong task-head" pcmd))
-    (if (csym::try-treq pcmd dst0 (aref pcmd->v 0)) ; treqできた
+    (if (csym::try-treq pcmd dst0)      ; treqできた
         (begin
          (DEBUG-STMTS 2
                       (let ((buf1 (array char BUFSIZE)))
@@ -1238,11 +1279,13 @@
   (array "TASK-HOME-ALLOCATED" "TASK-HOME-INITIALIZED" "TASK-HOME-DONE"))
 (def (csym::print-task-home-list treq-top name) (csym::fn void (ptr (struct task-home)) (ptr char))
   (def cur (ptr (struct task-home)))
-  (defs (array char BUFSIZE) buf1 buf2)
+  (defs (array char BUFSIZE) buf0 buf1 buf2)
   (csym::fprintf stderr "%s= {" name)
   (for ((= cur treq-top) cur (= cur cur->next))
-    (csym::fprintf stderr "{stat=%s, id=%d, owner=%p, task-no=%d, body=%p, req-from=%s, task-head=%s}, "
-                   (aref task-home-stat-strings cur->stat) cur->id cur->owner cur->task-no cur->body
+    (csym::fprintf stderr "{stat=%s, id=%d, waiting=%s, owner=%p, task-no=%d, body=%p, req-from=%s, task-head=%s}, "
+                   (aref task-home-stat-strings cur->stat) cur->id
+                   (exps (csym::serialize-arg buf0 cur->waiting-head) buf0)
+                   cur->owner cur->task-no cur->body
                    (exps (csym::node-to-string buf1 cur->req-from) buf1)
                    (exps (csym::serialize-arg buf2 cur->task-head) buf2)))
   (csym::fprintf stderr "}, ")
@@ -1358,7 +1401,7 @@
   (def sub (ptr (struct task-home)))
   (csym::pthread-mutex-lock (ptr thr->mut))
   (= sub thr->sub)                      ; スレッドのサブタスク置き場
-  (while (!= sub->stat TASK-HOME-DONE)
+  (while (!= sub->stat TASK-HOME-DONE)  ; iterate until the subtask is done
     (= thr->task-top->stat TASK-SUSPENDED)
     ;; 外部ノードに送った仕事ならちょっと待つ
     (if (== OUTSIDE sub->req-from)
