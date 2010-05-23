@@ -768,12 +768,12 @@
   ;; Check whether worker can accept treq
   (csym::pthread-mutex-lock (ptr thr->rack-mut))
   (cond
-   ((> thr->w-rack 0)                   ; waiting rack message
-    (= fail-reason 1))                  ;  (it is possible that the treq sender is ill-prepared for a task message)
+   ((> thr->w-rack 0)                   ; waiting rack message (the treq sender is ill-prepared for
+    (= fail-reason 1))                  ; a task message and, if received, may break data structures)
    ((not thr->task-top)                 ; having no task
     (= fail-reason 2))
    ((== (aref dest-addr 0) ANY)         ; * for 'any' request...
-    (if (not (or (== thr->task-top->stat TASK-STARTED) ; the task is ill-prepared for being divided
+    (if (not (or (== thr->task-top->stat TASK-STARTED) ; the task is not prepared for being divided
                  (== thr->task-top->stat TASK-INITIALIZED)))
         (= fail-reason 3)))
    (else                                ; * for stealing-back request...
