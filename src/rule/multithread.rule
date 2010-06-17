@@ -1,6 +1,6 @@
 ;;; Copyright (c) 2004 Xiaolu Li
 ;;; All rights reserved.
-;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; Copyright (c) 2008-2010 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,10 +26,8 @@
 
 ;;; MT-SC (with type information) -> LW-SC
 
-;;; to be rewritten as an extension of sc0t-to-sc0t
-
-(define-ruleset multithread (sc2c)
-  (nthr-id ~nthr)
+(define-ruleset multithread (sc0t-to-sc0t)
+  (nthr-id ~nthr)                       ; variable name for nested functions
   (nestfunc-tag ~fn))
 
 (scr:require "MULTITHREAD-DEFS")
@@ -38,60 +36,44 @@
   ((#?(,@declaration-list))
    (list* ~(%defconstant NESTFUNC-TAG ,(ruleset-param 'nestfunc-tag))
           ~(%include "rule/multithread.sh")
-          (mappend (compose #'second #'declaration) x)))
+          (with1 ret (call-next-rule)
+            (mappend #'second x))))
   )
 
 ;;;;;; declaration ;;;;;;
 
 ;; declaration, block-item, expression の返り値は
 ;;(<入れ子関数のitem-list> <元の関数のitem-list>)
-
-(defrule declaration multithread
-  ;; variable
-  ((#?(,scs[storage-class-specifier] ,id[identifier] ,texp ,@init))
-   (list nil (list x)))
+(extendrule inlined-declaration multithread
   ;; function
   ((#?(,scs[storage-class-specifier] (,func-id ,@arg-id[identifier])
            (,fn-tag[function-tag] ,func-texp ,@arg-texp) ,@body))
-   (if (or (cid-p func-id) (eq 'csym::fn fn-tag)) (list nil (list x))
-     (let ((mt:*current-func*
-            (mt:make-finfo
-             :id func-id
-             :rettype func-texp
-             :nfunc-id (mt:make-nestfunc-id func-id))))
+   (if (or (cid-p func-id) (eq 'csym::fn fn-tag))
+       ;; C function
+       (list nil (list x))
+     ;; MT-SC function
+     (let ((mt:*current-func* (mt:make-finfo
+                               :id func-id
+                               :rettype func-texp
+                               :nfunc-id (mt:make-nestfunc-id func-id))))
        (push ~(def ln int 0) (mt:finfo-decl mt:*current-func*))
+                                        ; pseudo program counter
        (let* ((fb-body (function-body body))
               (def-nfunc (mt:make-nestfunc (first fb-body)))
               (sep-body (mt:separate-decl (second fb-body)))
               (new-decl (first sep-body))
               (new-body (second sep-body))
               (add-decl (mt:finfo-decl mt:*current-func*)))
-         (list nil 
-               ~((,scs (,func-id c-p ,@arg-id)
+         (list nil
+               (list*
+                ~(,scs (,func-id c-p ,@arg-id)
                        (fn ,func-texp cont-f ,@arg-texp)
-                        ,@new-decl ,@add-decl ,def-nfunc ,@new-body)
-                 ;;msc-main関数なら、main関数の定義を追加
-                 ,@(when (eq ~msc-main func-id) 
-                     ~((%include "rule/multithread-main.sc"))))) ))))
-  ;; struct, union
-  ((#?(,dd[def-or-decl] (,soru[struct-or-union] ,id[identifier]) ,@sdeclist))
-   (list nil (list x)) )
-  ;; enum
-  ((#?(def (enum ,id[identifier]) ,@enum-list))
-   (list nil ~((def (enum ,id) ,@enum-list))) )
-  ;; deftype (struct)
-  ((#?(deftype ,id[identifier] struclt ,@sdecllist))
-   (list nil (list x)) )
-  ;; deftype (enum)
-  ((#?(deftype ,id[identifier] enum ,@enum-list))
-   (list nil ~((deftype ,id enum ,@enum-list))) )
-  ;; deftype
-  ((#?(deftype ,id[identifier] ,texp))
-   (list nil ~((deftype ,id ,texp))) )
-  ;; otherwise
+                       ,@new-decl ,@add-decl ,def-nfunc ,@new-body)
+                ;;msc-main関数なら、main関数の定義を追加
+                (when (eq ~msc-main func-id)
+                  (list ~(%include "rule/multithread-main.sc"))))) ))))
   (otherwise
-   (list nil (list x)) )
-  )
+   (list nil (call-next-rule))))
 
 ;;;;;;;;;;;
 
@@ -108,35 +90,27 @@
   ((#?(,@item-list))
    (let* ((bitem-rets (mapcar #'block-item item-list))
           (comb-rets (combine-each-nth bitem-rets))
-          (nest-list (apply #'append (first comb-rets)))
-          (orig-list  (apply #'append (second comb-rets))))
+          (nest-list (mappend #'first comb-rets))
+          (orig-list (mappend #'second comb-rets)))
      (list nest-list orig-list)) )
   )
 
-(defrule block-item multithread
+(defrule statement multithread
   ;; begin
   ((#?(begin ,@body))
    (let* ((fb-body (function-body body)))
      (list ~( (begin ,@(first fb-body)) )
-           ~( (begin ,@(second fb-body)) ))) )
+           ~( (begin ,@(second fb-body)) )) ))
   ;; label
   ((#?(label ,id ,stat))
    (let* ((block-item-stat (block-item stat))
           (stat-n (first block-item-stat))
           (stat-p (second block-item-stat)))
-     (list ~( (label ,id ,(car stat-n)) ,@(cdr stat-n) )
-           ~( (label ,id ,(car stat-p)) ,@(cdr stat-p) ))) )
-  ;; case
-  ((#?(case ,exp))
-   (let ((me-exp (expression exp)))
-     (list ~( (case ,(car (first me-exp))) )
-           ~( (case ,(car (second me-exp))) ))) )
-  ;; default
-  ((#?(default))
-   (list ~( (default) )
-         ~( (default) )) )
-  ;;; if文中などに現れるexpは，
-  ;;; tmp.ruleの変形により，関数呼び出しを含まないようになっている．
+     (list ~( (label ,id (begin ,@stat-n)) )
+           ~( (label ,id (begin ,@stat-p)) )) ))
+  ;; ; A conditional expression in if, switch, do-while and return
+  ;; ; need not to be transformed because it does not contain any function calls
+  ;; ; due to the "temp" transformation rule-set.
   ;; if
   ((#?(if ,exp ,stat1))
    (block-item ~(if ,exp ,stat1 () )) )
@@ -150,18 +124,20 @@
            ~( (if ,(car (second me-exp))
                   (begin ,@(second block-item-stat1))
                 (begin ,@(second block-item-stat2))) ))) )
-  ;; switch
-  ((#?(switch ,exp ,@body))
-   (let* ((fb-body (function-body body)))
-     (list ~( (switch ,exp ,@(first fb-body)) )
-           ~( (switch ,exp ,@(first fb-body)) ))) )
-  ;; do-while
-  ((#?(do-while ,exp ,@body))
-   (let ((fb-body (function-body body)))
-     (list ~( (do-while ,exp ,@(first fb-body)) )
-           ~( (do-while ,exp ,@(second fb-body)) ))) )
-  ;; goto, continue, break
-  ((#?(goto ,id) #?(continue) #?(break))
+  ;; switch, do-while
+  ((#?(switch ,exp ,@body)
+    #?(do-while ,exp ,@body))
+   (let* ((tag (car x))
+          (fb-body (function-body body)))
+     (list ~( (,tag ,exp ,@(first fb-body)) )
+           ~( (,tag ,exp ,@(second fb-body)) ))) )
+  ;; case, default, goto, continue, break, null statement
+  ((#?(case ,exp)
+    #?(default)
+    #?(goto ,id)
+    #?(continue)
+    #?(break)
+    #?() )
    (list (list x) (list x)) )
   ;; return
   ((#?(return ,@exp))
@@ -239,15 +215,9 @@
    (list (list ~(thr-resume ,exp))
          (list ~(thr-resume ,exp))) )
   ;;; マルチスレッド用プリミティブ --->
-  ;; null statement
-  ((#?() )
-   (list ~() ~()) )
-  ;; expression-statement or declaration
+  ;; expression-statement
   (otherwise
-   (let ((me-x (expression x)))
-     (if (eq '$not-expression me-x)
-         (declaration x)
-       me-x)) )
+   (expression x))
   )
 
 ;;; thread-createの最初の宣言用
@@ -276,7 +246,7 @@
    (if (or (cid-p exp-f) (eq 'csym::fn fn-tag))
        (list (list x) (list x))
      (let* ((nfunc-id (mt:finfo-nfunc-id mt:*current-func*))
-            (ln (1+ (length (mt:finfo-label mt:*current-func*))))	 
+            (ln (1+ (length (mt:finfo-label mt:*current-func*))))
             (label-l (generate-id (string+ "L" (write-to-string ln))))
             (renew-ln ~(= ln ,ln))
             (label-stat ~(label ,label-l nil))
@@ -293,7 +263,4 @@
    (list (list x) (list x)) )
   ((#?(c-exp ,@rem))
    (list (list x) (list x)) )
-  ;; 式ではない．
-  (otherwise
-   '$not-expression)
   )

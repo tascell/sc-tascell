@@ -26,8 +26,7 @@
 ;;; (implemented as an extension of sc0-to-sc0)
 ;;; cf. "sc1.rule"
 (defpackage "SC1-TO-SC0"
-  (:use "CL" "SC-MISC")
-  )
+  (:use "CL" "SC-MISC"))
 
 ;; (in-package "SC1-TO-SC0")
 

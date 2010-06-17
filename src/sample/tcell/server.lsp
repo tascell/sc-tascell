@@ -1,4 +1,4 @@
-;;; Copyright (c) 2009 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; Copyright (c) 2009-2010 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,35 +27,10 @@
 ;;; 性能評価の際は，  (push :tcell-no-transfer-log *features*)
 ;;; をして，ログ関係のコードを無視してコンパイルする．
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (unless (featurep :allegro)
-    (error "Sorry! This programs work only on Allegro Common Lisp!"))
-  (when (featurep :mswindows)
-    (setq *locale* (find-locale "japan.EUC")))
-  ;; The most debuggable (and yet reasonably fast) code, use
-  ;; (proclaim '(optimize (speed 3) (safety 1) (space 1))); (debug 3)))
-  (proclaim '(optimize (speed 3) (safety 0) (space 1)))
+(deftype gate () (type-of (mp:make-gate nil)))
+(use-package :socket)
+(use-package "MISC")
 
-  ;; compile and load external lisp modules
-  (deftype gate () (type-of (mp:make-gate nil)))
-  (use-package :socket)
-  (let ((pathname (or *compile-file-pathname* *load-pathname*)))
-    (load (compile-file-if-needed
-           (or (probe-file (make-pathname 
-                            :name "sc-misc" :type "lsp"
-                            :directory (pathname-directory pathname)))
-               "../../sc-misc.lsp")
-           :output-file "sc-misc.fasl"))
-    (use-package "MISC")
-    (load (compile-file-if-needed
-           (or (probe-file (make-pathname 
-                            :name "queue" :type "lsp"
-                            :directory (pathname-directory pathname)))))))
-  ;; Uncomment to ignore logging code
-  ;; (push :tcell-no-transfer-log *features*)
-  )
-
-
 ;;; logging, debug print
 (defvar *log-lock* (mp:make-process-lock))
 
@@ -1144,11 +1119,3 @@
                 (add-queue (cons to msg) (ts-queue sv)))))))
     ;; サーバ起動
     (start-server sv prnt)))
-
-;; 略記
-(defun ms (&rest args)
-  (apply #'make-and-start-server args))
-
-;; geroでの評価用
-(defun gs (&rest args)
-  (apply #'make-and-start-server :auto-resend-task 0 :local-host "gero00" args))
