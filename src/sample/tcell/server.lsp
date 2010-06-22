@@ -27,9 +27,15 @@
 ;;; 性能評価の際は，  (push :tcell-no-transfer-log *features*)
 ;;; をして，ログ関係のコードを無視してコンパイルする．
 
+(defpackage "TCELL-SERVER"
+  (:nicknames "TSV")
+  (:use "CL" "QUEUE" "MISC" "EXCL")
+  (:export "MAKE-AND-START-SERVER")
+  (:shadowing-import-from "QUEUE" #:empty-queue-p #:delete-queue #:find-delete-queue))
+
+(in-package "TCELL-SERVER")
+
 (deftype gate () (type-of (mp:make-gate nil)))
-(use-package :socket)
-(use-package "MISC")
 
 ;;; logging, debug print
 (defvar *log-lock* (mp:make-process-lock))
@@ -74,18 +80,18 @@
 (defparameter *transfer-log-length* 70)
 
 ;;; read-lineで読み込める長さ（許されるコマンド行の長さ）の最大
-(defconstant *max-line-length* 128)
+(defconstant +max-line-length+ 128)
 ;;; task, rslt, dataのバッファを転送するときのバッファのサイズ
 ;;; 十分大きくしないとデッドロックの原因
-(defconstant *body-buffer-size* 4096)
+(defconstant +body-buffer-size+ 4096)
 
 ;;; コマンドに続いてデータをともなうコマンド
 ;;; These constants are referred to in compile time with #. reader macros.
 (eval-when (:execute :load-toplevel :compile-toplevel)
-  (defconstant *commands* '("treq" "task" "none" "back" "rslt" "rack" "dreq" "data" "leav" "log"
+  (defparameter *commands* '("treq" "task" "none" "back" "rslt" "rack" "dreq" "data" "leav" "log"
                             "stat" "verb" "eval" "exit"))
-  (defconstant *commands-with-data* '("task" "rslt" "data"))
-  (defconstant *commands-without-data* (set-difference *commands* *commands-with-data* :test #'string=)))
+  (defparameter *commands-with-data* '("task" "rslt" "data"))
+  (defparameter *commands-without-data* (set-difference *commands* *commands-with-data* :test #'string=)))
 
 (defparameter *retry* 20)
 
@@ -208,7 +214,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Finalizers
-(defmethod finalize ((sdr sender))
+(defmethod cleanup ((sdr sender))
   (when (send-process sdr)
     (mp:process-wait-with-timeout "Wait until send queue becomes empty"
                                   5
@@ -216,7 +222,7 @@
     (mp:process-kill (send-process sdr))
     (setf (send-process sdr) nil)))
 
-(defmethod finalize ((rcvr receiver))
+(defmethod cleanup ((rcvr receiver))
   (when (receive-process rcvr)
     ;; (mp:process-wait-with-timeout "Wait until receive queue becomes empty"
     ;;                               5
@@ -224,7 +230,7 @@
     (mp:process-kill (receive-process rcvr))
     (setf (receive-process rcvr) nil)))
 
-(defmethod finalize ((sv tcell-server))
+(defmethod cleanup ((sv tcell-server))
   (when (ts-accept-connection-process sv)
     (mp:process-kill (ts-accept-connection-process sv))
     (setf (ts-accept-connection-process sv) nil))
@@ -234,19 +240,19 @@
   (when (ts-read-cmd-process sv)
     (mp:process-kill (ts-read-cmd-process sv))
     (setf (ts-read-cmd-process sv) nil))
-  (finalize (ts-parent sv))
+  (cleanup (ts-parent sv))
   (loop for chld in (ts-children sv)
-      do (finalize chld))
+      do (cleanup chld))
   (close (ts-chsock0 sv)))
 
-(defmethod finalize ((hst host))
-  (finalize (host-sender hst))
-  (finalize (host-receiver hst)))
+(defmethod cleanup ((hst host))
+  (cleanup (host-sender hst))
+  (cleanup (host-receiver hst)))
 
-(defmethod finalize :before ((hst child))
+(defmethod cleanup :before ((hst child))
   (send-exit hst))
 
-(defmethod finalize ((hst (eql nil))))
+(defmethod cleanup ((hst (eql nil))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod start-server ((sv tcell-server) (prnt parent))
@@ -257,10 +263,10 @@
         (setf (ts-parent sv) (connect-to prnt))
         ;; 子からの待ち受けポートを開く
         (setf (ts-chsock0 sv)
-          (make-socket :connect :passive
-                       :reuse-address *reuse-address*
-                       :local-host (ts-hostname sv)
-                       :local-port (ts-chport sv)))
+          (socket:make-socket :connect :passive
+                              :reuse-address *reuse-address*
+                              :local-host (ts-hostname sv)
+                              :local-port (ts-chport sv)))
         ;; 最初の子が接続してくるのを待つ
         (format *error-output* "~&Waiting for connection to ~A:~D...~%"
           (ts-hostname sv) (ts-chport sv))
@@ -277,7 +283,7 @@
         (with1 gate (ts-exit-gate sv)
           (mp:process-wait "Wait for exit command" #'mp:gate-open-p gate))
         )
-    (finalize sv)))
+    (cleanup sv)))
 
 (defmethod print-server-status ((sv tcell-server))
   (fresh-line *error-output*)
@@ -354,8 +360,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmethod connect-to ((hst host))
   (setf (host-socket hst)
-    (make-socket :remote-host (host-hostname hst)
-                 :remote-port (host-port hst)))
+    (socket:make-socket :remote-host (host-hostname hst)
+                        :remote-port (host-port hst)))
   (initialize-connection hst)
   hst)
 
@@ -433,14 +439,19 @@
     (array (format dest "#<Binary data: SIZE=~D>" (length obj)))))
 
 (defmethod make-receiver-reader ((hst host))
-  (let ((line-buffer (make-array *max-line-length*
-                                 :element-type 'standard-char :fill-pointer *max-line-length*))
-        (body-buffer (make-array *body-buffer-size* :element-type 'unsigned-byte :adjustable t))
+  (let ((line-buffer
+         #+allegro
+         (make-array +max-line-length+
+                     :element-type 'standard-char :fill-pointer +max-line-length+))
+        (body-buffer (make-array +body-buffer-size+ :element-type 'unsigned-byte :adjustable t))
         (gate (mp:make-gate t)))        ; body-buffer の使用許可
     #'(lambda (stream)
-        (setf (fill-pointer line-buffer) *max-line-length*)
-        (let* ((n-char (setf (fill-pointer line-buffer)
-                         (excl:read-line-into line-buffer stream nil 0)))
+        (setf (fill-pointer line-buffer) +max-line-length+)
+        (let* ((n-char #+allegro (setf (fill-pointer line-buffer)
+                                   (excl:read-line-into line-buffer stream nil 0))
+                       #-allegro (progn
+                                   (setq line-buffer (read-line stream nil ""))
+                                   (length line-buffer)))
                (eof-p (= 0 n-char))
                (msg (if eof-p '("leav") (split-string line-buffer))))
           (string-case-eager (car msg)
@@ -454,7 +465,7 @@
              #+comment                  ;forward-body用
              (setq msg (nconc msg (list #'(lambda (ostream)
                                             (forward-body stream ostream line-buffer body-buffer
-                                                          *max-line-length* *body-buffer-size*)
+                                                          +max-line-length+ +body-buffer-size+)
                                             (mp:open-gate gate))))))
             (#.*commands-without-data* nil)
             (otherwise (error "Unknown command ~S from ~S." msg (hostinfo hst))))
@@ -505,15 +516,21 @@
 ;;; "task", "rslt", "data" のbody部をistreamから読み込んでostreamに送る
 #+comment                               ; write-* の実行がブロックして，デッドロックの可能性
 (defun forward-body (istream ostream
-                     &optional (line-buffer (make-array *max-line-length*
-                                                        :element-type 'standard-char :fill-pointer *max-line-length*))
-                               (buffer (make-array *body-buffer-size* :element-type 'unsigned-byte))
+                     &optional (line-buffer
+                                #+allegro
+                                (make-array +max-line-length+
+                                            :element-type 'standard-char :fill-pointer +max-line-length+))
+                               (buffer (make-array +body-buffer-size+ :element-type 'unsigned-byte))
                                (line-bufsize (length line-buffer))
                                (bufsize (length buffer)))
   (loop
     (setf (fill-pointer line-buffer) line-bufsize)
-    (let* ((len (setf (fill-pointer line-buffer)
-                  (excl:read-line-into line-buffer istream nil 0))))
+    (let* ((len #+allegro (setf (fill-pointer line-buffer)
+                            (excl:read-line-into line-buffer istream nil 0))
+                #-allegro (progn
+                            (setq line-buffer (read-line stream nil ""))
+                            (length line-buffer)))
+           )
       ;; 空行で終了
       (when (= len 0) (return))
       (write-string line-buffer ostream)
@@ -523,8 +540,9 @@
       (when (char= #\( (aref line-buffer (- len 1)))
         (setf (fill-pointer line-buffer) line-bufsize)
         ;; ヘッダread: <whole-size> <elm-size> <endian(0|1)>
-        (setf (fill-pointer line-buffer)
-          (excl:read-line-into line-buffer istream nil 0))
+        #+allegro (setf (fill-pointer line-buffer)
+                    (excl:read-line-into line-buffer istream nil 0))
+        #-allegro (setq line-buffer (read-line istream nil ""))
         (let* ((whole-size (parse-integer line-buffer :junk-allowed t)))
           (write-string line-buffer ostream)
           (terpri ostream)
@@ -603,7 +621,7 @@
     (setf (ts-eldest-child sv) chld)))
 
 (defmethod remove-child ((sv tcell-server) (chld child))
-  (finalize chld)
+  (cleanup chld)
   (setf (ts-children sv) (delete chld (ts-children sv) :count 1))
   (delete-treq-any sv chld "*")
   (when (eq (ts-eldest-child sv) chld)
@@ -754,6 +772,7 @@
                  task-no #\Newline
                  task-body #\Newline)))
 (defmethod send-task :after ((to host) wsize-str rslt-head task-head task-no task-body)
+  (declare (ignore wsize-str rslt-head task-head task-no task-body))
   (setf (host-none-time to) -1))
 (defmethod send-task :after ((to child) wsize-str rslt-head task-head task-no task-body)
   (declare (ignore rslt-head task-head task-no task-body))

@@ -26,9 +26,7 @@
 ;;;                     This executes a Tascell server in batch mode.
 
 (let ((*load-verbose* nil))
-  (load (compile-file-if-needed
-         (make-pathname :name "server" :type "lsp"
-                        :directory (pathname-directory *load-pathname*)))))
+  (load "LOAD.lsp"))
 
 ;; exit command
 #+(or allegro cmu sbcl clisp)
@@ -38,8 +36,9 @@
       #+clisp #'ext::bye)
 
 ;;;
-#+(or allegro clisp)
-(let ((args (or #+allegro (cdr (sys:command-line-arguments)) #+clisp ext:*args*))
+#+(or allegro clisp sbcl)
+(let ((args (or #+allegro (cdr (sys:command-line-arguments)) #+clisp ext:*args*
+                #+sbcl (cdr (sb-ext:*posix-argv*))))
       (exit-status 1))
   (unwind-protect
       (with* (hostname "localhost"

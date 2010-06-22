@@ -1,3 +1,12 @@
+(defpackage "QUEUE"
+  (:use "CL")
+  (:export "QUEUE" "SHARED-QUEUE" "ADD-QUEUE" "EMPTY-QUEUE-P"
+           "DELETE-QUEUE" "FIND-DELETE-QUEUE"
+           "QUEUE-BODY" "SQ-LOCK" "SQ-GATE")
+  ;; sc-misc.lsp のキュー関連の関数との衝突を防ぐ
+  (:shadow #:empty-queue-p #:delete-queue #:find-delete-queue))
+(in-package "QUEUE")
+
 ;;;; queueクラスの定義
 (defclass queue ()
   ((body :accessor queue-body :type list :initform (misc:make-queue))))
@@ -8,11 +17,6 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; sc-misc.lsp のキュー関連の関数との衝突を防ぐ
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (shadow :empty-queue-p)
-  (shadow :delete-queue)
-  (shadow :find-delete-queue))
 
 ;; queueへの追加
 (defmethod add-queue (elm (q queue))

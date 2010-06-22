@@ -8,8 +8,8 @@
   (%defconstant NF-TYPE GCC))           ; one of GCC LW-SC CL-SC XCC XCCCL
 
 ;;; Use setaffinity to bind CPU cores to workers
-(%ifndef* USE-AFFINITY
-  (%defconstant USE-AFFINITY SCHED))    ; one of SCHED(for Linux), PBIND(for Solaris)
+; (%ifndef* USE-AFFINITY
+;   (%defconstant USE-AFFINITY SCHED))    ; one of SCHED(for Linux), PBIND(for Solaris)
 
 ;;; 
 

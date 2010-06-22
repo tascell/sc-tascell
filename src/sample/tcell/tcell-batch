@@ -1,31 +1,51 @@
 #!/bin/sh
-
-set -x
-
-#ALISP='/cygdrive/c/Program Files/acl81/alisp'           # path/to/alisp
-if [ $ALISP = "" ]; then
-  ALISP=/usr/local/acl81/alisp
+PORT_NUM=8888
+if [ "x$LISP" = 'x' ]; then
+    LISP=alisp
 fi
+
+while getopts o:e: opt
+do
+    case ${opt} in
+        l)
+            LISP=${OPTARG};;
+        c)
+            WORKER_CMD=${OPTARG};;
+        n)
+            NNODE=${OPTARG};;
+        i)
+            INITIAL_TASK=${OPTARG};;
+        h) 
+            HOSTNAME=${OPTARG};;
+        p)
+            PORT_NUM=${OPTARG};;
+        *)
+            echo "usage: $0 -c <worker_command> -n <n_node> -i <initial_task> -h <hostname> [-p <port_num=9999>] [-l <lisp(alisp|sbcl)>"
+            exit 1;;
+    esac
+done
+
 
 SERVER_CMDLINE="server-cmdline.lsp"
 
-if [ $# -lt 4 ]; then
-    echo "usage: $0 <worker_command> <n_node> <initial_task> <hostname> [<port_num>]"
-    exit
+if [ "x$WORKER_CMD" = 'x' ]; then
+    echo "WORKER_CMD not specified"
+    exit 1
 fi
-WORKER_CMD=$1
-NNODE=$2
-INITIAL_TASK=$3
-HOSTNAME=$4
-if [ $# -ge 5 ]; then
-    PORT_NUM=$5
-else
-    PORT_NUM=8888
+if [ "x$NNODE" = 'x' ]; then
+    echo "NNODE not specified"
+    exit 1
+fi
+if [ "x$INITIAL_TASK" = 'x' ]; then
+    echo "INITIAL_TASK not specified"
+    exit 1
+fi
+if [ "x$HOSTNAME" = 'x' ]; then
+    echo "HOSTNAME not specified"
+    exit 1
 fi
 
-set -x
-
-"$ALISP" -batch -L $SERVER_CMDLINE -- -h $HOSTNAME -p $PORT_NUM -n $NNODE -t "$INITIAL_TASK" &
+"$LISP" -batch -L $SERVER_CMDLINE -- -h $HOSTNAME -p $PORT_NUM -n $NNODE -t "$INITIAL_TASK" &
 sleep 5
 
 i=1
