@@ -45,7 +45,14 @@ if [ "x$HOSTNAME" = 'x' ]; then
     exit 1
 fi
 
-"$LISP" -batch -L $SERVER_CMDLINE -- -h $HOSTNAME -p $PORT_NUM -n $NNODE -t "$INITIAL_TASK" &
+if [ $LISP = 'alisp' ]; then
+    "$LISP" -batch -L $SERVER_CMDLINE -- -h $HOSTNAME -p $PORT_NUM -n $NNODE -t "$INITIAL_TASK" &
+elif [ $LISP = 'sbcl' ]; then
+    "$LISP" --script $SERVER_CMDLINE -h $HOSTNAME -p $PORT_NUM -n $NNODE -t "$INITIAL_TASK" &
+else
+    echo "Unknown Lisp Implementation: $LISP"
+    exit 1
+fi
 sleep 5
 
 i=1
