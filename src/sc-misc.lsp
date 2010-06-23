@@ -816,8 +816,8 @@
       collecting x into pool-f
       finally (return (list pool-t pool-f))))
 
-(setf (symbol-function 'stable-assort-bool) #'assort-bool)
-  
+(defun stable-assort-bool (&rest args)
+  (apply #'assort-bool args))
  
 ;; リストの中から与えられた基準での最高要素を見付ける
 (defun find-max (lst &key (test #'>) (key #'identity))

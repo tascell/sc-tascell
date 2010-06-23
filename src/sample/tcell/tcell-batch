@@ -1,10 +1,21 @@
 #!/bin/sh
-PORT_NUM=8888
+
+usage()
+{
+    echo "usage: $0 -c <worker_command> -n <n_node> -i <initial_task> -h <hostname> [-p <port_num=9999>] [-l <lisp(alisp|sbcl)>"
+    exit 1;
+}
+
+
+# defaults
+SERVER_CMDLINE="server-cmdline.lsp"
 if [ "x$LISP" = 'x' ]; then
     LISP=alisp
 fi
+PORT_NUM=8888
 
-while getopts o:e: opt
+# getopts
+while getopts l:c:n:i:h:p: opt
 do
     case ${opt} in
         l)
@@ -20,31 +31,31 @@ do
         p)
             PORT_NUM=${OPTARG};;
         *)
-            echo "usage: $0 -c <worker_command> -n <n_node> -i <initial_task> -h <hostname> [-p <port_num=9999>] [-l <lisp(alisp|sbcl)>"
-            exit 1;;
+            usage $@;;
     esac
 done
 
-
-SERVER_CMDLINE="server-cmdline.lsp"
-
+# check options
 if [ "x$WORKER_CMD" = 'x' ]; then
     echo "WORKER_CMD not specified"
-    exit 1
+    usage $@:;
 fi
 if [ "x$NNODE" = 'x' ]; then
     echo "NNODE not specified"
-    exit 1
+    usage $@:;
 fi
 if [ "x$INITIAL_TASK" = 'x' ]; then
     echo "INITIAL_TASK not specified"
-    exit 1
+    usage $@:;
 fi
 if [ "x$HOSTNAME" = 'x' ]; then
     echo "HOSTNAME not specified"
-    exit 1
+    usage $@:;
 fi
 
+set -x
+
+# run
 if [ $LISP = 'alisp' ]; then
     "$LISP" -batch -L $SERVER_CMDLINE -- -h $HOSTNAME -p $PORT_NUM -n $NNODE -t "$INITIAL_TASK" &
 elif [ $LISP = 'sbcl' ]; then
@@ -57,7 +68,9 @@ sleep 5
 
 i=1
 while [ $i -lt $NNODE ]; do
+    set -x
     ./tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD &
+    unset -x
     sleep 1
     i=`expr $i + 1`
 done

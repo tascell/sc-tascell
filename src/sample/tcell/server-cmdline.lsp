@@ -27,6 +27,7 @@
 
 (let ((*load-verbose* nil))
   (load "LOAD.lsp"))
+(use-package "MISC")
 
 ;; exit command
 #+(or allegro cmu sbcl clisp)
@@ -38,7 +39,7 @@
 ;;;
 #+(or allegro clisp sbcl)
 (let ((args (or #+allegro (cdr (sys:command-line-arguments)) #+clisp ext:*args*
-                #+sbcl (cdr (sb-ext:*posix-argv*))))
+                #+sbcl (cdr sb-ext:*posix-argv*)))
       (exit-status 1))
   (unwind-protect
       (with* (hostname "localhost"
@@ -73,10 +74,16 @@
         (unless initial-task
           (warn "No initial task given.")
           (bye exit-status))
-        (make-and-start-server :local-host hostname
-                               :children-port port
-                               :n-wait-children n-children
-                               :auto-initial-task initial-task
-                               :auto-exit t)
+        (print `(make-and-start-server :local-host ,hostname
+                                       :children-port ,port
+                                       :n-wait-children ,n-children
+                                       :auto-initial-task ,initial-task
+                                       :auto-exit ,t))
+        (tsv::make-and-start-server :local-host hostname
+                                    :children-port port
+                                    :n-wait-children n-children
+                                    :auto-initial-task initial-task
+                                    :auto-exit t)
         (setq exit-status 0))
+    (print exit-status)
     (bye exit-status)))
