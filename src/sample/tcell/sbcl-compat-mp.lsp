@@ -33,7 +33,7 @@
            "MAKE-PROCESS-LOCK" "WITH-PROCESS-LOCK" "PROCESS-LOCK"
            "PROCESS-RUN-FUNCTION" "PROCESS-WAIT" "PROCESS-WAIT-WITH-TIMEOUT"
            "*PROCESS-WAIT-INTERVAL*"
-           "PROCESS-KILL")
+           "PROCESS-ACTIVE-P" "PROCESS-KILL")
   (:shadow "PROCESS-WAIT"))
 
 (in-package :mp)
@@ -64,8 +64,12 @@
   (sb-ext:with-timeout timeout
     (apply #'process-wait name fn args)))
 
+(defun process-active-p (proc)
+  (sb-thread:thread-alive-p proc))
+
 (defun process-kill (proc)
-  (sb-thread:terminate-thread proc))
+  (when (sb-thread:thread-alive-p proc)
+    (sb-thread:terminate-thread proc)))
 
 ;;; Lock
 (defun make-process-lock ()

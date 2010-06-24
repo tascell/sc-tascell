@@ -32,8 +32,11 @@
 #+sbcl
 (setq sb-impl::*default-external-format* :euc-jp)
 
+;; Uncomment to ignore logging code
+(push :tcell-no-transfer-log *features*)
+
 ;; The most debuggable (and yet reasonably fast) code, use
-(proclaim '(optimize (speed 3) (safety 1) (space 1))); (debug 3)))
+(proclaim '(optimize (speed 3) (safety 3) (space 1) (debug 3)))
 ;; (proclaim '(optimize (speed 3) (safety 0) (space 1)))
 
 ;; compile and load external lisp modules
@@ -53,8 +56,6 @@
 (load (compile-file "queue.lsp"))
 (load (compile-file "server.lsp"))
 
-;; Uncomment to ignore logging code
-;; (push :tcell-no-transfer-log *features*)
 
 ;; abbreviation for make-and-start-server
 (defun ms (&rest args)

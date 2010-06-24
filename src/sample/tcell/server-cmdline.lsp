@@ -25,15 +25,18 @@
 ;;; server-cmdline.lsp: evaluated when Lisp is executed by "server-batch".
 ;;;                     This executes a Tascell server in batch mode.
 
+#+sbcl
+(declaim (sb-ext:muffle-conditions sb-ext:compiler-note))
+
 (let ((*load-verbose* nil))
   (load "LOAD.lsp"))
 (use-package "MISC")
 
 ;; exit command
-#+(or allegro cmu sbcl clisp)
+#+(or allegro sbcl clisp)
 (setf (symbol-function 'bye)
       #+allegro #'exit
-      #+(or cmu sbcl) #'quit
+      #+sbcl #'(lambda (x) (sb-ext:quit :unix-status x))
       #+clisp #'ext::bye)
 
 ;;;
@@ -85,5 +88,5 @@
                                     :auto-initial-task initial-task
                                     :auto-exit t)
         (setq exit-status 0))
-    (print exit-status)
+    (format t "Exiting Tascell Server. Exit status is ~D~%" exit-status)
     (bye exit-status)))

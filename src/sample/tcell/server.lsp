@@ -35,7 +35,9 @@
 
 (in-package "TCELL-SERVER")
 
-(deftype gate () (type-of (mp:make-gate nil)))
+(deftype tsv-stream () 
+  #+sbcl '(or stream socket::server-socket)
+  #-sbcl 'stream)
 
 ;;; logging, debug print
 (defvar *log-lock* (mp:make-process-lock))
@@ -100,9 +102,9 @@
   ((server :accessor host-server :type tcell-server :initarg :server)
    (host :accessor host-hostname :type string :initarg :host)
    (port :accessor host-port :type fixnum :initarg :port)
-   (sock :accessor host-socket :type stream :initarg :sock)
-   (sender :accessor host-sender :type sender :initform nil)
-   (receiver :accessor host-receiver :type receiver :initform nil)
+   (sock :accessor host-socket :type tsv-stream :initarg :sock)
+   (sender :accessor host-sender :type (or null sender) :initform nil)
+   (receiver :accessor host-receiver :type (or null receiver) :initform nil)
    (last-none-time :accessor host-none-time :type fixnum :initform -1)
                                         ; 最後にnoneを受け取った時刻（get-internal-real-timeで獲得）
                                         ; taskを送った相手に対してはリセットする
@@ -135,7 +137,7 @@
                                         ; auto-rack後，自動的に同じtaskを再送信する回数
    (auto-exit :accessor parent-auto-exit :type boolean :initarg :auto-exit :initform nil)
                                         ; auto-rack後，かつauto-resend-taskが尽きていたら自動でexitを送る
-   (auto-treq-response-func :accessor parent-auto-treq-response-func :type function :initform nil)
+   (auto-treq-response-func :accessor parent-auto-treq-response-func :type (or null function) :initform nil)
                                         ; treqを送ったら自動的に実行される関数
    (task-home :accessor parent-task-home :type list :initform ())
                                         ; ↑を実現するために親から送られたtaskを覚えておくリスト
@@ -161,8 +163,8 @@
           :initform (make-instance 'shared-queue) :initarg :queue)
    (writer :accessor writer :type function ; obj stream -> (write to stream)
            :initform #'write-string :initarg :writer)
-   (send-process :accessor send-process :type mp:process :initform nil)
-   (destination :accessor sender-dest :type stream :initform nil :initarg :dest)))
+   (send-process :accessor send-process :type (or null mp:process) :initform nil)
+   (destination :accessor sender-dest :type tsv-stream :initform nil :initarg :dest)))
 (defclass receiver ()
   ((queue :accessor receive-queue :type shared-queue
           :initform (make-instance 'shared-queue) :initarg :queue)
@@ -170,28 +172,28 @@
            :initform #'(lambda (strm) (aif (read-line strm nil nil) (values it nil)
                                         (values nil t)))
            :initarg :reader)
-   (receive-process :accessor receive-process :type mp:process :initform nil)
-   (source :accessor receiver-src :type stream :initform nil :initarg :src)))
+   (receive-process :accessor receive-process :type (or null mp:process) :initform nil)
+   (source :accessor receiver-src :type tsv-stream :initform nil :initarg :src)))
 
 (defclass tcell-server ()
   ((host :accessor ts-hostname :initform *server-host* :initarg :local-host)
    (message-queue :accessor ts-queue :type shared-queue
                   :initform (make-instance 'shared-queue))
-   (proc-cmd-process :accessor ts-proc-cmd-process :type mp:process :initform nil)
-   (read-cmd-process :accessor ts-read-cmd-process :type mp:process :initform nil)
+   (proc-cmd-process :accessor ts-proc-cmd-process :type (or null mp:process) :initform nil)
+   (read-cmd-process :accessor ts-read-cmd-process :type (or null mp:process) :initform nil)
    (parent :accessor ts-parent :type parent)
-   (children-port :accessor ts-chport :initform *children-port* :initarg :children-port)
-   (children-sock0 :accessor ts-chsock0 :type stream) ; 待ち受け
+   (children-port :accessor ts-chport :type fixnum :initform *children-port* :initarg :children-port)
+   (children-sock0 :accessor ts-chsock0 :type tsv-stream) ; 待ち受け
    (children :accessor ts-children :type list :initform '())
-   (eldest-child :accessor ts-eldest-child :type child :initform nil)
+   (eldest-child :accessor ts-eldest-child :type (or null child) :initform nil)
    (n-children :accessor ts-n-children :type fixnum :initform 0)
    (n-wait-children :accessor ts-n-wait-children :type fixnum :initform 0 :initarg :n-wait-children)
                                         ; この数のchildが接続するまでメッセージ処理を行わない
    (child-next-id :accessor ts-child-next-id :type fixnum :initform 0)
-   (exit-gate :accessor ts-exit-gate :type gate :initform (mp:make-gate nil))
+   (exit-gate :accessor ts-exit-gate :initform (mp:make-gate nil))
    (treq-any-list :accessor ts-talist :type list :initform '()) ;; treq-anyを出せていないリスト
    (accept-connection-process :accessor ts-accept-connection-process
-                              :type mp:process :initform nil)
+                              :type (or null mp:process) :initform nil)
    (retry :accessor ts-retry :type fixnum :initform *retry* :initarg :retry)
    ))
 
@@ -214,6 +216,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Finalizers
+(defgeneric cleanup (obj))
 (defmethod cleanup ((sdr sender))
   (when (send-process sdr)
     (mp:process-wait-with-timeout "Wait until send queue becomes empty"
@@ -255,6 +258,7 @@
 (defmethod cleanup ((hst (eql nil))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defgeneric start-server (sv prnt))
 (defmethod start-server ((sv tcell-server) (prnt parent))
   (unwind-protect
       (progn
@@ -285,6 +289,7 @@
         )
     (cleanup sv)))
 
+(defgeneric print-server-status (sv))
 (defmethod print-server-status ((sv tcell-server))
   (fresh-line *error-output*)
   (pprint (list `(parent ,(hostinfo (ts-parent sv)))
@@ -299,21 +304,25 @@
   (terpri *error-output*)
   (force-output *error-output*))
 
+(defgeneric wait-and-add-child (sv))
 (defmethod wait-and-add-child ((sv tcell-server))
   (let ((next-child (make-instance 'child :server sv)))
     (awhen (connect-from next-child (ts-chsock0 sv) :wait t)
       (add-child sv it))))
 
+(defgeneric wait-children-connections (sv))
 (defmethod wait-children-connections ((sv tcell-server))
   (mp:process-wait "Wait for connections of children."
                    #'(lambda () (<= (ts-n-wait-children sv) (ts-n-children sv)))))
 
+(defgeneric activate-accept-connection-process (sv))
 (defmethod activate-accept-connection-process ((sv tcell-server))
   (setf (ts-accept-connection-process sv)
     (mp:process-run-function "ACCEPT-CHILD-CONNECTION"
       #'(lambda () (loop (wait-and-add-child sv))))))
 
 ;;; サーバのメッセージ処理プロセスを起動
+(defgeneric activate-proc-cmd-process (sv))
 (defmethod activate-proc-cmd-process ((sv tcell-server))
   (setf (ts-proc-cmd-process sv)
     (mp:process-run-function "PROC-CMD"
@@ -330,6 +339,7 @@
       (ts-queue sv))))
 
 ;;; サーバのメッセージ読み込みプロセス起動
+(defgeneric activate-read-cmd-process (sv prnt))
 (defmethod activate-read-cmd-process ((sv tcell-server) (prnt parent))
   (setf (ts-read-cmd-process sv)
     (mp:process-run-function "READ-FROM-PARENT"
@@ -345,11 +355,13 @@
             )))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defgeneric host-name-port (hst))
 (defmethod host-name-port ((hst host))
   (string+ (host-hostname hst) ":" (write-to-string (host-port hst))))
 (defmethod host-name-port ((hst terminal-parent))
   "Terminal")
 
+(defgeneric hostinfo (hst))
 (defmethod hostinfo ((chld child))
   (string+ (host-name-port chld)
            " (child " (hostid chld) ")"))
@@ -358,6 +370,7 @@
            " (parent)"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defgeneric connect-to (hst))
 (defmethod connect-to ((hst host))
   (setf (host-socket hst)
     (socket:make-socket :remote-host (host-hostname hst)
@@ -370,6 +383,7 @@
   (initialize-connection hst)
   hst)
 
+(defgeneric connect-from (hst sock0 &key wait))
 (defmethod connect-from ((hst host) sock0 &key (wait t))
   (let ((sock (setf (host-socket hst)
                 (socket:accept-connection sock0 :wait wait))))
@@ -385,10 +399,13 @@
     (when *connection-log*
       (tcell-print-log "~&Accept connection from ~A.~%" (host-name-port hst)))))
 
+(defgeneric initialize-connection (hst))
 (defmethod initialize-connection ((hst host) &aux (sock (host-socket hst)))
   (setf (host-hostname hst) (with1 ipaddr (socket:remote-host sock)
-                              (or (socket:ipaddr-to-hostname ipaddr)
-                                  (socket:ipaddr-to-dotted ipaddr))))
+                                   (if (= ipaddr 0)
+                                       "Unknown"
+                                     (or (socket:ipaddr-to-hostname ipaddr)
+                                         (socket:ipaddr-to-dotted ipaddr)))))
   (setf (host-port hst) (socket:remote-port sock))
   hst)
 
@@ -398,11 +415,13 @@
 
 ;; make-instance -> initialize-connection -> initialize-sender/receiverなので
 ;; initialize-instanceでできない
+(defgeneric initialize-sender (hst))
 (defmethod initialize-sender ((hst host) &aux (sock (host-socket hst)))
   (setf (host-sender hst)
     (make-instance 'sender :dest sock :writer #'sender-writer))
   hst)
 
+(defgeneric initialize-receiver (hst))
 (defmethod initialize-receiver ((hst host) &aux (sock (host-socket hst)))
   (setf (host-receiver hst)
     (make-instance 'receiver
@@ -438,6 +457,7 @@
     (function (write-string "#<data body>" dest))
     (array (format dest "#<Binary data: SIZE=~D>" (length obj)))))
 
+(defgeneric make-receiver-reader (hst))
 (defmethod make-receiver-reader ((hst host))
   (let ((line-buffer
          #+allegro
@@ -446,7 +466,7 @@
         (body-buffer (make-array +body-buffer-size+ :element-type 'unsigned-byte :adjustable t))
         (gate (mp:make-gate t)))        ; body-buffer の使用許可
     #'(lambda (stream)
-        (setf (fill-pointer line-buffer) +max-line-length+)
+        #+allegro (setf (fill-pointer line-buffer) +max-line-length+)
         (let* ((n-char #+allegro (setf (fill-pointer line-buffer)
                                    (excl:read-line-into line-buffer stream nil 0))
                        #-allegro (progn
@@ -538,7 +558,7 @@
       (tcell-server-dprint "~A~%" line-buffer)
       ;; #\(でおわっていたら次の行はbyte-header，次いでbyte-data
       (when (char= #\( (aref line-buffer (- len 1)))
-        (setf (fill-pointer line-buffer) line-bufsize)
+        #+allegro (setf (fill-pointer line-buffer) line-bufsize)
         ;; ヘッダread: <whole-size> <elm-size> <endian(0|1)>
         #+allegro (setf (fill-pointer line-buffer)
                     (excl:read-line-into line-buffer istream nil 0))
@@ -585,6 +605,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; バッファ監視->送信
+(defgeneric monitor-and-send-queue (sq dest &optional writer))
 (defmethod monitor-and-send-queue ((sq shared-queue) dest
                                    &optional (writer #'write-string))
   (let ((gate (sq-gate sq)))
@@ -596,6 +617,7 @@
       (force-output dest))))
 
 ;; 受信->バッファに追加
+(defgeneric receive-and-add-to-queue (sq src &optional reader))
 (defmethod receive-and-add-to-queue ((sq shared-queue) src
                                      &optional (reader #'read-line))
   (loop
@@ -607,6 +629,7 @@
 ;;; 要素へのaccessor
 
 ;;; 子の追加・削除
+(defgeneric add-child (sv chld))
 (defmethod add-child ((sv tcell-server) (chld child))
   ;; 子の情報の初期化．senderとreceiverの起動．
   (setf (child-id chld)	(ts-child-next-id sv))
@@ -620,6 +643,7 @@
   (unless (ts-eldest-child sv)
     (setf (ts-eldest-child sv) chld)))
 
+(defgeneric remove-child (sv chld))
 (defmethod remove-child ((sv tcell-server) (chld child))
   (cleanup chld)
   (setf (ts-children sv) (delete chld (ts-children sv) :count 1))
@@ -630,12 +654,14 @@
   )
 
 ;;; (= id n) の子へのアクセス
+(defgeneric nth-child (sv n))
 (defmethod nth-child ((sv tcell-server) n)
   (find n (ts-children sv)
         :key #'(lambda (chld) (child-id chld))
         :test #'=))
 
 ;;; 一番仕事が残ってそうな子
+(defgeneric most-divisible-child (sv from))
 (defmethod most-divisible-child ((sv tcell-server) (from host))
   (with* (cur-time (get-internal-real-time)
           limit (* 0 internal-time-units-per-second)
@@ -662,15 +688,19 @@
     )
 
 ;;; 子のwork-size を更新
+(defgeneric renew-work-size (chld wsize))
 (defmethod renew-work-size ((chld child) wsize)
   (setf (child-wsize chld) wsize))
 
 ;;; treq-any-list への要素追加
 ;;; p-task-head は，"<treqのfromのid>" ":" "<treqのtask-head>" 
+(defgeneric push-treq-any0 (sv tae))
 (defmethod push-treq-any0 ((sv tcell-server) (tae ta-entry))
   (push tae (ts-talist sv)))
+(defgeneric push-treq-any1 (sv tae))
 (defmethod push-treq-any1 ((sv tcell-server) (tae ta-entry))
   (push tae (cdr (ts-talist sv))))
+(defgeneric push-treq-any (sv from p-task-head))
 (defmethod push-treq-any ((sv tcell-server) (from host) (p-task-head string))
   (let ((entry (make-instance 'ta-entry :from from :head p-task-head)))
     (if (or (eq from (ts-eldest-child sv)) ; eldest-childからのtreqは優先的に先頭
@@ -679,12 +709,14 @@
       (push-treq-any1 sv entry))))      ;  ;   ようにするため）
 
 ;;; treq-any-list のpop
+(defgeneric pop-treq-any (sv))
 (defmethod pop-treq-any ((sv tcell-server))
   (aand (pop (ts-talist sv))
         (list (tae-from it) (tae-head it))))
 
 
 ;;; treq-any-list から指定要素削除
+(defgeneric delete-treq-any (sv from p-task-head))
 (defmethod delete-treq-any ((sv tcell-server) (from host) (p-task-head string))
   (setf (ts-talist sv)
     (delete (make-instance 'ta-entry :from from :head p-task-head)
@@ -692,12 +724,14 @@
             :test #'ta-entry-match)))
 
 ;;; treq-any-list のmemberか
+(defgeneric member-treq-any (sv from p-task-head))
 (defmethod member-treq-any ((sv tcell-server) (from host) (p-task-head string))
   (member (make-instance 'ta-entry :from from :head p-task-head)
           (ts-talist sv)
           :test #'ta-entry-match))
 
 ;;; ta-entry の同一性
+(defgeneric ta-entry-match (x y))
 (defmethod ta-entry-match ((x ta-entry) (y ta-entry))
   (and (eq (tae-from x) (tae-from y))
        (or (string= "*" (tae-head x))
@@ -705,18 +739,21 @@
            (string= (tae-head x) (tae-head y)))))
 
 ;; ta-entry の情報
+(defgeneric ta-entry-info (tae))
 (defmethod ta-entry-info ((tae ta-entry))
   `((from ,(hostinfo (tae-from tae)))
     (head ,(tae-head tae))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; 相対アドレス文字列の操作
+(defgeneric hostid (host))
 (defmethod hostid ((chld child))
   (format nil "~D" (child-id chld)))
 
 (defmethod hostid ((prnt parent))
   "p")
 
+(defgeneric hostid-to-host (sv hostid))
 (defmethod hostid-to-host ((sv tcell-server) hostid)
   (cond
    ((string= "p" hostid)
@@ -726,6 +763,7 @@
 
 ;;; アドレスの先頭を切り取って，残りと切り取った先頭アドレス
 ;;; に相当するホストを返す
+(defgeneric head-shift (sv head-string))
 (defmethod head-shift ((sv tcell-server) head-string)
   (let* ((sp-head (split-string-1 head-string #\:))
          (host (hostid-to-host sv (first sp-head))))
@@ -734,6 +772,7 @@
     (list host (second sp-head))))
 
 ;;; アドレスhead-stringの先頭にhstのidを追加したものを返す
+(defgeneric head-push (hst head-string))
 (defmethod head-push ((hst host) head-string)
   (let ((sp-head (split-string-1 head-string #\:)))
     (if (string= "f" (first sp-head))   ; forward => 追加せず，f以降のアドレスを返す
@@ -742,6 +781,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; メッセージ送信
+(defgeneric send (to obj))
 (defmethod send ((to host) obj)
   (add-queue obj (send-queue (host-sender to))))
 
@@ -755,6 +795,7 @@
                        (get-internal-real-time)
                        (msg-log-string obj nil) (hostinfo to)))
 
+(defgeneric send-treq (to task-head treq-head))
 (defmethod send-treq (to task-head treq-head)
   (send to (list "treq " task-head #\Space treq-head #\Newline)))
 
@@ -764,6 +805,7 @@
     (funcall it to task-head treq-head)
     (setf (parent-auto-treq-response-func to) nil)))
 
+(defgeneric send-task (to wsize-str rslt-head task-head task-no task-body))
 (defmethod send-task (to wsize-str rslt-head task-head task-no task-body)
   (send to (list "task "
                  wsize-str #\Space
@@ -780,6 +822,7 @@
   (let ((wsize (parse-integer wsize-str)))
     (renew-work-size to (- wsize))))
 
+(defgeneric send-rslt (to rslt-head rslt-body))
 (defmethod send-rslt (to rslt-head rslt-body)
   (send to (list "rslt " rslt-head #\Newline rslt-body #\Newline)))
 
@@ -838,9 +881,11 @@
               ))
         (warn "No task-home corresponding to rslt ~S" rslt-head)))))
 
+(defgeneric send-none (to task-head))
 (defmethod send-none (to task-head)
   (send to (list "none " task-head #\Newline)))
 
+(defgeneric send-back (to task-head))
 (defmethod send-back (to task-head)
   (send to (list "back " task-head #\Newline)))
 
@@ -848,29 +893,37 @@
   (declare (ignore task-head))
   (decf (parent-diff-task-rslt to)))
 
+(defgeneric send-rack (to task-head))
 (defmethod send-rack (to task-head)
   (send to (list "rack " task-head #\Newline)))
 
+(defgeneric send-dreq (to data-head dreq-head range))
 (defmethod send-dreq (to data-head dreq-head range)
   (send to (list "dreq " data-head #\Space dreq-head #\Space range #\Newline)))
 
+(defgeneric send-data (to data-head range data-body))
 (defmethod send-data (to data-head range data-body)
   (send to (list "data " data-head #\Space range #\Newline data-body #\Newline)))
 
+(defgeneric send-leav (to))
 (defmethod send-leav (to)
   (send to (list "leav" #\Newline)))
 
+(defgeneric send-stat (to task-head))
 (defmethod send-stat (to task-head)
   (send to (list "stat " task-head #\Newline)))
 
+(defgeneric send-verb (to task-head))
 (defmethod send-verb (to task-head)
   (send to (list "verb " task-head #\Newline)))
 
+(defgeneric send-exit (to))
 (defmethod send-exit (to)
   (send to (list "exit" #\Newline)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Dispatch
+(defgeneric proc-cmd (sv from cmd))
 (defmethod proc-cmd ((sv tcell-server) (from host) cmd)
   (string-case-eager (car cmd)
     ("treq" (proc-treq sv from cmd))
@@ -890,6 +943,7 @@
     (otherwise (warn "Unknown Command:~S" cmd))))
 
 ;;; treq
+(defgeneric proc-treq (sv from cmd))
 (defmethod proc-treq ((sv tcell-server) (from host) cmd)
   (let ((p-task-head (head-push from (second cmd))) ; タスク要求者
         (treq-head (third cmd)))        ; 要求先
@@ -904,6 +958,7 @@
       ;; treqを送れなかった場合
       (refuse-treq sv from p-task-head))))
 
+(defgeneric try-send-treq-any (sv from p-task-head))
 (defmethod try-send-treq-any ((sv tcell-server) (from host) p-task-head)
   (or (awhen (most-divisible-child sv from)
         (try-send-treq sv it p-task-head "any"))
@@ -912,6 +967,7 @@
            (try-send-treq sv (ts-parent sv)
                           p-task-head "any"))))
 
+(defgeneric try-send-treq (sv to p-task-head s-treq-head))
 (defmethod try-send-treq ((sv tcell-server) (to host) p-task-head s-treq-head)
   (send-treq to p-task-head s-treq-head)
   t)
@@ -930,12 +986,14 @@
       (call-next-method)
     nil))
 
+(defgeneric refuse-treq (sv from p-task-head))
 (defmethod refuse-treq ((sv tcell-server) (from host) p-task-head)
   (if (member-treq-any sv from p-task-head)
       (send-none from (second (head-shift sv p-task-head)))
     (push-treq-any sv from p-task-head)))
 
 ;; treq-any-listにある要素を tryしなおす
+(defgeneric retry-treq (sv))
 (defmethod retry-treq ((sv tcell-server))
   (loop
       for n-sent upfrom 0
@@ -948,6 +1006,7 @@
       finally (return n-sent)))
 
 ;;; task
+(defgeneric proc-task (sv from cmd))
 (defmethod proc-task ((sv tcell-server) (from host) cmd)
   (destructuring-bind (to s-task-head)
       (head-shift sv (fourth cmd))      ; タスク送信先
@@ -981,6 +1040,7 @@
         (setf (task-home-start-time th-entry) (get-internal-real-time))))))
 
 ;;; none
+(defgeneric proc-none (sv from cmd))
 (defmethod proc-none ((sv tcell-server) (from host) cmd)
   (destructuring-bind (to s-task-head)
       (head-shift sv (second cmd))      ; none送信先
@@ -992,6 +1052,7 @@
   (setf (host-none-time from) (get-internal-real-time)))
 
 ;;; back
+(defgeneric proc-back (sv from cmd))
 (defmethod proc-back ((sv tcell-server) (from host) cmd)
   (destructuring-bind (to s-task-head)
       (head-shift sv (second cmd))      ; back送信先
@@ -1003,6 +1064,7 @@
     (warn "~S: diff-task-rslt less than 0!" (hostinfo from))))
 
 ;;; rslt
+(defgeneric proc-rslt (sv from cmd))
 (defmethod proc-rslt ((sv tcell-server) (from host) cmd)
   (destructuring-bind (to s-rslt-head)
       (head-shift sv (second cmd))      ; rslt送信先
@@ -1015,12 +1077,14 @@
     (warn "~S: diff-task-rslt less than 0!" (hostinfo from))))
 
 ;;; rack
+(defgeneric proc-rack (sv from cmd))
 (defmethod proc-rack ((sv tcell-server) (from host) cmd)
   (destructuring-bind (to s-task-head)
       (head-shift sv (second cmd))      ; rack送信先
     (send-rack to s-task-head)))
 
 ;;; dreq
+(defgeneric proc-dreq (sv from cmd))
 (defmethod proc-dreq ((sv tcell-server) (from host) cmd)
   (let ((p-data-head (head-push from (second cmd))) ; データ要求者
         (range (fourth cmd)))           ; データ要求範囲
@@ -1029,6 +1093,7 @@
       (send-dreq hst0 p-data-head s-dreq-head range))))
 
 ;;; data
+(defgeneric proc-data (sv from cmd))
 (defmethod proc-data ((sv tcell-server) (from host) cmd)
   (destructuring-bind (to s-data-head)  ; data送信先
       (head-shift sv (second cmd))
@@ -1038,6 +1103,7 @@
 
 ;;; leav
 ;; 子から→登録を外す．親から→無視
+(defgeneric proc-leav (sv from cmd))
 (defmethod proc-leav ((sv tcell-server) (from child) cmd)
   (declare (ignore cmd))
   (remove-child sv from))
@@ -1047,6 +1113,7 @@
   )
 
 ;;; stat: サーバ／ワーカの状態を出力
+(defgeneric proc-stat (sv from cmd))
 (defmethod proc-stat ((sv tcell-server) (from host) cmd)
   (if (cdr cmd)
       ;; 引数を与えた場合はそこにstatコマンドを転送
@@ -1058,12 +1125,14 @@
 
 ;;; verb: ワーカのverbose-levelを変更
 ;;; "verb <送信先>:<level>" で．
+(defgeneric proc-verb (sv from cmd))
 (defmethod proc-verb ((sv tcell-server) (from host) cmd)
   (destructuring-bind (to s-task-head)
       (head-shift sv (second cmd))      ; verb送信先
     (send-verb to s-task-head)))
 
 ;;; log: サーバのverbose-levelを設定
+(defgeneric proc-log (sv from cmd))
 (defmethod proc-log ((sv tcell-server) (from host) cmd)
   (loop
       for str in (cdr cmd)
@@ -1073,10 +1142,12 @@
   (show-log-mode))
 
 ;;; exit: サーバを終了
+(defgeneric proc-exit (sv from cmd))
 (defmethod proc-exit ((sv tcell-server) (from host) cmd)
   (declare (ignore cmd))
   (mp:open-gate (ts-exit-gate sv)))
 
+;;; logging related functions
 (defun toggle-transfer-log (mode)
   (setq *transfer-log* (not (not mode))))
 

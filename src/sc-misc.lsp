@@ -434,7 +434,7 @@
 
 ;;; リスト内の文字列を結合
 (defun strcat (string-list &optional (inter "") (prev "") (post ""))
-  (declare (list string-list) (simple-string inter prev post))
+  (declare (list string-list))
   (apply #'string+
          (separate-list string-list inter prev post)))
 

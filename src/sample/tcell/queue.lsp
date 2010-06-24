@@ -13,12 +13,13 @@
 
 (defclass shared-queue (queue)
   ((lock :accessor sq-lock :type mp:process-lock :initform (mp:make-process-lock))
-   (gate :accessor sq-gate :type gate :initform (mp:make-gate nil)))) ; to notify addition
+   (gate :accessor sq-gate :initform (mp:make-gate nil)))) ; to notify addition
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; queueへの追加
+(defgeneric add-queue (elm q))
 (defmethod add-queue (elm (q queue))
   (misc:insert-queue elm (queue-body q)))
 
@@ -29,10 +30,12 @@
       (mp:open-gate (sq-gate sq)))))
 
 ;; 空queue
+(defgeneric empty-queue-p (q))
 (defmethod empty-queue-p ((q queue))
   (misc:empty-queue-p (queue-body q)))
 
 ;; queueから取り出し
+(defgeneric delete-queue (q))
 (defmethod delete-queue ((q queue))
   (misc:delete-queue (queue-body q)))
 
@@ -43,6 +46,7 @@
         (mp:close-gate (sq-gate sq))))))
 
 ;; queueから検索して取り出し
+(defgeneric find-delete-queue (q test &key key))
 (defmethod find-delete-queue ((q queue) test &key (key #'identity))
   (misc:find-delete-queue (queue-body q) test :key key))
 
