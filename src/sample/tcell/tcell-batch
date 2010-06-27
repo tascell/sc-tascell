@@ -2,8 +2,8 @@
 
 usage()
 {
-    echo "usage: $0 -c <worker_command> -n <n_node> -i <initial_task> -h <hostname> [-p <port_num=9999>] [-l <lisp(alisp|sbcl)> [-w]"
-    echo "(example: $0 -c ./fib-lw -n 2 -i \"1 44\" -h localhost -p 8888 -l sbcl -w)"
+    echo "usage: $0 -c <worker_command> -n <n_node> -i <initial_task> -h <hostname> [-p <port_num=9999>] [-l <lisp(alisp|sbcl)>"
+    echo "(example: $0 -c ./fib-lw -n 2 -i \"1 44\" -h localhost -p 8888 -l sbcl)"
     exit 1;
 }
 
@@ -14,10 +14,9 @@ if [ "x$LISP" = 'x' ]; then
     LISP=alisp
 fi
 PORT_NUM=8888
-RUN_WORKERS=0
 
 # getopts
-while getopts l:c:n:i:h:p:w opt
+while getopts l:c:n:i:h:p: opt
 do
     case ${opt} in
         l)
@@ -32,18 +31,12 @@ do
             HOSTNAME=${OPTARG};;
         p)
             PORT_NUM=${OPTARG};;
-        w)
-            RUN_WORKERS=1;;
         *)
             usage $@;;
     esac
 done
 
 # check options
-if [ "x$WORKER_CMD" = 'x' ]; then
-    echo "WORKER_CMD not specified"
-    usage $@:;
-fi
 if [ "x$NNODE" = 'x' ]; then
     echo "NNODE not specified"
     usage $@:;
@@ -69,8 +62,8 @@ else
     exit 1
 fi
 
-if [ RUN_WORKERS = 1 ]; then
-    sleep 5
+if [ "x$WORKER_CMD" != 'x' ]; then
+    sleep 10
     i=1
     set -x
     while [ $i -lt $NNODE ]; do
