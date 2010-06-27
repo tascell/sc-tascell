@@ -47,14 +47,14 @@
   (unwind-protect
       (with* (hostname "localhost"
               port 8888
-              n-children 1
+              n-wait-children 1
               initial-task nil)
         (do* ((rest args (cdr rest))
               (hd (car rest) (car rest)))
             ((endp rest))
           (case (string-ref hd 0)
             ((#\-)
-             (pop rest)
+             (setq rest (cdr rest))
              (unless rest
                (format *error-output* "~&Insufficient number of arguments: ~S~%" args)
                (bye exit-status))
@@ -64,8 +64,8 @@
                   (setq hostname parm))
                  ((#\p)                 ; port number
                   (setq port (parse-integer parm)))
-                 ((#\n)                 ; # of children
-                  (setq n-children (parse-integer parm)))
+                 ((#\w)                 ; # of children
+                  (setq n-wait-children (parse-integer parm)))
                  ((#\t)                 ; initial task
                   (setq initial-task parm))
                  (otherwise
@@ -79,12 +79,13 @@
           (bye exit-status))
         (print `(make-and-start-server :local-host ,hostname
                                        :children-port ,port
-                                       :n-wait-children ,n-children
+                                       :n-wait-children ,n-wait-children
                                        :auto-initial-task ,initial-task
                                        :auto-exit ,t))
+        (force-output)
         (tsv::make-and-start-server :local-host hostname
                                     :children-port port
-                                    :n-wait-children n-children
+                                    :n-wait-children n-wait-children
                                     :auto-initial-task initial-task
                                     :auto-exit t)
         (setq exit-status 0))

@@ -2,67 +2,87 @@
 
 usage()
 {
-    echo "usage: $0 -c <worker_command> -n <n_node> -i <initial_task> -h <hostname> [-p <port_num=9999>] [-l <lisp(alisp|sbcl)>"
-    echo "(example: $0 -c ./fib-lw -n 2 -i \"1 44\" -h localhost -p 8888 -l sbcl)"
+    echo "usage: $0 [[-n <n_autorun_workers>] -c <worker_command>] [-w <n_wait_node>] -i <initial_task> [-h <hostname>] [-p <port_num>] [-l <alisp or sbcl>]"
+    echo "(example: $0 -n 2 -c ./fib-lw -i \"1 44\" -h localhost -p 8888 -l sbcl)"
+    echo "Defaults:"
+    echo "  -n: 1 (if '-c' is given)"
+    echo "  -c: Must be specified when '-n' is given"
+    echo "  -w: 1 if '-c' is not given, ='-n' if '-c' is given"
+    echo "  -i: Must be given by cmdline"
+    echo "  -h: The result of hostname command"
+    echo "  -p: 8888"
+    echo "  -l: alisp"
     exit 1;
 }
 
 
 # defaults
 SERVER_CMDLINE="server-cmdline.lsp"
-if [ "x$LISP" = 'x' ]; then
-    LISP=alisp
-fi
 PORT_NUM=8888
+LISP=alisp
 
 # getopts
-while getopts l:c:n:i:h:p: opt
+while getopts l:c:n:w:i:h:p: opt
 do
     case ${opt} in
-        l)
-            LISP=${OPTARG};;
-        c)
-            WORKER_CMD=${OPTARG};;
         n)
             NNODE=${OPTARG};;
+        c)
+            WORKER_CMD=${OPTARG};;
+        w)
+            N_WAIT_NODE=${OPTARG};;
         i)
             INITIAL_TASK=${OPTARG};;
         h) 
             HOSTNAME=${OPTARG};;
         p)
             PORT_NUM=${OPTARG};;
+        l)
+            LISP=${OPTARG};;
         *)
+            echo "Unknown command line option: ${opt}"
             usage $@;;
     esac
 done
 
-# check options
+# Check options and set defaults if necessary
 if [ "x$NNODE" = 'x' ]; then
-    echo "NNODE not specified"
-    usage $@:;
+    NNODE=0
+else
+    if [ "x$WORKER_CMD" = 'x']; then
+        echo "WORKER_CMD must be specified when -n is given"
+        usage $@
+    fi
+fi
+if [ "x$N_WAIT_NODE" = 'x' ]; then
+    if [ $NNODE = 0 ]; then
+        N_WAIT_NODE=1
+    else
+        N_WAIT_NODE=$NNODE
+    fi
 fi
 if [ "x$INITIAL_TASK" = 'x' ]; then
     echo "INITIAL_TASK not specified"
-    usage $@:;
+    usage $@
 fi
 if [ "x$HOSTNAME" = 'x' ]; then
-    echo "HOSTNAME not specified"
-    usage $@:;
+    HOSTNAME=`hostname`
+    echo "-h is not given. Use $HOSTNAME"
 fi
 
 set -x
 
 # run
 if [ $LISP = 'alisp' ]; then
-    "$LISP" -batch -L $SERVER_CMDLINE -- -h $HOSTNAME -p $PORT_NUM -n $NNODE -t "$INITIAL_TASK" &
+    "$LISP" -batch -L $SERVER_CMDLINE -- -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE -t "$INITIAL_TASK" &
 elif [ $LISP = 'sbcl' ]; then
-    "$LISP" --script $SERVER_CMDLINE -h $HOSTNAME -p $PORT_NUM -n $NNODE -t "$INITIAL_TASK" &
+    "$LISP" --script $SERVER_CMDLINE -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE -t "$INITIAL_TASK" &
 else
     echo "Unknown Lisp Implementation: $LISP"
     exit 1
 fi
 
-if [ "x$WORKER_CMD" != 'x' ]; then
+if [ $NNODE -gt 0 ]; then
     sleep 10
     i=1
     set -x

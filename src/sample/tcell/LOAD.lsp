@@ -39,23 +39,32 @@
 (proclaim '(optimize (speed 3) (safety 3) (space 1) (debug 3)))
 ;; (proclaim '(optimize (speed 3) (safety 0) (space 1)))
 
+#+sbcl
+(defun compile-file-if-needed (x &rest compile-file-args)
+  (let ((fasl (apply #'compile-file-pathname x compile-file-args)))
+    (if (and (probe-file fasl)
+             (> (file-write-date fasl) (file-write-date x)))
+        fasl
+      (apply #'compile-file x compile-file-args))))
+
 ;; compile and load external lisp modules
-(load (compile-file (or (probe-file "sc-misc.lsp") "../../sc-misc.lsp")
-                    :output-file "sc-misc.fasl"))
+(load (compile-file-if-needed (or (probe-file "sc-misc.lsp") "../../sc-misc.lsp")
+                              :output-file "sc-misc.fasl"))
+
 #+sbcl
 (progn
   (require :sb-bsd-sockets)
   (require :sb-posix)
-  (load (compile-file "sbcl-compat-mp.lsp"))
-  (load (compile-file "packages.lisp"))
-  (load (compile-file "acl-excl.lisp"))
-  (load (compile-file "lw-buffering.lisp"))
-  (load (compile-file "chunked-stream-mixin.lisp"))
-  (load (compile-file "acl-socket.lisp")))
+  (dolist (f '("sbcl-compat-mp.lsp"
+               "packages.lisp"
+               "acl-excl.lisp"
+               "lw-buffering.lisp"
+               "chunked-stream-mixin.lisp"
+               "acl-socket.lisp"))
+    (load (compile-file-if-needed f))))
 
-(load (compile-file "queue.lsp"))
-(load (compile-file "server.lsp"))
-
+(load (compile-file-if-needed "queue.lsp"))
+(load (compile-file-if-needed "server.lsp"))
 
 ;; abbreviation for make-and-start-server
 (defun ms (&rest args)
