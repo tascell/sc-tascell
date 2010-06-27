@@ -2,16 +2,20 @@
 
 usage()
 {
-    echo "usage: $0 [[-n <n_autorun_workers>] -c <worker_command>] [-w <n_wait_node>] -i <initial_task> [-h <hostname>] [-p <port_num>] [-l <alisp or sbcl>]"
-    echo "(example: $0 -n 2 -c ./fib-lw -i \"1 44\" -h localhost -p 8888 -l sbcl)"
+    echo "usage: $0 [[-n <n_autorun_workers>] -c <worker_command>] [-w <n_wait_node>] -i <initial_task> -s <server_hostname> [-h <hostname>] [-p <port_num>] [-g <start_host>] [-l <alisp or sbcl>]"
     echo "Defaults:"
     echo "  -n: 1 (if '-c' is given)"
     echo "  -c: Must be specified when '-n' is given"
     echo "  -w: 1 if '-c' is not given, ='-n' if '-c' is given"
-    echo "  -i: Must be given by cmdline"
+    echo "  -i,-s: Either must be given by cmdline"
     echo "  -h: The result of hostname command"
     echo "  -p: 8888"
+    echo "  -g: If specified, use 'gxpc e' to invoke workers"
+    echo "      (cf. http://www.logos.ic.i.u-tokyo.ac.jp/gxp/index.php)"
+    echo "      Add the directories of the worker command and tcpcon to PATH"
     echo "  -l: alisp"
+    echo "Example:"
+    echo "  $0 -n 2 -c ./fib-lw -i \"1 44\" -h localhost -p 8888 -l sbcl -g node200)"
     exit 1;
 }
 
@@ -22,7 +26,7 @@ PORT_NUM=8888
 LISP=alisp
 
 # getopts
-while getopts l:c:n:w:i:h:p: opt
+while getopts n:c:w:i:s:h:p:g:l: opt
 do
     case ${opt} in
         n)
@@ -33,10 +37,14 @@ do
             N_WAIT_NODE=${OPTARG};;
         i)
             INITIAL_TASK=${OPTARG};;
+        s)
+            SERVER=${OPTARG};;
         h) 
             HOSTNAME=${OPTARG};;
         p)
             PORT_NUM=${OPTARG};;
+        g)
+            GXP_START_HOST=${OPTARG};;
         l)
             LISP=${OPTARG};;
         *)
@@ -49,8 +57,8 @@ done
 if [ "x$NNODE" = 'x' ]; then
     NNODE=0
 else
-    if [ "x$WORKER_CMD" = 'x']; then
-        echo "WORKER_CMD must be specified when -n is given"
+    if [ "x$WORKER_CMD" = 'x' ]; then
+        echo "WORKER_CMD (-c) must be specified when -n is given"
         usage $@
     fi
 fi
@@ -61,9 +69,17 @@ if [ "x$N_WAIT_NODE" = 'x' ]; then
         N_WAIT_NODE=$NNODE
     fi
 fi
-if [ "x$INITIAL_TASK" = 'x' ]; then
-    echo "INITIAL_TASK not specified"
+if [ "x$INITIAL_TASK" = 'x' -a "x$SERVER" = 'x' ]; then
+    echo "Neither INITIAL_TASK (-i) nor SERVER (-s) is specified"
     usage $@
+fi
+if [ "x$INITIAL_TASK" != 'x' ]; then
+    PARENT_OPT='-i'
+    PARENT_OPT_ARG=$INITIAL_TASK
+fi
+if [ "x$SERVER" != 'x' ]; then
+    PARENT_OPT='-s'
+    PARENT_OPT_ARG=$SERVER
 fi
 if [ "x$HOSTNAME" = 'x' ]; then
     HOSTNAME=`hostname`
@@ -74,23 +90,28 @@ set -x
 
 # run
 if [ $LISP = 'alisp' ]; then
-    "$LISP" -batch -L $SERVER_CMDLINE -- -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE -t "$INITIAL_TASK" &
+    "$LISP" -batch -L $SERVER_CMDLINE -- -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE $PARENT_OPT "$PARENT_OPT_ARG" &
 elif [ $LISP = 'sbcl' ]; then
-    "$LISP" --script $SERVER_CMDLINE -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE -t "$INITIAL_TASK" &
+    "$LISP" --script $SERVER_CMDLINE -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE $PARENT_OPT "$PARENT_OPT_ARG" &
 else
     echo "Unknown Lisp Implementation: $LISP"
     exit 1
 fi
 
 if [ $NNODE -gt 0 ]; then
-    sleep 10
-    i=1
-    set -x
-    while [ $i -lt $NNODE ]; do
-        ./tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD &
-        sleep 1
-        i=`expr $i + 1`
-    done
-    # ./tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD
-    $WORKER_CMD -s $HOSTNAME -p $PORT_NUM
+    sleep 5
+    if [ "x$GXP_START_HOST" = 'x' ]; then
+        i=1
+        set -x
+        while [ $i -lt $NNODE ]; do
+            ./tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD &
+            sleep 1
+            i=`expr $i + 1`
+        done
+        # ./tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD
+        $WORKER_CMD -s $HOSTNAME -p $PORT_NUM
+    else
+        HOSTS=`mk-hostnames.pl $GXP_START_HOST $NNODE`
+        gxpc e -h $HOSTS tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD
+    fi
 fi

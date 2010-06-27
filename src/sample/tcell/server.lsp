@@ -401,12 +401,14 @@
 
 (defgeneric initialize-connection (hst))
 (defmethod initialize-connection ((hst host) &aux (sock (host-socket hst)))
-  (setf (host-hostname hst) (with1 ipaddr (socket:remote-host sock)
+  (setf (host-hostname hst) (with1 ipaddr (or #-sbcl (socket:remote-host sock)
+                                              #+sbcl 0)
                                    (if (= ipaddr 0)
                                        "Unknown"
                                      (or (socket:ipaddr-to-hostname ipaddr)
                                          (socket:ipaddr-to-dotted ipaddr)))))
-  (setf (host-port hst) (socket:remote-port sock))
+  (setf (host-port hst) (or #-sbcl (socket:remote-port sock)
+                            #+sbcl 0))
   hst)
 
 (defmethod initialize-connection ((hst terminal-parent))
@@ -1176,10 +1178,10 @@
                                         ; （param間の改行や最後の改行および空行不要）
                               (auto-resend-task 0) ; for terminal-parent
                               (auto-exit nil) ; for terminal parent
-                              (parent-host *parent-host* ph-given)
+                              (parent-host *parent-host*)
                               (parent-port *parent-port*)
                               )
-  (when ph-given (setq terminal-parent nil))
+  (when parent-host (setq terminal-parent nil))
   (let* ((sv (make-instance 'tcell-server
                :local-host local-host
                :children-port children-port

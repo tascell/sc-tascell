@@ -48,7 +48,8 @@
       (with* (hostname "localhost"
               port 8888
               n-wait-children 1
-              initial-task nil)
+              initial-task nil
+              server nil)
         (do* ((rest args (cdr rest))
               (hd (car rest) (car rest)))
             ((endp rest))
@@ -66,27 +67,33 @@
                   (setq port (parse-integer parm)))
                  ((#\w)                 ; # of children
                   (setq n-wait-children (parse-integer parm)))
-                 ((#\t)                 ; initial task
+                 ((#\i)                 ; initial task
                   (setq initial-task parm))
+                 ((#\s)                 ; server
+                  (setq server parm))
                  (otherwise
                   (format *error-output* "~&Unknown option: ~S~%" hd)
                   (bye exit-status)))))
             (otherwise
              (format *error-output* "~&Unknown option: ~S~%" hd)
              (bye exit-status))))
-        (unless initial-task
-          (warn "No initial task given.")
+        (unless (or initial-task server)
+          (warn "Neither initial task (-i option) nor parent server (-s) given.")
           (bye exit-status))
         (print `(make-and-start-server :local-host ,hostname
                                        :children-port ,port
                                        :n-wait-children ,n-wait-children
                                        :auto-initial-task ,initial-task
+                                       :parent-host ,server
+                                       :parent-port ,port
                                        :auto-exit ,t))
         (force-output)
         (tsv::make-and-start-server :local-host hostname
                                     :children-port port
                                     :n-wait-children n-wait-children
                                     :auto-initial-task initial-task
+                                    :parent-host server
+                                    :parent-port port
                                     :auto-exit t)
         (setq exit-status 0))
     (format t "Exiting Tascell Server. Exit status is ~D~%" exit-status)
