@@ -1,11 +1,9 @@
 #!/bin/sh
 
-
-
 usage()
 {
-    echo "usage: $0 -c <worker_command> -n <n_node> -i <initial_task> -h <hostname> [-p <port_num=9999>] [-l <lisp(alisp|sbcl)>"
-    echo "(example: $0 -c ./fib-lw -n 2 -i \"1 44\" -h localhost -p 8888 -l sbcl)"
+    echo "usage: $0 -c <worker_command> -n <n_node> -i <initial_task> -h <hostname> [-p <port_num=9999>] [-l <lisp(alisp|sbcl)> [-w]"
+    echo "(example: $0 -c ./fib-lw -n 2 -i \"1 44\" -h localhost -p 8888 -l sbcl -w)"
     exit 1;
 }
 
@@ -16,9 +14,10 @@ if [ "x$LISP" = 'x' ]; then
     LISP=alisp
 fi
 PORT_NUM=8888
+RUN_WORKERS=0
 
 # getopts
-while getopts l:c:n:i:h:p: opt
+while getopts l:c:n:i:h:p:w opt
 do
     case ${opt} in
         l)
@@ -33,6 +32,8 @@ do
             HOSTNAME=${OPTARG};;
         p)
             PORT_NUM=${OPTARG};;
+        w)
+            RUN_WORKERS=1;;
         *)
             usage $@;;
     esac
@@ -67,16 +68,16 @@ else
     echo "Unknown Lisp Implementation: $LISP"
     exit 1
 fi
-sleep 5
 
-i=1
-set -x
-while [ $i -lt $NNODE ]; do
-    ./tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD &
-    sleep 1
-    i=`expr $i + 1`
-done
-# ./tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD
-$WORKER_CMD -s $HOSTNAME -p $PORT_NUM
-
-
+if [ RUN_WORKERS = 1 ]; then
+    sleep 5
+    i=1
+    set -x
+    while [ $i -lt $NNODE ]; do
+        ./tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD &
+        sleep 1
+        i=`expr $i + 1`
+    done
+    # ./tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD
+    $WORKER_CMD -s $HOSTNAME -p $PORT_NUM
+fi
