@@ -1,22 +1,26 @@
-#!/bin/sh
+#!/bin/bash
 
 usage()
 {
-    echo "usage: $0 [[-n <n_autorun_workers>] -c <worker_command>] [-w <n_wait_node>] -i <initial_task> -s <server_hostname> [-h <hostname>] [-p <port_num>] [-g <start_host>] [-l <alisp or sbcl>] [-C]"
+    echo "usage: $0 [[-n <n_autorun_workers>] -c <worker_command>] [-w <n_wait_node>] -i <initial_task> -s <server_hostname> [-h <hostname>] [-p <port_num>] [-g <start_hostname>] [-e <# child servers>] [-E <child-server-list-file>] [-l <alisp or sbcl>] [-C]"
     echo "Defaults:"
     echo "  -n: 1 (if '-c' is given)"
     echo "  -c: Must be specified when '-n' is given"
-    echo "  -w: 1 if '-c' is not given, ='-n' if '-c' is given"
+    echo "  -w: 1 if '-c' is not given, =<-n>+<-e> if '-c' is given"
     echo "  -i,-s: Either must be given by cmdline"
     echo "  -h: The result of hostname command"
     echo "  -p: 9865"
     echo "  -g: If specified, use 'gxpc e' to invoke workers"
     echo "      (cf. http://www.logos.ic.i.u-tokyo.ac.jp/gxp/index.php)"
     echo "      Add the directories of the worker command and tcpcon to PATH"
+    echo "  -e: 0"
+    echo "  -E: \"child-servers\""
     echo "  -l: alisp"
     echo "  -C: Force compile lisp files when specified"
     echo "Example:"
-    echo "  $0 -n 2 -c ./fib-lw -i \"1 44\" -h localhost -p 9865 -l sbcl -g node200)"
+    echo "  $0 -n 2 -c ./fib-lw -i \"1 44\" -h localhost -p 9865 -l sbcl -g node200"
+    echo "  $0 -n 8 -c 'fib-lw -n8' -i \"1 50\" -h chiba200.intrigger.nii.ac.jp -g chiba200 -e 1 -l sbcl"
+    echo "  (Child server nodes must be ready for 'gxpc e' command.)"
     exit 1;
 }
 
@@ -25,9 +29,11 @@ usage()
 SERVER_CMDLINE="server-cmdline.lsp"
 PORT_NUM=9865
 LISP=alisp
+N_EXTERNAL_SITES=0
+EXTERNAL_SITE_FILE="child-servers"
 
 # getopts
-while getopts n:c:w:i:s:h:p:g:l:C opt
+while getopts n:c:w:i:s:h:p:g:e:E:l:C opt
 do
     case ${opt} in
         n)
@@ -46,6 +52,10 @@ do
             PORT_NUM=${OPTARG};;
         g)
             GXP_START_HOST=${OPTARG};;
+        e)
+            N_EXTERNAL_SITES=${OPTARG};;
+        E)
+            EXTERNAL_SITE_FILE=${OPTARG};;
         l)
             LISP=${OPTARG};;
         C)
@@ -69,7 +79,13 @@ if [ "x$N_WAIT_NODE" = 'x' ]; then
     if [ $NNODE = 0 ]; then
         N_WAIT_NODE=1
     else
-        N_WAIT_NODE=$NNODE
+        N_WAIT_NODE=$(($NNODE+$N_EXTERNAL_SITES))
+    fi
+fi
+if [ $N_EXTERNAL_SITES -gt 0 ]; then
+    if [ ! -f $EXTERNAL_SITE_FILE ]; then
+        echo "Child-server-list-file does not exist: $EXTERNAL_SITE_FILE"
+        exit 1
     fi
 fi
 if [ "x$INITIAL_TASK" = 'x' -a "x$SERVER" = 'x' ]; then
@@ -91,7 +107,7 @@ fi
 
 set -x
 
-# run
+# run server
 if [ $LISP = 'alisp' ]; then
     "$LISP" -batch -L $SERVER_CMDLINE -- -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE $PARENT_OPT "$PARENT_OPT_ARG" $FORCE_COMPILE &
 elif [ $LISP = 'sbcl' ]; then
@@ -101,18 +117,29 @@ else
     exit 1
 fi
 
+# run child servers
+if [ $N_EXTERNAL_SITES -gt 0 -a $NNODE -gt 0 ]; then
+    sleep 5
+    grep -v '^#' $EXTERNAL_SITE_FILE | head -n $N_EXTERNAL_SITES | while read line; do
+        LOGINID=`echo $line | awk '{ print $1 }'`
+        SITE=`echo $line | awk '{ print $2 }'`
+        START=`echo $line | awk '{ print $3 }'`
+        ssh -l $LOGINID -f $SITE "cd $PWD; tcell-batch -n $NNODE -c \"$WORKER_CMD\" -s $HOSTNAME -p $PORT_NUM -g $START -l $LISP $FORCE_COMPILE"
+    done
+fi
+
+# run worker processes
 if [ $NNODE -gt 0 ]; then
     sleep 5
     if [ "x$GXP_START_HOST" = 'x' ]; then
         i=1
-        set -x
         while [ $i -lt $NNODE ]; do
-            ./tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD &
+            tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD &
             sleep 1
             i=`expr $i + 1`
         done
         # ./tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD
-        $WORKER_CMD -s $HOSTNAME -p $PORT_NUM
+        tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD
     else
         HOSTS=`mk-hostnames.pl $GXP_START_HOST $NNODE`
         gxpc e -h $HOSTS tcpcon $HOSTNAME $PORT_NUM $WORKER_CMD
