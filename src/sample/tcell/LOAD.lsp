@@ -26,6 +26,8 @@
     #+sbcl    t
     (error "Sorry! This programs work only on Allegro Common Lisp or SBCL!"))
 
+(defvar *force-compile* nil)
+
 #+mswindows
 (setq *locale* (find-locale "japan.EUC"))
 
@@ -40,16 +42,28 @@
 ;; (proclaim '(optimize (speed 3) (safety 0) (space 1)))
 
 #+sbcl
-(defun compile-file-if-needed (x &rest compile-file-args)
+(defun compile-file-if-needed (x &rest compile-file-args &key force-compile &allow-other-keys)
+  (let ((flag t) (temp nil))
+    (dolist (e compile-file-args)
+      (cond
+       ((eq e :force-compile)
+        (setq flag nil))
+       ((not flag)
+        (setq flag t))
+       (t
+        (push e temp))))
+    (setq compile-file-args (nreverse temp)))
   (let ((fasl (apply #'compile-file-pathname x compile-file-args)))
-    (if (and (probe-file fasl)
-             (> (file-write-date fasl) (file-write-date x)))
+    (if (and (not force-compile)
+             (and (probe-file fasl)
+                  (> (file-write-date fasl) (file-write-date x))))
         fasl
       (apply #'compile-file x compile-file-args))))
 
 ;; compile and load external lisp modules
 (load (compile-file-if-needed (or (probe-file "sc-misc.lsp") "../../sc-misc.lsp")
-                              :output-file "sc-misc.fasl"))
+                              :output-file "sc-misc.fasl"
+                              :force-compile *force-compile*))
 
 #+sbcl
 (progn
@@ -61,10 +75,11 @@
                "lw-buffering.lisp"
                "chunked-stream-mixin.lisp"
                "acl-socket.lisp"))
-    (load (compile-file-if-needed f))))
+    (load (compile-file-if-needed f :force-compile *force-compile*))))
 
-(load (compile-file-if-needed "queue.lsp"))
-(load (compile-file-if-needed "server.lsp"))
+(dolist (f '("queue.lsp"
+             "server.lsp"))
+  (load (compile-file-if-needed f :force-compile *force-compile*)))
 
 ;; abbreviation for make-and-start-server
 (defun ms (&rest args)

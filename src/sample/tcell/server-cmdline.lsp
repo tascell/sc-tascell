@@ -25,6 +25,8 @@
 ;;; server-cmdline.lsp: evaluated when Lisp is executed by "server-batch".
 ;;;                     This executes a Tascell server in batch mode.
 
+(defvar *force-compile* nil)
+
 #+sbcl
 (declaim (sb-ext:muffle-conditions sb-ext:compiler-note))
 
@@ -46,7 +48,7 @@
       (exit-status 1))
   (unwind-protect
       (with* (hostname "localhost"
-              port 8888
+              port 9865
               n-wait-children 1
               initial-task nil
               server nil)
@@ -71,6 +73,8 @@
                   (setq initial-task parm))
                  ((#\s)                 ; server
                   (setq server parm))
+                 ((#\C)
+                  (setq *force-compile* t)) ; force compile lisp files
                  (otherwise
                   (format *error-output* "~&Unknown option: ~S~%" hd)
                   (bye exit-status)))))

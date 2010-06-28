@@ -1435,7 +1435,7 @@
   (def i int) (def ch int)
   ;; Default values
   (= (aref option.sv-hostname 0) #\NULL)
-  (= option.port 8888)
+  (= option.port 9865)
   (= option.num-thrs 1)
   (= option.initial-task 0)
   (= option.auto-exit 0)

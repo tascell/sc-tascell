@@ -66,11 +66,11 @@
 
 ;;; 親への接続アドレス:ポート
 (defparameter *parent-host* nil)
-(defparameter *parent-port* 8888)
+(defparameter *parent-port* 9865)
 
 ;;; 子からの接続ホスト/ポート
 (defparameter *server-host* "localhost")
-(defparameter *children-port* 8888)
+(defparameter *children-port* 9865)
 
 ;;; anyでないtreqを常に転送
 (defparameter *transfer-treq-always-if-notany* t)
@@ -401,8 +401,7 @@
 
 (defgeneric initialize-connection (hst))
 (defmethod initialize-connection ((hst host) &aux (sock (host-socket hst)))
-  (setf (host-hostname hst) (with1 ipaddr (or #-sbcl (socket:remote-host sock)
-                                              #+sbcl 0)
+  (setf (host-hostname hst) (with1 ipaddr (socket:remote-host sock)
                                    (if (= ipaddr 0)
                                        "Unknown"
                                      (or (socket:ipaddr-to-hostname ipaddr)

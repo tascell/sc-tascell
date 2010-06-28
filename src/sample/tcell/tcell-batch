@@ -2,31 +2,32 @@
 
 usage()
 {
-    echo "usage: $0 [[-n <n_autorun_workers>] -c <worker_command>] [-w <n_wait_node>] -i <initial_task> -s <server_hostname> [-h <hostname>] [-p <port_num>] [-g <start_host>] [-l <alisp or sbcl>]"
+    echo "usage: $0 [[-n <n_autorun_workers>] -c <worker_command>] [-w <n_wait_node>] -i <initial_task> -s <server_hostname> [-h <hostname>] [-p <port_num>] [-g <start_host>] [-l <alisp or sbcl>] [-C]"
     echo "Defaults:"
     echo "  -n: 1 (if '-c' is given)"
     echo "  -c: Must be specified when '-n' is given"
     echo "  -w: 1 if '-c' is not given, ='-n' if '-c' is given"
     echo "  -i,-s: Either must be given by cmdline"
     echo "  -h: The result of hostname command"
-    echo "  -p: 8888"
+    echo "  -p: 9865"
     echo "  -g: If specified, use 'gxpc e' to invoke workers"
     echo "      (cf. http://www.logos.ic.i.u-tokyo.ac.jp/gxp/index.php)"
     echo "      Add the directories of the worker command and tcpcon to PATH"
     echo "  -l: alisp"
+    echo "  -C: Force compile lisp files when specified"
     echo "Example:"
-    echo "  $0 -n 2 -c ./fib-lw -i \"1 44\" -h localhost -p 8888 -l sbcl -g node200)"
+    echo "  $0 -n 2 -c ./fib-lw -i \"1 44\" -h localhost -p 9865 -l sbcl -g node200)"
     exit 1;
 }
 
 
 # defaults
 SERVER_CMDLINE="server-cmdline.lsp"
-PORT_NUM=8888
+PORT_NUM=9865
 LISP=alisp
 
 # getopts
-while getopts n:c:w:i:s:h:p:g:l: opt
+while getopts n:c:w:i:s:h:p:g:l:C opt
 do
     case ${opt} in
         n)
@@ -47,6 +48,8 @@ do
             GXP_START_HOST=${OPTARG};;
         l)
             LISP=${OPTARG};;
+        C)
+            FORCE_COMPILE='-C'
         *)
             echo "Unknown command line option: ${opt}"
             usage $@;;
@@ -90,9 +93,9 @@ set -x
 
 # run
 if [ $LISP = 'alisp' ]; then
-    "$LISP" -batch -L $SERVER_CMDLINE -- -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE $PARENT_OPT "$PARENT_OPT_ARG" &
+    "$LISP" -batch -L $SERVER_CMDLINE -- -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE $PARENT_OPT "$PARENT_OPT_ARG" $FORCE_COMPILE &
 elif [ $LISP = 'sbcl' ]; then
-    "$LISP" --script $SERVER_CMDLINE -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE $PARENT_OPT "$PARENT_OPT_ARG" &
+    "$LISP" --script $SERVER_CMDLINE -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE $PARENT_OPT "$PARENT_OPT_ARG" $FORCE_COMPILE &
 else
     echo "Unknown Lisp Implementation: $LISP"
     exit 1
