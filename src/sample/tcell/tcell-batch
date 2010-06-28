@@ -49,7 +49,7 @@ do
         l)
             LISP=${OPTARG};;
         C)
-            FORCE_COMPILE='-C'
+            FORCE_COMPILE='-C';;
         *)
             echo "Unknown command line option: ${opt}"
             usage $@;;

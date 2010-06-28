@@ -410,6 +410,11 @@
                             #+sbcl 0))
   hst)
 
+(defmethod initialize-connection :around ((hst parent))
+  (call-next-method)
+  (initialize-sender hst)
+  hst)
+
 (defmethod initialize-connection ((hst terminal-parent))
   (initialize-sender hst)
   hst)
