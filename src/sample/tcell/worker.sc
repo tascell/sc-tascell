@@ -773,8 +773,7 @@
     (= fail-reason 1))                  ; a task message and, if received, may break data structures)
    ((not thr->task-top)                 ; having no task
     (= fail-reason 2))
-   ((or (== (aref dest-addr 0) ANY)     ; * for 'any' request...
-        option.always-flush-accepted-treq) ; * or stealing-back but always-flush-... is specified
+   ((== (aref dest-addr 0) ANY)     ; * for 'any' request...
     (if (not (or (== thr->task-top->stat TASK-STARTED) ; the task is not prepared for being divided
                  (== thr->task-top->stat TASK-INITIALIZED)))
         (= fail-reason 3)))
