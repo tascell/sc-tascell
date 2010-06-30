@@ -30,7 +30,7 @@
 (defpackage "TCELL-SERVER"
   (:nicknames "TSV")
   (:use "CL" "QUEUE" "MISC" "EXCL")
-  (:export "MAKE-AND-START-SERVER")
+  (:export "MAKE-AND-START-SERVER" "*TRANSFER-LOG*" "*TRANSFER-LOG-OUTPUT*")
   (:shadowing-import-from "QUEUE" #:empty-queue-p #:delete-queue #:find-delete-queue))
 
 (in-package "TCELL-SERVER")
@@ -46,18 +46,6 @@
   (mp:with-process-lock (*log-lock*)
     (apply #'format *error-output* format-string args)
     (force-output *error-output*)))
-
-#-tcell-no-transfer-log
-(defmacro tcell-server-dprint (format-string &rest args)
-  `(when *transfer-log*                 ; *transfer-log* is defined below
-     (mp:with-process-lock (*log-lock*)
-       (format *error-output* ,format-string ,@args)
-       ;; (force-output *error-output*)
-       )))
-#+tcell-no-transfer-log
-(defmacro tcell-server-dprint (&rest args)
-  (declare (ignore args))
-  '(progn))
 
 
 
@@ -75,9 +63,22 @@
 ;;; anyでないtreqを常に転送
 (defparameter *transfer-treq-always-if-notany* t)
 
-;;; log出力の有無
+;;; log出力の有無，出力先
 (defparameter *transfer-log* t)         ; (featurep :tcell-no-transfer-log) の場合は常に無効
+(defparameter *transfer-log-output* *error-output*) ; (featurep :tcell-no-transfer-log) の場合は常に無効
 (defparameter *connection-log* t)
+#-tcell-no-transfer-log
+(defmacro tcell-server-dprint (format-string &rest args)
+  `(when *transfer-log*
+     (mp:with-process-lock (*log-lock*)
+       (format *transfer-log-output* ,format-string ,@args)
+       ;; (force-output *taransfer-log-output*)
+       )))
+#+tcell-no-transfer-log
+(defmacro tcell-server-dprint (&rest args)
+  (declare (ignore args))
+  '(progn))
+
 ;;; send/recvのログを出力する長さ
 (defparameter *transfer-log-length* 70)
 
@@ -108,6 +109,8 @@
    (last-none-time :accessor host-none-time :type fixnum :initform -1)
                                         ; 最後にnoneを受け取った時刻（get-internal-real-timeで獲得）
                                         ; taskを送った相手に対してはリセットする
+   (unreplied-treqs :accessor host-unreplied-treqs :type fixnum :initform 0)
+                                        ; <treqを送った回数>-<taskまたはnoneをもらった回数>
    ))
   
 
@@ -292,14 +295,22 @@
 (defgeneric print-server-status (sv))
 (defmethod print-server-status ((sv tcell-server))
   (fresh-line *error-output*)
-  (pprint (list `(parent ,(hostinfo (ts-parent sv)))
-                `(children ,@(mapcar #'hostinfo (ts-children sv)))
-                `(eldest-child ,(awhen (ts-eldest-child sv) (hostinfo it)))
-                `(n-children ,(ts-n-children sv))
-                `(child-next-id ,(ts-child-next-id sv))
-                `(children-port ,(ts-chport sv))
-                `(treq-any-list ,@(mapcar #'ta-entry-info (ts-talist sv)))
-                `(retry ,(ts-retry sv)))
+  (pprint (list `(:parent ,(hostinfo (ts-parent sv)))
+                `(:children ,@(mapcar #'hostinfo (ts-children sv)))
+                `(:eldest-child ,(awhen (ts-eldest-child sv) (hostinfo it)))
+                `(:n-children ,(ts-n-children sv))
+                `(:child-next-id ,(ts-child-next-id sv))
+                `(:children-port ,(ts-chport sv))
+                `(:treq-any-list ,@(mapcar #'ta-entry-info (ts-talist sv)))
+                `(:retry ,(ts-retry sv))
+                `(:diff-task-rslt
+                  ,@(mapcar #'(lambda (host)
+                                (list (hostid host) (child-diff-task-rslt host)))
+                            (ts-children sv)))
+                `(:unreplied-treqs
+                  ,@(mapcar #'(lambda (host)
+                                (list (hostid host) (host-unreplied-treqs host)))
+                            (cons (ts-parent sv) (ts-children sv)))))
           *error-output*)
   (terpri *error-output*)
   (force-output *error-output*))
@@ -495,9 +506,9 @@
                                             (mp:open-gate gate))))))
             (#.*commands-without-data* nil)
             (otherwise (error "Unknown command ~S from ~S." msg (hostinfo hst))))
-          (tcell-server-dprint "(~D): Received ~S from ~S~%"
+          (tcell-server-dprint "(~6D): ~A~15T>>> ~A~%"
                                (get-internal-real-time)
-                               (msg-log-string msg) (hostinfo hst))
+                               (hostid hst) (msg-log-string msg))
           (values (cons hst msg) eof-p))
         )))
 
@@ -513,7 +524,7 @@
         ;; 空行で終了
         (when (= len 0) (return))
         (pushs pre #\Newline ret)
-        (tcell-server-dprint "~A~%" pre)
+        ;; (tcell-server-dprint "~A~%" pre)
         ;; #\(でおわっていたら次の行はbyte-header，次いでbyte-data
         (when (char= #\( (aref pre (- len 1)))
           ;; ヘッダ: <whole-size> <elm-size> <endian(0|1)>
@@ -561,7 +572,7 @@
       (when (= len 0) (return))
       (write-string line-buffer ostream)
       (terpri ostream)
-      (tcell-server-dprint "~A~%" line-buffer)
+      ;; (tcell-server-dprint "~A~%" line-buffer)
       ;; #\(でおわっていたら次の行はbyte-header，次いでbyte-data
       (when (char= #\( (aref line-buffer (- len 1)))
         #+allegro (setf (fill-pointer line-buffer) line-bufsize)
@@ -593,7 +604,7 @@
         ;; 空行で終了
         (when (= len 0) (return))
         (pushs pre #\Newline ret)
-        (tcell-server-dprint "~A~%" pre)
+        ;; (tcell-server-dprint "~A~%" pre)
         ;; #\(でおわっていたら次の行はbyte-header，次いでbyte-data
         (when (char= #\( (aref pre (- len 1)))
           ;; ヘッダ: <whole-size> <elm-size> <endian(0|1)>
@@ -605,7 +616,7 @@
               (read-sequence byte-data stream :end whole-size)
               (push byte-data ret)
               #-tcell-no-transfer-log   ; debug print
-              (when *transfer-log* (write-msg-log byte-data *error-output*))
+              (when *transfer-log* (write-msg-log byte-data *transfer-log-output*))
               )))))
     (nreverse ret)))
 
@@ -676,6 +687,11 @@
                                              (not (eq x from))
                                              (>= (- cur-time (host-none-time x)) limit)))
                                     (ts-children sv)))
+    #+debug     
+    (when (typep (ts-parent sv) 'terminal-parent)
+      (dolist (c (ts-children sv))
+        (print `((from ,(hostid from)) (c ,(hostid c)) (diff-task-rslt ,(child-diff-task-rslt c))
+                                       ,(>= (- cur-time (host-none-time c)) limit)))))
     ;; Strategy1: （送ったtaskの数-受け取ったrsltの数）>0 かつ 最後に送ったtaskのndivが最小
     #+comment
     (let ((max nil) (maxchld nil))
@@ -797,14 +813,18 @@
 ;; debug print
 #-tcell-no-transfer-log
 (defmethod send :after ((to host) obj)
-  (tcell-server-dprint "~&(~D): Sent ~S to ~S~%"
+  (tcell-server-dprint "~&(~6D): ~A~15T<<< ~A~%"
                        (get-internal-real-time)
-                       (msg-log-string obj nil) (hostinfo to)))
+                       (hostid to) (msg-log-string obj nil)))
 
 (defgeneric send-treq (to task-head treq-head))
 (defmethod send-treq (to task-head treq-head)
   (send to (list "treq " task-head #\Space treq-head #\Newline)))
 
+(defmethod send-treq :after ((to host) task-head treq-head)
+  (declare (ignore task-head treq-head))
+  (incf (host-unreplied-treqs to)))
+  
 ;; treqへの応答として，task，またはexitを自動再送信（バッチ実行用）
 (defmethod send-treq :after ((to terminal-parent) task-head treq-head)
   (awhen (parent-auto-treq-response-func to)
@@ -966,26 +986,36 @@
 
 (defgeneric try-send-treq-any (sv from p-task-head))
 (defmethod try-send-treq-any ((sv tcell-server) (from host) p-task-head)
-  (or (awhen (most-divisible-child sv from)
-        (try-send-treq sv it p-task-head "any"))
-      ;; 自分のところに仕事がなければ，eldestな子が代表して親に聞きにいく
-      (and (eq (ts-eldest-child sv) from)
-           (try-send-treq sv (ts-parent sv)
-                          p-task-head "any"))))
+  (or
+   ;; 時々優先して親にも聞きにいく（terminal-parentを除く）
+   (and (not (typep (ts-parent sv) 'terminal-parent))
+        (not (eq (ts-parent sv) from))
+        (= 0 (random (ts-n-children sv)))
+        (try-send-treq sv (ts-parent sv) p-task-head "any"))
+   ;; 子供に聞きにいく
+   (awhen (most-divisible-child sv from)
+     (try-send-treq sv it p-task-head "any"))
+   ;; 自分のところに仕事がなければ，eldestな子が代表して親に聞きにいく
+   (and (eq (ts-eldest-child sv) from)
+        (try-send-treq sv (ts-parent sv)
+                       p-task-head "any"))))
 
 (defgeneric try-send-treq (sv to p-task-head s-treq-head))
 (defmethod try-send-treq ((sv tcell-server) (to host) p-task-head s-treq-head)
   (send-treq to p-task-head s-treq-head)
   t)
 
-;; terminal-parentについては，もらった仕事を消化しきれていなければtreqしない
+;; terminal-parentについては，
+;; もらった仕事を消化している，かつ，一度に1つまでしかtreqしない
 (defmethod try-send-treq :around ((sv tcell-server) (to terminal-parent) p-task-head s-treq-head)
   (declare (ignore p-task-head s-treq-head))
-  (if (>= 0 (parent-diff-task-rslt to))
+  ;; (print `((host-unreplied-treqs to) ,(host-unreplied-treqs to)))
+  (if (and (>= 0 (parent-diff-task-rslt to))
+           (>= 0 (host-unreplied-treqs to)))
       (call-next-method)
     nil))
 
-;; 条件を満たしていればsend
+;; childについては，渡したtaskと返ってきたrsltが同数ならtreqしない
 (defmethod try-send-treq :around ((sv tcell-server) (to child) p-task-head s-treq-head)
   (declare (ignore p-task-head s-treq-head))
   (if (> (child-diff-task-rslt to) 0)
@@ -1001,6 +1031,7 @@
 ;; treq-any-listにある要素を tryしなおす
 (defgeneric retry-treq (sv))
 (defmethod retry-treq ((sv tcell-server))
+  #+obsoleted ; 最初のentryが失敗したからといって他のentryも失敗するとは限らない
   (loop
       for n-sent upfrom 0
       do (aif (pop-treq-any sv)
@@ -1009,7 +1040,16 @@
                  (push-treq-any sv from head)
                  (loop-finish)))
            (loop-finish))
-      finally (return n-sent)))
+      finally (return n-sent))
+  (let ((failed-list))
+    (awhile (pop-treq-any sv)
+      (destructuring-bind (from head) it
+        (unless (try-send-treq-any sv from head)
+          (push it failed-list))))
+    (dolist (f failed-list)
+      (destructuring-bind (from head) f
+        (push-treq-any sv from head))))
+  )
 
 ;;; task
 (defgeneric proc-task (sv from cmd))
@@ -1024,13 +1064,18 @@
                  task-body)
       )))
 
+(defmethod proc-task :before ((sv tcell-server) (from host) cmd)
+  (declare (ignorable sv cmd))
+  (decf (host-unreplied-treqs from)))
+
 (defmethod proc-task :before ((sv tcell-server) (from child) cmd)
   (let ((wsize (parse-integer (second cmd))))
     (renew-work-size from (- wsize))))
 
 (defmethod proc-task :before ((sv tcell-server) (from parent) cmd)
   (declare (ignorable sv cmd))
-  (incf (parent-diff-task-rslt from)))
+  (incf (parent-diff-task-rslt from))
+  )
 
 ;; rack自動送信のために受け取ったtaskを覚えておく
 (defmethod proc-task :after ((sv tcell-server) (from terminal-parent) cmd)
@@ -1051,6 +1096,10 @@
   (destructuring-bind (to s-task-head)
       (head-shift sv (second cmd))      ; none送信先
     (send-none to s-task-head)))
+
+(defmethod proc-none :before ((sv tcell-server) (from host) cmd)
+  (declare (ignorable sv cmd))
+  (decf (host-unreplied-treqs from)))
 
 (defmethod proc-none :after ((sv tcell-server) (from host) cmd)
   ;; noneを受け取った時刻を記憶
@@ -1122,12 +1171,19 @@
 (defgeneric proc-stat (sv from cmd))
 (defmethod proc-stat ((sv tcell-server) (from host) cmd)
   (if (cdr cmd)
-      ;; 引数を与えた場合はそこにstatコマンドを転送
-      (destructuring-bind (to s-task-head)
-          (head-shift sv (second cmd))  ; stat送信先
-        (send-stat to s-task-head))
+      (cond
+       ;; anyを与えた場合は自分の状態を表示後，全ての子供にstat anyを転送
+       ((string= "any" (second cmd))
+        (print-server-status sv)
+        (dolist (chld (ts-children sv))
+          (send-stat chld "any")))
+       ;; アドレスを与えた場合はそこにstatコマンドを転送
+       (t
+        (destructuring-bind (to s-task-head)
+            (head-shift sv (second cmd)) ; stat送信先
+          (send-stat to s-task-head)))
     ;; 無引数の場合はサーバの状態を表示
-    (print-server-status sv)))
+    (print-server-status sv))))
 
 ;;; verb: ワーカのverbose-levelを変更
 ;;; "verb <送信先>:<level>" で．
@@ -1169,7 +1225,8 @@
   (force-output *error-output*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun make-and-start-server (&key 
+(defun make-and-start-server (&rest args
+                              &key 
                               (local-host *server-host*)
                               (children-port *children-port*)
                               (n-wait-children 0)
@@ -1213,5 +1270,19 @@
               (format *error-output* "~&auto-send-initial-task~%")
               (with1 msg (list* "task" "0" "0" task-head task-no task-body)
                 (add-queue (cons to msg) (ts-queue sv)))))))
+    #+debug
+    (when terminal-parent
+      (trace try-send-treq most-divisible-child))
+    (when terminal-parent
+      (mp:process-run-function "Print Status"
+        #'(lambda (sv)
+            (loop
+              (sleep 10)
+              (print-server-status sv)
+              #+comment
+              (dolist (chld (ts-children sv))
+                (send-stat chld "any"))
+              ))
+        sv))
     ;; サーバ起動
     (start-server sv prnt)))

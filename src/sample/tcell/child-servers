@@ -1,13 +1,25 @@
 # Xeon E5410 (Quad Core)x2 2.33 GHz Sites
-# 9 nodes
-tasuku hongo200.logos.ic.i.u-tokyo.ac.jp hongo200
-# 11 nodes
-tasuku kobe000.intrigger.scitec.kobe-u.ac.jp kobe000
-# 9 nodes
-tasuku kyushu000.bioinfo.kyushu-u.ac.jp kyushu000
-# 6 nodes
-tasuku mirai000.intrigger.jp mirai000
-# 11 nodes
-tasuku hiro000.net.hiroshima-u.ac.jp hiro000
-# 11 nodes
-tasuku keio000.sslab.ics.keio.ac.jp keio000
+# it4, 9 nodes
+# gxpc use ssh hongo
+# gxpc explore hongo[[201-208]]
+tasuku hongo200.logos.ic.i.u-tokyo.ac.jp hongo201
+# it12, 11 nodes
+# gxpc use ssh kobe
+# gxpc explore kobe[[000-010]]
+tasuku kobe000.intrigger.scitec.kobe-u.ac.jp kobe001
+# it14, 11 nodes
+# gxpc use ssh hiro
+# gxpc explore hiro[[000-010]]
+tasuku hiro000.net.hiroshima-u.ac.jp hiro001
+# it15, 11 nodes
+# gxpc use ssh keio
+# gxpc explore keio[[000-010]]
+tasuku keio000.sslab.ics.keio.ac.jp keio001
+# it13, 9 nodes
+# gxpc use ssh kyushu
+# gxpc explore kyushu[[000-008]]
+tasuku kyushu000.bioinfo.kyushu-u.ac.jp kyushu001
+# it11, 6 nodes
+# gxpc use ssh mirai
+# gxpc explore mirai[[000-005]]
+tasuku mirai000.intrigger.jp mirai001

@@ -16,7 +16,7 @@ usage()
     echo "  -e: 0"
     echo "  -E: \"child-servers\""
     echo "  -l: alisp"
-    echo "  -C: Force compile lisp files when specified"
+    echo "  -C: Force compile lisp files when a positive number is specified"
     echo "Example:"
     echo "  $0 -n 2 -c ./fib-lw -i \"1 44\" -h localhost -p 9865 -l sbcl -g node200"
     echo "  $0 -n 8 -c 'fib-lw -n8' -i \"1 50\" -h chiba200.intrigger.nii.ac.jp -g chiba200 -e 1 -l sbcl"
@@ -24,6 +24,7 @@ usage()
     exit 1;
 }
 
+DATE=`date +%m%d%y-%H%M%S`
 
 # defaults
 SERVER_CMDLINE="server-cmdline.lsp"
@@ -31,9 +32,11 @@ PORT_NUM=9865
 LISP=alisp
 N_EXTERNAL_SITES=0
 EXTERNAL_SITE_FILE="child-servers"
+SERVER_LOG=0
+FORCE_COMPILE=0
 
 # getopts
-while getopts n:c:w:i:s:h:p:g:e:E:l:C opt
+while getopts n:c:w:i:s:h:p:g:e:E:l:L:C: opt
 do
     case ${opt} in
         n)
@@ -58,8 +61,10 @@ do
             EXTERNAL_SITE_FILE=${OPTARG};;
         l)
             LISP=${OPTARG};;
+        L)
+            SERVER_LOG=${OPTARG};;
         C)
-            FORCE_COMPILE='-C';;
+            FORCE_COMPILE=${OPTARG};;
         *)
             echo "Unknown command line option: ${opt}"
             usage $@;;
@@ -109,9 +114,9 @@ set -x
 
 # run server
 if [ $LISP = 'alisp' ]; then
-    "$LISP" -batch -L $SERVER_CMDLINE -- -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE $PARENT_OPT "$PARENT_OPT_ARG" $FORCE_COMPILE &
+    "$LISP" -batch -L $SERVER_CMDLINE -- -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE $PARENT_OPT "$PARENT_OPT_ARG" -L "$SERVER_LOG.$DATE" -C $FORCE_COMPILE &
 elif [ $LISP = 'sbcl' ]; then
-    "$LISP" --script $SERVER_CMDLINE -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE $PARENT_OPT "$PARENT_OPT_ARG" $FORCE_COMPILE &
+    "$LISP" --script $SERVER_CMDLINE -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE $PARENT_OPT "$PARENT_OPT_ARG" -L "$SERVER_LOG.$DATE" -C $FORCE_COMPILE &
 else
     echo "Unknown Lisp Implementation: $LISP"
     exit 1
@@ -124,7 +129,12 @@ if [ $N_EXTERNAL_SITES -gt 0 -a $NNODE -gt 0 ]; then
         LOGINID=`echo $line | awk '{ print $1 }'`
         SITE=`echo $line | awk '{ print $2 }'`
         START=`echo $line | awk '{ print $3 }'`
-        ssh -l $LOGINID -f $SITE "cd $PWD; tcell-batch -n $NNODE -c \"$WORKER_CMD\" -s $HOSTNAME -p $PORT_NUM -g $START -l $LISP $FORCE_COMPILE"
+        if [ "x$SERVER_LOG" != 'x' ]; then
+            CHILD_LOG="$START.log.$DATE"
+        else
+            CHILD_LOG=0
+        fi
+        ssh -l $LOGINID -f $SITE "kill-tcell; cd $PWD; tcell-batch -n $NNODE -c \"$WORKER_CMD\" -s $HOSTNAME -p $PORT_NUM -g $START -l $LISP -C $FORCE_COMPILE -L $CHILD_LOG"
     done
 fi
 

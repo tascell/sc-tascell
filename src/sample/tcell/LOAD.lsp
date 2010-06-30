@@ -28,14 +28,15 @@
 
 (defvar *force-compile* nil)
 
+;; Uncomment to ignore logging code
+;; (push :tcell-no-transfer-log *features*)
+
 #+mswindows
 (setq *locale* (find-locale "japan.EUC"))
 
 #+sbcl
 (setq sb-impl::*default-external-format* :euc-jp)
 
-;; Uncomment to ignore logging code
-(push :tcell-no-transfer-log *features*)
 
 ;; The most debuggable (and yet reasonably fast) code, use
 (proclaim '(optimize (speed 3) (safety 3) (space 1) (debug 3)))
@@ -77,9 +78,8 @@
                "acl-socket.lisp"))
     (load (compile-file-if-needed f :force-compile *force-compile*))))
 
-(dolist (f '("queue.lsp"
-             "server.lsp"))
-  (load (compile-file-if-needed f :force-compile *force-compile*)))
+(load (compile-file-if-needed "queue.lsp" :force-compile *force-compile*))
+(load (compile-file-if-needed "server.lsp" :force-compile t))
 
 ;; abbreviation for make-and-start-server
 (defun ms (&rest args)

@@ -51,6 +51,7 @@
               port 9865
               n-wait-children 1
               initial-task nil
+              logfile nil
               server nil)
         (do* ((rest args (cdr rest))
               (hd (car rest) (car rest)))
@@ -73,8 +74,17 @@
                   (setq initial-task parm))
                  ((#\s)                 ; server
                   (setq server parm))
-                 ((#\C)
-                  (setq *force-compile* t)) ; force compile lisp files
+                 ((#\L)                 ; show server log
+                  (let ((num (parse-integer parm :junk-allowed t)))
+                    (setq tsv:*transfer-log*
+                      (if (or (not (integerp num))
+                              (and (integerp num) (> num 0)))
+                          t))
+                    (when (not (integerp num))
+                      (setq logfile parm))))
+                 ((#\C)                 ; force compile lisp files
+                  (when (> (parse-integer parm) 0)
+                    (setq *force-compile* t))) 
                  (otherwise
                   (format *error-output* "~&Unknown option: ~S~%" hd)
                   (bye exit-status)))))
@@ -92,13 +102,23 @@
                                        :parent-port ,port
                                        :auto-exit ,t))
         (force-output)
-        (tsv::make-and-start-server :local-host hostname
-                                    :children-port port
-                                    :n-wait-children n-wait-children
-                                    :auto-initial-task initial-task
-                                    :parent-host server
-                                    :parent-port port
-                                    :auto-exit t)
+        (flet ((exec ()
+                 (tsv::make-and-start-server :local-host hostname
+                                             :children-port port
+                                             :n-wait-children n-wait-children
+                                             :auto-initial-task initial-task
+                                             :parent-host server
+                                             :parent-port port
+                                             :auto-exit t)))
+          (if (and tsv:*transfer-log* logfile)
+              (unwind-protect
+                  (progn
+                    (setq tsv:*transfer-log-output* (open logfile :direction :output :if-exists :rename))
+                    (format *error-output* "~&Created a log file ~S~%" logfile)
+                    (exec))
+                (finish-output tsv:*transfer-log-output*)
+                (close tsv:*transfer-log-output*))
+            (exec)))
         (setq exit-status 0))
     (format t "Exiting Tascell Server. Exit status is ~D~%" exit-status)
     (bye exit-status)))
