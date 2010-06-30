@@ -1277,6 +1277,7 @@
     #+debug
     (when terminal-parent
       (trace try-send-treq most-divisible-child))
+    #+debug
     (when terminal-parent
       (mp:process-run-function "Print Status"
         #'(lambda (sv)
