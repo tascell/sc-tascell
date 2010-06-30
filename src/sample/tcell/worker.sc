@@ -1448,7 +1448,7 @@
   (= option.prefetch 0)
   (= option.verbose 0)
   ;; Parse and set options
-  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:i:xafP:v:h")))
+  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:N:i:xafP:v:h")))
     (switch ch
       (case #\n)                        ; number of threads
       (= option.num-thrs (csym::atoi optarg))
@@ -1467,7 +1467,7 @@
       (= option.port (csym::atoi optarg))
       (break)
 
-      (case #\h)
+      (case #\N)
       (if option.node-name (csym::free option.node-name))
       (= option.node-name
          (cast (ptr char) (csym::malloc (* (+ 1 (csym::strlen optarg))
