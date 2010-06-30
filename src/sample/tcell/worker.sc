@@ -1316,6 +1316,8 @@
 ;;; statコマンド -> 状態を出力
 (def (csym::print-status pcmd) (csym::fn void (ptr (struct cmd)))
   (def i int)
+  (csym::fprintf stderr "worker-name: %s~%"
+                 (if-exp option.node-name option.node-name "Unnamed"))
   (csym::fprintf stderr "num-thrs: %d~%" num-thrs)
   (csym::fprintf stderr "prefetches: %d~%" option.prefetch)
   (csym::fprintf stderr "verbose-level: %d~%" option.verbose)
@@ -1438,6 +1440,7 @@
   (= (aref option.sv-hostname 0) #\NULL)
   (= option.port 9865)
   (= option.num-thrs 1)
+  (= option.node-name 0)
   (= option.initial-task 0)
   (= option.auto-exit 0)
   (= option.affinity 0)
@@ -1464,6 +1467,13 @@
       (= option.port (csym::atoi optarg))
       (break)
 
+      (case #\h)
+      (if option.node-name (csym::free option.node-name))
+      (= option.node-name
+         (cast (ptr char) (csym::malloc (* (+ 1 (csym::strlen optarg))
+                                           (sizeof char)))))
+      (csym::strcpy option.node-name optarg)
+      
       (case #\i)                        ; initial task
       (if option.initial-task
           (csym::free option.initial-task))
