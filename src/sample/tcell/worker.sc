@@ -252,7 +252,8 @@
   (= rcmd.w NONE)
   (while (= hx (mref pcur-hx))
     (cond 
-     ((== TERM (aref hx->waiting-head 0)) ; flush if non-stealing-back treq
+     ((or option.always-flush-accepted-treq      ; flush if the option specified
+          (== TERM (aref hx->waiting-head 0))) ; flush if non-stealing-back treq
       (DEBUG-STMTS 2 (inc flushed-any-treq))
       (= flush 1))
      ((and rslt-head                    ; flush if stealing-back but specified to flush
@@ -1440,10 +1441,11 @@
   (= option.initial-task 0)
   (= option.auto-exit 0)
   (= option.affinity 0)
+  (= option.always-flush-accepted-treq 0)
   (= option.prefetch 0)
   (= option.verbose 0)
   ;; Parse and set options
-  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:i:xaP:v:h")))
+  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:i:xafP:v:h")))
     (switch ch
       (case #\n)                        ; number of threads
       (= option.num-thrs (csym::atoi optarg))
@@ -1485,6 +1487,10 @@
         (csym::fprintf stderr "-a is ignored (invalidated in compile time)~%"))
       (break)
 
+      (case #\f)                        ; flush also stealing-back treq
+      (= option.always-flush-accepted-treq 1)
+      (break)
+      
       (case #\P)                        ; the number of speculative tasks from external nodes
       (= option.prefetch (csym::atoi optarg))
       (break)

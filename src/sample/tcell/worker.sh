@@ -126,7 +126,7 @@
   (def rslt-to (enum node))         ; 結果送信先の種別（INSIDE or OUTSIDE）
   (def rslt-head (array (enum addr) ARG-SIZE-MAX))) ; 結果送信先アドレス
 
-;; Information of a subtask assigned to another task
+;; Information of a subtask assigned to another worker
 (def (struct task-home)
   (def stat (enum task-home-stat))      ; status
   (def id int)                          ; ID (unique in each worker)
@@ -230,6 +230,7 @@
   (def initial-task (ptr char))         ; 自動的に最初に投入するタスクパラメータ
   (def auto-exit int)                   ; 外部に最初のrsltを送ったら自動終了
   (def affinity int)                    ; use sched_setaffinity
+  (def always-flush-accepted-treq int)  ; flush stealing back (accepted) treq message
   (def prefetch int)                    ; 投機的に外部へtreq
   (def verbose int)                     ; verbose level
   )
