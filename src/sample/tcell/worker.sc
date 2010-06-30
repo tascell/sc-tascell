@@ -1473,6 +1473,7 @@
          (cast (ptr char) (csym::malloc (* (+ 1 (csym::strlen optarg))
                                            (sizeof char)))))
       (csym::strcpy option.node-name optarg)
+      (break)
       
       (case #\i)                        ; initial task
       (if option.initial-task
