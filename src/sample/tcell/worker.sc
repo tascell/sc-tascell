@@ -773,7 +773,7 @@
     (= fail-reason 1))                  ; a task message and, if received, may break data structures)
    ((not thr->task-top)                 ; having no task
     (= fail-reason 2))
-   ((== (aref dest-addr 0) ANY)     ; * for 'any' request...
+   ((== (aref dest-addr 0) ANY)         ; * for 'any' request...
     (if (not (or (== thr->task-top->stat TASK-STARTED) ; the task is not prepared for being divided
                  (== thr->task-top->stat TASK-INITIALIZED)))
         (= fail-reason 3)))
@@ -929,6 +929,7 @@
    )
   ;; 内部のワーカが，渡せる仕事がなかった場合のみここに来る
   (if (and (== dst0 ANY)
+           (== pcmd->node INSIDE)
            (== (aref pcmd->v 0 0) 0))    ; v[0]:from
       ;; 0番workerからのtreqの場合は外部に問い合わせる
       (if option.prefetch

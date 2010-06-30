@@ -1174,9 +1174,13 @@
       (cond
        ;; anyを与えた場合は自分の状態を表示後，全ての子供にstat anyを転送
        ((string= "any" (second cmd))
-        (print-server-status sv)
-        (dolist (chld (ts-children sv))
-          (send-stat chld "any")))
+        (mp:process-run-function "Send Status Any"
+          #'(lambda ()
+              (print-server-status sv)
+              (dolist (chld (ts-children sv))
+                (format *error-output* "~&Host: ~A~%" (hostid chld))
+                (send-stat chld "any")
+                (sleep 0.3)))))
        ;; アドレスを与えた場合はそこにstatコマンドを転送
        (t
         (destructuring-bind (to s-task-head)
@@ -1279,9 +1283,10 @@
             (loop
               (sleep 10)
               (print-server-status sv)
-              #+comment
               (dolist (chld (ts-children sv))
-                (send-stat chld "any"))
+                (format *error-output* "~&Host: ~A~%" (hostid chld))
+                (send-stat chld "any")
+                (sleep 0.3))
               ))
         sv))
     ;; サーバ起動
