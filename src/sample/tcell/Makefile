@@ -8,11 +8,11 @@ OPT=-O2 -g $(MOPT)
 XCCOPT=-DCT=lightweight
 XCCCLOPT=-DCT=closure
 
-# ifeq ($(OS),SunOS)
-#     SC2C_OPT += -D USE_AFFINITY=PBIND
-# else
-#     SC2C_OPT += -D USE_AFFINITY=SCHED
-# endif
+ifeq ($(OS),SunOS)
+    SC2C_OPT += -D USE_AFFINITY=PBIND
+else
+    SC2C_OPT += -D USE_AFFINITY=SCHED
+endif
 
 ifeq ($(OS),SunOS)
     THROPTS=-lthread

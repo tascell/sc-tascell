@@ -1,6 +1,6 @@
 ;;;; Compile-time options
 ;;; Debug print
-(%defconstant VERBOSE 1)
+(%defconstant VERBOSE 0)
 (%include "dprint.sh")
 
 ;;; Implementation of nested functions
