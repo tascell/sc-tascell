@@ -271,6 +271,7 @@
         ;; 子からの待ち受けポートを開く
         (setf (ts-chsock0 sv)
           (socket:make-socket :connect :passive
+                              :format :bivalent
                               :reuse-address *reuse-address*
                               :local-host (ts-hostname sv)
                               :local-port (ts-chport sv)))
@@ -384,7 +385,8 @@
 (defgeneric connect-to (hst))
 (defmethod connect-to ((hst host))
   (setf (host-socket hst)
-    (socket:make-socket :remote-host (host-hostname hst)
+    (socket:make-socket :format :bivalent
+                        :remote-host (host-hostname hst)
                         :remote-port (host-port hst)))
   (initialize-connection hst)
   hst)
@@ -480,7 +482,7 @@
          #+allegro
          (make-array +max-line-length+
                      :element-type 'standard-char :fill-pointer +max-line-length+))
-        (body-buffer (make-array +body-buffer-size+ :element-type 'unsigned-byte :adjustable t))
+        (body-buffer (make-array +body-buffer-size+ :element-type '(unsigned-byte 8) :adjustable t))
         (gate (mp:make-gate t)))        ; body-buffer の使用許可
     #'(lambda (stream)
         #+allegro (setf (fill-pointer line-buffer) +max-line-length+)
