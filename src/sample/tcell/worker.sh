@@ -17,7 +17,7 @@
 (%defconstant BUFSIZE 1280)             ; コマンド行の文字数の最大+1
 (%defconstant MAXCMDC 4)                ; コマンドのargument数の最大（コマンド名自身含む）
 (%defconstant ARG-SIZE-MAX 16)          ; コマンドの各引数の許される長さ
-(%defconstant TASK-LIST-LENGTH 2048)    ; スレッドごとのTASK, TASK-HOMEリストの長さ
+(%defconstant TASK-LIST-LENGTH 32767)   ; スレッドごとのTASK, TASK-HOMEリストの長さ
 (%defconstant TASK-MAX 256)             ; プログラマが定義できるタスクの最大数
 (%defconstant DUMMY-SIZE 1000)          ; false-sharing防止のためのpaddingサイズ
 

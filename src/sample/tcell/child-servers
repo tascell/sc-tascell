@@ -1,21 +1,21 @@
 # Xeon E5410 (Quad Core)x2 2.33 GHz Sites
-# it4, 9 nodes
+# it4, 9 nodes, 32GB
 # gxpc use ssh hongo
 # gxpc explore hongo[[201-208]]
 tasuku hongo200.logos.ic.i.u-tokyo.ac.jp hongo201
-# it12, 11 nodes
+# it12, 11 nodes, 16GB
 # gxpc use ssh kobe
 # gxpc explore kobe[[000-010]]
 tasuku kobe000.intrigger.scitec.kobe-u.ac.jp kobe001
-# it14, 11 nodes
+# it14, 11 nodes, 16GB
 # gxpc use ssh hiro
 # gxpc explore hiro[[000-010]]
 tasuku hiro000.net.hiroshima-u.ac.jp hiro001
-# it15, 11 nodes
+# it15, 11 nodes, 16GB
 # gxpc use ssh keio
 # gxpc explore keio[[000-010]]
 tasuku keio000.sslab.ics.keio.ac.jp keio001
-# it13, 9 nodes
+# it13, 9 nodes, 16GB
 # gxpc use ssh kyushu
 # gxpc explore kyushu[[000-008]]
 tasuku kyushu000.bioinfo.kyushu-u.ac.jp kyushu001

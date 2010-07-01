@@ -27,6 +27,7 @@
     (error "Sorry! This programs work only on Allegro Common Lisp or SBCL!"))
 
 (defvar *force-compile* nil)
+(defvar *force-compile-server* nil)
 
 ;; Uncomment to ignore logging code
 ;; (push :tcell-no-transfer-log *features*)
@@ -79,7 +80,7 @@
     (load (compile-file-if-needed f :force-compile *force-compile*))))
 
 (load (compile-file-if-needed "queue.lsp" :force-compile *force-compile*))
-(load (compile-file-if-needed "server.lsp" :force-compile t))
+(load (compile-file-if-needed "server.lsp" :force-compile *force-compile-server*))
 
 ;; abbreviation for make-and-start-server
 (defun ms (&rest args)

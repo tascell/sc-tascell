@@ -26,6 +26,7 @@
 ;;;                     This executes a Tascell server in batch mode.
 
 (defvar *force-compile* nil)
+(defvar *force-compile-server* nil)
 
 #+sbcl
 (declaim (sb-ext:muffle-conditions sb-ext:compiler-note))
@@ -83,8 +84,17 @@
                     (when (not (integerp num))
                       (setq logfile parm))))
                  ((#\C)                 ; force compile lisp files
-                  (when (> (parse-integer parm) 0)
-                    (setq *force-compile* t))) 
+                  (let ((num (parse-integer parm :junk-allowed t)))
+                    (cond
+                     ((eql num 2)
+                      (setq *force-compile* nil)
+                      (setq *force-compile-server* t))
+                     ((> num 0)
+                      (setq *force-compile* t)
+                      (setq *force-compile-server* t))
+                     (t
+                      (setq *force-compile* nil)
+                      (setq *force-compile-server* nil)))))
                  (otherwise
                   (format *error-output* "~&Unknown option: ~S~%" hd)
                   (bye exit-status)))))
