@@ -8,7 +8,7 @@ usage()
     echo "  -c: Must be specified when '-n' is given"
     echo "  -w: 1 if '-c' is not given, =<-n>+<-e> if '-c' is given"
     echo "  -i,-s: Either must be given by cmdline"
-    echo "  -h: The result of hostname command"
+    echo "  -h: The hostname by which the children can access the parent server."
     echo "  -p: 9865"
     echo "  -g: If specified, use 'gxpc e' to invoke workers"
     echo "      (cf. http://www.logos.ic.i.u-tokyo.ac.jp/gxp/index.php)"
