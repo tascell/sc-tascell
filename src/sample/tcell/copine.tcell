@@ -1,0 +1,242 @@
+;;; Copyright (c) 2010 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; All rights reserved.
+
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+;;; 1. Redistributions of source code must retain the above copyright
+;;;    notice, this list of conditions and the following disclaimer.
+;;; 2. Redistributions in binary form must reproduce the above copyright
+;;;    notice, this list of conditions and the following disclaimer in the
+;;;    documentation and/or other materials provided with the distribution.
+
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE
+;;; FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+;;; OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+;;; LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+;;; SUCH DAMAGE.
+
+;;; COPINE
+
+;; task 0 0 0 0
+;; <n>
+
+(c-exp "#include<sys/time.h>")
+
+(%defconstant VSIZE (+ (* 16 1024 1024) 321))
+(%defconstant ESIZE (+ (* 64 1024 1024) 321))
+(%defconstant ISIZE 1000)
+
+(%defconstant BUFSIZE 500)
+
+(def (struct _edge) #||#
+  (def to int)                          ; node that this edge points to (index for Nodes)
+  (def next int)                        ; next edge (index for Edges)
+  )
+(deftype edge (struct _edge))
+(def Edges (array edge ESIZE))
+(def Edge-max int -1)			; The max edge index
+
+;;;
+(def (struct _node) #||#
+  (def degree int)                      ; # edges from this node
+  (def first-edge int)                  ; first edge (index for Edges)
+  (def items (array char ISIZE)))       ; item set (items[i]==1 means the node has the item i)
+
+(deftype node (struct _node))
+(def Nodes (array node VSIZE))
+(def Node-max int -1)			; The max node index
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (csym::initialize-node p-nd) (fn void (ptr node))
+  (def i int)
+  (= p-nd->degree 0)
+  (= p-nd->first-edge -1)
+  (for ((= i 0) (< i ISIZE) (inc i))
+    (= (aref p-nd->items i) 0))
+    )
+
+(def (csym::initialize-nodes) (fn void)
+  (def i int)
+  (for ((= i 0) (< i VSIZE) (inc i))
+    (csym::initialize-node (ptr (aref Nodes i)))))
+
+;;;;
+;;; Parse items-str and set items to .item of Nodes[v]. Employed by load-items.
+;; items-str: Items separated by comma.
+;; Each item name is a seingle ascii character and may appear only once
+(def (csym::set-items v items-str) (fn void int (ptr char))
+  (def p-v (ptr node))
+  (def i int)
+  (def next-index int 0)
+  (if (> v Node-max)
+      (= Node-max v))
+  (= p-v (ptr (aref Nodes v)))
+  (for ((= i 0) (aref items-str i) (inc i))
+    (if (and (!= (aref items-str i) #\,)
+	     (!= (aref items-str i) #\Newline))
+	(begin
+	  (= (aref p-v->items next-index) (aref items-str i))
+	  (++ next-index))))
+  (= p-v->item-max (- next-index 1)))
+
+;;; Load an item file and set .item of each node.
+;; Format of item files:
+;; <n> <a>,<b>,...,<c> means the node <n> has items <a>, <b>, ..., and <c>
+(def (csym::load-items filename) (fn void (ptr char) int)
+  (def fp (ptr FILE))
+  (def line (array char BUFSIZE))
+  (def v int)
+  (def items-str (array char ISIZE))
+  (= fp (csym::fopen filename "r"))
+  (while (not (csym::feof fp))
+    (csym::fgets line BUFSIZE fp)
+    (cond
+     ((== (aref line 0) #\#)
+      (continue))
+     (else
+      (if (!= 2 (csym::sscanf line "%d %s" (ptr v) items-str))
+	  (csym::fprintf stderr "Invalid line in %s: %s" filename line))
+      (csym::set-items v items-str))))
+  (csym::fclose fp)
+  (return))
+
+;;; Load a graph file
+;; Format:
+;; <n> <l> <k> means the node <n> has the edge to <k> and has the label <l>
+;; (The label <l> is ignored now)
+(def (csym::make-edge v1 v2) (fn void int int)
+  (def p-v1 (ptr node))
+  (def p-newedge (ptr edge))
+  (if (> v1 Node-max)
+      (= Node-max v1))
+  (if (> v2 Node-max)
+      (= Node-max v2))
+  (++ Edge-max)
+  (= p-v1 (ptr (aref Nodes v1)))
+  (= p-newedge (ptr (aref Edges Edge-max)))
+  (begin
+    ;; Initialize the edge
+    (= p-newedge->to v2)
+    (= p-newedge->next p-v1->first-edge))
+  (= p-v1->first-edge N-edge)
+  (++ p-v1->degree))
+
+(def (csym::load-graph filename) (fn void (ptr char))
+  (def fp (ptr FILE))
+  (def line (array char BUFSIZE))
+  (defs int v1 v2 label)
+  (= fp (csym::fopen filename "r"))
+  (while (not (csym::feof fp))
+    (csym::fgets line BUFSIZE fp)
+    (cond
+     ((== (aref line 0) #\#)
+      (continue))
+     (else
+      (if (!= 3 (csym::sscanf line "%d %d %d"
+			      (ptr v1) (ptr label) (ptr v2)))
+	  (csym::fprintf stderr "Invalid line %s: %s" filename line))
+      ;; An input graph is undirected but traversal directions are only from smaller to bigger
+      (if (< v1 v2)
+          (csym::make-edge v1 v2)
+	(csym::make-edge v2 v1)))))
+  (csym::fclose fp)
+  (return))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; tasks
+(def (task copine-start) #||#
+  (def s int)				; the minimum size of output graph
+  (def th int)				; the minimum # of common items
+  (def bestN int :in)			; default=300
+  (def debug int :in)			; boolean
+  (def f-output int :in)		; boolean
+  (def f-result (array char 128) :in)   ; Output filename
+  (def r-pattern (array char 128) :in)	; Pattern filename
+  (def f-graph (array char 128) :in))	; Graph filename
+(def OPTIONS (ptr (struct copine-start)))
+
+(def (task copine)
+     )
+
+(decl (search pcop) (wfn void (ptr (struct copine))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; task bodies
+(def (task-body copine-start) #||#
+  (decl tp (array (struct timeval) 2))
+  (def cop (struct copine))
+  ;; Clear the node array.
+  (csym::initialize-nodes)
+  ;; Load an item file and a graph file to create 
+  (csym::load-edge this.f-graph)
+  (csym::load-items this.f-pattern)
+  (= OPTIONS (ptr this))
+  (search (ptr cop)))
+
+(def (task-body copine) #||#
+  (search (ptr this))
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (search pcop) (wfn void (ptr (struct copine)))
+  )
+
+;; データ構造
+;; ・ノード
+;; - 入力ファイルのノードID ＝ Node配列のindex
+;; - オリジナルではノードをitem数順でソートしている
+;;   Cにおいてこれをやるとすると，次のいずれか．
+;;   * 配列の順序はいじらず，Nodeの要素に「整列したときの次」のIDを持たせる
+;;   * 配列自体を並べ替えて，Nodeの要素にIDを持たせる
+;;     → Edgeの指す先をindex番号としているので一貫性を保つ必要
+;; ・枝
+;; - ノードは枝のリスト（の始点）を要素に持つ．
+;;   ここでいうリストは配列で実現されたリスト
+;; - 例えばNode1からNode3,6,10に枝をはる場合：
+;;   Node[1].first_edge=a,
+;;   Edge[a]={.to=3, .next=b},
+;;   Edge[b]={.to=6, .next=c},
+;;   Edge[c]={.to=6, .next=-1},（a,b,cは互いに異なる任意のindex）
+;; - 枝は「ある順序付け」において小さいほうから大きいほうにしかはらない
+;;  （問題の入力は無向グラフだが，traverseは片方向にしか行わないため）
+;; - 現実装の「ある順序付け」は単にIndex番号だが，「item数の少ない順」
+;;   のほうがよいと思われる．
+;; ・ノードが持つアイテム集合
+;; - Node<x> が アイテム<i> を持つことは
+;;   Node[x].items[i] = 1 で表す
+;; - アイテムの種類が多いのであればリストなど別の表現にする必要
+;;
+;; アルゴリズム
+;; ・main部
+;; θ：共通アイテム数の下限，
+;; 1. そもそもitem数がθ未満のノードを削除（Todo）
+;;    - そこへの枝と，2.の始点候補から外せばOK？
+;; 2. 始点候補←全てのノード(-item数がθ未満のノード)
+;; 3. 始点候補が空になるまで以下を繰り返す
+;; 3.1. v ← 始点候補からノードを一個選ぶ
+;; 3.2. V' ← Vの複製
+;; 3.3. VISIT(V', v, root)を適用
+;; 3.4. Vからvを取り除く
+;; 4. L（解候補の集合）をノード数順でソート
+;; 5. L内のの要素間のペアについてoverlap値がユーザ指定閾値r
+;;    より高いものがあれば，1つだけ残す
+;; ・VISIT(V', v, n)
+;; n: これまで辿ってきたノードの集合（=DFSの1ノード）
+;; V.1. V'の中にvから指されるノードがなければnをL（解候補）に加える
+;; V.2. C ← V'内のvの全ての隣接ノード
+;; V.3. Cの各要素cについて以下を実行
+;; V.3.1. NEXT if c が v より順序が前
+;; V.3.2. I ← I(c)∩I(n)
+;; V.3.3. NEXT if #(I) < θ
+;; V.3.4. NEXT if これまでcを含むDFSノードを発見したときのIのうち，今のIを含むものがある
+;; V.3.5 nにcを追加，V'からcを取り除く
+;; V.3.6 VISIT(V', v, n)
+;; V.4 「itemsetがnと同じであるようなnの子がいなければ
+;;     （極大な集合のみを出力するため）」nをL（解候補）に追加
