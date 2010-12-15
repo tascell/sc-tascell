@@ -207,6 +207,8 @@
    (case RACK) (csym::recv-rack pcmd) (break)
    (case DREQ) (csym::recv-dreq pcmd) (break)
    (case DATA) (csym::recv-data pcmd) (break)
+   (case BCST) (csym::recv-bcst pcmd) (break)
+   (case BCAK) (csym::recv-bcak pcmd) (break)
    (case STAT) (csym::print-status pcmd) (break)
    (case VERB) (csym::set-verbose-level pcmd) (break)
    (case EXIT) (csym::recv-exit pcmd) (break)
@@ -1248,6 +1250,43 @@
 (decl (csym::wait-data) (csym::fn void int int))
 
 
+;;; recv-bcst
+;;; bcst  <送信元アドレス>  <ブロードキャスト種別>
+(def (csym::recv-bcst pcmd) (csym::fn void (ptr (struct cmd)))
+  (def rcmd (struct cmd))
+  (def task-no int)
+  ;; パラメータ数チェック
+  (if (< pcmd->c 2)
+      (csym::proto-error "wrong-task" pcmd))
+  ;; データの受信を行わせる
+  (= task-no (aref pcmd->v 1 0))
+  
+  ;; データ受信部本体を呼ぶ
+  ;;   task-receiver で代用しているが、ブロードキャストは専用の
+  ;;   sender/receiver があった方が、紛らわしくなくてベターではないか？
+  ;;   また、receiver は内部でタスクオブジェクトをヒープに作って返して
+  ;;   くるので、それを free しなければならない（はず）。
+  (csym::free ((aref task-receivers task-no)))
+  
+  (csym::read-to-eol)
+  ;; bcak で送信元に返答
+  (= rcmd.c 1)
+  (= rcmd.node pcmd->node)
+  (= rcmd.w BCAK)
+  (csym::copy-address (aref rcmd.v 0) (aref pcmd->v 0))
+  (csym::send-command (ptr rcmd) 0 task-no)
+)
+
+
+;;; recv-bcak
+;;; bcak  <送信先アドレス>
+(def (csym::recv-bcak pcmd) (csym::fn void (ptr (struct cmd)))
+  ; TODO for kmatsui
+  ;   ブロードキャストが終わったので、データ送信完了を待っているワーカを起こす
+  ;   * pcmd から、眠っているワーカを識別
+  ;   * pthread_cond_broadcast などで起こす？
+)
+
 
 ;;; taskの情報を出力
 (def task-stat-strings (array (ptr char)) ; enum task-statに対応
@@ -1427,6 +1466,17 @@
   (csym::pthread-mutex-unlock (ptr thr->mut))
   (return body))
 
+
+;;; ワーカがブロードキャストを実行するとき、put後に呼ばれる（予定）
+(def (csym::broadcast-task thr task-no body)
+   (csym::fn void (ptr (struct thread-data)) int (ptr void))
+  ; TODO for kmatsui
+  ;   * cmd 構造体を作って、send-command で送る
+  ;   * task-sender は send-out-command の中で呼ばれるので、そこもいじる必要あり
+  ;   * bcak 待ちフラグを立てて、pthread_cond_wait に入る？
+  ;   * スレッドが起きたら bcak 待ちフラグを読んで、終わっていたら関数を抜ける？
+)
+   
 
 ;;; Handling command-line options
 (def (csym::usage argc argv) (csym::fn void int (ptr (ptr char)))
