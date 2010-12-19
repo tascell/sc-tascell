@@ -165,6 +165,9 @@
   (def cond pthread-cond-t)             ; task, none待ちで眠らせるときの条件変数
   (def cond-r pthread-cond-t)           ; rslt待ちで眠らせるときの条件変数
   (def wdptr (ptr void))                ; worker local storage構造体（ユーザが定義）へのポインタ
+  (def w-bcak int)                      ; （bcstを送信して）bcak待ちか否か
+                                        ; 新しい変数を treq-top より上に追加すると
+                                        ; ワーカが正しく動いてくれません（松井）
   (def dummy (array char DUMMY-SIZE)) ; false sharing防止のpadding
   )
 

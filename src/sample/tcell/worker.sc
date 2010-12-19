@@ -173,7 +173,7 @@
   (cond
    (body
     (cond
-     ((== w TASK)
+     ((or (== w TASK) (== w BCST))
       ((aref task-senders task-no) body)
       (csym::write-eol))
      ((== w RSLT)
@@ -1258,34 +1258,37 @@
   ;; パラメータ数チェック
   (if (< pcmd->c 2)
       (csym::proto-error "wrong-task" pcmd))
-  ;; データの受信を行わせる
+  ;; データの種別を読み取り
   (= task-no (aref pcmd->v 1 0))
-  
   ;; データ受信部本体を呼ぶ
-  ;;   task-receiver で代用しているが、ブロードキャストは専用の
-  ;;   sender/receiver があった方が、紛らわしくなくてベターではないか？
-  ;;   また、receiver は内部でタスクオブジェクトをヒープに作って返して
-  ;;   くるので、それを free しなければならない（はず）。
+  ;;   receiver は内部でタスクオブジェクトをヒープに作って返して
+  ;;   くるので、それをここで free する。
   (csym::free ((aref task-receivers task-no)))
-  
   (csym::read-to-eol)
   ;; bcak で送信元に返答
   (= rcmd.c 1)
   (= rcmd.node pcmd->node)
   (= rcmd.w BCAK)
   (csym::copy-address (aref rcmd.v 0) (aref pcmd->v 0))
-  (csym::send-command (ptr rcmd) 0 task-no)
-)
+  (csym::send-command (ptr rcmd) 0 task-no))
 
 
 ;;; recv-bcak
 ;;; bcak  <送信先アドレス>
 (def (csym::recv-bcak pcmd) (csym::fn void (ptr (struct cmd)))
-  ; TODO for kmatsui
-  ;   ブロードキャストが終わったので、データ送信完了を待っているワーカを起こす
-  ;   * pcmd から、眠っているワーカを識別
-  ;   * pthread_cond_broadcast などで起こす？
-)
+  (def thr (ptr (struct thread-data)))
+  (def id (enum addr))
+  ;; パラメータ数チェック
+  (if (< pcmd->c 1)
+    (csym::proto-error "wrong-task" pcmd))
+  ;; bcak を待っているワーカをメッセージから特定
+  (= id (aref pcmd->v 0 0))
+  (= thr (+ threads id))
+  ;; ワーカを起こす
+  (csym::pthread-mutex-lock (ptr thr->mut))
+  (= thr->w-bcak 0)
+  (csym::pthread-cond-broadcast (ptr thr->cond))
+  (csym::pthread-mutex-unlock (ptr thr->mut)))
 
 
 ;;; taskの情報を出力
@@ -1467,15 +1470,29 @@
   (return body))
 
 
-;;; ワーカがブロードキャストを実行するとき、put後に呼ばれる（予定）
+;;; ワーカがブロードキャストを実行するとき、put後に呼ばれる
 (def (csym::broadcast-task thr task-no body)
    (csym::fn void (ptr (struct thread-data)) int (ptr void))
-  ; TODO for kmatsui
-  ;   * cmd 構造体を作って、send-command で送る
-  ;   * task-sender は send-out-command の中で呼ばれるので、そこもいじる必要あり
-  ;   * bcak 待ちフラグを立てて、pthread_cond_wait に入る？
-  ;   * スレッドが起きたら bcak 待ちフラグを読んで、終わっていたら関数を抜ける？
-)
+  (def bcmd (struct cmd))
+  ;; まずは bcst を送る
+  (= bcmd.c 2)
+  (= bcmd.node OUTSIDE)
+  (= bcmd.w BCST)
+  (= (aref bcmd.v 0 0) thr->id)        ; bcst送信元アドレス (worker-id)
+  (= (aref bcmd.v 0 1) TERM)
+  (= (aref bcmd.v 1 0) task-no)        ; ブロードキャスト種別 (task-no)
+  (= (aref bcmd.v 1 1) TERM)
+  (csym::send-command (ptr bcmd) body task-no)
+
+  ;; task-sender は send-out-command の中で呼ばれる
+
+  ;; bcak 待ちフラグを立てて、bcak が来るまで待機
+  ;; 待ちフラグが消えていたら、関数を抜ける（フラグは recv-bcak 関数内で消える）
+  (csym::pthread-mutex-lock (ptr thr->mut))
+  (= thr->w-bcak 1)
+  (while thr->w-bcak
+    (csym::pthread-cond-wait (ptr thr->cond) (ptr thr->mut)))
+  (csym::pthread-mutex-unlock (ptr thr->mut)))
    
 
 ;;; Handling command-line options
@@ -1720,6 +1737,7 @@
       (= thr->id i)
       (= thr->w-rack 0)
       (= thr->w-none 0)
+      (= thr->w-bcak 0)
       (= thr->ndiv 0)
       (= thr->last-treq i)
       (= thr->last-choose CHS-RANDOM)
