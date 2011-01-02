@@ -110,9 +110,8 @@
                                         ; 最後にnoneを受け取った時刻（get-internal-real-timeで獲得）
                                         ; taskを送った相手に対してはリセットする
    (unreplied-treqs :accessor host-unreplied-treqs :type fixnum :initform 0)
-                                        ; <treqを送った回数>-<taskまたはnoneをもらった回数>
+					; <treqを送った回数>-<taskまたはnoneをもらった回数>
    ))
-  
 
 (defclass parent (host)
   ((host :initform *parent-host*)
@@ -193,6 +192,8 @@
    (n-wait-children :accessor ts-n-wait-children :type fixnum :initform 0 :initarg :n-wait-children)
                                         ; この数のchildが接続するまでメッセージ処理を行わない
    (child-next-id :accessor ts-child-next-id :type fixnum :initform 0)
+   (bcst-receipants :accessor ts-bcst-receipants :type list :initform ())
+					; (<bcak返信先> . <bcstをforwardしたhostのリスト>)のリスト
    (exit-gate :accessor ts-exit-gate :initform (mp:make-gate nil))
    (treq-any-list :accessor ts-talist :type list :initform '()) ;; treq-anyを出せていないリスト
    (accept-connection-process :accessor ts-accept-connection-process
@@ -925,6 +926,14 @@
 (defmethod send-rack (to task-head)
   (send to (list "rack " task-head #\Newline)))
 
+(defgeneric send-bcst (to bcak-head task-no body))
+(defmethod send-bcst (to bcak-head task-no body)
+  (send to (list "bcst " bcak-head task-no body #\Newline)))
+
+(defgeneric send-bcak (to bcak-head))
+(defmethod send-bcak (to bcak-head)
+  (send to (list "bcst " bcak-head #\Newline)))
+
 (defgeneric send-dreq (to data-head dreq-head range))
 (defmethod send-dreq (to data-head dreq-head range)
   (send to (list "dreq " data-head #\Space dreq-head #\Space range #\Newline)))
@@ -960,6 +969,8 @@
     ("back" (proc-back sv from cmd))
     ("rslt" (proc-rslt sv from cmd))
     ("rack" (proc-rack sv from cmd))
+    ("bcst" (proc-bcst sv from cmd))
+    ("bcak" (proc-bcak sv from cmd))
     ("dreq" (proc-dreq sv from cmd))
     ("data" (proc-data sv from cmd))
     ("leav" (proc-leav sv from cmd))
@@ -1139,6 +1150,50 @@
   (destructuring-bind (to s-task-head)
       (head-shift sv (second cmd))      ; rack送信先
     (send-rack to s-task-head)))
+
+;; bcst
+(defgeneric proc-bcst (sv from cmd))
+(defmethod proc-bcst ((sv tcell-server) (from host) cmd)
+  (let ((p-bcak-head (head-push from (second cmd))) ; bcak返信先
+	(task-no (third cmd))		; タスク番号 （btsk_a, btsk_b, ...)
+	(bcst-body (nthcdr 3 cmd)))	; data部
+    (let ((recipients ()))
+      ;; bcstの送り元とterminal-parent以外にforwardする
+      (dolist to (cons (ts-parent sv) (ts-children sv))
+	(unless (or (eq from to)
+		    (typep to 'terminal-parent))
+	  (send-bcst to p-bcak-head task-no bcst-body)
+	  (push to recipients)))
+      ;; (<bcak返信先> . <forward先のリスト>)を記憶する
+      (when (member p-bcak-head (ts-bcst-receipants sv)
+		    :key #'car :test #'string=)
+	(warn "Server received the same broadcast twice: ~S"
+	      p-bcak-head))
+      (push (cons p-bcak-head recipients) (ts-bcst-receipants sv)))))
+
+;; bcak
+(defgeneric proc-bcak (sv from cmd))
+(defmethod proc-bcak ((sv tcell-server) (from host) cmd)
+  (let ((bcak-head (second cmd)))
+    (destructuring-bind (to s-bcak-head) ; bcak送信先
+	(head-shift bcak-head)
+      (let ((receipants-entry		
+	     (car (member bcak-head (ts-bcst-receipants sv)
+			  :key #'car :test #'string=))))
+	(if (null receipants-entry)	; bcak-headからのbcstがあったかチェック
+	    (warn "No bcst from ~S is remenbered." bcak-head)
+	  (if (not (member from (cdr receipants-entry) :test #'eq))
+					; fromがback待ちリストにあるかチェック
+	      (warn "No bcst from ~S to ~S is remembered."
+		    bcak-head (hostinfo from))
+	    (progn
+	      ;; back待ちからfromを削除
+	      (rplacd receipants-entry
+		      (delete from (cdr receipants-entry) :test #'eq))
+	      ;; 待ちリストが空になっていたらbackを返す
+	      (when (null (cdr receipants-entry))
+		(send-bcak to s-bcak-head))
+	      )))))))
 
 ;;; dreq
 (defgeneric proc-dreq (sv from cmd))

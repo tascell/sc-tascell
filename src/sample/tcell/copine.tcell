@@ -31,7 +31,9 @@
 
 (%defconstant VSIZE (+ (* 16 1024 1024) 321))
 (%defconstant ESIZE (+ (* 64 1024 1024) 321))
-(%defconstant ISIZE 1000)
+(%defconstant ISIZE 256)                ; max index of items
+(%defconstant INTSIZE 32)               ; assume that sizeof(int) is at least 4(=32bit)
+(%defconstant I-INTSIZE (+ (/ ISIZE INTSIZE) 1)) ; size of the items array
 
 (%defconstant BUFSIZE 500)
 
@@ -46,21 +48,63 @@
 ;;;
 (def (struct _node) #||#
   (def degree int)                      ; # edges from this node
-  (def first-edge int)                  ; first edge (index for Edges)
-  (def items (array char ISIZE)))       ; item set (items[i]==1 means the node has the item i)
+  (def first-edge int)			; first edge (index for Edges)
+  (def items (array char I-INTSIZE))    ; item set (i-th bit == 1 means the node has the item i)
+  (def nitem int)                       ; # of items
+  )                                     
 
 (deftype node (struct _node))
 (def Nodes (array node VSIZE))
 (def Node-max int -1)			; The max node index
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Utils
+;; Count number of bits of 1 in 64-bit integer
+(def (csym::nofbits bits) (fn long long)
+  (= bits (+ (bit-and bits #x55555555) (bit-and (>> bits  1) #x55555555)))
+  (= bits (+ (bit-and bits #x33333333) (bit-and (>> bits  2) #x33333333)))
+  (= bits (+ (bit-and bits #x0f0f0f0f) (bit-and (>> bits  4) #x0f0f0f0f)))
+  (= bits (+ (bit-and bits #x00ff00ff) (bit-and (>> bits  8) #x00ff00ff)))
+  (= bits (+ (bit-and bits #x0000ffff) (bit-and (>> bits 16) #x0000ffff)))
+  (return bits))
+
+;; Count # of items
+(def (csym::count-items items) (fn int (ptr int))
+  (def i int)
+  (def n int 0)
+  (for ((= i 0) (< i I-INTSIZE) (inc i))
+    (+= n (csym::nofbits (aref items i))))
+  (return n))
+
+;; Set i-th item
+(def (csym::set-item items i) (fn void (ptr int))
+  (def index int (/ i INTSIZE))
+  (def n-bit int (% i INTSIZE))
+  (bit-or= (aref items index) (<< 1 n-bit)))
+
+;; Test if i-th item is included
+(def (csym::test-item items i) (fn int (ptr int))
+  (def index int (/ i INTSIZE))
+  (def n-bit int (% i INTSIZE))
+  (return (bit-and (aref items index) (<< 1 n-bit))))
+
+;; Compute the intersection of the items1 and items2 and
+;; set the result to items1. Returns # items in the resulted set.
+(def (csym::intersection items1 items2) (fn int (ptr int) (ptr int))
+  (def i int)
+  (def n int 0)
+  (for ((= i 0) (< i I-INTSIZE) (inc i))
+    (bit-and= (aref items1 i) (aref items2 i))
+    (+= n (csym::nofbits (aref items i))))
+  (return n))
+  
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (def (csym::initialize-node p-nd) (fn void (ptr node))
   (def i int)
   (= p-nd->degree 0)
   (= p-nd->first-edge -1)
-  (for ((= i 0) (< i ISIZE) (inc i))
-    (= (aref p-nd->items i) 0))
-    )
+  (for ((= i 0) (< i I-INTSIZE) (inc i))
+    (= (aref p-nd->items i) 0)))
 
 (def (csym::initialize-nodes) (fn void)
   (def i int)
@@ -70,21 +114,23 @@
 ;;;;
 ;;; Parse items-str and set items to .item of Nodes[v]. Employed by load-items.
 ;; items-str: Items separated by comma.
-;; Each item name is a seingle ascii character and may appear only once
+;; Each item name is a seingle ascii character.
+;; The ascii code of the character represents the item number.
 (def (csym::set-items v items-str) (fn void int (ptr char))
   (def p-v (ptr node))
   (def i int)
-  (def next-index int 0)
+  (def ni int 0)                        ; # of items
   (if (> v Node-max)
       (= Node-max v))
   (= p-v (ptr (aref Nodes v)))
   (for ((= i 0) (aref items-str i) (inc i))
     (if (and (!= (aref items-str i) #\,)
-	     (!= (aref items-str i) #\Newline))
+	     (!= (aref items-str i) #\Newline)
+             (csym::test-item p-v->items (aref items-str i)))
 	(begin
-	  (= (aref p-v->items next-index) (aref items-str i))
-	  (++ next-index))))
-  (= p-v->item-max (- next-index 1)))
+	  (csym::set-item p-v->items (aref items-str i))
+	  (inc ni))))
+  (= p-v->nitem (csym::count-items p-v->items)))
 
 ;;; Load an item file and set .item of each node.
 ;; Format of item files:
@@ -98,6 +144,7 @@
   (while (not (csym::feof fp))
     (csym::fgets line BUFSIZE fp)
     (cond
+     ;; Line begining with '#' is ignored
      ((== (aref line 0) #\#)
       (continue))
      (else
@@ -162,9 +209,21 @@
   (def f-graph (array char 128) :in))	; Graph filename
 (def OPTIONS (ptr (struct copine-start)))
 
-(def (task copine)
-     )
+(def (task copine-visit-start) #||#
+  (def int s1 :in)			; range of start nodes
+  (def int s2 :in)			; range of start nodes
+  (def int th :in)			; the minimum # of common items
+  )
 
+(def (task copine-visit) #||#
+  (def int v :in)			; node # to be visited
+  (def int e1 :in)			; range of passed edges
+  (def int e2 :in)			; range of passed edges
+  (def (ptr int) dfs)			; list of visited nodes
+  (def int dfs-size :in)		; the size of dfs
+  (def int th :in)			; the minimum # of common items
+  )
+  
 (decl (search pcop) (wfn void (ptr (struct copine))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -178,16 +237,40 @@
   (csym::load-edge this.f-graph)
   (csym::load-items this.f-pattern)
   (= OPTIONS (ptr this))
-  (search (ptr cop)))
+  (visit-start 0 Node-max this.th))
 
-(def (task-body copine) #||#
-  (search (ptr this))
-  )
+(def (task-body copine-visit-start) #||#
+  (visit-start this.s1 this.s2 this.th))
+
+;; Start traversals from the node s1~s2
+(def (visit-start s1 s2 th) (wfn void int int int)
+  (def dfs (ptr int) 0)
+  ;; s: traversalの開始ノード
+  (do-many for s from s1 to s2
+    (def pnd (ptr node) (ptr (aref Nodes s)))
+    (if (< pnd->nitem th) (break))
+    (if (not dfs)
+        (= dfs (csym::malloc (* 500 (sizeof int)))))
+    (= (aref dfs 0) s)
+    (visit s 0 pnd->degree dfs 1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(def (search pcop) (wfn void (ptr (struct copine)))
+;; pass the e1~e2-th edges from the node v
+(def (visit v e1 e2 dfs dfs-size th) (wfn void int int int (ptr int) int int)
+  (def pnd (ptr node) (ptr (aref Nodes v)))
+  (def peg (ptr edge))
+  (def cur-edge int pnd->first-edge)
+  (def e int)
+  (def i int 0)
+  (for ((= i 0) (< i e1) (inc i))
+    (= cur-edge (fref (aref Edges cur-edge) next)))
+  (do-many for e from e1 to e2
+    (= peg (ptr (aref Edges cur-edge)))
+    
+    (= cur-edge (fref (aref Edges cur-edge) next)))
   )
 
+       
 ;; データ構造
 ;; ・ノード
 ;; - 入力ファイルのノードID ＝ Node配列のindex
@@ -210,11 +293,11 @@
 ;;   のほうがよいと思われる．
 ;; ・ノードが持つアイテム集合
 ;; - Node<x> が アイテム<i> を持つことは
-;;   Node[x].items[i] = 1 で表す
+;;   Node[x].items[i/32] の下位(i%32)ビット目が1であることで表わす
 ;; - アイテムの種類が多いのであればリストなど別の表現にする必要
 ;;
 ;; アルゴリズム
-;; ・main部
+;; ・main部 (visit-start)
 ;; θ：共通アイテム数の下限，
 ;; 1. そもそもitem数がθ未満のノードを削除（Todo）
 ;;    - そこへの枝と，2.の始点候補から外せばOK？
@@ -223,7 +306,7 @@
 ;; 3.1. v ← 始点候補からノードを一個選ぶ
 ;; 3.2. V' ← Vの複製
 ;; 3.3. VISIT(V', v, root)を適用
-;; 3.4. Vからvを取り除く
+;; 3.4. Vからvを取り除く（V'⊂V であることは本質的に必要か？）
 ;; 4. L（解候補の集合）をノード数順でソート
 ;; 5. L内のの要素間のペアについてoverlap値がユーザ指定閾値r
 ;;    より高いものがあれば，1つだけ残す
