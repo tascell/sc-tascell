@@ -53,7 +53,8 @@
               n-wait-children 1
               initial-task nil
               logfile nil
-              server nil)
+              server nil
+              socket-format :bivalent)
         (do* ((rest args (cdr rest))
               (hd (car rest) (car rest)))
             ((endp rest))
@@ -75,6 +76,13 @@
                   (setq initial-task parm))
                  ((#\s)                 ; server
                   (setq server parm))
+                 ((#\T)                 ; server
+                  (let ((num (parse-integer parm :junk-allowed t)))
+                    (setq socket-format
+                      (if (or (not (integerp num))
+                              (and (integerp num) (> num 0)))
+                          :text
+                        :bivalent))))
                  ((#\L)                 ; show server log
                   (let ((num (parse-integer parm :junk-allowed t)))
                     (setq tsv:*transfer-log*
@@ -110,6 +118,7 @@
                                        :auto-initial-task ,initial-task
                                        :parent-host ,server
                                        :parent-port ,port
+                                       :socket-format ,socket-format
                                        :auto-exit ,t))
         (force-output)
         (flet ((exec ()
@@ -119,6 +128,7 @@
                                              :auto-initial-task initial-task
                                              :parent-host server
                                              :parent-port port
+                                             :socket-format socket-format
                                              :auto-exit t)))
           (if (and tsv:*transfer-log* logfile)
               (unwind-protect

@@ -60,24 +60,17 @@
 (defparameter *server-host* "localhost")
 (defparameter *children-port* 9865)
 
+;;; ソケットのフォーマット（バイナリが不要なら:textにすると速度向上）
+(defparameter *socket-format* :bivalent)
+
 ;;; anyでないtreqを常に転送
 (defparameter *transfer-treq-always-if-notany* t)
 
 ;;; log出力の有無，出力先
 (defparameter *transfer-log* t)         ; (featurep :tcell-no-transfer-log) の場合は常に無効
 (defparameter *transfer-log-output* *error-output*) ; (featurep :tcell-no-transfer-log) の場合は常に無効
+(defparameter *transfer-log-format* :gnuplot)
 (defparameter *connection-log* t)
-#-tcell-no-transfer-log
-(defmacro tcell-server-dprint (format-string &rest args)
-  `(when *transfer-log*
-     (mp:with-process-lock (*log-lock*)
-       (format *transfer-log-output* ,format-string ,@args)
-       ;; (force-output *taransfer-log-output*)
-       )))
-#+tcell-no-transfer-log
-(defmacro tcell-server-dprint (&rest args)
-  (declare (ignore args))
-  '(progn))
 
 ;;; send/recvのログを出力する長さ
 (defparameter *transfer-log-length* 70)
@@ -192,6 +185,7 @@
    (n-wait-children :accessor ts-n-wait-children :type fixnum :initform 0 :initarg :n-wait-children)
                                         ; この数のchildが接続するまでメッセージ処理を行わない
    (child-next-id :accessor ts-child-next-id :type fixnum :initform 0)
+   (socket-format :accessor ts-socket-format :type symbol :initform *socket-format* :initarg :socket-format)
    (bcst-receipants :accessor ts-bcst-receipants :type list :initform ())
 					; (<bcak返信先> . <bcstをforwardしたhostのリスト>)のリスト
    (exit-gate :accessor ts-exit-gate :initform (mp:make-gate nil))
@@ -200,6 +194,45 @@
                               :type (or null mp:process) :initform nil)
    (retry :accessor ts-retry :type fixnum :initform *retry* :initarg :retry)
    ))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Logger
+#-tcell-no-transfer-log
+(defmacro tcell-server-dprint (format-string &rest args)
+  `(when *transfer-log*
+     (mp:with-process-lock (*log-lock*)
+       (format *transfer-log-output* ,format-string ,@args)
+       ;; (force-output *taransfer-log-output*)
+       )))
+#+tcell-no-transfer-log
+(defmacro tcell-server-dprint (&rest args)
+  (declare (ignore args))
+  '(progn))
+
+#-tcell-no-transfer-log
+(defgeneric get-gnuplot-error-bar (from to msg))
+#-tcell-no-transfer-log
+(defmethod get-gnuplot-error-bar ((from string) (to host) (msg string))
+  (let ((x (get-internal-real-time))
+        (y-from (if (string-begin-with "p" from)
+                    -1
+                   (parse-integer from :junk-allowed t)))
+        (y-to (if (typep to 'parent)
+                  -1
+                (parse-integer (hostid to)))))
+    (format nil "~&~D ~D ~D ~D # ~A~%" x y-from y-from y-to msg)))
+
+#-tcell-no-transfer-log
+(defmethod get-gnuplot-error-bar ((from host) (to string) (msg string))
+  (let ((x (get-internal-real-time))
+        (y-from (if (typep from 'parent)
+                    -1
+                  (parse-integer (hostid from))))
+        (y-to (if (string-begin-with "p" to)
+                  -1
+                (parse-integer to :junk-allowed t))))
+    (format nil "~&~D ~D ~D ~D # ~A~%" x y-from y-from y-to msg)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -268,11 +301,11 @@
       (progn
         ;; 親へ接続
         ;; sv.parent = connect_to (prnt):
-        (setf (ts-parent sv) (connect-to prnt))
+        (setf (ts-parent sv) (connect-to prnt (ts-socket-format sv)))
         ;; 子からの待ち受けポートを開く
         (setf (ts-chsock0 sv)
           (socket:make-socket :connect :passive
-                              :format :bivalent
+                              :format (ts-socket-format sv)
                               :reuse-address *reuse-address*
                               :local-host (ts-hostname sv)
                               :local-port (ts-chport sv)))
@@ -383,16 +416,17 @@
            " (parent)"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defgeneric connect-to (hst))
-(defmethod connect-to ((hst host))
+(defgeneric connect-to (hst &optional format))
+(defmethod connect-to ((hst host) &optional (format *socket-format*))
   (setf (host-socket hst)
-    (socket:make-socket :format :bivalent
+    (socket:make-socket :format format
                         :remote-host (host-hostname hst)
                         :remote-port (host-port hst)))
   (initialize-connection hst)
   hst)
 
-(defmethod connect-to ((hst terminal-parent))
+(defmethod connect-to ((hst terminal-parent) &optional format)
+  (declare (ignore format))
   (assert (host-socket hst))
   (initialize-connection hst)
   hst)
@@ -509,7 +543,8 @@
                                             (mp:open-gate gate))))))
             (#.*commands-without-data* nil)
             (otherwise (error "Unknown command ~S from ~S." msg (hostinfo hst))))
-          (tcell-server-dprint "(~6D): ~A~15T>>> ~A~%"
+          (tcell-server-dprint "~&~A(~6D): ~A~15T>>> ~A~%"
+                               (if (eq :gnuplot *transfer-log-format*) "# " "") 
                                (get-internal-real-time)
                                (hostid hst) (msg-log-string msg))
           (values (cons hst msg) eof-p))
@@ -709,8 +744,22 @@
                              (hostinfo maxchld) (child-diff-task-rslt maxchld) (child-wsize maxchld)))
       maxchld)
     ;; Strategy2: （送ったtaskの数-受け取ったrsltの数）>0 のものからランダム
-    (if candidates (list-random-select candidates) nil))
-    )
+    #+swopp10
+    (if candidates (list-random-select candidates) nil)
+    ;; Strategy3: SWoPP10 random
+    #-swopp10
+    (when candidates
+      (if (not (typep (ts-parent sv) 'terminal-parent))
+          (list-random-select candidates)
+        (let ((cand (if (< 0.75 (random 1.0))
+                        (remove-if-not #'(lambda (c) (<= 2 (child-id c)))
+                                       candidates)
+                      (remove-if #'(lambda (c) (<= 2 (child-id c)))
+                                 candidates))))
+          (if cand
+              (list-random-select cand)
+            (list-random-select candidates)))))
+    ))
 
 ;;; 子のwork-size を更新
 (defgeneric renew-work-size (chld wsize))
@@ -816,7 +865,8 @@
 ;; debug print
 #-tcell-no-transfer-log
 (defmethod send :after ((to host) obj)
-  (tcell-server-dprint "~&(~6D): ~A~15T<<< ~A~%"
+  (tcell-server-dprint "~&~A(~6D): ~A~15T<<< ~A~%"
+                       (if (eq :gnuplot *transfer-log-format*) "# " "")
                        (get-internal-real-time)
                        (hostid to) (msg-log-string obj nil)))
 
@@ -825,7 +875,9 @@
   (send to (list "treq " task-head #\Space treq-head #\Newline)))
 
 (defmethod send-treq :after ((to host) task-head treq-head)
-  (declare (ignore task-head treq-head))
+  (declare (ignore task-head #+no-transfer-log treq-head))
+  #-no-transfer-log
+  (tcell-server-dprint (get-gnuplot-error-bar task-head to "treq"))
   (incf (host-unreplied-treqs to)))
   
 ;; treqへの応答として，task，またはexitを自動再送信（バッチ実行用）
@@ -842,14 +894,22 @@
                  task-head #\Space
                  task-no #\Newline
                  task-body #\Newline)))
+
 (defmethod send-task :after ((to host) wsize-str rslt-head task-head task-no task-body)
   (declare (ignore wsize-str rslt-head task-head task-no task-body))
   (setf (host-none-time to) -1))
+
 (defmethod send-task :after ((to child) wsize-str rslt-head task-head task-no task-body)
   (declare (ignore rslt-head task-head task-no task-body))
   (incf (child-diff-task-rslt to))
   (let ((wsize (parse-integer wsize-str)))
     (renew-work-size to (- wsize))))
+
+#-tcell-no-transfer-log
+(defmethod send-task :after ((to host) wsize-str rslt-head task-head task-no task-body)
+  (declare (ignore wsize-str task-head task-no task-body))
+  (when (eq :gnuplot *transfer-log-format*)
+    (tcell-server-dprint (get-gnuplot-error-bar rslt-head to "task"))))
 
 (defgeneric send-rslt (to rslt-head rslt-body))
 (defmethod send-rslt (to rslt-head rslt-body)
@@ -861,6 +921,8 @@
 
 (defmethod send-rslt :after ((to terminal-parent) rslt-head rslt-body)
   (declare (ignore rslt-body))
+  ;; log
+  (tcell-server-dprint "~&# (~D) rslt sent to terminal parent." (get-internal-real-time))
   ;; rack，task，exit自動送信の設定（task再送信は性能評価用）
   (when (parent-auto-rack to)
     (let ((end-time (get-internal-real-time)))
@@ -1003,7 +1065,8 @@
    ;; 時々優先して親にも聞きにいく（terminal-parentを除く）
    (and (not (typep (ts-parent sv) 'terminal-parent))
         (not (eq (ts-parent sv) from))
-        (= 0 (random (ts-n-children sv)))
+        #-swopp10 (= 0 (random (ts-n-children sv)))
+        #+swopp10 (< 0.75 (random 1.0))
         (try-send-treq sv (ts-parent sv) p-task-head "any"))
    ;; 子供に聞きにいく
    (awhen (most-divisible-child sv from)
@@ -1111,8 +1174,11 @@
     (send-none to s-task-head)))
 
 (defmethod proc-none :before ((sv tcell-server) (from host) cmd)
-  (declare (ignorable sv cmd))
+  (declare (ignorable sv #+no-transfer-log cmd))
+  #-no-transfer-log
+  (tcell-server-dprint (get-gnuplot-error-bar from (second cmd) "none"))
   (decf (host-unreplied-treqs from)))
+
 
 (defmethod proc-none :after ((sv tcell-server) (from host) cmd)
   ;; noneを受け取った時刻を記憶
@@ -1302,12 +1368,14 @@
                               (auto-exit nil) ; for terminal parent
                               (parent-host *parent-host*)
                               (parent-port *parent-port*)
+                              (socket-format *socket-format*)
                               )
   (when parent-host (setq terminal-parent nil))
   (let* ((sv (make-instance 'tcell-server
                :local-host local-host
                :children-port children-port
                :n-wait-children n-wait-children
+               :socket-format socket-format
                :retry retry))
          (prnt (if terminal-parent
                    (make-instance 'terminal-parent

@@ -35,9 +35,10 @@ N_EXTERNAL_SITES=0
 EXTERNAL_SITE_FILE="child-servers"
 SERVER_LOG=0
 FORCE_COMPILE=0
+USE_TEXT_SOCKET=0
 
 # getopts
-while getopts n:c:w:i:s:h:p:g:e:E:l:L:C: opt
+while getopts n:c:w:i:s:h:p:g:e:E:l:T:L:C: opt
 do
     case ${opt} in
         n)
@@ -62,6 +63,8 @@ do
             EXTERNAL_SITE_FILE=${OPTARG};;
         l)
             LISP=${OPTARG};;
+        T)
+            USE_TEXT_SOCKET=${OPTARG};;
         L)
             SERVER_LOG=${OPTARG};;
         C)
@@ -115,9 +118,9 @@ set -x
 
 # run server
 if [ $LISP = 'alisp' ]; then
-    "$LISP" -batch -L $SERVER_CMDLINE -- -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE $PARENT_OPT "$PARENT_OPT_ARG" -L "$SERVER_LOG.$DATE" -C $FORCE_COMPILE &
+    "$LISP" -batch -L $SERVER_CMDLINE -- -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE $PARENT_OPT "$PARENT_OPT_ARG" -T $USE_TEXT_SOCKET -L "$SERVER_LOG.$DATE" -C $FORCE_COMPILE &
 elif [ $LISP = 'sbcl' ]; then
-    "$LISP" --script $SERVER_CMDLINE -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE $PARENT_OPT "$PARENT_OPT_ARG" -L "$SERVER_LOG.$DATE" -C $FORCE_COMPILE &
+    "$LISP" --script $SERVER_CMDLINE -h $HOSTNAME -p $PORT_NUM -w $N_WAIT_NODE $PARENT_OPT "$PARENT_OPT_ARG" -T $USE_TEXT_SOCKET -L "$SERVER_LOG.$DATE" -C $FORCE_COMPILE &
 else
     echo "Unknown Lisp Implementation: $LISP"
     exit 1
@@ -135,7 +138,7 @@ if [ $N_EXTERNAL_SITES -gt 0 -a $NNODE -gt 0 ]; then
         else
             CHILD_LOG=0
         fi
-        ssh -l $LOGINID -f $SITE "kill-tcell; cd $PWD; tcell-batch -n $NNODE -c \"$WORKER_CMD\" -s $HOSTNAME -p $PORT_NUM -g $START -l $LISP -C $FORCE_COMPILE -L $CHILD_LOG"
+        ssh -l $LOGINID -f $SITE "kill-tcell; cd $PWD; tcell-batch -n $NNODE -c \"$WORKER_CMD\" -s $HOSTNAME -p $PORT_NUM -g $START -l $LISP -T $USE_TEXT_SOCKET -C $FORCE_COMPILE -L $CHILD_LOG"
     done
 fi
 
