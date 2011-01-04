@@ -69,7 +69,7 @@
 ;;; log出力の有無，出力先
 (defparameter *transfer-log* t)         ; (featurep :tcell-no-transfer-log) の場合は常に無効
 (defparameter *transfer-log-output* *error-output*) ; (featurep :tcell-no-transfer-log) の場合は常に無効
-(defparameter *transfer-log-format* :gnuplot)
+(defparameter *transfer-log-format* :gnuplot) ; :normal or :gnuplot
 (defparameter *connection-log* t)
 
 ;;; send/recvのログを出力する長さ
@@ -84,9 +84,9 @@
 ;;; コマンドに続いてデータをともなうコマンド
 ;;; These constants are referred to in compile time with #. reader macros.
 (eval-when (:execute :load-toplevel :compile-toplevel)
-  (defparameter *commands* '("treq" "task" "none" "back" "rslt" "rack" "dreq" "data" "leav" "log"
-                            "stat" "verb" "eval" "exit"))
-  (defparameter *commands-with-data* '("task" "rslt" "data"))
+  (defparameter *commands* '("treq" "task" "none" "back" "rslt" "rack" "bcst" "bcak" "dreq" "data" "leav"
+                             "log"  "stat" "verb" "eval" "exit"))
+  (defparameter *commands-with-data* '("task" "rslt" "bcst" "data"))
   (defparameter *commands-without-data* (set-difference *commands* *commands-with-data* :test #'string=)))
 
 (defparameter *retry* 20)
@@ -345,7 +345,13 @@
                 `(:unreplied-treqs
                   ,@(mapcar #'(lambda (host)
                                 (list (hostid host) (host-unreplied-treqs host)))
-                            (cons (ts-parent sv) (ts-children sv)))))
+                            (cons (ts-parent sv) (ts-children sv))))
+                `(:bcst-receipants
+                  ,@(mapcar #'(lambda (rcp-entry)
+                                (cons (car rcp-entry)
+                                      (mapcar #'hostid (cdr rcp-entry))))
+                            (ts-bcst-receipants sv)))
+                )
           *error-output*)
   (terpri *error-output*)
   (force-output *error-output*))
@@ -875,7 +881,7 @@
   (send to (list "treq " task-head #\Space treq-head #\Newline)))
 
 (defmethod send-treq :after ((to host) task-head treq-head)
-  (declare (ignore task-head #+no-transfer-log treq-head))
+  (declare (ignore #+no-transfer-log task-head treq-head))
   #-no-transfer-log
   (tcell-server-dprint (get-gnuplot-error-bar task-head to "treq"))
   (incf (host-unreplied-treqs to)))
@@ -895,19 +901,16 @@
                  task-no #\Newline
                  task-body #\Newline)))
 
-(defmethod send-task :after ((to host) wsize-str rslt-head task-head task-no task-body)
-  (declare (ignore wsize-str rslt-head task-head task-no task-body))
-  (setf (host-none-time to) -1))
-
 (defmethod send-task :after ((to child) wsize-str rslt-head task-head task-no task-body)
   (declare (ignore rslt-head task-head task-no task-body))
   (incf (child-diff-task-rslt to))
   (let ((wsize (parse-integer wsize-str)))
     (renew-work-size to (- wsize))))
 
-#-tcell-no-transfer-log
 (defmethod send-task :after ((to host) wsize-str rslt-head task-head task-no task-body)
   (declare (ignore wsize-str task-head task-no task-body))
+  (setf (host-none-time to) -1)
+  #-tcell-no-transfer-log
   (when (eq :gnuplot *transfer-log-format*)
     (tcell-server-dprint (get-gnuplot-error-bar rslt-head to "task"))))
 
@@ -990,11 +993,11 @@
 
 (defgeneric send-bcst (to bcak-head task-no body))
 (defmethod send-bcst (to bcak-head task-no body)
-  (send to (list "bcst " bcak-head task-no body #\Newline)))
+  (send to (list "bcst " bcak-head #\Space task-no #\Newline body #\Newline)))
 
 (defgeneric send-bcak (to bcak-head))
 (defmethod send-bcak (to bcak-head)
-  (send to (list "bcst " bcak-head #\Newline)))
+  (send to (list "bcak " bcak-head #\Newline)))
 
 (defgeneric send-dreq (to data-head dreq-head range))
 (defmethod send-dreq (to data-head dreq-head range)
@@ -1225,7 +1228,7 @@
 	(bcst-body (nthcdr 3 cmd)))	; data部
     (let ((recipients ()))
       ;; bcstの送り元とterminal-parent以外にforwardする
-      (dolist to (cons (ts-parent sv) (ts-children sv))
+      (dolist (to (cons (ts-parent sv) (ts-children sv)))
 	(unless (or (eq from to)
 		    (typep to 'terminal-parent))
 	  (send-bcst to p-bcak-head task-no bcst-body)
@@ -1235,14 +1238,18 @@
 		    :key #'car :test #'string=)
 	(warn "Server received the same broadcast twice: ~S"
 	      p-bcak-head))
-      (push (cons p-bcak-head recipients) (ts-bcst-receipants sv)))))
+      (if recipients
+          (push (cons p-bcak-head recipients) (ts-bcst-receipants sv))
+        ;; broadcast先がいなければ即座にbcakを返す
+        (send-bcak from (second cmd)))
+      )))
 
 ;; bcak
 (defgeneric proc-bcak (sv from cmd))
 (defmethod proc-bcak ((sv tcell-server) (from host) cmd)
   (let ((bcak-head (second cmd)))
     (destructuring-bind (to s-bcak-head) ; bcak送信先
-	(head-shift bcak-head)
+	(head-shift sv bcak-head)
       (let ((receipants-entry		
 	     (car (member bcak-head (ts-bcst-receipants sv)
 			  :key #'car :test #'string=))))
@@ -1258,7 +1265,9 @@
 		      (delete from (cdr receipants-entry) :test #'eq))
 	      ;; 待ちリストが空になっていたらbackを返す
 	      (when (null (cdr receipants-entry))
-		(send-bcak to s-bcak-head))
+		(send-bcak to s-bcak-head)
+                (setf (ts-bcst-receipants sv)
+                  (delete receipants-entry (ts-bcst-receipants sv) :test #'eq)))
 	      )))))))
 
 ;;; dreq
@@ -1308,9 +1317,9 @@
        (t
         (destructuring-bind (to s-task-head)
             (head-shift sv (second cmd)) ; stat送信先
-          (send-stat to s-task-head)))
+          (send-stat to s-task-head))))
     ;; 無引数の場合はサーバの状態を表示
-    (print-server-status sv))))
+    (print-server-status sv)))
 
 ;;; verb: ワーカのverbose-levelを変更
 ;;; "verb <送信先>:<level>" で．

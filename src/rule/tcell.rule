@@ -210,7 +210,6 @@
          (def ,tdat-id (struct ,(tcell:task-struct-id))) ; 送信用 task-body
          (def pthis (ptr (struct ,(tcell:task-struct-id))) (ptr ,tdat-id))
          (def ,spn-id int 0)            ; すでに仕事をsendしていたら '1'
-         #+enable-dvbl (if (== divisibility-flag 1) (csym::send-divisible))
          (begin
           ;; タスク要求がきたら呼ばれる
           (def (,bk-id) ,(tcell:nestfunc-type)
@@ -279,7 +278,6 @@
              (inc ,spn-id)
              (csym::make-and-send-task -thr ,(tcell:task-no) pthis))
            (return 0))
-         #+enable-dvbl (if (== divisibility-flag 1)  (csym::send-divisible))
          (if (fref (mref -thr) req)     ; （ポーリング）タスク要求がきていたら
              ,(tcell:with-new-bk bk-id  ; 分割を試みる
                 (wfn-add-argids ~(handle-req))))
@@ -290,6 +288,20 @@
                       (wait-rslt -thr)))
            ,@(function-body get-body)
            (csym::free pthis))) )))
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; tcell-broadcast
+  ;; * タスクを全ノードに送りつける
+  ;; * 全ノードからのackを待ち合わせる
+  ;; * タスクオブジェクトの初期化方法は:putで指定
+  (#?(tcell-broadcast ,id (:put ,@put-body))
+   (tcell:with-task id
+     ~(begin
+       (def pthis (ptr (struct ,(tcell:task-struct-id))))
+       (= pthis 
+          (cast (ptr (struct ,(tcell:task-struct-id)))
+                (csym::malloc (sizeof (struct ,(tcell:task-struct-id))))))
+       (begin ,@(function-body put-body))
+       (csym::broadcast-task -thr ,(tcell:task-no) pthis))))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; dynamic-wind
   ;; * do-two, do-many の中で使う

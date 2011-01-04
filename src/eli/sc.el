@@ -63,6 +63,7 @@
   ;; Tascell
   (put 'do-many tag 6)
   (put 'do-two tag 2)
+  (put 'tcell-broadcast tag 1)
   )
 
 ;; (defadvice fi::lisp-invoke-method (around sharp-question

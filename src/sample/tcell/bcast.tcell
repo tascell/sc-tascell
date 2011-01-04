@@ -1,0 +1,72 @@
+;;; Copyright (c) 2010 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; All rights reserved.
+
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+;;; 1. Redistributions of source code must retain the above copyright
+;;;    notice, this list of conditions and the following disclaimer.
+;;; 2. Redistributions in binary form must reproduce the above copyright
+;;;    notice, this list of conditions and the following disclaimer in the
+;;;    documentation and/or other materials provided with the distribution.
+
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE
+;;; FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+;;; OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+;;; LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+;;; SUCH DAMAGE.
+
+;;; Broadcast test program
+
+;; task 0 0 0 0
+;; <n>
+
+(c-exp "#include<sys/time.h>")
+
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
+(%include "rule/tcell-setrule.sh")
+
+(%include "clib.sh")
+
+;;; The contents of this array is broadcasted.
+(def Arr (array int 10000))
+
+;;; Task definition
+(def (task bcast-start) #||#
+  (def n int :in))
+
+(def (task bcast) #||#
+  (def n int :in))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (task-body bcast-start) #||#
+  (def n int this.n)
+  (def i int)
+  (for ((= i 0) (< i n) (inc i))
+    (= (aref Arr i) (* i i)))
+  (tcell-broadcast bcast
+    (:put (= this.n n))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (task-sender bcast) #||#
+  (def i int)
+  (for ((= i 0) (< i this.n) (inc i))
+    (csym::send-int (aref Arr i))))
+
+(def (task-receiver bcast) #||#
+  (def i int)
+  (for ((= i 0) (< i this.n) (inc i))
+    (= (aref Arr i) (csym::recv-int ))))
+
+(def (task-body bcast) #||#
+  (def i int)
+  (for ((= i 0) (< i this.n) (inc i))
+    (csym::fprintf stderr "%d " (aref Arr i)))
+  (csym::fputc #\Newline stderr))

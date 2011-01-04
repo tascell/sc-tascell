@@ -102,10 +102,13 @@
          ~(,id
            (:put from ,put-from to ,put-to
                  ,@(type:with-new-environment
-                       (type:add-variable put-from ~int)
+                     (type:add-variable put-from ~int)
                      (type:add-variable put-to ~int)
                      (function-body put-body)))
            (:get ,@(type:with-new-environment (function-body get-body))))))) )
+  (#?(tcell-broadcast ,id (:put ,@put-body))
+   ~(tcell-broadcast ,id (:put ,@(type:with-new-environment
+                                   (function-body! put-body)))) )
   ((#?(dynamic-wind
        (:before ,@bef-body)
        (:body ,@body)

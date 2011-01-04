@@ -1255,16 +1255,19 @@
 (def (csym::recv-bcst pcmd) (csym::fn void (ptr (struct cmd)))
   (def rcmd (struct cmd))
   (def task-no int)
+  (def body (ptr void))
   ;; パラメータ数チェック
   (if (< pcmd->c 2)
       (csym::proto-error "wrong-task" pcmd))
   ;; データの種別を読み取り
   (= task-no (aref pcmd->v 1 0))
   ;; データ受信部本体を呼ぶ
-  ;;   receiver は内部でタスクオブジェクトをヒープに作って返して
-  ;;   くるので、それをここで free する。
-  (csym::free ((aref task-receivers task-no)))
+  ;;   receiver は内部でタスクオブジェクトをヒープに作って返してくる
+  (= body ((aref task-receivers task-no)))
   (csym::read-to-eol)
+  ;; task本体を実行する．第1引数（ワーカスレッド）にはNULLを渡しておく
+  ((aref task-doers task-no) 0 body)
+  (csym::free body)
   ;; bcak で送信元に返答
   (= rcmd.c 1)
   (= rcmd.node pcmd->node)

@@ -22,6 +22,8 @@
 ;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 ;;; SUCH DAMAGE.
 
+;;;; The Tascell server system loader.
+
 (or #+allegro t
     #+sbcl    t
     (error "Sorry! This programs work only on Allegro Common Lisp or SBCL!"))

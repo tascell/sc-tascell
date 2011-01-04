@@ -66,6 +66,8 @@
       (,id
        (:put from ,put-from to ,put-to ,@(function-body put-body))
        (:get ,@(function-body get-body)))) )
+  (#?(tcell-broadcast ,id (:put ,@put-body))
+   ~(tcell-broadcast ,id (:put ,@(function-body! put-body))))
   ((#?(dynamic-wind
        (:before ,@bef-body)
        (:body ,@body)

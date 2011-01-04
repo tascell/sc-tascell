@@ -29,7 +29,7 @@ ifeq ($(OS),SunOS)
 endif
 
 
-APPS=fib lu cmp pen pen6x17 nq grav matmul spanning
+APPS=fib lu cmp pen pen6x17 nq grav matmul spanning bcast
 
 C_PROGS=$(addsuffix -c,$(APPS))
 GCC_PROGS=$(addsuffix -gcc,$(APPS))

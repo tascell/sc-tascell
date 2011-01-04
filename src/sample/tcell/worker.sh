@@ -191,7 +191,9 @@
 (decl (csym::make-and-send-task thr task-no body)
       (csym::fn void (ptr (struct thread-data)) int (ptr void)))
 (decl (wait-rslt thr) (fn (ptr void) (ptr (struct thread-data))))
-
+(decl (csym::broadcast-task thr task-no body)
+      (csym::fn void (ptr (struct thread-data)) int (ptr void)))
+  
 (decl (csym::proto-error str pcmd) (csym::fn void (ptr (const char)) (ptr (struct cmd))))
 (decl (csym::read-to-eol) (csym::fn void void))
 
