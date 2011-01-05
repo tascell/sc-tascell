@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; Copyright (c) 2008-2011 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -24,6 +24,7 @@
 
 (decl (csym::printf) (csym::fn int (ptr (const char)) va-arg))
 (decl (csym::fprintf) (csym::fn int (ptr FILE) (ptr (const char)) va-arg))
+(decl (csym::fputc) (csym::fn int int (ptr FILE)))
 
 (decl (csym::malloc) (csym::fn (ptr void) size-t))
 (decl (csym::free) (csym::fn void (ptr void)))
