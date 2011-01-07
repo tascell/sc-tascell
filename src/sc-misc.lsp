@@ -165,7 +165,7 @@
 #+(and allegro mswindows) (defparameter *sh-command* "\\cygwin\\bin\\sh.exe")
 #+(or allegro kcl ecl cmu clisp)
 (defun command-line (command &key args verbose other-options)
-  (declare (simple-string command) (list verbose) (list other-options))
+  (declare (string command) (list verbose) (list other-options))
   (let* ((quoted-cmd-args (mapcar #'(lambda (x) (add-paren
                                                 (substitute-string "'\''" #\' x)
                                                 #\'))
@@ -405,13 +405,13 @@
        (some #'lower-case-p seq)))
 
 (defun string-invertcase (str)
-  (declare (simple-string str))
+  (declare (string str))
   (map 'string #'char-invertcase str))
 
 ;;; str2 が str1 で始まる文字列なら、
 ;;; その残りの文字列 (need-remain=t)またはt(need-remain=nil)を返す
 (defun string-begin-with (str1 str2 &optional (need-remain t)) 
-  (declare (simple-string str1 str2))
+  (declare (string str1 str2))
   (with (len1 (length str1)
          len2 (length str2))
     (and (<= len1 len2)
@@ -440,7 +440,7 @@
 
 ;;; 文字列参照
 (defun string-ref (str n)
-  (declare (simple-string str) (fixnum n))
+  (declare (string str) (fixnum n))
   (if (>= n (length str))
       nil
     (aref str n)))
@@ -458,7 +458,7 @@
 
 ;;; 最初のn文字
 (defun string-firstn (str n &optional (ellipsis "..."))
-  (declare (simple-string str ellipsis) (fixnum n))
+  (declare (string str ellipsis) (fixnum n))
   (with-output-to-string (s-out)
     (with-input-from-string (s-in str)
       (loop for i from 1 to n
@@ -471,13 +471,13 @@
 
 ;;; n文字削除
 (defun string-left-ntrim (str &optional (n 1))
-  (declare (simple-string str) (fixnum n))
+  (declare (string str) (fixnum n))
   (values (subseq str n)
           (subseq str 0 n)))
 
 ;;; 左から条件に合う文字を削除
 (defun string-left-trim-if (str func)
-  (declare (simple-string str) (function func))
+  (declare (string str) (function func))
   (if (or (string= "" str)
           (not (funcall func (aref str 0))))
       (values str "")
@@ -492,26 +492,26 @@
 
 ;;; 右から条件に合う文字を削除
 (defun string-right-trim-if (str func)
-  (declare (simple-string str) (function func))
+  (declare (string str) (function func))
   (let ((str2 (copy-seq str)))
     (nreverse (string-left-trim-if (nreverse str2) func))))
 
 ;;; 空白削除
 (defun string-left-trim-space (str)
-  (declare (simple-string str))
+  (declare (string str))
   (string-left-trim-if
    str
    #'(lambda (c) 
        (declare (character c))
        (member c '(#\Tab #\Newline #\Page #\Return #\Space)))))
 (defun string-right-trim-space (str)
-  (declare (simple-string str))
+  (declare (string str))
   (let ((str2 (copy-seq str)))
     (nreverse (string-left-trim-space (nreverse str2)))))
 
 ;;; 空白でないものを削除
 (defun string-left-trim-notspace (str)
-  (declare (simple-string str))
+  (declare (string str))
   (string-left-trim-if
    str
    #'(lambda (ch) 
@@ -519,13 +519,13 @@
        (not
         (member ch '(#\Tab #\Newline #\Page #\Return #\Space))))))
 (defun string-right-trim-notspace (str)
-  (declare (simple-string str))
+  (declare (string str))
   (let ((str2 (copy-seq str)))
     (nreverse (string-left-trim-notspace (nreverse str2)))))
 
 ;; chの部分をstrに置き換える
 (defun substitute-string (newstr oldch str)
-  (declare (simple-string newstr str) (character oldch))
+  (declare (string newstr str) (character oldch))
   (with-output-to-string (ost)
     (map nil #'(lambda (ch)
                  (declare (character ch))
@@ -537,7 +537,7 @@
 ;; 文字列strをcharsに含まれる文字で分割してリストにする
 (defun split-string (str &optional (chars '(#\Tab #\Newline #\Page #\Return #\Space))
                      &aux (ret (list)))
-  (declare (simple-string str))
+  (declare (string str))
   (setq chars (mklist chars))
   (with-input-from-string (s-in str)
     (loop
@@ -557,7 +557,7 @@
 
 ;; 文字列strを最初のcharsに含まれる文字で分割して2要素のリストで返す
 (defun split-string-1 (str &optional (chars '(#\Tab #\Newline #\Page #\Return #\Space)))
-  (declare (simple-string str))
+  (declare (string str))
   (setq chars (mklist chars))
   (with-input-from-string (s-in str)
     (let* ((ret1
@@ -579,7 +579,7 @@
 (defmacro string-case (exp &body case-clauses)
   (with-fresh-variables (exp-var)
     `(let ((,exp-var ,exp))
-       (declare (simple-string ,exp-var))
+       (declare (string ,exp-var))
        (cond
         ,@(loop for clause in case-clauses
               collect
