@@ -69,7 +69,7 @@
 ;;; log出力の有無，出力先
 (defparameter *transfer-log* t)         ; (featurep :tcell-no-transfer-log) の場合は常に無効
 (defparameter *transfer-log-output* *error-output*) ; (featurep :tcell-no-transfer-log) の場合は常に無効
-(defparameter *transfer-log-format* :gnuplot) ; :normal or :gnuplot
+(defparameter *transfer-log-format* :normal) ; :normal or :gnuplot
 (defparameter *connection-log* t)
 
 ;;; send/recvのログを出力する長さ

@@ -28,8 +28,8 @@
     #+sbcl    t
     (error "Sorry! This programs work only on Allegro Common Lisp or SBCL!"))
 
-(defvar *force-compile* nil)
-(defvar *force-compile-server* nil)
+(defparameter *force-compile* t)
+(defparameter *force-compile-server* t)
 
 ;; Uncomment to ignore logging code
 ;; (push :tcell-no-transfer-log *features*)
