@@ -25,7 +25,8 @@
 ;;; Broadcast test program
 
 ;; task 0 0 0 0
-;; <n>
+;; <spec: 0=int 1=int(binary mode) 2=double>
+;; <n: # of broadcasted elements>
 
 (c-exp "#include<sys/time.h>")
 
@@ -36,37 +37,79 @@
 (%include "clib.sh")
 
 ;;; The contents of this array is broadcasted.
-(def Arr (array int 10000))
+(def Arr (array int 30000))
+(def Arr-d (array double 30000))
 
 ;;; Task definition
 (def (task bcast-start) #||#
+  (def spec int :in)
   (def n int :in))
 
 (def (task bcast) #||#
+  (def binary-p int :in)                ; binary mode? (0=No 1=Yes)
+  (def n int :in))
+(def (task bcast-d) #||#
   (def n int :in))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (def (task-body bcast-start) #||#
   (def n int this.n)
+  (def spec int this.spec)
   (def i int)
-  (for ((= i 0) (< i n) (inc i))
-    (= (aref Arr i) (* i i)))
-  (tcell-broadcast bcast
-    (:put (= this.n n))))
+  (switch spec
+    (case 0)
+    (case 1)
+    (for ((= i 0) (< i n) (inc i))
+      (= (aref Arr i) (* i i))
+      (csym::fprintf stderr "<%d>%d " i (aref Arr i)))
+    (csym::fputc #\Newline stderr)
+    (tcell-broadcast bcast
+      (:put
+       (= this.binary-p (if-exp (== spec 0) 0 1))
+       (= this.n n)))
+    (break)
+    
+    (case 2)
+    (for ((= i 0) (< i n) (inc i))
+      (= (aref Arr-d i) (cast double (* (- n i) (- n i))))
+      (csym::fprintf stderr "<%d>%lf " i (aref Arr-d i)))
+    (csym::fputc #\Newline stderr)
+    (tcell-broadcast bcast-d
+      (:put (= this.n n)))
+    (break)
+    (default)
+    (csym::fprintf stderr "Undefined spec: %d~%" spec)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (def (task-sender bcast) #||#
   (def i int)
-  (for ((= i 0) (< i this.n) (inc i))
-    (csym::send-int (aref Arr i))))
+  (if this.binary-p
+      (csym::send-int32s Arr this.n)
+    (for ((= i 0) (< i this.n) (inc i))
+      (csym::send-int (aref Arr i)))))
 
 (def (task-receiver bcast) #||#
   (def i int)
-  (for ((= i 0) (< i this.n) (inc i))
-    (= (aref Arr i) (csym::recv-int ))))
+  (if this.binary-p
+      (csym::recv-int32s Arr this.n)
+    (for ((= i 0) (< i this.n) (inc i))
+      (= (aref Arr i) (csym::recv-int )))))
 
 (def (task-body bcast) #||#
   (def i int)
   (for ((= i 0) (< i this.n) (inc i))
-    (csym::fprintf stderr "%d " (aref Arr i)))
+    (csym::fprintf stderr "(%d)%d " i (aref Arr i)))
+  (csym::fputc #\Newline stderr))
+
+;;;
+(def (task-sender bcast-d) #||#
+  (csym::send-doubles Arr-d this.n))
+
+(def (task-receiver bcast-d) #||#
+  (csym::recv-doubles Arr-d this.n))
+
+(def (task-body bcast-d) #||#
+  (def i int)
+  (for ((= i 0) (< i this.n) (inc i))
+    (csym::fprintf stderr "(%d)%lf " i (aref Arr-d i)))
   (csym::fputc #\Newline stderr))

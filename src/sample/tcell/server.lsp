@@ -535,18 +535,16 @@
                (eof-p (= 0 n-char))
                (msg (if eof-p '("leav") (split-string line-buffer))))
           (string-case-eager (car msg)
+            (("bcst")
+             (setq msg (nconc msg (read-body stream))))
             (#.*commands-with-data*
              (mp:process-wait "Waiting for finishing reading body from the buffer"
                               #'mp:gate-open-p gate)
              (mp:close-gate gate)
-             (setq msg (nconc msg (read-body-into-buffer stream body-buffer) ; read-body-into-buffer用
+             (setq msg (nconc msg (read-body-into-buffer stream body-buffer)
                               (list #'(lambda (dummy) (declare (ignore dummy))
                                               (mp:open-gate gate)))))
-             #+comment                  ;forward-body用
-             (setq msg (nconc msg (list #'(lambda (ostream)
-                                            (forward-body stream ostream line-buffer body-buffer
-                                                          +max-line-length+ +body-buffer-size+)
-                                            (mp:open-gate gate))))))
+             )
             (#.*commands-without-data* nil)
             (otherwise (error "Unknown command ~S from ~S." msg (hostinfo hst))))
           (tcell-server-dprint "~&~A(~6D): ~A~15T>>> ~A~%"
@@ -556,7 +554,7 @@
           (values (cons hst msg) eof-p))
         )))
 
-;;; "task", "rslt", "data" のbody部を読み込み，リストにして返す
+;;; "task", "rslt", "bcst", "data" のbody部を読み込み，リストにして返す
 ;;; バイナリ部分はbufferに書き込み，読み出すための関数を用意する
 (defun read-body-into-buffer (stream buffer)
   (let ((ret '())
@@ -594,52 +592,7 @@
             ))))
     (nreverse ret)))
 
-;;; "task", "rslt", "data" のbody部をistreamから読み込んでostreamに送る
-#+comment                               ; write-* の実行がブロックして，デッドロックの可能性
-(defun forward-body (istream ostream
-                     &optional (line-buffer
-                                #+allegro
-                                (make-array +max-line-length+
-                                            :element-type 'standard-char :fill-pointer +max-line-length+))
-                               (buffer (make-array +body-buffer-size+ :element-type 'unsigned-byte))
-                               (line-bufsize (length line-buffer))
-                               (bufsize (length buffer)))
-  (loop
-    (setf (fill-pointer line-buffer) line-bufsize)
-    (let* ((len #+allegro (setf (fill-pointer line-buffer)
-                            (excl:read-line-into line-buffer istream nil 0))
-                #-allegro (progn
-                            (setq line-buffer (read-line stream nil ""))
-                            (length line-buffer)))
-           )
-      ;; 空行で終了
-      (when (= len 0) (return))
-      (write-string line-buffer ostream)
-      (terpri ostream)
-      ;; (tcell-server-dprint "~A~%" line-buffer)
-      ;; #\(でおわっていたら次の行はbyte-header，次いでbyte-data
-      (when (char= #\( (aref line-buffer (- len 1)))
-        #+allegro (setf (fill-pointer line-buffer) line-bufsize)
-        ;; ヘッダread: <whole-size> <elm-size> <endian(0|1)>
-        #+allegro (setf (fill-pointer line-buffer)
-                    (excl:read-line-into line-buffer istream nil 0))
-        #-allegro (setq line-buffer (read-line istream nil ""))
-        (let* ((whole-size (parse-integer line-buffer :junk-allowed t)))
-          (write-string line-buffer ostream)
-          (terpri ostream)
-          (tcell-server-dprint "Binary data header: ~A~%" line-buffer)
-          ;; バイナリ本体
-          (loop for rem-size from whole-size downto 1 by bufsize
-              as rd-size = (if (> rem-size bufsize) bufsize rem-size)
-              do (read-sequence buffer istream :end rd-size)
-                 (write-sequence buffer ostream :end rd-size))
-          (tcell-server-dprint "#<byte-data size=~D>~%" whole-size)
-          ;; この後，terminator ")\n" がくるが，
-          ;; 次のiterationで，単に他の文字列データと同様に処理
-          )))))
-
-;;; "task", "rslt", "data" のbody部を読み込み，リストにして返す
-#+comment
+;;; "task", "rslt", "bcst" "data" のbody部を読み込み，リストにして返す
 (defun read-body (stream)
   (let ((ret '()))
     (loop
@@ -883,7 +836,8 @@
 (defmethod send-treq :after ((to host) task-head treq-head)
   (declare (ignore #+no-transfer-log task-head treq-head))
   #-no-transfer-log
-  (tcell-server-dprint (get-gnuplot-error-bar task-head to "treq"))
+  (when (eq :gnuplot *transfer-log-format*)
+    (tcell-server-dprint (get-gnuplot-error-bar task-head to "treq")))
   (incf (host-unreplied-treqs to)))
   
 ;; treqへの応答として，task，またはexitを自動再送信（バッチ実行用）
@@ -1179,7 +1133,8 @@
 (defmethod proc-none :before ((sv tcell-server) (from host) cmd)
   (declare (ignorable sv #+no-transfer-log cmd))
   #-no-transfer-log
-  (tcell-server-dprint (get-gnuplot-error-bar from (second cmd) "none"))
+  (when (eq :gnuplot *transfer-log-format*)
+    (tcell-server-dprint (get-gnuplot-error-bar from (second cmd) "none")))
   (decf (host-unreplied-treqs from)))
 
 

@@ -181,6 +181,7 @@ int send_binary (void *src, unsigned long elm_size, unsigned long n_elm,
                 if (ret<0)
                     { perror ("send_binary"); exit (1); }
                 rest -= ret;
+                src += ret;
 #ifdef DEBUG
                 dbg_printf ("send_binary: %ld bytes", ret);
 #endif
