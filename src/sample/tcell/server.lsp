@@ -535,8 +535,11 @@
                (eof-p (= 0 n-char))
                (msg (if eof-p '("leav") (split-string line-buffer))))
           (string-case-eager (car msg)
-            (("bcst")
+            (("bcst") ; open-gateする人が0人または2人以上なので下記の最適化版は使えない
              (setq msg (nconc msg (read-body stream))))
+            (#.*commands-with-data*
+             (setq msg (nconc msg (read-body stream))))
+            #+comment ; binary dataの送信がおかしい原因かもしれないので一時的に無効化して上の単純版にしてみる(2011/1/18)
             (#.*commands-with-data*
              (mp:process-wait "Waiting for finishing reading body from the buffer"
                               #'mp:gate-open-p gate)
