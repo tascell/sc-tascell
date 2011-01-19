@@ -1,4 +1,4 @@
-;;; Copyright (c) 2009-2010 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; Copyright (c) 2009-2011 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -504,6 +504,7 @@
 
 (defun write-msg-log (obj dest &optional (separator #\Space))
   (typecase obj
+    (null "")
     (list (write-msg-log (car obj) dest separator)
           (mapc #'(lambda (ob)
                     (when separator (write-char separator dest))
@@ -612,7 +613,7 @@
                  (whole-size (parse-integer byte-header :junk-allowed t)))
             (pushs byte-header #\Newline ret)
             (tcell-server-dprint "Binary data header: ~A~%" byte-header)
-            (let ((byte-data (make-array whole-size)))
+            (let ((byte-data (make-array whole-size :element-type '(unsigned-byte 8))))
               (read-sequence byte-data stream :end whole-size)
               (push byte-data ret)
               #-tcell-no-transfer-log   ; debug print
