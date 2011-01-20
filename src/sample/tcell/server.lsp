@@ -86,8 +86,12 @@
 (eval-when (:execute :load-toplevel :compile-toplevel)
   (defparameter *commands* '("treq" "task" "none" "back" "rslt" "rack" "bcst" "bcak" "dreq" "data" "leav"
                              "log"  "stat" "verb" "eval" "exit"))
-  (defparameter *commands-with-data* '("task" "rslt" "bcst" "data"))
-  (defparameter *commands-without-data* (set-difference *commands* *commands-with-data* :test #'string=)))
+  (defparameter *commands-with-data* '("task" "rslt" "data"))
+  (defparameter *commands-broadcast* '("bcst"))
+  (defparameter *commands-without-data* (set-difference
+                                         (set-difference *commands*
+                                                         *commands-with-data* :test #'string=)
+                                         *commands-broadcast* :test #'string=)) )
 
 (defparameter *retry* 20)
 
@@ -536,18 +540,25 @@
                (eof-p (= 0 n-char))
                (msg (if eof-p '("leav") (split-string line-buffer))))
           (string-case-eager (car msg)
-            (("bcst") ; open-gateする人が0人または2人以上なので下記の最適化版は使えない
+            (("bcst")
              (setq msg (nconc msg (read-body stream))))
+            #-use-body-buffer
             (#.*commands-with-data*
              (setq msg (nconc msg (read-body stream))))
-            #+comment ; binary dataの送信がおかしい原因かもしれないので一時的に無効化して上の単純版にしてみる(2011/1/18)
+            #+use-body-buffer
             (#.*commands-with-data*
-             (mp:process-wait "Waiting for finishing reading body from the buffer"
-                              #'mp:gate-open-p gate)
+             (unless (mp:gate-open-p gate)
+               (setq body-buffer (make-array (max +body-buffer-size+ (/ (length body-buffer) 2))
+                                             :element-type '(unsigned-byte 8) :adjustable t))
+               (setq gate (mp:make-gate t))
+               (tcell-server-dprint "~&~A created a new body-buffer.~%"
+                                    (hostinfo hst)))
              (mp:close-gate gate)
-             (setq msg (nconc msg (read-body-into-buffer stream body-buffer)
-                              (list #'(lambda (dummy) (declare (ignore dummy))
-                                              (mp:open-gate gate)))))
+             (setq msg (nconc msg
+                              (read-body-into-buffer stream body-buffer)
+                              (list #'(lambda (ostream)
+                                        (declare (ignore ostream))
+                                        (mp:open-gate gate)))))
              )
             (#.*commands-without-data* nil)
             (otherwise (error "Unknown command ~S from ~S." msg (hostinfo hst))))
@@ -586,7 +597,10 @@
                         ((>= sz end) sz))
                   (adjust-array buffer newsize)
                   (tcell-server-dprint "Extended buffer size to ~D~%" newsize)))
-              (read-sequence buffer stream :start start :end end)
+              (setq buf-used (read-sequence buffer stream :start start :end end))
+              (when (< buf-used end)
+                (warn "Actually read size (~D) is less than expected size(~D)"
+                      (- buf-used start) (- end start)))
               (push #'(lambda (ostream)
                         (write-sequence buffer ostream :start start :end end))
                     ret))

@@ -34,6 +34,9 @@
 ;; Uncomment to ignore logging code
 ;; (push :tcell-no-transfer-log *features*)
 
+;; Use buffers for effieicnt data reading
+(push :use-body-buffer *features*)
+
 #+mswindows
 (setq *locale* (find-locale "japan.EUC"))
 

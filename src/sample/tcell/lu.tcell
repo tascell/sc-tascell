@@ -375,6 +375,18 @@
     (csym::send-double-seq (+ a (* i nx)) n2))
   (csym::send-binary-terminator))
 
+#+comment                               ; easy but less efficient implementation
+(def (csym::input-mat a n1 n2 nx) (csym::fn void (ptr double) int int int)
+  (decl i int)
+  (for ((= i 0) (< i n1) (inc i))
+    (csym::recv-doubles (+ a (* i nx)) n2)))
+
+#+comment                               ; easy but less efficient implementation
+(def (csym::output-mat a n1 n2 nx) (fn void (ptr double) int int int)
+  (def i int)
+  (for ((= i 0) (< i n1) (inc i))
+    (csym::send-doubles (+ a (* i nx)) n2)))
+
 (def (csym::input-mat-l a n1 nx) (fn void (ptr double) int int)
   (decl i int)
   (decl swp int)
