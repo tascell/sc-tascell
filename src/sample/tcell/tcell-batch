@@ -2,7 +2,7 @@
 
 usage()
 {
-    echo "usage: $0 [[-n <n_autorun_workers>] -c <worker_command>] [-w <n_wait_node>] -i <initial_task> -s <server_hostname> [-h <hostname>] [-p <port_num>] [-g <start_hostname>] [-e <# child servers>] [-E <child-server-list-file>] [-l <alisp or sbcl>] [-C]"
+    echo "usage: $0 [[-n <n_autorun_worker_nodes>] -c <worker_command>] [-w <n_wait_node>] -i <initial_task> -s <server_hostname> [-h <hostname>] [-p <port_num>] [-g <start_hostname>] [-e <# child servers>] [-E <child-server-list-file>] [-M] [-l <alisp or sbcl>] [-C <force_compile_level>]"
     echo "Options, Defaults:"
     echo "  -n: 1 (if '-c' is given)"
     echo "  -c: Must be specified when '-n' is given"
@@ -15,11 +15,15 @@ usage()
     echo "      Add the directories of the worker command and tcpcon to PATH"
     echo "  -e: 0"
     echo "  -E: \"child-servers\""
+    echo "  -M: If 1 is specified, # of nodes in child clusters are specified in the child server list file (rather than -n)"
     echo "  -l: alisp"
     echo "  -L: Create a log file named \"<specified name>-<date><time>\""
-    echo "  -C: Force compile all lisp files when 1 is specified. Force compie only server.lsp ehwn 2 is specified."
+    echo "  -C: Force compile all lisp files when 1 is specified. Force compie only server.lsp when 2 is specified."
     echo "Example:"
+    echo "  # Run a single server and 2 worker processes in node200 and node201 to compute fib(44)"
     echo "  $0 -n 2 -c ./fib-lw -i \"1 44\" -h localhost -p 9865 -l sbcl -g node200"
+    echo "  # Run a single parent and 1 child servers. For each server, 8 worker process"
+    echo "  # (8 workers will run in each process) is run to compute fib(50)"
     echo "  $0 -n 8 -c 'fib-lw -n8' -i \"1 50\" -h chiba200.intrigger.nii.ac.jp -g chiba200 -e 1 -l sbcl"
     echo "  (Child server nodes must be ready for 'gxpc e' command.)"
     exit 1;
@@ -33,12 +37,13 @@ PORT_NUM=9865
 LISP=alisp
 N_EXTERNAL_SITES=0
 EXTERNAL_SITE_FILE="child-servers"
+MAX_CHILD_NODE=0
 SERVER_LOG=0
 FORCE_COMPILE=0
 USE_TEXT_SOCKET=0
 
 # getopts
-while getopts n:c:w:i:s:h:p:g:e:E:l:T:L:C: opt
+while getopts n:c:w:i:s:h:p:g:e:E:M:l:T:L:C: opt
 do
     case ${opt} in
         n)
@@ -61,6 +66,8 @@ do
             N_EXTERNAL_SITES=${OPTARG};;
         E)
             EXTERNAL_SITE_FILE=${OPTARG};;
+        M)
+            MAX_CHILD_NODE=${OPTARG};;
         l)
             LISP=${OPTARG};;
         T)
@@ -127,22 +134,27 @@ else
 fi
 
 # run child servers
-if [ $N_EXTERNAL_SITES -gt 0 -a $NNODE -gt 0 ]; then
+if [ $N_EXTERNAL_SITES -gt 0 ]; then
     sleep 5
     grep -v '^#' $EXTERNAL_SITE_FILE | head -n $N_EXTERNAL_SITES | while read line; do
         LOGINID=`echo $line | awk '{ print $1 }'`
         SITE=`echo $line | awk '{ print $2 }'`
         START=`echo $line | awk '{ print $3 }'`
+        if [ $MAX_CHILD_NODE -gt 0 ]; then
+            NNODE_CHILD=`echo $line | awk '{ print $4 }'`
+        else
+            NNODE_CHILD=$NNODE
+        fi
         if [ "x$SERVER_LOG" != 'x' ]; then
             CHILD_LOG="$START.log.$DATE"
         else
             CHILD_LOG=0
         fi
-        ssh -l $LOGINID -f $SITE "kill-tcell; cd $PWD; tcell-batch -n $NNODE -c \"$WORKER_CMD\" -s $HOSTNAME -p $PORT_NUM -g $START -l $LISP -T $USE_TEXT_SOCKET -C $FORCE_COMPILE -L $CHILD_LOG"
+        ssh -l $LOGINID -f $SITE "kill-tcell; cd $PWD; tcell-batch -n $NNODE_CHILD -c \"$WORKER_CMD\" -s $HOSTNAME -p $PORT_NUM -g $START -l $LISP -T $USE_TEXT_SOCKET -C $FORCE_COMPILE -L $CHILD_LOG"
     done
 fi
 
-# run worker processes
+# run worker processes that directly connect to the parent server
 if [ $NNODE -gt 0 ]; then
     sleep 5
     if [ "x$GXP_START_HOST" = 'x' ]; then
