@@ -875,6 +875,21 @@
                  task-no #\Newline
                  task-body #\Newline)))
 
+;;; couting messages between clusters (for SACSIS11)
+#+SACSIS11
+(defun cluster-name (host)
+  (let ((info (hostinfo host)))
+    (dolist (c '("chiba" "hongo" "mirai" "kobe" "keio"))
+      (when (search c info) (return c)))))
+
+#+SACSIS11
+(defmethod send-task :after (to wsize-str rslt-head task-head task-no task-body)
+  (let ((from (head-shift rslt-head)))
+    (let ((c1 (cluster-name from))
+	  (c2 (cluster-name to)))
+      (when (and c1 c2 (not (string= c1 c2)))
+	(format *error-output* "~*~A --> ~A~%" c1 c2)))))
+
 (defmethod send-task :after ((to child) wsize-str rslt-head task-head task-no task-body)
   (declare (ignore rslt-head task-head task-no task-body))
   (incf (child-diff-task-rslt to))
