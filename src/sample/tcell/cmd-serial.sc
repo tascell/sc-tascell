@@ -68,7 +68,7 @@
 ;; ここを変えると deserilalize-cmdname の「ゆるい文字列比較」も変える必要があるので注意
 (def cmd-strings (array (ptr char))
   (array "task" "rslt" "treq" "none" "back" "rack" "dreq" "data"
-         "bcst" "bcak" "stat" "verb" "exit" "wrng" 0))
+         "bcst" "bcak" "stat" "verb" "exit" "leav" "lack" "wrng" 0))
 
 ;; コマンド->文字列 (returns 書いた文字数)
 (def (csym::serialize-cmdname buf w) (fn int (ptr char) (enum command))
@@ -129,6 +129,13 @@
      (case #\v) (= (mref buf) VERB) (break)
      (case #\e) (= (mref buf) EXIT) (break)
 
+     (case #\l)
+     (switch (mref (inc p))
+             (case #\e) (= (mref buf) LEAV) (break)
+             (case #\a) (= (mref buf) LACK) (break)
+             (default) (= (mref buf) WRNG) (return 0))
+     (break)
+     
      (default) (= (mref buf) WRNG) (return 0))
    (= p (csym::skip-notwhitespace p))
    (= p (csym::skip-whitespace p))

@@ -208,6 +208,8 @@
    (case DREQ) (csym::recv-dreq pcmd) (break)
    (case DATA) (csym::recv-data pcmd) (break)
    (case BCST) (csym::recv-bcst pcmd) (break)
+   (case LEAV) (csym::recv-leav pcmd) (break)
+   (case LACK) (csym::recv-lack pcmd) (break)
    (case BCAK) (csym::recv-bcak pcmd) (break)
    (case STAT) (csym::print-status pcmd) (break)
    (case VERB) (csym::set-verbose-level pcmd) (break)
@@ -1275,6 +1277,21 @@
   (csym::copy-address (aref rcmd.v 0) (aref pcmd->v 0))
   (csym::send-command (ptr rcmd) 0 task-no))
 
+;;; leav
+(def (csym::recv-leav pcmd) (csym::fn void (ptr (struct cmd)))
+     (def i int 0)
+   ;;  (if (== i 1)
+         (csym::fprintf stderr "Shift to Leave-mode.~%")
+         (csym::exit 0))
+
+;;   (return))
+
+;;; lack
+(def (csym::recv-lack pcmd) (csym::fn void (ptr (struct cmd)))
+     (def i int 0)
+     (= i 1)
+     (csym::fprintf stderr "Shift to Leave-mode.~%")
+     (csym::exit 0))
 
 ;;; recv-bcak
 ;;; bcak  <送信先アドレス>
