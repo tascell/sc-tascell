@@ -144,8 +144,9 @@
   )
 
 (def (struct thread-data)
-  (def req (ptr (struct task-home)))    ; 仕事の要求が来ているか？
   (def id int)                          ; 初期化時に割当てられるID
+  (def pthr-id pthread-t)               ; pthread ID
+  (def req (ptr (struct task-home)))    ; 仕事の要求が来ているか？
   (def w-rack int)                      ; （rsltを送信して）rack待ちの数
   (def w-none int)                      ; none待ちの数
   (def ndiv int)                        ; 今やってる仕事の分割された回数
@@ -215,7 +216,7 @@
 (decl (csym::recv-exit) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-bcst) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-bcak) (csym::fn void (ptr (struct cmd))))
-(decl (csym::recv-lecv) (csym::fn void (ptr (struct cmd))))
+(decl (csym::recv-leav) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-lack) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-abrt) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-cncl) (csym::fn void (ptr (struct cmd))))

@@ -77,17 +77,18 @@
 (def option (struct runtime-option))
 
 
-(def (systhr-create start-func arg)
-    (fn int (ptr (fn (ptr void) (ptr void))) (ptr void))
+(def (systhr-create p-tid start-func arg)
+    (fn int (ptr pthread-t) (ptr (fn (ptr void) (ptr void))) (ptr void))
   (def status int 0)
   (def tid pthread-t)
   (def attr pthread-attr-t)
-
+  (if (not p-tid) (= p-tid (ptr tid)))
+  
   (csym::pthread-attr-init (ptr attr))
   (= status (csym::pthread-attr-setscope (ptr attr) PTHREAD-SCOPE-SYSTEM))
   (if (== status 0)
-      (= status (pthread-create (ptr tid) (ptr attr) start-func arg))
-    (= status (pthread-create (ptr tid) 0          start-func arg)))
+      (= status (pthread-create p-tid (ptr attr) start-func arg))
+    (= status (pthread-create p-tid 0          start-func arg)))
   (return status))
 
 (def (csym::mem-error str) (csym::fn void (ptr (const char)))
@@ -1285,14 +1286,29 @@
   (csym::fprintf stderr "Shift to Leave-mode.~%")
   (csym::exit 0))
 
+
+;;; Cancel all worker threads after acquiring all threads' locks
+(def (csym::cancel-workers) (csym::fn void void)
+  (def i int 0)
+  (def thr (ptr (struct thread-data)))
+  (for ((= i 0) (< i num-thrs) (inc i))
+    (= thr (ptr (aref threads i)))
+    (csym::pthread-mutex-lock (ptr thr->mut))
+    (csym::pthread-mutex-lock (ptr thr->rack-mut)))
+  (for ((= i 0) (< i num-thrs) (inc i))
+    (= thr (ptr (aref threads i)))
+   (csym::pthread-cancel thr->pthr-id)
+   (csym::fprintf stderr "Cancelled worker %d~%" i))
+  (return))
+
 ;;; lack
 (def (csym::recv-lack pcmd) (csym::fn void (ptr (struct cmd)))
   (def cur (ptr (struct task-home)))
   (def task-top (ptr (struct task))) 
   (def thr (ptr (struct thread-data)))
   (def i int)
-  (def rcmd (struct cmd))  
-  ;; stop all worker
+  (def rcmd (struct cmd))
+  (csym::cancel-workers)
   (for ((= i 0) (< i num-thrs) (inc i))
        (= thr (ptr (aref threads i))
           (= task-top thr->task-top)
@@ -1307,9 +1323,11 @@
   ;; all command check
   (csym::exit 0))
 
+;;; abrt
 (def (csym::recv-abrt pcmd) (csym::fn void (ptr (struct cmd)))
   (csym::exit 0))
 
+;;; cncl
 (def (csym::recv-cncl pcmd) (csym::fn void (ptr (struct cmd)))
   (csym::exit 0))
 
@@ -1751,7 +1769,7 @@
                                                (csym::GTK-SIGNAL-FUNC csym::expose-event) 0)
                      (csym::gtk-timeout-add 33 repaint (cast gpointer darea))
                      (csym::gtk-widget-show-all window)
-                     (csym::systhr-create gtk-main 0)
+                     (csym::systhr-create 0 gtk-main 0)
                      )
 
   ;; サーバに接続
@@ -1811,11 +1829,12 @@
 
   ;; ワーカスレッド生成
   (for ((= i 0) (< i num-thrs) (inc i))
-    (systhr-create worker (+ threads i)))
+    (let ((thr (ptr (struct thread-data)) (+ threads i)))
+      (systhr-create (ptr thr->pthr-id) worker thr)))
 
   ;; 投機treqスレッド生成
   (if option.prefetch
-      (systhr-create prefetcher prefetch-thr))
+      (systhr-create 0 prefetcher prefetch-thr))
 
   ;; 本スレッドはOUTSIDEからのメッセージ処理
   (if option.initial-task               ; option.initial-task を入力文字列に変換
