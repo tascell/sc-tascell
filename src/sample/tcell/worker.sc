@@ -210,6 +210,8 @@
    (case BCST) (csym::recv-bcst pcmd) (break)
    (case LEAV) (csym::recv-leav pcmd) (break)
    (case LACK) (csym::recv-lack pcmd) (break)
+   (case ABRT) (csym::recv-abrt pcmd) (break)
+   (case CNCL) (csym::recv-cncl pcmd) (break)
    (case BCAK) (csym::recv-bcak pcmd) (break)
    (case STAT) (csym::print-status pcmd) (break)
    (case VERB) (csym::set-verbose-level pcmd) (break)
@@ -1279,19 +1281,37 @@
 
 ;;; leav
 (def (csym::recv-leav pcmd) (csym::fn void (ptr (struct cmd)))
-     (def i int 0)
-   ;;  (if (== i 1)
-         (csym::fprintf stderr "Shift to Leave-mode.~%")
-         (csym::exit 0))
-
-;;   (return))
+  (def i int 0)
+  (csym::fprintf stderr "Shift to Leave-mode.~%")
+  (csym::exit 0))
 
 ;;; lack
 (def (csym::recv-lack pcmd) (csym::fn void (ptr (struct cmd)))
-     (def i int 0)
-     (= i 1)
-     (csym::fprintf stderr "Shift to Leave-mode.~%")
-     (csym::exit 0))
+  (def cur (ptr (struct task-home)))
+  (def task-top (ptr (struct task))) 
+  (def thr (ptr (struct thread-data)))
+  (def i int)
+  (def rcmd (struct cmd))  
+  ;; stop all worker
+  (for ((= i 0) (< i num-thrs) (inc i))
+       (= thr (ptr (aref threads i))
+          (= task-top thr->task-top)
+          (for ((= cur task-top) cur (= cur cur->next))
+               (= rcmd.w ABRT)
+               (= rcmd.c 1)
+               (= rcmd.node cur->rslt-to)        ; 外部or内部
+               (csym::copy-address (aref rcmd.v 0) cur->rslt-head)
+               (csym::send-command (ptr rcmd) 0 0))
+          (csym::print-thread-status thr)))
+  (return)
+  ;; all command check
+  (csym::exit 0))
+
+(def (csym::recv-abrt pcmd) (csym::fn void (ptr (struct cmd)))
+  (csym::exit 0))
+
+(def (csym::recv-cncl pcmd) (csym::fn void (ptr (struct cmd)))
+  (csym::exit 0))
 
 ;;; recv-bcak
 ;;; bcak  <送信先アドレス>
