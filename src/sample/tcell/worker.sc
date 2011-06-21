@@ -77,17 +77,18 @@
 (def option (struct runtime-option))
 
 
-(def (systhr-create start-func arg)
-    (fn int (ptr (fn (ptr void) (ptr void))) (ptr void))
+(def (systhr-create p-tid start-func arg)
+    (fn int (ptr pthread-t) (ptr (fn (ptr void) (ptr void))) (ptr void))
   (def status int 0)
   (def tid pthread-t)
   (def attr pthread-attr-t)
-
+  (if (not p-tid) (= p-tid (ptr tid)))
+  
   (csym::pthread-attr-init (ptr attr))
   (= status (csym::pthread-attr-setscope (ptr attr) PTHREAD-SCOPE-SYSTEM))
   (if (== status 0)
-      (= status (pthread-create (ptr tid) (ptr attr) start-func arg))
-    (= status (pthread-create (ptr tid) 0          start-func arg)))
+      (= status (pthread-create p-tid (ptr attr) start-func arg))
+    (= status (pthread-create p-tid 0          start-func arg)))
   (return status))
 
 (def (csym::mem-error str) (csym::fn void (ptr (const char)))
@@ -208,14 +209,14 @@
    (case DREQ) (csym::recv-dreq pcmd) (break)
    (case DATA) (csym::recv-data pcmd) (break)
    (case BCST) (csym::recv-bcst pcmd) (break)
-   (case BCAK) (csym::recv-bcak pcmd) (break)
-   (case STAT) (csym::print-status pcmd) (break)
-   (case VERB) (csym::set-verbose-level pcmd) (break)
-   (case EXIT) (csym::recv-exit pcmd) (break)
    (case LEAV) (csym::recv-leav pcmd) (break)
    (case LACK) (csym::recv-lack pcmd) (break)
    (case ABRT) (csym::recv-abrt pcmd) (break)
    (case CNCL) (csym::recv-cncl pcmd) (break)
+   (case BCAK) (csym::recv-bcak pcmd) (break)
+   (case STAT) (csym::print-status pcmd) (break)
+   (case VERB) (csym::set-verbose-level pcmd) (break)
+   (case EXIT) (csym::recv-exit pcmd) (break)
    (default) (csym::proto-error "wrong cmd" pcmd) (break))
   )
 
@@ -1279,6 +1280,90 @@
   (csym::copy-address (aref rcmd.v 0) (aref pcmd->v 0))
   (csym::send-command (ptr rcmd) 0 task-no))
 
+;;; leav
+(def (csym::recv-leav pcmd) (csym::fn void (ptr (struct cmd)))
+  (def i int 0)
+  (csym::fprintf stderr "Shift to Leave-mode.~%")
+  (csym::exit 0))
+
+
+;;; Cancel all worker threads after acquiring all threads' locks
+(def (csym::cancel-workers) (csym::fn void void)
+  (def i int 0)
+  (def thr (ptr (struct thread-data)))
+  (for ((= i 0) (< i num-thrs) (inc i))
+    (= thr (ptr (aref threads i)))
+    (csym::pthread-mutex-lock (ptr thr->mut))
+    (csym::pthread-mutex-lock (ptr thr->rack-mut)))
+  (for ((= i 0) (< i num-thrs) (inc i))
+    (= thr (ptr (aref threads i)))
+   (csym::pthread-cancel thr->pthr-id)
+   (csym::fprintf stderr "Cancelled worker %d~%" i))
+  (return))
+
+;;; lack
+(def (csym::recv-lack pcmd) (csym::fn void (ptr (struct cmd)))
+  (def cur (ptr (struct task-home)))
+  (def task-top (ptr (struct task))) 
+  (def thr (ptr (struct thread-data)))
+  (def i int)
+  (def rcmd (struct cmd))
+  ;; Prevent workers from sending out messages.
+  (csym::pthread-mutex-lock (ptr send-mut))
+  ;; Prevent workers from modifying their own information (task stacks etc.)
+  (csym::cancel-workers)
+  (for ((= i 0) (< i num-thrs) (inc i))
+       (= thr (ptr (aref threads i))
+          (= task-top thr->task-top)
+          (for ((= cur task-top) cur (= cur cur->next))
+               (= rcmd.w ABRT)
+               (= rcmd.c 1)
+               (= rcmd.node cur->rslt-to)        ; 外部or内部
+               (csym::copy-address (aref rcmd.v 0) cur->rslt-head)
+               (csym::send-command (ptr rcmd) 0 0))
+          (csym::print-thread-status thr)))
+  (return)
+  ;; all command check
+  (csym::exit 0))
+
+;;; abrt
+(def (csym::recv-abrt pcmd) (csym::fn void (ptr (struct cmd)))
+;  (def rcmd (struct cmd))               ; rackコマンド
+  (def thr (ptr (struct thread-data)))
+  (def hx (ptr (struct task-home)))
+  (def tid (enum addr))
+  (def sid int)
+  ;; 引数の数チェック
+  (if (< pcmd->c 1)
+      (csym::proto-error "Wrong abrt" pcmd))
+  ;; 結果受取人決定 "<thread-id>:<task-home-id>"
+  (= tid (aref pcmd->v 0 0))
+  (if (not (< tid num-thrs))
+      (csym::proto-error "Wrong abrt-head" pcmd))
+  (= sid (aref pcmd->v 0 1))
+  (if (== TERM sid)
+      (csym::proto-error "Wrong abrt-head (no task-home-id)" pcmd))
+  (= thr (+ threads tid))
+  
+  (csym::pthread-mutex-lock (ptr thr->mut))
+  ;; hx = 返ってきたrsltを待っていたtask-home（.id==sid）を探す
+  (if (not (= hx (csym::search-task-home-by-id sid thr->sub)))
+      (csym::proto-error "Wrong abrt-head (specified task not exists)" pcmd))
+
+  (= hx->stat TASK-HOME-ABORTED)
+  (if (== hx thr->sub)
+      (begin
+       (csym::pthread-cond-broadcast (ptr thr->cond-r))
+       (csym::pthread-cond-broadcast (ptr thr->cond)))
+    )
+  (csym::pthread-mutex-unlock (ptr thr->mut))
+;  (csym::send-command (ptr rcmd) 0 0))  ;rack送信
+
+  (csym::exit 0))
+
+;;; cncl
+(def (csym::recv-cncl pcmd) (csym::fn void (ptr (struct cmd)))
+  (csym::exit 0))
 
 ;;; recv-bcak
 ;;; bcak  <送信先アドレス>
@@ -1400,74 +1485,6 @@
 ;;; exitコマンド -> 終了
 (def (csym::recv-exit pcmd) (csym::fn void (ptr (struct cmd)))
   (csym::fprintf stderr "Received \"exit\"... terminate.~%")
-  (csym::exit 0))
-
-;;; leav
-(def (csym::recv-leav pcmd) (csym::fn void (ptr (struct cmd)))
-  (def i int 0)
-;;  (if (== i 1)
-      (csym::fprintf stderr "Shift to Leave-mode.~%")
-      (csym::exit 0))
-
-;;   (return))
-
-;;; lack
-(def (csym::recv-lack pcmd) (csym::fn void (ptr (struct cmd)))
-  (def cur (ptr (struct task-home)))
-  (def task-top (ptr (struct task))) 
-  (def thr (ptr (struct thread-data)))
-  (def i int)
-  (def rcmd (struct cmd))  
-;; "add"stop all worker
-  (for ((= i 0) (< i num-thrs) (inc i))
-    (= thr (ptr (aref threads i))
-    (= task-top thr->task-top)
-    (for ((= cur task-top) cur (= cur cur->next))
-      (= rcmd.w ABRT)
-      (= rcmd.c 1)
-      (= rcmd.node cur->rslt-to)        ; 外部or内部
-      (csym::copy-address (aref rcmd.v 0) cur->rslt-head)
-      (csym::send-command (ptr rcmd) 0 0))
-    (csym::print-thread-status thr)))
-  (return)
-;; "add" all command check
-  (csym::exit 0))
-
-(def (csym::recv-abrt pcmd) (csym::fn void (ptr (struct cmd)))
-;  (def rcmd (struct cmd))               ; rackコマンド
-  (def thr (ptr (struct thread-data)))
-  (def hx (ptr (struct task-home)))
-  (def tid (enum addr))
-  (def sid int)
-  ;; 引数の数チェック
-  (if (< pcmd->c 1)
-      (csym::proto-error "Wrong abrt" pcmd))
-  ;; 結果受取人決定 "<thread-id>:<task-home-id>"
-  (= tid (aref pcmd->v 0 0))
-  (if (not (< tid num-thrs))
-      (csym::proto-error "Wrong abrt-head" pcmd))
-  (= sid (aref pcmd->v 0 1))
-  (if (== TERM sid)
-      (csym::proto-error "Wrong abrt-head (no task-home-id)" pcmd))
-  (= thr (+ threads tid))
-  
-  (csym::pthread-mutex-lock (ptr thr->mut))
-  ;; hx = 返ってきたrsltを待っていたtask-home（.id==sid）を探す
-  (if (not (= hx (csym::search-task-home-by-id sid thr->sub)))
-      (csym::proto-error "Wrong abrt-head (specified task not exists)" pcmd))
-
-  (= hx->stat TASK-HOME-ABORTED)
-  (if (== hx thr->sub)
-      (begin
-       (csym::pthread-cond-broadcast (ptr thr->cond-r))
-       (csym::pthread-cond-broadcast (ptr thr->cond)))
-    )
-  (csym::pthread-mutex-unlock (ptr thr->mut))
-;  (csym::send-command (ptr rcmd) 0 0))  ;rack送信
-
-  (csym::exit 0))
-
-(def (csym::recv-cncl pcmd) (csym::fn void (ptr (struct cmd)))
   (csym::exit 0))
 
 
@@ -1785,7 +1802,7 @@
                                                (csym::GTK-SIGNAL-FUNC csym::expose-event) 0)
                      (csym::gtk-timeout-add 33 repaint (cast gpointer darea))
                      (csym::gtk-widget-show-all window)
-                     (csym::systhr-create gtk-main 0)
+                     (csym::systhr-create 0 gtk-main 0)
                      )
 
   ;; サーバに接続
@@ -1845,11 +1862,12 @@
 
   ;; ワーカスレッド生成
   (for ((= i 0) (< i num-thrs) (inc i))
-    (systhr-create worker (+ threads i)))
+    (let ((thr (ptr (struct thread-data)) (+ threads i)))
+      (systhr-create (ptr thr->pthr-id) worker thr)))
 
   ;; 投機treqスレッド生成
   (if option.prefetch
-      (systhr-create prefetcher prefetch-thr))
+      (systhr-create 0 prefetcher prefetch-thr))
 
   ;; 本スレッドはOUTSIDEからのメッセージ処理
   (if option.initial-task               ; option.initial-task を入力文字列に変換

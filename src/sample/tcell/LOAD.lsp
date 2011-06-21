@@ -28,14 +28,14 @@
     #+sbcl    t
     (error "Sorry! This programs work only on Allegro Common Lisp or SBCL!"))
 
-(defparameter *force-compile* t)
-(defparameter *force-compile-server* t)
+(defvar *force-compile* t)
+(defvar *force-compile-server* t)
 
 ;; Uncomment to ignore logging code
 ;; (push :tcell-no-transfer-log *features*)
 
-;; Use buffers for effieicnt data reading
-(push :use-body-buffer *features*)
+;; Use buffers for effieicnt data reading (buggy on 2011/01/22)
+;; (push :use-body-buffer *features*)
 
 #+mswindows
 (setq *locale* (find-locale "japan.EUC"))

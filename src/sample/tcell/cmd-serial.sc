@@ -133,13 +133,11 @@
   
      (case #\l)
      (switch (mref (inc p))
-	 (case #\e) (= (mref buf) LEAV) (break)
-	 (case #\a) (= (mref buf) LACK) (break)
-	 (default) (= (mref buf) WRNG) (return 0))
+       (case #\e) (= (mref buf) LEAV) (break)
+       (case #\a) (= (mref buf) LACK) (break)
+       (default) (= (mref buf) WRNG) (return 0))
      (break)
-
-
-
+          
      (default) (= (mref buf) WRNG) (return 0))
    (= p (csym::skip-notwhitespace p))
    (= p (csym::skip-whitespace p))

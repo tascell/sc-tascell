@@ -144,6 +144,8 @@
 
 (defclass child (host)
   ((id :accessor child-id :type fixnum)
+   (valid :accessor child-valid :type boolean :initform t)
+                                        ; invalidated when received "leav"
    (diff-task-rslt :accessor child-diff-task-rslt :type fixnum :initform 0)
                                         ; <taskを送った回数>-<rsltが返ってきた回数>
    (work-size :accessor child-wsize :type fixnum :initform 0)
@@ -675,6 +677,7 @@
   (unless (ts-eldest-child sv)
     (setf (ts-eldest-child sv) chld)))
 
+;;; Remove a child from the server's children list after finalizing
 (defgeneric remove-child (sv chld))
 (defmethod remove-child ((sv tcell-server) (chld child))
   (cleanup chld)
@@ -684,6 +687,12 @@
     (setf (ts-eldest-child sv) (car (last (ts-children sv)))))
   (decf (ts-n-children sv))
   )
+
+;;; Mark a child as invalidated after 
+(defgeneric invalidate-child (sv chld))
+(defmethod invalidate-child ((sv tcell-server) (chld child))
+  (declare (ignorable sv))
+  (setf (child-valid chld) nil))
 
 ;;; (= id n) の子へのアクセス
 (defgeneric nth-child (sv n))
@@ -721,13 +730,15 @@
                              (hostinfo maxchld) (child-diff-task-rslt maxchld) (child-wsize maxchld)))
       maxchld)
     ;; Strategy2: （送ったtaskの数-受け取ったrsltの数）>0 のものからランダム
-    #+swopp10
+    #-swopp10
     (if candidates (list-random-select candidates) nil)
     ;; Strategy3: SWoPP10 random
-    #-swopp10
+    #+swopp10
     (when candidates
       (if (not (typep (ts-parent sv) 'terminal-parent))
           (list-random-select candidates)
+        ;; 3/4の確率で子サーバ，1/4の確率で子サーバ以外のみから選択
+        ;; （child ID 0,1,2 が子サーバの場合）
         (let ((cand (if (< 0.75 (random 1.0))
                         (remove-if-not #'(lambda (c) (<= 2 (child-id c)))
                                        candidates)
@@ -872,6 +883,21 @@
                  task-head #\Space
                  task-no #\Newline
                  task-body #\Newline)))
+
+;;; couting messages between clusters (for SACSIS11)
+#+SACSIS11
+(defun cluster-name (host)
+  (let ((info (hostinfo host)))
+    (dolist (c '("chiba" "hongo" "mirai" "kobe" "keio"))
+      (when (search c info) (return c)))))
+
+#+SACSIS11
+(defmethod send-task :after (to wsize-str rslt-head task-head task-no task-body)
+  (let ((from (head-shift rslt-head)))
+    (let ((c1 (cluster-name from))
+	  (c2 (cluster-name to)))
+      (when (and c1 c2 (not (string= c1 c2)))
+	(format *error-output* "~*~A --> ~A~%" c1 c2)))))
 
 (defmethod send-task :after ((to child) wsize-str rslt-head task-head task-no task-body)
   (declare (ignore rslt-head task-head task-no task-body))
@@ -1040,8 +1066,8 @@
    ;; 時々優先して親にも聞きにいく（terminal-parentを除く）
    (and (not (typep (ts-parent sv) 'terminal-parent))
         (not (eq (ts-parent sv) from))
-        #-swopp10 (= 0 (random (ts-n-children sv)))
-        #+swopp10 (< 0.75 (random 1.0))
+        #-swopp10 (= 0 (random (ts-n-children sv))) ; 親子平等
+        #+swopp10 (< 0.75 (random 1.0))             ; 3/4の確率
         (try-send-treq sv (ts-parent sv) p-task-head "any"))
    ;; 子供に聞きにいく
    (awhen (most-divisible-child sv from)
@@ -1114,6 +1140,19 @@
       (send-task to wsize-str p-rslt-head s-task-head task-no
                  task-body)
       )))
+
+;; log for SACSIS11
+(defun cluster-name (host)
+  (let ((info (hostinfo host)))
+    (dolist (c '("chiba" "hongo" "mirai" "kobe" "keio"))
+      (when (search c info) (return c)))))
+#+SACSIS11
+(defmethod proc-task :after ((sv tcell-server) (from host) cmd)
+  (let ((to (car (head-shift sv (fourth cmd)))))
+    (let ((c1 (cluster-name from))
+          (c2 (cluster-name to)))
+      (when (and c1 c2 (not (string= c1 c2)))
+        (format *error-output* "~&~A --> ~A~%" c1 c2)))))
 
 (defmethod proc-task :before ((sv tcell-server) (from host) cmd)
   (declare (ignorable sv cmd))
