@@ -144,6 +144,8 @@
 
 (defclass child (host)
   ((id :accessor child-id :type fixnum)
+   (valid :accessor child-valid :type boolean :initform t)
+                                        ; invalidated when received "leav"
    (diff-task-rslt :accessor child-diff-task-rslt :type fixnum :initform 0)
                                         ; <taskを送った回数>-<rsltが返ってきた回数>
    (work-size :accessor child-wsize :type fixnum :initform 0)
@@ -675,6 +677,7 @@
   (unless (ts-eldest-child sv)
     (setf (ts-eldest-child sv) chld)))
 
+;;; Remove a child from the server's children list after finalizing
 (defgeneric remove-child (sv chld))
 (defmethod remove-child ((sv tcell-server) (chld child))
   (cleanup chld)
@@ -684,6 +687,12 @@
     (setf (ts-eldest-child sv) (car (last (ts-children sv)))))
   (decf (ts-n-children sv))
   )
+
+;;; Mark a child as invalidated after 
+(defgeneric invalidate-child (sv chld))
+(defmethod invalidate-child ((sv tcell-server) (chld child))
+  (declare (ignorable sv))
+  (setf (child-valid chld) nil))
 
 ;;; (= id n) の子へのアクセス
 (defgeneric nth-child (sv n))

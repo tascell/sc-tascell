@@ -1308,6 +1308,9 @@
   (def thr (ptr (struct thread-data)))
   (def i int)
   (def rcmd (struct cmd))
+  ;; Prevent workers from sending out messages.
+  (csym::pthread-mutex-lock (ptr send-mut))
+  ;; Prevent workers from modifying their own information (task stacks etc.)
   (csym::cancel-workers)
   (for ((= i 0) (< i num-thrs) (inc i))
        (= thr (ptr (aref threads i))
