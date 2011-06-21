@@ -212,6 +212,10 @@
    (case STAT) (csym::print-status pcmd) (break)
    (case VERB) (csym::set-verbose-level pcmd) (break)
    (case EXIT) (csym::recv-exit pcmd) (break)
+   (case LEAV) (csym::recv-leav pcmd) (break)
+   (case LACK) (csym::recv-lack pcmd) (break)
+   (case ABRT) (csym::recv-abrt pcmd) (break)
+   (case CNCL) (csym::recv-cncl pcmd) (break)
    (default) (csym::proto-error "wrong cmd" pcmd) (break))
   )
 
@@ -1398,6 +1402,73 @@
   (csym::fprintf stderr "Received \"exit\"... terminate.~%")
   (csym::exit 0))
 
+;;; leav
+(def (csym::recv-leav pcmd) (csym::fn void (ptr (struct cmd)))
+  (def i int 0)
+;;  (if (== i 1)
+      (csym::fprintf stderr "Shift to Leave-mode.~%")
+      (csym::exit 0))
+
+;;   (return))
+
+;;; lack
+(def (csym::recv-lack pcmd) (csym::fn void (ptr (struct cmd)))
+  (def cur (ptr (struct task-home)))
+  (def task-top (ptr (struct task))) 
+  (def thr (ptr (struct thread-data)))
+  (def i int)
+  (def rcmd (struct cmd))  
+;; "add"stop all worker
+  (for ((= i 0) (< i num-thrs) (inc i))
+    (= thr (ptr (aref threads i))
+    (= task-top thr->task-top)
+    (for ((= cur task-top) cur (= cur cur->next))
+      (= rcmd.w ABRT)
+      (= rcmd.c 1)
+      (= rcmd.node cur->rslt-to)        ; 外部or内部
+      (csym::copy-address (aref rcmd.v 0) cur->rslt-head)
+      (csym::send-command (ptr rcmd) 0 0))
+    (csym::print-thread-status thr)))
+  (return)
+;; "add" all command check
+  (csym::exit 0))
+
+(def (csym::recv-abrt pcmd) (csym::fn void (ptr (struct cmd)))
+;  (def rcmd (struct cmd))               ; rackコマンド
+  (def thr (ptr (struct thread-data)))
+  (def hx (ptr (struct task-home)))
+  (def tid (enum addr))
+  (def sid int)
+  ;; 引数の数チェック
+  (if (< pcmd->c 1)
+      (csym::proto-error "Wrong abrt" pcmd))
+  ;; 結果受取人決定 "<thread-id>:<task-home-id>"
+  (= tid (aref pcmd->v 0 0))
+  (if (not (< tid num-thrs))
+      (csym::proto-error "Wrong abrt-head" pcmd))
+  (= sid (aref pcmd->v 0 1))
+  (if (== TERM sid)
+      (csym::proto-error "Wrong abrt-head (no task-home-id)" pcmd))
+  (= thr (+ threads tid))
+  
+  (csym::pthread-mutex-lock (ptr thr->mut))
+  ;; hx = 返ってきたrsltを待っていたtask-home（.id==sid）を探す
+  (if (not (= hx (csym::search-task-home-by-id sid thr->sub)))
+      (csym::proto-error "Wrong abrt-head (specified task not exists)" pcmd))
+
+  (= hx->stat TASK-HOME-ABORTED)
+  (if (== hx thr->sub)
+      (begin
+       (csym::pthread-cond-broadcast (ptr thr->cond-r))
+       (csym::pthread-cond-broadcast (ptr thr->cond)))
+    )
+  (csym::pthread-mutex-unlock (ptr thr->mut))
+;  (csym::send-command (ptr rcmd) 0 0))  ;rack送信
+
+  (csym::exit 0))
+
+(def (csym::recv-cncl pcmd) (csym::fn void (ptr (struct cmd)))
+  (csym::exit 0))
 
 
 ;; ワーカスレッドが仕事分割開始時に呼ぶ

@@ -33,7 +33,7 @@
 (def (enum node) INSIDE OUTSIDE)
 (def (enum command)
     TASK RSLT TREQ NONE BACK RACK DREQ DATA
-    BCST BCAK STAT VERB EXIT WRNG)
+    BCST BCAK STAT VERB EXIT LEAV LACK ABRT CNCL WRNG)
 (extern-decl cmd-strings (array (ptr char))) ; ↑に対応する文字列．cmd-serial.scで定義．
 
 ;; treq any の相手選択方法
@@ -113,7 +113,8 @@
   TASK-HOME-ALLOCATED    ; 領域のみ，未初期化
   TASK-HOME-INITIALIZED  ; セットされている
   ;;  結果待ちは？ taskのほうでわかる？
-  TASK-HOME-DONE)        ; 結果が求まっている
+  TASK-HOME-DONE        ; 結果が求まっている
+  TASK-HOME-ABORTED)
 
 ;; 計算するworkerにまで移動してきたタスク
 (def (struct task)
@@ -215,6 +216,10 @@
 (decl (csym::recv-exit) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-bcst) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-bcak) (csym::fn void (ptr (struct cmd))))
+(decl (csym::recv-lecv) (csym::fn void (ptr (struct cmd))))
+(decl (csym::recv-lack) (csym::fn void (ptr (struct cmd))))
+(decl (csym::recv-abrt) (csym::fn void (ptr (struct cmd))))
+(decl (csym::recv-cncl) (csym::fn void (ptr (struct cmd))))
 
 ;;;; cmd-serial.sc の関数プロトタイプ宣言
 (decl (csym::serialize-cmdname buf w) (fn int (ptr char) (enum command)))
