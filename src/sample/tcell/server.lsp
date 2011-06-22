@@ -84,7 +84,8 @@
 ;;; コマンドに続いてデータをともなうコマンド
 ;;; These constants are referred to in compile time with #. reader macros.
 (eval-when (:execute :load-toplevel :compile-toplevel)
-  (defparameter *commands* '("treq" "task" "none" "back" "rslt" "rack" "bcst" "bcak" "dreq" "data" "leav"
+  (defparameter *commands* '("treq" "task" "none" "back" "rslt" "rack" "bcst" "bcak" "dreq" "data"
+                             "leav" "lack" "abrt" "cncl"
                              "log"  "stat" "verb" "eval" "exit"))
   (defparameter *commands-with-data* '("task" "rslt" "data"))
   (defparameter *commands-broadcast* '("bcst"))
@@ -688,10 +689,9 @@
   (decf (ts-n-children sv))
   )
 
-;;; Mark a child as invalidated after 
-(defgeneric invalidate-child (sv chld))
-(defmethod invalidate-child ((sv tcell-server) (chld child))
-  (declare (ignorable sv))
+;;; Mark a child as invalidated
+(defgeneric invalidate-child (chld))
+(defmethod invalidate-child ((chld child))
   (setf (child-valid chld) nil))
 
 ;;; (= id n) の子へのアクセス
@@ -884,7 +884,7 @@
                  task-no #\Newline
                  task-body #\Newline)))
 
-;;; couting messages between clusters (for SACSIS11)
+;;; counting messages between clusters (for SACSIS11)
 #+SACSIS11
 (defun cluster-name (host)
   (let ((info (hostinfo host)))
@@ -1007,7 +1007,22 @@
 
 (defgeneric send-leav (to))
 (defmethod send-leav (to)
-  (send to (list "leav" #\Newline)))
+  (send to (list "leav " #\Newline)))
+
+(defgeneric send-lack (to lack-head))
+(defmethod send-lack :before ((to child) lack-head)
+  (declare (ignore lack-head))
+  (invalidate-child to))
+(defmethod send-lack (to lack-head)
+  (send to (list "lack " lack-head #\Newline)))
+
+(defgeneric send-abrt (to rslt-head))
+(defmethod send-abrt (to rslt-head)
+  (send to (list "abrt " rslt-head #\Newline)))
+
+(defgeneric send-cncl (to task-head cncl-head))
+(defmethod send-cncl (to task-head cncl-head)
+  (send to (list "cncl " task-head #\Space cncl-head #\Newline)))
 
 (defgeneric send-stat (to task-head))
 (defmethod send-stat (to task-head)
@@ -1037,6 +1052,7 @@
     ("dreq" (proc-dreq sv from cmd))
     ("data" (proc-data sv from cmd))
     ("leav" (proc-leav sv from cmd))
+    ("lack" (proc-lack sv from cmd))
     ("log"  (proc-log sv from cmd))
     ("stat" (proc-stat sv from cmd))
     ("verb" (proc-verb sv from cmd))
@@ -1300,16 +1316,48 @@
           (data-body (cdddr cmd)))      ; データ本体
       (send-data to s-data-head range data-body))))
 
-;;; leav
-;; 子から→登録を外す．親から→無視
+;;; leav: the computation node want to drop out
+;; 子から->lackを返す（invalidateはsend-lackにて）
+;; 親から->無視
 (defgeneric proc-leav (sv from cmd))
 (defmethod proc-leav ((sv tcell-server) (from child) cmd)
   (declare (ignore cmd))
-  (remove-child sv from))
+  (send-lack from))
 
 (defmethod proc-leav ((sv tcell-server) (from parent) cmd)
   (declare (ignore cmd))
-  )
+  (warn "Leav message from parent is unexpected."))
+
+;;; lack: tell that the computation node is marked as invalidated
+;; 子から->無視．親から->転送
+(defgeneric proc-lack (sv from cmd))
+(defmethod proc-lack ((sv tcell-server) (from child) cmd)
+  (declare (ignore cmd))
+  (warn "Lack message from child is unexpected."))
+(defmethod proc-lack ((sv tcell-server) (from parent) cmd)
+  (destructuring-bind (to s-lack-head)
+      (head-shift sv (second cmd))      ; lack送信先
+    (send-lack to s-lack-head)))
+
+;;; abrt: tell that the result to the task is no longer returned.
+;; The message is just forwarded.
+(defgeneric proc-abrt (sv from cmd))
+(defmethod proc-abrt ((sv tcell-server) (from host) cmd)
+  (destructuring-bind (to s-rslt-head)
+      (head-shift sv (second cmd))      ; abrt送信先
+    (send-abrt to s-rslt-head)))
+
+;;; cncl: tell that the result to the task is no longer accepted.
+;; The message is just forwarded.
+(defgeneric proc-cncl (sv from cmd))
+(defmethod proc-cncl ((sv tcell-server) (from host) cmd)
+  (let ((p-task-head (head-push from (second cmd))) ; 親タスクID
+        (cncl-head (third cmd)))        ; キャンセルするタスクのID
+    (destructuring-bind (hst0 s-cncl-head)
+        (head-shift sv cncl-head)
+      (send-cncl hst0 p-task-head s-cncl-head))))
+
+;; 
 
 ;;; stat: サーバ／ワーカの状態を出力
 (defgeneric proc-stat (sv from cmd))
