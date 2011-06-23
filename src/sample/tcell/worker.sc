@@ -1553,7 +1553,7 @@
     ;; 取り返しにいく (leapfrogging)
     (recv-exec-send thr sub->task-head sub->req-from))
 
-  (if (== sub-stat TASK-HOME-ABORTED) 
+  (if (== sub->stat TASK-HOME-ABORTED) 
       (= body 0)
     (= body sub->body))
   (= thr->sub sub->next)                ; サブタスクstackをpop
