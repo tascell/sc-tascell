@@ -1538,7 +1538,8 @@
   (def sub (ptr (struct task-home)))
   (csym::pthread-mutex-lock (ptr thr->mut))
   (= sub thr->sub)                      ; スレッドのサブタスク置き場
-  (while (!= sub->stat TASK-HOME-DONE)  ; iterate until the subtask is done
+  (while (and (!= sub->stat TASK-HOME-DONE)  ; iterate until the subtask is done
+             (!= sub->stat TASK-HOME-ABORTED))
     (= thr->task-top->stat TASK-SUSPENDED)
     ;; 外部ノードに送った仕事ならちょっと待つ
     (if (== OUTSIDE sub->req-from)
@@ -1549,10 +1550,15 @@
           (csym::pthread-cond-timedwait (ptr thr->cond-r) (ptr thr->mut)
                                         (ptr t-until))
           ))
-    (if (== sub->stat TASK-HOME-DONE) (break))
+    (if (or (== sub->stat TASK-HOME-DONE)
+            (== sub->stat TASK-HOME-ABORTED)) 
+        (break))  
     ;; 取り返しにいく (leapfrogging)
     (recv-exec-send thr sub->task-head sub->req-from))
-  (= body sub->body)
+
+  (if (== sub-stat TASK-HOME-ABORTED) 
+      (= body 0)
+    (= body sub->body))
   (= thr->sub sub->next)                ; サブタスクstackをpop
   (= sub->next thr->treq-free)          ; popした部分を...
   (= thr->treq-free sub)                ; ...フリーリストに返す
