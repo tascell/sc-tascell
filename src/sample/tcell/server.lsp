@@ -84,7 +84,8 @@
 ;;; コマンドに続いてデータをともなうコマンド
 ;;; These constants are referred to in compile time with #. reader macros.
 (eval-when (:execute :load-toplevel :compile-toplevel)
-  (defparameter *commands* '("treq" "task" "none" "back" "rslt" "rack" "bcst" "bcak" "dreq" "data" "leav"
+  (defparameter *commands* '("treq" "task" "none" "back" "rslt" "rack" "bcst" "bcak" "dreq" "data"
+                             "leav" "lack" "abrt" "cncl"
                              "log"  "stat" "verb" "eval" "exit"))
   (defparameter *commands-with-data* '("task" "rslt" "data"))
   (defparameter *commands-broadcast* '("bcst"))
@@ -532,6 +533,7 @@
                      :element-type 'standard-char :fill-pointer +max-line-length+))
         (body-buffer (make-array +body-buffer-size+ :element-type '(unsigned-byte 8) :adjustable t))
         (gate (mp:make-gate t)))        ; body-buffer の使用許可
+    (declare (ignorable body-buffer gate))
     #'(lambda (stream)
         #+allegro (setf (fill-pointer line-buffer) +max-line-length+)
         (let* ((n-char #+allegro (setf (fill-pointer line-buffer)
@@ -688,10 +690,9 @@
   (decf (ts-n-children sv))
   )
 
-;;; Mark a child as invalidated after 
-(defgeneric invalidate-child (sv chld))
-(defmethod invalidate-child ((sv tcell-server) (chld child))
-  (declare (ignorable sv))
+;;; Mark a child as invalidated
+(defgeneric invalidate-child (chld))
+(defmethod invalidate-child ((chld child))
   (setf (child-valid chld) nil))
 
 ;;; (= id n) の子へのアクセス
@@ -847,8 +848,18 @@
 (defmethod send ((to host) obj)
   (add-queue obj (send-queue (host-sender to))))
 
+;; Ignore for invalid child.
+;; For some kinds of messages, specific around methods are defined
+;; in order to reply a message in place of the invalid child.
+(defmethod send :around ((to child) obj)
+  (declare (ignore obj))
+  (when (child-valid to)
+    (call-next-method)))
+
 (defmethod send ((to (eql nil)) obj)
   (format *error-output* "Failed to send ~S~%" (msg-log-string obj nil)))
+
+
 
 ;; debug print
 #-tcell-no-transfer-log
@@ -861,6 +872,14 @@
 (defgeneric send-treq (to task-head treq-head))
 (defmethod send-treq (to task-head treq-head)
   (send to (list "treq " task-head #\Space treq-head #\Newline)))
+
+;; Reply in place of an invalid child.
+(defmethod send-treq :around ((to child) task-head treq-head)
+  (declare (ignore treq-head))
+  (if (child-valid to)
+      (call-next-method)
+    (proc-cmd (host-server to) to
+              (list "none" task-head))))
 
 (defmethod send-treq :after ((to host) task-head treq-head)
   (declare (ignore #+no-transfer-log task-head treq-head))
@@ -884,20 +903,29 @@
                  task-no #\Newline
                  task-body #\Newline)))
 
-;;; couting messages between clusters (for SACSIS11)
+;; Reply in place of an invalid child.
+(defmethod send-task :around ((to child) 
+                              wsize-str rslt-head task-head task-no task-body)
+  (declare (ignore wsize-str task-head task-no task-body))
+  (if (child-valid to)
+      (call-next-method)
+    (proc-cmd (host-server to) to
+              (list "abrt" rslt-head))))
+
+;;; counting messages between clusters (for SACSIS11)
 #+SACSIS11
-(defun cluster-name (host)
+(progn
+  (defun cluster-name (host)
   (let ((info (hostinfo host)))
     (dolist (c '("chiba" "hongo" "mirai" "kobe" "keio"))
       (when (search c info) (return c)))))
 
-#+SACSIS11
-(defmethod send-task :after (to wsize-str rslt-head task-head task-no task-body)
-  (let ((from (head-shift rslt-head)))
-    (let ((c1 (cluster-name from))
-	  (c2 (cluster-name to)))
-      (when (and c1 c2 (not (string= c1 c2)))
-	(format *error-output* "~*~A --> ~A~%" c1 c2)))))
+  (defmethod send-task :after (to wsize-str rslt-head task-head task-no task-body)
+    (let ((from (head-shift rslt-head)))
+      (let ((c1 (cluster-name from))
+            (c2 (cluster-name to)))
+        (when (and c1 c2 (not (string= c1 c2)))
+          (format *error-output* "~*~A --> ~A~%" c1 c2))))) )
 
 (defmethod send-task :after ((to child) wsize-str rslt-head task-head task-no task-body)
   (declare (ignore rslt-head task-head task-no task-body))
@@ -915,6 +943,14 @@
 (defgeneric send-rslt (to rslt-head rslt-body))
 (defmethod send-rslt (to rslt-head rslt-body)
   (send to (list "rslt " rslt-head #\Newline rslt-body #\Newline)))
+
+;; Reply in place of an invalid child.
+#+PENDING ; rsltだけではrackの返信先がわからない
+(defmethod send-rslt :around (to rslt-head rslt-body)
+  (if (child-valid to)
+      (call-next-method)
+    (proc-cmd (host-server to) to
+              (list "rack")))) 
 
 (defmethod send-rslt :after ((to parent) rslt-head rslt-body)
   (declare (ignore rslt-head rslt-body))
@@ -1007,7 +1043,26 @@
 
 (defgeneric send-leav (to))
 (defmethod send-leav (to)
-  (send to (list "leav" #\Newline)))
+  (send to (list "leav " #\Newline)))
+
+(defgeneric send-lack (to lack-head))
+(defmethod send-lack (to lack-head)
+  (send to (list "lack " lack-head #\Newline)))
+(defmethod send-lack :around ((to child) lack-head)
+  (declare (ignore lack-head))
+  (if (child-valid to)
+      (progn
+        (call-next-method)
+        (invalidate-child to))))
+
+
+(defgeneric send-abrt (to rslt-head))
+(defmethod send-abrt (to rslt-head)
+  (send to (list "abrt " rslt-head #\Newline)))
+
+(defgeneric send-cncl (to task-head cncl-head))
+(defmethod send-cncl (to task-head cncl-head)
+  (send to (list "cncl " task-head #\Space cncl-head #\Newline)))
 
 (defgeneric send-stat (to task-head))
 (defmethod send-stat (to task-head)
@@ -1037,6 +1092,9 @@
     ("dreq" (proc-dreq sv from cmd))
     ("data" (proc-data sv from cmd))
     ("leav" (proc-leav sv from cmd))
+    ("lack" (proc-lack sv from cmd))
+    ("abrt" (proc-abrt sv from cmd))
+    ("cncl" (proc-cncl sv from cmd))
     ("log"  (proc-log sv from cmd))
     ("stat" (proc-stat sv from cmd))
     ("verb" (proc-verb sv from cmd))
@@ -1300,16 +1358,49 @@
           (data-body (cdddr cmd)))      ; データ本体
       (send-data to s-data-head range data-body))))
 
-;;; leav
-;; 子から→登録を外す．親から→無視
+;;; leav: the computation node want to drop out
+;; 子から->lackを返す（invalidateはsend-lackにて）
+;; 親から->無視
 (defgeneric proc-leav (sv from cmd))
 (defmethod proc-leav ((sv tcell-server) (from child) cmd)
   (declare (ignore cmd))
-  (remove-child sv from))
+  (send-lack from "0")                  ; "0" is a dummy argument
+  )
 
 (defmethod proc-leav ((sv tcell-server) (from parent) cmd)
   (declare (ignore cmd))
-  )
+  (warn "Leav message from parent is unexpected."))
+
+;;; lack: tell that the computation node is marked as invalidated
+;; 子から->無視．親から->転送
+(defgeneric proc-lack (sv from cmd))
+(defmethod proc-lack ((sv tcell-server) (from child) cmd)
+  (declare (ignore cmd))
+  (warn "Lack message from child is unexpected."))
+(defmethod proc-lack ((sv tcell-server) (from parent) cmd)
+  (destructuring-bind (to s-lack-head)
+      (head-shift sv (second cmd))      ; lack送信先
+    (send-lack to s-lack-head)))
+
+;;; abrt: tell that the result to the task is no longer returned.
+;; The message is just forwarded.
+(defgeneric proc-abrt (sv from cmd))
+(defmethod proc-abrt ((sv tcell-server) (from host) cmd)
+  (destructuring-bind (to s-rslt-head)
+      (head-shift sv (second cmd))      ; abrt送信先
+    (send-abrt to s-rslt-head)))
+
+;;; cncl: tell that the result to the task is no longer accepted.
+;; The message is just forwarded.
+(defgeneric proc-cncl (sv from cmd))
+(defmethod proc-cncl ((sv tcell-server) (from host) cmd)
+  (let ((p-task-head (head-push from (second cmd))) ; 親タスクID
+        (cncl-head (third cmd)))        ; キャンセルするタスクのID
+    (destructuring-bind (hst0 s-cncl-head)
+        (head-shift sv cncl-head)
+      (send-cncl hst0 p-task-head s-cncl-head))))
+
+;; 
 
 ;;; stat: サーバ／ワーカの状態を出力
 (defgeneric proc-stat (sv from cmd))

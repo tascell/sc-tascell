@@ -1282,9 +1282,7 @@
 
 ;;; leav
 (def (csym::recv-leav pcmd) (csym::fn void (ptr (struct cmd)))
-  (def i int 0)
-  (csym::fprintf stderr "Shift to Leave-mode.~%")
-  (csym::exit 0))
+  (csym::fprintf stderr "Leav from server is unexpected.~%"))
 
 
 ;;; Cancel all worker threads after acquiring all threads' locks
@@ -1322,7 +1320,6 @@
                (csym::copy-address (aref rcmd.v 0) cur->rslt-head)
                (csym::send-command (ptr rcmd) 0 0))
           (csym::print-thread-status thr)))
-  (return)
   ;; all command check
   (csym::exit 0))
 
@@ -1816,11 +1813,16 @@
                        -1
                        (csym::connect-to option.sv-hostname option.port)))
 
+  ;; mutex属性の初期化：脱退時の処理で，二重にロックを獲得するのでrecursive
+  (def m-attr pthread-mutexattr-t)
+  (csym::pthread-mutexattr-init (ptr m-attr))
+  (csym::pthread-mutexattr-settype (ptr m-attr) PTHREAD-MUTEX-RECURSIVE-NP)  
+  
   ;; send-mut（外部送信ロック）の初期化
-  (csym::pthread-mutex-init (ptr send-mut) 0)
+  (csym::pthread-mutex-init (ptr send-mut) (ptr m-attr))
 
   ;; data-mut, data-cond（必要時データのロック，条件変数）の初期化
-  (csym::pthread-mutex-init (ptr data-mutex) 0)
+  (csym::pthread-mutex-init (ptr data-mutex) (ptr m-attr))
   (csym::pthread-cond-init (ptr data-cond) 0)
   
   ;; thread-data の初期化, task の 双方向list も
@@ -1844,8 +1846,8 @@
         (-= r (cast int r))
         (= thr->random-seed1 r)
         (= thr->random-seed2 q))
-      (csym::pthread-mutex-init (ptr thr->mut) 0)
-      (csym::pthread-mutex-init (ptr thr->rack-mut) 0)
+      (csym::pthread-mutex-init (ptr thr->mut) (ptr m-attr))
+      (csym::pthread-mutex-init (ptr thr->rack-mut) (ptr m-attr))
       (csym::pthread-cond-init (ptr thr->cond) 0)
       (csym::pthread-cond-init (ptr thr->cond-r) 0)
 

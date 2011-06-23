@@ -227,12 +227,10 @@
               ,(tcell:with-new-bk bk-id ; 分割を試みる
                  (wfn-add-argids ~(handle-req))))
           ,b-stat1)
-         (if ,spn-id
-             (begin
-              (wait-rslt -thr)
-              ,@b-get-body)
-           (begin
-            ,b-stat2))
+         (if (and ,spn-id
+                  (wait-rslt -thr))
+             (begin ,@b-get-body)
+           (begin ,b-stat2))
          ) )))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; do-many
