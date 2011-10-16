@@ -106,6 +106,18 @@
                      (type:add-variable put-to ~int)
                      (function-body put-body)))
            (:get ,@(type:with-new-environment (function-body get-body))))))) )
+  ((#?(do-many* (,init-exp ,cond-exp ,loop-exp)
+                ,@body
+                (,id
+                  (:put ,@put-body)
+                  (:get ,@get-body))))
+   (type:with-new-environment
+    ~(do-many* (,(expression init-exp) ,(expression cond-exp) ,(expression loop-exp))
+       ,@(function-body body)
+       ,(tcell-type:with-task id
+         ~(,id
+           (:put ,@(type:with-new-environment (function-body put-body)))
+           (:get ,@(type:with-new-environment (function-body get-body))))))) )
   (#?(tcell-broadcast ,id (:put ,@put-body))
    ~(tcell-broadcast ,id (:put ,@(type:with-new-environment
                                    (function-body! put-body)))) )

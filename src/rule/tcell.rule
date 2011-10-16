@@ -287,6 +287,43 @@
            ,@(function-body get-body)
            (csym::free pthis))) )))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; do-many*
+  ;; * Space Stealing用のdo-many
+  ;; * 通常のfor文と同様に記述することができる
+  ;; * ポーリングはイテレーション毎に行う
+  (#?(do-many* (,init-exp ,cond-exp ,loop-exp)
+               ,@body
+               (,id
+                 (:put ,@put-body)
+                 (:get ,@get-body)))
+    (let ((spn-id (generate-id "spawned"))
+          (bk-id (generate-id "do_many_bk")))
+      (tcell:with-task id
+       ~(begin
+          (def pthis (ptr (struct ,(tcell:task-struct-id)))) ; 送信用 task-body
+          (def ,spn-id int 0)            ; 仕事を他所にsendしている数
+          ;; タスク要求がきたら呼ばれる
+          (def (,bk-id) ,(tcell:nestfunc-type)
+            (if (not ,spn-id) (,(tcell:latest-bk)))
+            (if (fref (mref -thr) treq-top) ; タスク作成待ちスタックに要素があれば
+              (begin
+                (= pthis (cast (ptr (struct ,(tcell:task-struct-id)))
+                         (csym::malloc (sizeof (struct ,(tcell:task-struct-id))))))
+                ,@(function-body put-body)
+                (inc ,spn-id)
+                (csym::make-and-send-task -thr ,(tcell:task-no) pthis)))
+            (return 0))
+          (for (,(expression init-exp) ,(expression cond-exp) ,(expression loop-exp))
+            (if (fref (mref -thr) req)     ; （ポーリング）タスク要求がきていたら
+             ,(tcell:with-new-bk bk-id  ; 分割を試みる
+                (wfn-add-argids ~(handle-req))))
+            ,@(function-body body))
+          (while (> (dec ,spn-id) 0)
+            (= pthis (cast (ptr (struct ,(tcell:task-struct-id)))
+                       (wait-rslt -thr)))
+            ,@(function-body get-body)
+            (csym::free pthis))) )))
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; tcell-broadcast
   ;; * タスクを全ノードに送りつける
   ;; * 全ノードからのackを待ち合わせる
