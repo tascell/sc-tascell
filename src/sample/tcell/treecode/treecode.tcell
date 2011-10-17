@@ -1,0 +1,395 @@
+;;;
+;;; treecode.tcell
+;;;   created by Ken Matsui <kmatsui@kuis.kyoto-u.ac.jp>
+;;;
+;;; This Tascell program is implemented based on a Barnes-Hut simulation
+;;; program called treecode created by Joshua E. Barnes. To refer to the
+;;; original program, please visit here:
+;;;   http://www.ifa.hawaii.edu/~barnes/treecode/treeguide.html
+;;;
+
+;; task 0 0 0 0
+;; <arguments for the original treecode (e.g., nbody=1000)>
+;;
+
+
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
+(%include "rule/tcell-setrule.sh")
+
+(c-exp "#include <string.h>")
+(c-exp "#include \"stdinc.h\"")
+(c-exp "#include \"mathfns.h\"")
+(c-exp "#include \"vectmath.h\"")
+(c-exp "#include \"getparam.h\"")
+(c-exp "#include \"treedefs.h\"")
+(c-exp "#include \"treecode.h\"")
+
+; if building for distributed memory environment, include communication library
+(%ifdef BROADCAST ((%include "treecomm.tcell")))
+
+
+;------------------------------------------------------------------------------
+; definition of the worker local storage (used for the tree construction)
+;------------------------------------------------------------------------------
+
+(def worker-data
+    (def pool cellptr)
+    (def pool-size int)
+    (def pool-used int)
+    (def freecell cellptr)
+    )
+
+(def worker-init
+    (= WDATA.pool NULL)
+    (= WDATA.pool-size 0)
+    (= WDATA.pool-used 0)
+    (= WDATA.freecell NULL)
+    )
+
+
+;------------------------------------------------------------------------------
+; declarations of functions and global variables
+;------------------------------------------------------------------------------
+
+; default values for input parameters
+(extern defv (array string))
+
+
+(decl (treeforce)
+      (wfn void))
+(decl (stepsystem)
+      (wfn void))
+
+; the tree construction is not ready for distributed memory environments,
+; so declare maketree as `fn' if needed
+(%ifdef BROADCAST (
+    (decl (maketree btab nbody)
+          (fn void bodyptr int))
+    )(
+    (decl (maketree btab nbody)
+          (wfn void bodyptr int))
+    ))
+
+(decl (gravcalc)
+      (wfn void))
+
+
+(def mktreetime double 0.0)
+    (def nwtreetime double 0.0)
+    (def expandtime double 0.0)
+    (def crtreetime double 0.0)
+    (def hackcmtime double 0.0)
+    (def threadtime double 0.0)
+(def grcalctime double 0.0)
+(def pscalctime double 0.0)
+
+(def walk_spawned int 0)
+
+(%ifdef BROADCAST (
+    (static brcasttime double 0.0)
+    (static bodytab-initialized bool FALSE)
+    (static celltab-initialized bool FALSE)
+    ))
+
+
+(%defconstant PROGNAME "treecode")
+(%defconstant MAX_ARGLINE 1024)
+
+(extern sv_socket int)
+
+
+;------------------------------------------------------------------------------
+; elapsed-time
+;------------------------------------------------------------------------------
+
+(def (csym::elapsed-time tp) 
+     (fn double (array (struct timeval) 2))
+    (return (+ (- (fref (aref tp 1) tv-sec)
+                  (fref (aref tp 0) tv-sec))
+               (* 0.000001
+                  (- (fref (aref tp 1) tv-usec)
+                     (fref (aref tp 0) tv-usec)))))
+    )
+
+
+;------------------------------------------------------------------------------
+; main: task definition that replaces main function of treecode
+;------------------------------------------------------------------------------
+
+(def (task main)
+    (def argc int)
+    (def argv (ptr (ptr char)))
+    (def argline (array char MAX_ARGLINE))
+    )
+
+(def (task-receiver main)
+    (def cp (ptr char))
+    (def argc int)
+    (def maxargc int)
+    (def argv (ptr (ptr char)))
+    (def argline (ptr char) (fref this argline))
+    (csym::receive_line argline MAX_ARGLINE sv_socket)
+    
+    (= argc 0)
+    (= maxargc 4)
+    (= argv (csym::malloc (* maxargc (sizeof (ptr char)))))
+    (= (aref argv (inc argc)) PROGNAME)
+    (= cp (csym::strtok argline " ~%"))
+    (while (!= cp NULL)
+        (if (>= (+ argc 1) (- maxargc 1))
+            (begin
+            (*= maxargc 2)
+            (= argv (csym::realloc argv (* maxargc (sizeof (ptr char)))))
+            (if (== argv NULL)
+                (csym::error "recv_main_task: memory allocation failed.")
+                )
+            ))
+        (= (aref argv (inc argc)) cp)
+        (= cp (csym::strtok NULL " ~%"))
+        )
+    (= (aref argv argc) cp)
+    
+    (= (fref this argc) argc)
+    (= (fref this argv) argv)
+    )
+
+(def (rslt-sender main)
+    (csym::free (fref this argv))
+    )
+      
+
+(def (task-body main)
+    (def tp (array (struct timeval) 2))
+    
+    (csym::initparam (fref this argv) defv)
+    (= headline (+ (aref defv 0) 1))
+    (csym::startrun)
+    
+    (%ifdef FORCEREPORT (
+        (csym::startoutput)
+        )(
+        (csym::printf "task started~%")
+        ))
+    (csym::gettimeofday tp 0)
+    (if (== nstep 0)
+        (begin
+        (treeforce)
+        (%ifdef FORCEREPORT (
+            (csym::output)
+            ))
+        ))
+    (%ifdef USEFREQ (
+        (if (!= freq 0.0)
+            (while (> (- tstop tnow) (/ 0.01 freq))
+                (stepsystem)
+                (%ifdef FORCEREPORT (
+                    (csym::output)
+                    ))
+                )
+            )
+        )(
+        (if (!= dtime 0.0)
+            (while (> (- tstop tnow) (* 0.01 dtime))
+                (stepsystem)
+                (%ifdef FORCEREPORT (
+                    (csym::output)
+                    ))
+                )
+            )
+        ))
+    (csym::gettimeofday (+ tp 1) 0)
+    (csym::printf "time: %.4lf~%"  (csym::elapsed-time tp))
+    (csym::printf "  mktree: %.4lf~%" mktreetime)
+    (csym::printf "    nwtree: %.4lf~%" nwtreetime)
+    (csym::printf "    expand: %.4lf~%" expandtime)
+    (csym::printf "    crtree: %.4lf~%" crtreetime)
+    (csym::printf "    hackcm: %.4lf~%" hackcmtime)
+    (csym::printf "    thread: %.4lf~%" threadtime)
+    (%ifdef BROADCAST ((csym::printf "  brcast: %.4lf~%" brcasttime)))
+    (csym::printf "  grcalc: %.4lf~%" grcalctime)
+    (csym::printf "  pscalc: %.4lf~%" pscalctime)
+    (csym::printf "task copied: %d~%" walk_spawned)
+    )
+
+
+;------------------------------------------------------------------------------
+; bcast: task definition for broadcasting bodies and cells
+;------------------------------------------------------------------------------
+
+(%ifdef BROADCAST
+(
+(def (task bcast))
+
+(def (task-sender bcast)
+    ; ======== global options ========
+    (csym::send-int usequad)
+    (csym::send-real eps)
+    ; ======== send bodytab ========
+    (csym::send-binary-header (sizeof body) nbody)
+    (csym::send-binary bodytab (sizeof body) nbody sv-socket)
+    (csym::send-binary-terminator)
+    ; ======== send celltab ========
+    (csym::send-binary-header (sizeof cell) ncell)
+    (csym::send-binary celltab (sizeof cell) ncell sv-socket)
+    (csym::send-binary-terminator)
+    )
+
+(def (task-receiver bcast)
+    ; ======== global options ========
+    (= usequad (csym::recv-int))
+    (= eps (csym::recv-real))
+    ; ======== receive bodytab ========
+    (csym::recv-binary-header NULL (ptr nbody))
+    (if (not bodytab-initialized)
+        (begin
+        (= bodytab-initialized TRUE)
+        (= bodytab (csym::allocate (* nbody (sizeof body))))
+        ))
+    (csym::receive-binary bodytab (sizeof body) nbody sv-socket)
+    (csym::recv-binary-terminator)
+    ; ======== receive celltab ========
+    (csym::recv-binary-header NULL (ptr ncell))
+    (if (not celltab-initialized)
+        (begin
+        (= celltab-initialized TRUE)
+        (= celltab (csym::allocate (* nbody (sizeof cell))))
+        ))
+    (csym::receive-binary celltab (sizeof cell) ncell sv-socket)
+    (csym::recv-binary-terminator)
+    )
+
+(def (task-body bcast))
+
+))  ; ======== end of %ifdef ========
+
+
+;------------------------------------------------------------------------------
+; treeforce
+;------------------------------------------------------------------------------
+
+(def (treeforce)
+     (wfn void)
+    (def p bodyptr)
+    (def tp (array (struct timeval) 2))
+    
+    (for ((= p bodytab) (< p (+ bodytab nbody)) (inc p))
+        (= (csym::Update p) TRUE)
+        )
+
+    (csym::gettimeofday tp 0)
+    (maketree bodytab nbody)
+    (csym::gettimeofday (+ tp 1) 0)
+    (+= mktreetime (csym::elapsed_time tp))
+    
+    (%ifdef BROADCAST (
+        (= bodytab-initialized TRUE)
+        (= celltab-initialized TRUE)
+        (csym::gettimeofday tp 0)
+        (tcell-broadcast bcast
+            (:put )
+            )
+        (csym::gettimeofday (+ tp 1) 0)
+        (+= brcasttime (csym::elapsed_time tp))
+        ))
+    
+    (csym::gettimeofday tp 0)
+    (gravcalc)
+    (csym::gettimeofday (+ tp 1) 0)
+    (+= grcalctime (csym::elapsed_time tp))
+    
+    (%ifdef FORCEREPORT (
+        (csym::forcereport)
+        ))
+    )
+
+
+;------------------------------------------------------------------------------
+; pscalc: task definition of time advancing
+;------------------------------------------------------------------------------
+
+(decl (advance-time i1 i2 padvance)
+      (wfn void int int bool))
+
+(def (task pscalc)
+    (def i1 int)
+    (def i2 int)
+    (def padvance bool)
+    )
+
+(def (task-body pscalc)
+    (advance-time this.i1 this.i2 this.padvance)
+    )
+
+(def (advance-time i1 i2 padvance)
+     (wfn void int int bool)
+    (if (< (- i2 i1) 8)
+        (begin
+        (def i int)
+        (for ((= i i1) (< i i2) (inc i))
+            (def p bodyptr (+ bodytab i))
+            (csym::ADDMULVS (csym::Vel p) (csym::Acc p) (* 0.5 dtime))
+            (if padvance
+                (begin
+                (csym::ADDMULVS (csym::Pos p) (csym::Vel p) dtime)
+                ))
+            )
+        )
+        (begin
+            (do-two
+                (advance-time i1 (+ i1 (/ (- i2 i1) 2)) padvance)
+                (advance-time (+ i1 (/ (- i2 i1) 2)) i2 padvance)
+            (pscalc
+                (:put
+                (= this.i1 (+ i1 (/ (- i2 i1) 2)))
+                (= this.i2 i2)
+                (= this.padvance padvance)
+                )
+                (:get
+                )
+            ))
+        ))
+    )
+
+
+;------------------------------------------------------------------------------
+; stepsystem
+;------------------------------------------------------------------------------
+
+(def (stepsystem)
+     (wfn void)
+    (%ifdef USEFREQ (
+        (def dtime real (/ 1.0 freq))
+        ))
+    (def p bodyptr)
+    (def tp (array (struct timeval) 2))
+
+    (csym::gettimeofday tp 0)
+    (advance-time 0 nbody TRUE)
+    (csym::gettimeofday (+ tp 1) 0)
+    (+= pscalctime (csym::elapsed_time tp))
+
+    (treeforce)
+
+    (csym::gettimeofday tp 0)
+    (advance-time 0 nbody FALSE)
+    (csym::gettimeofday (+ tp 1) 0)
+    (+= pscalctime (csym::elapsed_time tp))
+
+    (inc nstep)
+    (= tnow (+ tnow dtime))
+    )
+
+
+;------------------------------------------------------------------------------
+; including other tcell files
+;------------------------------------------------------------------------------
+
+(%ifndef BROADCAST ((%include "treeload.tcell")))
+
+(%ifdef BROADCAST (
+    (%include "treegrav-distributed.tcell")
+    )(
+    (%include "treegrav-shared.tcell")
+    ))
+
