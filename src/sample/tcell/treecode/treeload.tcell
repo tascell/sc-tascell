@@ -1,0 +1,726 @@
+;;;
+;;; treeload.tcell
+;;;   created by Ken Matsui <kmatsui@kuis.kyoto-u.ac.jp>
+;;;
+
+;; This file will be included to treecode.tcell
+;; when building for shared memory environments.
+
+
+;------------------------------------------------------------------------------
+; declarations of functions and global variables
+;------------------------------------------------------------------------------
+
+(%defconstant MAXLEVEL 32)
+
+(extern options string)
+(extern usequad bool)
+(extern root cellptr)
+(extern rsize real)
+(extern tdepth int)
+(extern cputree real)
+
+(extern bh86 bool)
+(extern sw94 bool)
+(extern cellhist (array int MAXLEVEL))
+(extern subnhist (array int MAXLEVEL))
+
+
+(decl (subindex p q)
+      (fn int bodyptr cellptr))
+(decl (setrcrit p cmpos psize)
+      (fn void cellptr vector real))
+(decl (hackquad p)
+      (fn void cellptr))
+
+(decl (newtree)
+      (wfn void))
+(decl (newtree-for p i1 i2)
+      (wfn void cellptr int int))
+(decl (makecell)
+      (wfn cellptr))
+(decl (expandbox btab nbody)
+      (wfn void bodyptr int))
+(decl (expandbox-for btab i1 i2)
+      (wfn real bodyptr int int))
+(decl (loadbody p q qsize)
+      (wfn void bodyptr cellptr real))
+(decl (hackcofm p psize lev)
+      (wfn void cellptr real int))
+(decl (hackcofm-core p psize lev tdepth- cellhist- subnhist-)
+      (wfn void cellptr real int (ptr int) (array int MAXLEVEL) (array int MAXLEVEL)))
+(decl (hackcofm-for p psize lev i1 i2 update- mass- cmpos- tdepth- cellhist- subnhist-)
+      (wfn void cellptr real int int int (ptr bool) (ptr real) vector (ptr int) (array int MAXLEVEL) (array int MAXLEVEL)))
+(decl (threadtree p n)
+      (wfn void nodeptr nodeptr))
+(decl (threadtree-for desc i1 i2)
+      (wfn void (array nodeptr (+ NSUB 1)) int int))
+
+(%ifdef USELOCK (
+    (decl (load-all-bodies)
+          (wfn void))
+    (decl (load-all-bodies-dc start end)
+          (wfn void int int))
+    (decl (load-all-bodies-for i1 i2)
+          (wfn void int int))
+    )(
+    (decl (mergecell to from size)
+          (wfn void cellptr cellptr real))
+    (decl (mergecell-for to from size i1 i2)
+          (wfn void cellptr cellptr real int int))
+    (decl (load-all-bodies p-start q-start qsize minrange maxrange)
+          (wfn void bodyptr cellptr real vector vector))
+    ))
+
+
+;------------------------------------------------------------------------------
+; maketree
+;------------------------------------------------------------------------------
+
+(def (maketree btab nbody)
+     (wfn void bodyptr int)
+    (def i int)
+    (def q cellptr)
+    (def cpustart double)
+    (def minrange vector)
+    (def maxrange vector)
+    (def tp (array (struct timeval) 2))
+    
+    (= cpustart (csym::cputime))
+  
+    (csym::gettimeofday tp 0)
+    (newtree)
+    (csym::gettimeofday (+ tp 1) 0)
+    (+= nwtreetime (csym::elapsed-time tp))
+    
+    (= root (makecell))
+    (csym::CLRV (csym::Pos root))
+    
+    (csym::gettimeofday tp 0)
+    (expandbox btab nbody)
+    (csym::gettimeofday (+ tp 1) 0)
+    (+= expandtime (csym::elapsed-time tp))
+    
+    (csym::gettimeofday tp 0)
+    (%ifdef USELOCK (
+        (load-all-bodies)
+        )(
+        (for ((= i 0) (< i NDIM) (inc i))
+            (= (aref minrange i) (/ (- rsize) 2))
+            (= (aref maxrange i) (/ rsize 2))
+            )
+        (load-all-bodies bodytab root rsize minrange maxrange)
+        ))
+    (csym::gettimeofday (+ tp 1) 0)
+    (+= crtreetime (csym::elapsed-time tp))
+
+    (= bh86 (scanopt options "bh86"))
+    (= sw94 (scanopt options "sw94"))
+    (if (and bh86 sw94)
+        (csym::error "maketree: incompatible options bh86 and sw94~%")
+        )
+    
+    (csym::gettimeofday tp 0)
+    (= tdepth 0)
+    (for ((= i 0) (< i MAXLEVEL) (inc i))
+        (= (aref cellhist i) 0)
+        (= (aref subnhist i) 0))
+    (hackcofm root rsize 0)
+    (csym::gettimeofday (+ tp 1) 0)
+    (+= hackcmtime (csym::elapsed-time tp))
+    
+    (csym::gettimeofday tp 0)
+    (threadtree (cast nodeptr root) NULL)
+    (csym::gettimeofday (+ tp 1) 0)
+    (+= threadtime (csym::elapsed-time tp))
+    
+    (if usequad
+        (hackquad root)
+        )
+    (= cputree (- (csym::cputime) cpustart))
+    )
+
+
+;------------------------------------------------------------------------------
+; nwtree: task definition for parallelizing newtree
+;------------------------------------------------------------------------------
+
+(def (task nwtree)
+    (def p cellptr)
+    (def i1 int)
+    (def i2 int)
+    )
+
+(def (task-body nwtree)
+    (newtree-for this.p this.i1 this.i2)
+    )
+
+(def (newtree)
+     (wfn void)
+    (static firstcall bool TRUE)
+    
+    (if (not firstcall)
+        (begin
+        (newtree-for root 0 NSUB)
+        (= (csym::Next root) (cast nodeptr WDATA.freecell))
+        (= WDATA.freecell root)
+        )
+        (begin
+        (= firstcall FALSE)
+        ))
+    (= root NULL)
+    (= ncell 0)
+    )
+
+(def (newtree-for p i1 i2)
+     (wfn void cellptr int int)
+    (do-many for i from i1 to i2
+        (begin
+        (def subp nodeptr (aref (csym::Subp p) i))
+        (if (and (!= subp NULL)
+                 (== (csym::Type subp) CELL))
+            (begin
+            (newtree-for (cast cellptr subp) 0 NSUB)
+            (= (csym::Next subp) (cast nodeptr WDATA.freecell))
+            (= WDATA.freecell (cast cellptr subp))
+            ))
+        )
+    (nwtree
+        (:put from j1 to j2
+        (= this.p p)
+        (= this.i1 j1)
+        (= this.i2 j2)
+        )
+        (:get
+        )))
+    )
+
+
+;------------------------------------------------------------------------------
+; makecell
+;------------------------------------------------------------------------------
+
+(def (makecell)
+     (wfn cellptr)
+    (def i int)
+    (def ret cellptr)
+    (if (== WDATA.pool NULL)
+        (begin
+        (= WDATA.pool-size (/ nbody 32))
+        (= WDATA.pool (csym::allocate (* WDATA.pool-size (sizeof cell))))
+        ))
+    (if (!= WDATA.freecell NULL)
+        (begin
+        (= ret WDATA.freecell)
+        (= WDATA.freecell (cast cellptr (csym::Next ret)))
+        )
+        (begin
+        (if (== WDATA.pool-used WDATA.pool-size)
+            (begin
+            (= WDATA.pool (csym::allocate (* WDATA.pool-size (sizeof cell))))
+            (= WDATA.pool-used 0)
+            ))
+        (= ret (+ WDATA.pool (inc WDATA.pool-used)))
+        ))
+    (= (csym::Type ret) CELL)
+    (= (csym::Update ret) FALSE)
+    (for ((= i 0) (< i NSUB) (inc i))
+        (= (aref (csym::Subp ret) i) NULL)
+        )
+    (%ifdef USELOCK ((csym::pthread-mutex-init (ptr ret->mx) NULL)))
+    (return ret)
+    )
+
+
+;------------------------------------------------------------------------------
+; expand: task definition for parallelizing expandbox
+;------------------------------------------------------------------------------
+
+(def (task expand)
+    (def btab bodyptr :in)
+    (def i1 int :in)
+    (def i2 int :in)
+    (def dmax real :out)
+    )
+
+(def (task-body expand)
+    (= this.dmax (expandbox-for this.btab this.i1 this.i2))
+    )
+
+(def (expandbox btab nbody)
+     (wfn void bodyptr int)
+    (def dmax real (expandbox-for btab 0 nbody))
+    (while (< rsize (* 2 dmax))
+        (= rsize (* 2 rsize))
+        )
+    )
+
+(def (expandbox-for btab i1 i2)
+     (wfn real bodyptr int int)
+    (def dmax real 0.0)
+    (do-many for i from i1 to i2
+        (begin
+        (def k int)
+        (def d real)
+        (def p bodyptr (+ btab i))
+        (for ((= k 0) (< k NDIM) (inc k))
+            (= d (csym::rabs (- (aref (csym::Pos p) k) (aref (csym::Pos root) k))))
+            (if (> d dmax)
+                (= dmax d)
+                )
+            )
+        )
+    (expand
+        (:put from j1 to j2
+        (= this.btab btab)
+        (= this.i1 j1)
+        (= this.i2 j2)
+        )
+        (:get
+        (if (> this.dmax dmax)
+            (= dmax this.dmax))
+        )))
+    (return dmax)
+    )
+
+
+;------------------------------------------------------------------------------
+; loadbody
+;------------------------------------------------------------------------------
+
+(def (loadbody p q qsize)
+     (wfn void bodyptr cellptr real)
+    (def qind int)
+    
+    (= qind (csym::subindex p q))
+    (%ifdef USELOCK ((csym::pthread-mutex-lock (ptr q->mx))))
+    (while (!= (aref (csym::Subp q) qind) NULL)
+        (def oldq cellptr)
+        (if (== (csym::Type (aref (csym::Subp q) qind)) BODY)
+            (begin
+            (def c cellptr)
+            (def k int)
+            (def dist2 real)
+            (def distv vector)
+            (csym::DOTPSUBV dist2 distv (csym::Pos p) (csym::Pos (aref (csym::Subp q) qind)))
+            (if (== dist2 0.0)
+                (csym::error "loadbody: two bodies have same position~%")
+                )
+            (= c (makecell))
+            (for ((= k 0) (< k NDIM) (inc k))
+                (= (aref (csym::Pos c) k)
+                   (+ (aref (csym::Pos q) k)
+                      (/ (if-exp (< (aref (csym::Pos p) k) (aref (csym::Pos q) k))
+                                 (- qsize) qsize) 4)))
+                )
+            (= (aref (csym::Subp c) (csym::subindex (cast bodyptr (aref (csym::Subp q) qind)) c))
+               (aref (csym::Subp q) qind))
+            (= (aref (csym::Subp q) qind) (cast nodeptr c))
+            ))
+        (= oldq q)
+        (= q (cast cellptr (aref (csym::Subp q) qind)))
+        (%ifdef USELOCK (
+            (csym::pthread-mutex-unlock (ptr oldq->mx))
+            (csym::pthread-mutex-lock (ptr q->mx))
+            ))
+        (= qind (csym::subindex p q))
+        (= qsize (/ qsize 2))
+        )
+    (= (aref (csym::Subp q) qind) (cast nodeptr p))
+    (%ifdef USELOCK ((csym::pthread-mutex-unlock (ptr q->mx))))
+    )
+
+
+;------------------------------------------------------------------------------
+; load: task definition for inserting bodies into the root cell
+;------------------------------------------------------------------------------
+
+(%ifdef USELOCK
+( ; =========================================================================
+;;; Load bodies using pthread_mutex_t
+
+(def (task load)
+    (def i1 int)
+    (def i2 int)
+    )
+
+(def (task-body load)
+    (load-all-bodies-dc this.i1 this.i2)
+    )
+
+(def (load-all-bodies)
+     (wfn void)
+    (load-all-bodies-dc 0 nbody)
+    )
+
+(def (load-all-bodies-dc start end)
+     (wfn void int int)
+    (if (< (- end start) 8)
+        (begin
+        (def i int)
+        (for ((= i start) (< i end) (inc i))
+            (def p bodyptr (+ bodytab i))
+            (loadbody p root rsize)
+            )
+        )
+        (begin
+        (do-two
+            (load-all-bodies-dc start (+ start (/ (- end start) 2)))
+            (load-all-bodies-dc (+ start (/ (- end start) 2)) end)
+        (load
+            (:put
+            (= this.i1 (+ start (/ (- end start) 2)))
+            (= this.i2 end)
+            )
+            (:get
+            )))
+        ))
+    )
+
+)(; =========================================================================
+;;; Load bodies by space stealing method
+
+(def (task load)
+    (def p-start bodyptr)
+    (def q-start cellptr)
+    (def qsize real)
+    (def minrange vector)
+    (def maxrange vector)
+    )
+
+(def (task-body load)
+    (if (== this.p-start NULL)
+        (return)
+        )
+    (load-all-bodies
+        this.p-start this.q-start this.qsize this.minrange this.maxrange)
+    )
+
+(def (hacksubcell q qsize minrange maxrange)
+     (wfn cellptr cellptr real vector vector)
+;;  (csym::printf "x(%f, %f), y(%f, %f), z(%f, %f)~%"
+;;      (aref minrange 0) (aref maxrange 0)
+;;      (aref minrange 1) (aref maxrange 1)
+;;      (aref minrange 2) (aref maxrange 2))
+
+;;  (def xsize real (- (aref maxrange 0) (aref minrange 0)))
+;;  (def ysize real (- (aref maxrange 1) (aref minrange 1)))
+;;  (def zsize real (- (aref maxrange 2) (aref minrange 2)))
+;;  (if (not (and (== xsize ysize) (== xsize zsize)))
+;;      (csym::error "Assertion Failed: xsize == ysize == zsize~%")
+;;      )
+
+    (def k int)
+    (def cofnq vector)
+    (for ((= k 0) (< k NDIM) (inc k))
+        (= (aref cofnq k) (+ (aref minrange k)
+                             (/ (- (aref maxrange k) (aref minrange k)) 2)))
+        )
+
+;;  (for ((= k 0) (< k NDIM) (inc k))
+;;      (if (not (and (<= (- (aref (csym::Pos q) k) (/ qsize 4)) (aref cofnq k))
+;;                    (<= (aref cofnq k) (+ (aref (csym::Pos q) k) (/ qsize 4)))))
+;;          (csym::error "Assertion Failed: cofnq is inner point of cell q~%")
+;;          )
+;;      )
+
+    (def ind int 0)
+    (for ((= k 0) (< k NDIM) (inc k))
+        (if (<= (aref (csym::Pos q) k) (aref cofnq k))
+            (+= ind (>> NSUB (+ k 1)))
+            )
+        )
+
+    (def nq nodeptr (aref (csym::Subp q) ind))
+    (if (== nq NULL)
+        (begin
+        (= nq (cast nodeptr (makecell)))
+        (csym::SETV (csym::Pos nq) cofnq)
+        )
+        (if (== (csym::Type nq) BODY)
+            (begin
+            (def b bodyptr (cast bodyptr nq))
+            (def c cellptr (makecell))
+            (csym::SETV (csym::Pos c) cofnq)
+            (loadbody b c (/ qsize 2))
+            (= nq (cast nodeptr c))
+            )
+;;          (begin
+;;          (for ((= k 0) (< k NDIM) (inc k))
+;;              (if (!= (aref (csym::Pos nq) k) (aref cofnq k))
+;;                  (csym::error "Assertion Failed: cofnq should match with existing cell.~%")
+;;                  )
+;;              )
+;;          )
+            )
+        )
+    (= (aref (csym::Subp q) ind) nq)
+  
+;;  (if (!= (csym::Type nq) CELL)
+;;        (csym::error "Assertion Failed: Type(nq) == CELL~%")
+;;        )
+    (return (cast cellptr nq))
+    )
+
+
+(def (load-all-bodies p-start q-start qsize minrange maxrange)
+     (wfn void bodyptr cellptr real vector vector)
+    (def POLLING-INTERVAL int 4)
+  
+    (def p bodyptr)
+    (do-many* ((= p p-start) (< p (+ bodytab nbody)) (+= p POLLING-INTERVAL))
+        (begin
+        (def i int)
+        (for ((= i 0) (< i POLLING-INTERVAL) (inc i)) 
+            (begin
+            (def -p bodyptr (+ p i))
+            (if (>= -p (+ bodytab nbody))
+                (break)
+                )
+            ; ======== range check ========
+            (def j int)
+            (def over int 0)
+            (for ((= j 0) (< j NDIM) (inc j))
+                (if (or (<  (aref (csym::Pos -p) j) (aref minrange j))
+                        (>= (aref (csym::Pos -p) j) (aref maxrange j)))
+                    (begin
+                    (= over 1)
+                    (break)
+                    ))
+                )
+            (if (not over)
+                (loadbody -p q-start qsize)
+                )
+            ))
+        )
+    (load
+        (:put
+        (= this.p-start p)
+        (= this.q-start q-start)
+        (= this.qsize qsize)
+        (csym::SETV this.minrange minrange)
+        (csym::SETV this.maxrange maxrange)
+        (def xsize real (- (aref maxrange 0) (aref minrange 0)))
+        (def ysize real (- (aref maxrange 1) (aref minrange 1)))
+        (def zsize real (- (aref maxrange 2) (aref minrange 2)))
+        (if (and (> xsize ysize) (> xsize zsize))
+            (begin
+            (= (aref maxrange 0) (+ (aref minrange 0)
+                                    (/ (- (aref maxrange 0) (aref minrange 0)) 2)))
+            (= (aref this.minrange 0) (aref maxrange 0))
+            )
+            (if (> ysize zsize)
+                (begin
+                (= (aref maxrange 1) (+ (aref minrange 1)
+                                        (/ (- (aref maxrange 1) (aref minrange 1)) 2)))
+                (= (aref this.minrange 1) (aref maxrange 1))
+                )
+                (begin
+                (= (aref maxrange 2) (+ (aref minrange 2)
+                                        (/ (- (aref maxrange 2) (aref minrange 2)) 2)))
+                (= (aref this.minrange 2) (aref maxrange 2))
+                ))
+            )
+        (def k int)
+        (def under int 0)
+        (for ((= k 0) (< k NDIM) (inc k))
+            (if (or (< (- (aref this.maxrange k) (aref this.minrange k)) 0.0002)
+                    (< (- (aref maxrange k) (aref minrange k)) 0.0002))
+                (begin
+                (= under 1)
+                (break)
+                ))
+            )
+        (if under
+            (begin
+            (= this.p-start NULL)
+            (for ((= k 0) (< k NDIM) (inc k))
+                (= (aref maxrange k) (aref this.maxrange k))
+                )
+            )
+            (if (and (> xsize ysize) (> xsize zsize))
+                (begin
+                ; ======== space decomposition hack for theif ========
+                (= this.q-start (hacksubcell q-start qsize this.minrange this.maxrange))
+                (/= this.qsize 2)
+                ; ======== space decomposition hack for victim ========
+                (= q-start (hacksubcell q-start qsize minrange maxrange))
+                (/= qsize 2)
+                ))
+            )
+        )
+        (:get
+        )))
+;;  (csym::printf "x(%f, %f), y(%f, %f), z(%f, %f)~%"
+;;      (aref minrange 0) (aref maxrange 0)
+;;      (aref minrange 1) (aref maxrange 1)
+;;      (aref minrange 2) (aref maxrange 2))
+    )
+
+))  ; ======== end of %ifdef ========
+
+
+;------------------------------------------------------------------------------
+; cofm: task definition for parallelizing hackcofm
+;------------------------------------------------------------------------------
+
+(def (hackcofm p psize lev)
+     (wfn void cellptr real int)
+    (hackcofm-core p psize lev (ptr tdepth) cellhist subnhist)
+    )
+
+(def (task cofm)
+    (def p cellptr :in)
+    (def psize real :in)
+    (def lev int :in)
+    (def i1 int :in)
+    (def i2 int :in)
+    (def update bool :out)
+    (def mass real :out)
+    (def cmpos vector :out)
+    (def tdepth int :out)
+    (def cellhist (array int MAXLEVEL) :out)
+    (def subnhist (array int MAXLEVEL) :out)
+    )
+
+(def (task-body cofm)
+    (def i int)
+    (= this.update FALSE)
+    (= this.mass 0.0)
+    (csym::CLRV this.cmpos)
+    (= this.tdepth 0)
+    (for ((= i 0) (< i MAXLEVEL) (inc i))
+        (= (aref this.cellhist i) 0)
+        (= (aref this.subnhist i) 0)
+        )
+    (hackcofm-for this.p this.psize this.lev this.i1 this.i2
+                  (ptr this.update) (ptr this.mass) this.cmpos (ptr this.tdepth)
+                  this.cellhist this.subnhist)
+    )
+
+(def (hackcofm-core p psize lev tdepth- cellhist- subnhist-)
+     (wfn void cellptr real int (ptr int) (array int MAXLEVEL) (array int MAXLEVEL))
+    (def k int)
+    (def cmpos vector)
+    
+    (= (mref tdepth-) (csym::MAX (mref tdepth-) lev))
+    (inc (aref cellhist- lev))
+    (= (csym::Mass p) 0.0)
+    (csym::CLRV cmpos)
+    (hackcofm-for p psize lev 0 NSUB
+                  (ptr (csym::Update p)) (ptr (csym::Mass p)) cmpos tdepth-
+                  cellhist- subnhist-)
+    (if (> (csym::Mass p) 0.0)
+        (begin
+        (csym::DIVVS cmpos cmpos (csym::Mass p))
+        )
+        (begin
+        (csym::SETV cmpos (csym::Pos p))
+        ))
+    (for ((= k 0) (< k NDIM) (inc k))
+        (if (or (< (aref cmpos k) (- (aref (csym::Pos p) k) (/ psize 2)))
+                (<= (+ (aref (csym::Pos p) k) (/ psize 2)) (aref cmpos k)))
+            (csym::error "hackcofm: tree structure error~%")
+            )
+        )
+    (%ifndef QUICKSCAN ((csym::setrcrit p cmpos psize)))
+    (csym::SETV (csym::Pos p) cmpos)
+    )
+
+(def (hackcofm-for p psize lev i1 i2 update- mass- cmpos- tdepth- cellhist- subnhist-)
+     (wfn void cellptr real int int int (ptr bool) (ptr real) vector (ptr int)
+               (array int MAXLEVEL) (array int MAXLEVEL))
+    (do-many for i from i1 to i2
+        (begin
+        (def q nodeptr)
+        (if (!= (= q (aref (csym::Subp p) i)) NULL)
+            (begin
+            (def tmpv vector)
+            (inc (aref subnhist- lev))
+            (if (== (csym::Type q) CELL)
+                (begin
+                (hackcofm-core (cast cellptr q) (/ psize 2) (+ lev 1) tdepth-
+                               cellhist- subnhist-)
+                ))
+            (bit-or= (mref update-) (csym::Update q))
+            (+= (mref mass-) (csym::Mass q))
+            (csym::MULVS tmpv (csym::Pos q) (csym::Mass q))
+            (csym::ADDV cmpos- cmpos- tmpv)
+            ))
+        )
+    (cofm
+        (:put from j1 to j2
+        (= this.p p)
+        (= this.psize psize)
+        (= this.lev lev)
+        (= this.i1 j1)
+        (= this.i2 j2)
+        )
+        (:get
+        (def j int)
+        (bit-or= (mref update-) this.update)
+        (+= (mref mass-) this.mass)
+        (csym::ADDV cmpos- cmpos- this.cmpos)
+        (= (mref tdepth-) (csym::MAX (mref tdepth-) this.tdepth))
+        (for ((= j 0) (< j MAXLEVEL) (inc j))
+            (+= (aref cellhist- j) (aref this.cellhist j))
+            (+= (aref subnhist- j) (aref this.subnhist j))
+            )
+        )))
+    )
+
+
+;------------------------------------------------------------------------------
+; thtree: task definition for parallelizing threadtree
+;------------------------------------------------------------------------------
+
+(def (task thtree)
+    (def desc (ptr nodeptr))
+    (def i1 int)
+    (def i2 int)
+    )
+
+(def (task-body thtree)
+    (threadtree-for this.desc this.i1 this.i2)
+    )
+
+(def (threadtree p n)
+     (wfn void nodeptr nodeptr)
+    (= (csym::Next p) n)
+    (if (== (csym::Type p) CELL)
+        (begin
+        (def i int)
+        (def ndesc int 0)
+        (def desc (array nodeptr (+ NSUB 1)))
+        
+        (for ((= i 0) (< i NSUB) (inc i))
+            (if (!= (aref (csym::Subp p) i) NULL)
+                (= (aref desc (inc ndesc)) (aref (csym::Subp p) i))
+                )
+            )
+        (if (> ndesc 0)
+            (begin
+            (= (csym::More p) (aref desc 0))
+            (= (aref desc ndesc) n)
+            (threadtree-for desc 0 ndesc)
+            )
+            (begin
+            (= (csym::More p) NULL))
+            )
+        ))
+    )
+
+(def (threadtree-for desc i1 i2)
+     (wfn void (array nodeptr (+ NSUB 1)) int int)
+    (do-many for i from i1 to i2
+        (threadtree (aref desc i) (aref desc (+ i 1)))
+    (thtree
+        (:put from j1 to j2
+        (= this.desc desc)
+        (= this.i1 j1)
+        (= this.i2 j2)
+        )
+        (:get
+        )))
+    )
+

@@ -1,0 +1,322 @@
+;;;
+;;; treegrav-shared.tcell
+;;;   created by Ken Matsui <kmatsui@kuis.kyoto-u.ac.jp>
+;;;
+
+;; This file will be included to treecode.tcell
+;; when building for shared memory environments.
+
+
+;------------------------------------------------------------------------------
+; declarations of functions and global variables
+;------------------------------------------------------------------------------
+
+(decl (walktree aptr nptr iptr cptr bptr p psize pmid nbbcalc- nbccalc-)
+      (wfn void (ptr nodeptr) (ptr nodeptr) cellptr cellptr cellptr
+                nodeptr real vector (ptr int) (ptr int)))
+(decl (walksub nptr np iptr cptr bptr p psize pmid nbbcalc- nbccalc-)
+      (wfn void (ptr nodeptr) (ptr nodeptr) cellptr cellptr cellptr
+                nodeptr real vector (ptr int) (ptr int)))
+(decl (walkcell nptr np iptr cptr bptr psize pmid subp nbbcalc- nbccalc- i1 i2)
+      (wfn void (ptr nodeptr) (ptr nodeptr) cellptr cellptr cellptr
+                real vector (array nodeptr) (ptr int) (ptr int) int int))
+
+(decl (accept c psize pmid)
+      (fn bool nodeptr real vector))
+(decl (gravsum p0 iptr cptr bptr nbbcalc- nbccalc-)
+      (fn void bodyptr cellptr cellptr cellptr (ptr int) (ptr int)))
+(decl (sumnode start finish pos0 phi0 acc0)
+      (fn void cellptr cellptr vector (ptr real) vector))
+(decl (sumcell start finish pos0 phi0 acc0)
+      (fn void cellptr cellptr vector (ptr real) vector))
+
+
+(%defconstant FACTIVE 0.75)
+(static actlen int)
+
+
+;------------------------------------------------------------------------------
+; gravcalc
+;------------------------------------------------------------------------------
+
+(def (gravcalc)
+     (wfn void)
+    (def active (ptr nodeptr))
+    (def interact cellptr)
+    (def cpustart double)
+    (def rmid vector)
+    
+    (= actlen (* FACTIVE (* 216 tdepth)))
+    (%ifndef QUICKSCAN ((= actlen (* actlen (csym::rpow theta -2.5)))))
+    (= active (cast (ptr nodeptr) (csym::allocate (* actlen (sizeof nodeptr)))))
+    (= interact (cast cellptr (csym::allocate (* actlen (sizeof cell)))))
+    (= cpustart (csym::cputime))
+    (= actmax 0)
+    (= nbbcalc 0)
+    (= nbccalc 0)
+    (= (aref active 0) (cast nodeptr root))
+    (csym::CLRV rmid)
+    
+    (walktree active (+ active 1) interact interact (+ interact actlen)
+              (cast nodeptr root) rsize rmid (ptr nbbcalc) (ptr nbccalc))
+    
+    (= cpuforce (- (csym::cputime) cpustart))
+    (csym::free active)
+    (csym::free interact)
+    )
+
+
+;------------------------------------------------------------------------------
+; walktree
+;------------------------------------------------------------------------------
+
+(def (walktree aptr nptr iptr cptr bptr p psize pmid nbbcalc- nbccalc-)
+     (wfn void (ptr nodeptr) (ptr nodeptr) cellptr cellptr cellptr
+               nodeptr real vector (ptr int) (ptr int))
+    (def np (ptr nodeptr))
+    (def ap (ptr nodeptr))
+    (def q nodeptr)
+    
+    (if (csym::Update p)
+        (begin
+        (= np nptr)
+        (for ((= ap aptr) (< ap nptr) (inc ap))
+            (if (== (csym::Type (mref ap)) CELL)
+                (if (csym::accept (mref ap) psize pmid)
+                    (begin
+                    (= (csym::Mass cptr) (csym::Mass (mref ap)))
+                    (csym::SETV (csym::Pos cptr) (csym::Pos (mref ap)))
+                    (csym::SETM (csym::Quad cptr) (csym::Quad (mref ap)))
+                    (inc cptr)
+                    )
+                    (begin
+;                       (if (>= (- np active) actsafe)
+;                           (csym::error "walktree: active list overflow~%")
+;                           )
+                    (if (!= (csym::More (mref ap)) NULL)
+                        (for ((= q (csym::More (mref ap)))
+                              (!= q (csym::Next (mref ap)))
+                              (= q (csym::Next q)))
+                            (= (mref (inc np)) q)
+                            )
+                        )
+                    ))
+                (if (!= (mref ap) p)
+                    (begin
+                    (-- bptr)
+                    (= (csym::Mass bptr) (csym::Mass (mref ap)))
+                    (csym::SETV (csym::Pos bptr) (csym::Pos (mref ap)))
+                    ))
+                )
+            )
+        (if (!= np nptr)
+            (begin
+            (walksub nptr np iptr cptr bptr p psize pmid nbbcalc- nbccalc-)
+            )
+            (begin
+            (if (!= (csym::Type p) BODY)
+                (csym::error "walktree: recursion terminated with cell~%")
+                )
+            (csym::gravsum (cast bodyptr p) iptr cptr bptr nbbcalc- nbccalc-)
+            ))
+        ))
+    )
+
+
+;------------------------------------------------------------------------------
+; walksub
+;------------------------------------------------------------------------------
+
+(def (walksub nptr np iptr cptr bptr p psize pmid nbbcalc- nbccalc-)
+     (wfn void (ptr nodeptr) (ptr nodeptr) cellptr cellptr cellptr
+               nodeptr real vector (ptr int) (ptr int))
+    (def q nodeptr)
+    (def k int)
+    (def nmid vector)
+    (def poff real (/ psize 4))
+    
+    (if (== (csym::Type p) CELL)
+        (begin
+        (def i int 0)
+        (def subp (array nodeptr NSUB))
+        (for ((= q (csym::More p))
+              (!= q (csym::Next p))
+              (= q (csym::Next q)))
+            (= (aref subp (inc i)) q)
+            )
+        (walkcell nptr np iptr cptr bptr psize pmid subp nbbcalc- nbccalc- 0 i)
+        )
+        (begin
+        (for ((= k 0) (< k NDIM) (inc k))
+            (= (aref nmid k)
+               (+ (aref pmid k)
+                  (if-exp (< (aref (csym::Pos p) k) (aref pmid k)) (- poff) poff)))
+            )
+        (walktree nptr np iptr cptr bptr p (/ psize 2) nmid nbbcalc- nbccalc-)
+        ))
+    )
+
+
+;------------------------------------------------------------------------------
+; walk: task definition for parallelizing tree traversal
+;------------------------------------------------------------------------------
+
+(def (task walk)
+    (def nptr (ptr nodeptr) :in)
+    (def np (ptr nodeptr) :in)
+    (def iptr cellptr :in)
+    (def cptr cellptr :in)
+    (def bptr cellptr :in)
+    (def psize real :in)
+    (def pmid vector :in)
+    (def subp (array nodeptr NSUB) :in)
+    (def nbbcalc int :out)
+    (def nbccalc int :out)
+    (def j1 int :in)
+    (def j2 int :in)
+    )
+
+(def (task-body walk)
+    (= this.nbbcalc 0)
+    (= this.nbccalc 0)
+    (walkcell this.nptr this.np this.iptr this.cptr this.bptr
+              this.psize this.pmid this.subp (ptr this.nbbcalc) (ptr this.nbccalc)
+              this.j1 this.j2)
+    )
+
+
+;------------------------------------------------------------------------------
+; walkcell
+;------------------------------------------------------------------------------
+
+(static walk_spawn_mx pthread_mutex_t PTHREAD_MUTEX_INITIALIZER)
+
+(def (walkcell nptr np iptr cptr bptr psize pmid subp nbbcalc- nbccalc- i1 i2)
+     (wfn void (ptr nodeptr) (ptr nodeptr) cellptr cellptr cellptr
+               real vector (array nodeptr) (ptr int) (ptr int) int int)
+    (def k int)
+    (def nmid vector)
+    (def poff real (/ psize 4))
+    
+    (do-many for i from i1 to i2
+        (begin
+        (def q nodeptr (aref subp i))
+        (for ((= k 0) (< k NDIM) (inc k))
+            (= (aref nmid k)
+               (+ (aref pmid k)
+                  (if-exp (< (aref (csym::Pos q) k) (aref pmid k)) (- poff) poff)))
+            )
+        (walktree nptr np iptr cptr bptr q (/ psize 2) nmid nbbcalc- nbccalc-)
+        )
+    (walk
+        (:put from j1 to j2
+        (csym::pthread_mutex_lock (ptr walk_spawn_mx))
+        (inc walk_spawned)
+        (csym::pthread_mutex_unlock (ptr walk_spawn_mx))
+        
+        (= this.nptr (cast (ptr nodeptr) (csym::allocate (* actlen (sizeof nodeptr)))))
+        (csym::memcpy this.nptr nptr (* (- np nptr) (sizeof nodeptr)))
+        (= this.np (+ this.nptr (- np nptr)))
+        
+        (= this.iptr (cast cellptr (csym::allocate (* actlen (sizeof cell)))))
+        (csym::memcpy this.iptr iptr (* actlen (sizeof cell)))
+        (= this.cptr (+ this.iptr (- cptr iptr)))
+        (= this.bptr (+ this.iptr (- bptr iptr)))
+        
+        (= this.psize psize)
+        (csym::SETV this.pmid pmid)
+        (csym::memcpy this.subp subp (* (sizeof nodeptr) NSUB))
+        
+        (= (fref this j1) j1) (= (fref this j2) j2)
+        )
+        (:get
+        (+= (mref nbbcalc-) this.nbbcalc)
+        (+= (mref nbccalc-) this.nbccalc)
+        (csym::free (fref this nptr))
+        (csym::free (fref this iptr))
+        )))
+    )
+
+
+;------------------------------------------------------------------------------
+; gravsum
+;------------------------------------------------------------------------------
+
+(def (gravsum p0 iptr cptr bptr nbbcalc- nbccalc-)
+     (fn void bodyptr cellptr cellptr cellptr (ptr int) (ptr int))
+    (def phi0 real)
+    (def pos0 vector)
+    (def acc0 vector)
+    
+    (csym::SETV pos0 (csym::Pos p0))
+    (= phi0 0.0)
+    (csym::CLRV acc0)
+    (if usequad
+        (csym::sumcell iptr cptr pos0 (ptr phi0) acc0)
+        (csym::sumnode iptr cptr pos0 (ptr phi0) acc0)
+        )
+    (csym::sumnode bptr (+ iptr actlen) pos0 (ptr phi0) acc0)
+    
+    (= (csym::Phi p0) phi0)
+    (csym::SETV (csym::Acc p0) acc0)
+    (+= (mref nbbcalc-) (- (+ iptr actlen) bptr))
+    (+= (mref nbccalc-) (- cptr iptr))
+    )
+
+
+;------------------------------------------------------------------------------
+; sumnode
+;------------------------------------------------------------------------------
+
+(def (sumnode start finish pos0 phi0 acc0)
+     (fn void cellptr cellptr vector (ptr real) vector)
+    (def p cellptr)
+    (def eps2 real (* eps eps))
+    (def dr vector)
+    (def dr2 real)
+    (def drab real)
+    (def phi-p real)
+    (def mr3i real)
+    (for ((= p start) (< p finish) (inc p))
+        (csym::DOTPSUBV dr2 dr (csym::Pos p) pos0)
+        (+= dr2 eps2)
+        (= drab (csym::rsqrt dr2))
+        (= phi-p (/ (csym::Mass p) drab))
+        (-= (mref phi0) phi-p)
+        (= mr3i (/ phi-p dr2))
+        (csym::ADDMULVS acc0 dr mr3i)
+        )
+    )
+
+
+;------------------------------------------------------------------------------
+; sumcell
+;------------------------------------------------------------------------------
+
+(decl (sumcell start finish pos0 phi0 acc0)
+      (fn void cellptr cellptr vector (ptr real) vector)
+    (def p cellptr)
+    (def eps2 real (* eps eps))
+    (def dr vector)
+    (def qdr vector)
+    (def dr2 real)
+    (def drab real)
+    (def phi-p real)
+    (def mr3i real)
+    (def drqdr real)
+    (def dr5i real)
+    (def phi-q real)
+    (for ((= p start) (< p finish) (inc p))
+        (csym::DOTPSUBV dr2 dr (csym::Pos p) pos0)
+        (+= dr2 eps2)
+        (= drab (csym::rsqrt dr2))
+        (= phi-p (/ (csym::Mass p) drab))
+        (= mr3i (/ phi-p dr2))
+        (csym::DOTPMULMV drqdr qdr (csym::Quad p) dr)
+        (= dr5i (/ (cast real 1.0) (* (* dr2 dr2) drab)))
+        (= phi-q (* (* (cast real 0.5) dr5i) drqdr))
+        (-= (mref phi0) (+ phi-p phi-q))
+        (+= mr3i (/ (* (cast real 5.0) phi-q) dr2))
+        (csym::ADDMULVS2 acc0 dr mr3i qdr (- dr5i))
+        )
+    )

@@ -1,0 +1,105 @@
+;;;
+;;; treecomm.tcell
+;;;   created by Ken Matsui <kmatsui@kuis.kyoto-u.ac.jp>
+;;;
+
+;; This file will be included to treecode.tcell
+;; when building for distributed memory environments.
+
+
+;------------------------------------------------------------------------------
+; declarations of functions and global variables
+;------------------------------------------------------------------------------
+
+(extern sv_socket int)
+
+
+
+;------------------------------------------------------------------------------
+; sending/receiving multiple reals
+;------------------------------------------------------------------------------
+
+(def (csym::send-reals rp n)
+     (fn void (ptr real) int)
+    (csym::send-binary-header (sizeof real) n)
+    (csym::send-binary rp (sizeof real) n sv-socket)
+    (csym::send-binary-terminator)
+    )
+
+(def (csym::recv-reals rp n)
+     (fn void (ptr real) int)
+    (csym::recv-binary-header NULL NULL)
+    (csym::receive-binary rp (sizeof real) n sv-socket)
+    (csym::recv-binary-terminator)
+    )
+
+
+;------------------------------------------------------------------------------
+; sending/receiving a single real
+;------------------------------------------------------------------------------
+
+(def (csym::send-real r)
+     (fn void real)
+    (csym::send-reals (ptr r) 1)
+    )
+
+(def (csym::recv-real)
+     (fn real)
+    (def r real)
+    (csym::recv-reals (ptr r) 1)
+    (return r)
+    )
+
+
+;------------------------------------------------------------------------------
+; sending/receiving a vector
+;------------------------------------------------------------------------------
+
+(def (csym::send-vector v)
+     (fn void (array real NDIM))
+    (csym::send-reals v NDIM)
+    )
+
+(def (csym::recv-vector v)
+     (fn void (array real NDIM))
+    (csym::recv-reals v NDIM)
+    )
+
+
+;------------------------------------------------------------------------------
+; sending/receiving a matrix
+;------------------------------------------------------------------------------
+
+(def (csym::send-matrix m)
+     (fn void (array (array real NDIM) NDIM))
+    (def i int)
+    (for ((= i 0) (< i NDIM) (inc i))
+        (csym::send-vector (aref m i))
+        )
+    )
+
+(def (csym::recv-matrix m)
+     (fn void (array (array real NDIM) NDIM))
+    (def i int)
+    (for ((= i 0) (< i NDIM) (inc i))
+        (csym::recv-vector (aref m i))
+        )
+    )
+
+
+;------------------------------------------------------------------------------
+; sending/receiving a nindex (for node identification)
+;------------------------------------------------------------------------------
+
+(def (csym::send-nindex n)
+     (fn void (ptr (struct nindex)))
+    (csym::send-int (fref n -> type))
+    (csym::send-int (fref n -> index))
+    )
+
+(def (csym::recv-nindex n)
+     (fn void (ptr (struct nindex)))
+    (= (fref n -> type) (cast short (csym::recv-int)))
+    (= (fref n -> index) (csym::recv-int))
+    )
+
