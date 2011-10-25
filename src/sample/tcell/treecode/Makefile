@@ -13,15 +13,15 @@ EXENAME = treecode
 ########################################################################
 # Compiler options for Tascell framework:
 
-OS=${shell uname}
-SC2C=sc2c
-SC2C_OPT=
-GCC=gcc
-XCC=/home/lab4/hiraisi/bin/xcc
-ICC=icc
-OPT=-O2 -g $(MOPT)
-XCCOPT=-DCT=lightweight
-XCCCLOPT=-DCT=closure
+OS       = ${shell uname}
+SC2C     = sc2c
+SC2C_OPT =
+GCC      = gcc
+XCC      = xcc
+ICC      = icc
+OPT      = -O2 -g $(MOPT)
+XCCOPT   = -DCT=lightweight
+XCCCLOPT = -DCT=closure
 
 ifeq ($(OS),SunOS)
     SC2C_OPT += -D USE_AFFINITY=PBIND
@@ -46,9 +46,20 @@ endif
 ########################################################################
 # Compiler options for treecode:
 
-CCFLAGS = -DLINUX -g
-LDFLAGS =
-OPTFLAG = -O3
+# LINUX:
+CCFLAGS = -D LINUX
+LDFLAGS =            # Currently ignored
+OPTFLAG = -O3        # Currently ignored
+
+# Sun:
+# CCFLAGS =
+# LDFLAGS =
+# OPTFLAG = -xO3
+
+# SGI:
+# CCFLAGS = -n32
+# LDFLAGS = -n32
+# OPTFLAG = -O3
 
 
 # Precision.  Possible values are SINGLEPREC, MIXEDPREC, and DOUBLEPREC.
@@ -68,110 +79,81 @@ PREC = SINGLEPREC
 # USELOCK = -D USELOCK=1
 
 # Uncomment the next line to use freq instead of dtime:
-# USEFREQ = -DUSEFREQ
+# USEFREQ = -D USEFREQ=1
 
 # Uncomment the next line to use binary I/O:
-# BINARYIO = -DBINARYIO
+# BINARYIO = -D BINARYIO=1
 
 # Uncomment the next line to make quick-scan treecode
-# QUICKSCAN = -DQUICKSCAN
+# QUICKSCAN = -D QUICKSCAN=1
+
+TREEFLAGS = -D $(PREC)=1 $(FORCEREPORT) $(BROADCAST) $(USELOCK) $(USEFREQ) \
+            $(BINARYIO) $(QUICKSCAN)
 
 ########################################################################
+
+.PHONY: all clean
+
+# NFTYPE = one of these: gcc, lw, xcc, xcccl
+
+ifndef NFTYPE
+    NFTYPE = gcc
+endif
+
+ifeq ($(NFTYPE), lw)
+    NFMACRO  = -D NF-TYPE=LW-SC
+    C_LIBS += nestfunc.c
+else
+ifeq ($(NFTYPE), xcc)
+    NFMACRO = -D NF-TYPE=XCC
+else
+ifeq (%(NFTYPE), xcccl)
+    NFMACRO = -D NF-TYPE=XCCCL
+else
+    NFMACRO = -D NF-TYPE=GCC
+endif
+endif
+endif
 
 C_LIBS  = sendrecv.c sock.c
-SC_NAME = worker cmd-serial treecode
-SC_LIBS = worker.sc cmd-serial.sc worker.sh dprint.sh
-
-TREECODE_TCELL = treecode.tcell treecomm.tcell treegrav-distributed.tcell \
-                 treegrav-shared.tcell treeload.tcell
-
-SC_C     = $(SC_GCC)
-SC_GCC   = $(addsuffix -gcc.c,$(SC_NAME))
-SC_LW    = $(addsuffix -lw.c,$(SC_NAME))
-SC_CL    = $(addsuffix -cl.c,$(SC_NAME))
-SC_XCC   = $(addsuffix -xcc.c,$(SC_NAME))
-SC_XCCCL = $(addsuffix -xcccl.c,$(SC_NAME))
-
 TREEOBJ = treecode.o treeio.o treeload.o treegrav.o libZeno.a
+TCELL   = worker-$(NFTYPE).c cmd-serial-$(NFTYPE).c treecode-$(NFTYPE).c
 
-.PHONY: all treecode clean nestfunc.c
-
-
-all: gcc lw xcc xcccl
-
-gcc: sc_gcc treecode
-	$(GCC) $(OPT) $(LIBOPTS) $(C_LIBS) $(SC_GCC) $(TREEOBJ) \
-	 $(CCFLAGS) -D$(PREC) $(QUICKSCAN) $(USELOCK) $(BROADCAST) \
-	 -o $(EXENAME)-gcc
-
-lw: sc_lw treecode nestfunc.c
-	$(GCC) $(OPT) $(LIBOPTS) $(C_LIBS) $(SC_LW) $(TREEOBJ) nestfunc.c \
-	 $(CCFLAGS) -D$(PREC) $(QUICKSCAN) $(USELOCK) $(BROADCAST) \
-	 -o $(EXENAME)-lw
-
-xcc: sc_xcc treecode
-	$(XCC) $(OPT) $(LIBOPTS) -fno-omit-frame-pointer $(C_LIBS) $(SC_XCC) \
-	 $(TREEOBJ) $(CCFLAGS) -D$(PREC) $(QUICKSCAN) $(USELOCK) $(BROADCAST) \
-	 -o $(EXENAME)-xcc
-
-xcccl: sc_xcccl treecode
-	$(XCC) $(OPT) $(LIBOPTS) $(C_LIBS) $(SC_XCC) \
-	 $(TREEOBJ) $(CCFLAGS) -D$(PREC) $(QUICKSCAN) $(USELOCK) $(BROADCAST) \
-	 -o $(EXENAME)-xcccl
-
-treecode: $(TREEOBJ)
-
+all: $(TCELL) $(TREEOBJ)
+	$(GCC) $(OPT) $(LIBOPTS) $(CCFLAGS) $(TREEFLAGS) $(C_LIBS) $(TCELL) \
+	$(TREEOBJ) -o $(EXENAME)-$(NFTYPE)
 
 ########################################################################
 
-sc_gcc: $(SC_LIBS) $(TREECODE_TCELL)
-	$(SC2C) $(SC2C_OPT) -D NF-TYPE=GCC worker.sc
-	$(SC2C) $(SC2C_OPT) -D NF-TYPE=GCC cmd-serial.sc
-	$(SC2C) $(SC2C_OPT) $(FORCEREPORT) \
-	 $(BROADCAST) -D NF-TYPE=GCC $(USELOCK) treecode.tcell
+worker-$(NFTYPE).c: worker.sc worker.sh
+	$(SC2C) $(SC2C_OPT) $(NFMACRO) worker.sc
 
-sc_lw: $(SC_LIBS) $(TREECODE_TCELL)
-	$(SC2C) $(SC2C_OPT) -D NF-TYPE=LW-SC worker.sc
-	$(SC2C) $(SC2C_OPT) -D NF-TYPE=LW-SC cmd-serial.sc
-	$(SC2C) $(SC2C_OPT) $(FORCEREPORT) \
-	 $(BROADCAST) -D NF-TYPE=LW-SC $(USELOCK) treecode.tcell
+cmd-serial-$(NFTYPE).c: cmd-serial.sc worker.sh
+	$(SC2C) $(SC2C_OPT) $(NFMACRO) cmd-serial.sc
 
-sc_xcc: $(SC_LIBS) $(TREECODE_TCELL)
-	$(SC2C) $(SC2C_OPT) -D NF-TYPE=XCC worker.sc
-	$(SC2C) $(SC2C_OPT) -D NF-TYPE=XCC cmd-serial.sc
-	$(SC2C) $(SC2C_OPT) $(FORCEREPORT) \
-	 $(BROADCAST) -D NF-TYPE=XCC $(USELOCK) treecode.tcell
-
-sc_xcccl: $(SC_LIBS) $(TREECODE_TCELL)
-	$(SC2C) $(SC2C_OPT) -D NF-TYPE=XCCCL worker.sc
-	$(SC2C) $(SC2C_OPT) -D NF-TYPE=XCCCL cmd-serial.sc
-	$(SC2C) $(SC2C_OPT) $(FORCEREPORT) \
-	 $(BROADCAST) -D NF-TYPE=XCCCL $(USELOCK) treecode.tcell
+treecode-$(NFTYPE).c: treecode.tcell treeload.tcell treegrav-shared.tcell treegrav-distributed.tcell treecomm.tcell
+	$(SC2C) $(SC2C_OPT) $(NFMACRO) $(TREEFLAGS) treecode.tcell
 
 ########################################################################
 # Vanila treecode:
 
 treecode.o: treecode.c treecode.h treedefs.h
-	$(GCC) $(CCFLAGS) $(FORCEREPORT) -D$(PREC) \
-	 $(QUICKSCAN) $(USEFREQ) $(USELOCK) $(BROADCAST) -c treecode.c
+	$(GCC) $(CCFLAGS) $(TREEFLAGS) -c treecode.c
 
 treeio.o: treeio.c treecode.h treedefs.h
-	$(GCC) $(CCFLAGS) -D$(PREC) $(QUICKSCAN) $(USEFREQ) $(BINARYIO) \
-	 $(USELOCK) $(BROADCAST) -c treeio.c
+	$(GCC) $(CCFLAGS) $(TREEFLAGS) -c treeio.c
 
 ifdef BROADCAST
-  ENV_SUFFIX=distributed
+    ENV_SUFFIX=distributed
 else
-  ENV_SUFFIX=shared
+    ENV_SUFFIX=shared
 endif
 
 treeload.o: treeload-$(ENV_SUFFIX).c treedefs.h
-	$(GCC) $(CCFLAGS) -D$(PREC) $(QUICKSCAN) $(USELOCK) -O2 -c \
-	 $(BROADCAST) -o treeload.o treeload-$(ENV_SUFFIX).c
+	$(GCC) $(CCFLAGS) -O2 $(TREEFLAGS) -o treeload.o -c treeload-$(ENV_SUFFIX).c
 
 treegrav.o: treegrav.c treedefs.h
-	$(GCC) $(CCFLAGS) -D$(PREC) $(QUICKSCAN) $(OPTFLAG) $(USELOCK) \
-	 $(BROADCAST) -o treegrav.o -c treegrav.c
+	$(GCC) $(CCFLAGS) -O3 $(TREEFLAGS) -o treegrav.o -c treegrav.c
 
 ########################################################################
 # Zeno library:
