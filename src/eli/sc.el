@@ -38,6 +38,7 @@
   (put 'string-case tag '(like case))
   (put 'string-case-eager tag '(like case))
   (put 'with-fresh-variables tag '(like let))
+  (put 'with-alist tag '(like destructuring-bind))
   ;; .rule
   (put 'defrule tag '((1 (3 t) ((1 0 quote) (0 t nil))) (0 t 2)))
   (put 'extendrule tag '(like defrule))

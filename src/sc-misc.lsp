@@ -62,7 +62,7 @@
      "LIST-LENGTH>=" "LIST-LENGTH=" "LIST-RANDOM-SELECT" "POWER-SET"
      "LIST-UNTIL" "LIST-UNTIL-IF" "HEAD-INTERSECTION" "INTEGER-LIST"
      "MAKE-ALL-COMB"
-     "MEMBER-REC" "COMBINE-EACH-NTH" "CMPD-LIST"
+     "MEMBER-REC" "COMBINE-EACH-NTH" "CMPD-LIST" "WITH-ALIST"
      "MAKE-QUEUE" "EMPTY-QUEUE-P" "FRONT-QUEUE" "QUEUE-LIST"
      "INSERT-QUEUE" "DELETE-QUEUE" "FIND-DELETE-QUEUE"
      "LIST-TO-HASHTABLE" "ALIST-TO-HASHTABLE"
@@ -1000,6 +1000,17 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
   (do ((aa a (cdr aa)) (bb b (cdr bb)))
       ((endp aa) (setq ab (nreverse ab)))
     (push `(,(car aa) . ,(car bb)) ab)))
+
+;;; (with-alist ((aa a 10) (bb b) c) '((b . 3) (c . 100)) (list aa bb c)) -> (10 3 100)
+(defmacro with-alist ((&rest binds) alist &body body)
+  (let ((sym-alist (gensym "ALIST")))
+    `(let ((,sym-alist ,alist))
+       (let  ,(loop for bind in binds
+                  collect (progn
+                            (when (atom bind) (setq bind (list bind)))
+                            (destructuring-bind (sym &optional key if-nil) bind
+                              `(,sym (or (cdr (assoc ',(or key sym) ,sym-alist)) ,if-nil)))))
+         ,@body))))
 
 ;;; Queue
 (defun make-queue ()
