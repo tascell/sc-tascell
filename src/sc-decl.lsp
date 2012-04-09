@@ -49,15 +49,7 @@
           else do (write-char ch s))))
 
 #+clisp
-(progn
-  (ffi:def-call-out gethostname0
-      (:name "gethostname")
-      (:arguments (name (FFI:C-PTR (FFI:C-ARRAY-MAX character 256))
-                        :out :alloca)
-                  (length ffi:int))
-    (:language :stdc) (:library :default)
-    (:return-type ffi:int))
-  (defun gethostname () (second (multiple-value-list (gethostname0 256)))))
+(defun gethostname () (let ((s (machine-instance))) (subseq s 0 (position #\Space s))))
 #+(and allegro (not mswindows))
 (defun gethostname () (excl.osi:gethostname))
 #+(and allegro mswindows)
