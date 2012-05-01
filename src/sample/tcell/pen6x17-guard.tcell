@@ -240,6 +240,7 @@
        )
      ;; put/get pentomino task/result
      (pentomino
+      (:guard (/ (cast double (- i2 i1)) (cast double (- j2 j1))))
       (:put from i1 to i2
             (= this (mref tsk))
             (= (fref this k) k)

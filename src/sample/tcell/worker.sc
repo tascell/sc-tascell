@@ -73,6 +73,22 @@
     ))
 
 
+;;;; 乱数生成ルーチン
+;; 親からのランダム用
+(def random-seed1 double 0.2403703)
+(def random-seed2 double 3.638732)
+;; 0--max-1までの整数乱数を返す
+(def (csym::my-random max pseed1 pseed2) (fn int int (ptr double) (ptr double))
+  (= (mref pseed1) (+ (* (mref pseed1) 3.0) (mref pseed2)))
+  (-= (mref pseed1) (cast int (mref pseed1)))
+  (return (* max (mref pseed1))))
+;; 0--1までのdouble乱数を返す
+(def (csym::my-random-double pseed1 pseed2) (fn double (ptr double) (ptr double))
+  (= (mref pseed1) (+ (* (mref pseed1) 3.0) (mref pseed2)))
+  (-= (mref pseed1) (cast int (mref pseed1)))
+  (return (mref pseed1)))
+
+
 ;;; Command-line options
 (def option (struct runtime-option))
 
@@ -241,6 +257,40 @@
 (def num-thrs unsigned-int)
 
 
+;;; Flush the once accepted task request pointed by "(mref p-hx)"
+;;; by sending back "none" and removing the treq entry from the thr's treq-top list.
+;;; p-hx is the ponter to the "next" pointer in the previous treq entry.
+;;; (or the pointer to the thr->treq-top when the "(mref p-hx)" is the top entry.)
+;;; The lock for "thr" must have been acquried.
+(def (csym::flush-treq-with-none-1 thr p-hx)
+    (csym::fn void (ptr (struct thread-data)) (ptr (ptr (struct task-home))))
+  (def hx (ptr (struct task-home)) (mref p-hx))
+  (def rcmd (struct cmd) (struct ((fref-this c) 1) ((fref-this w) NONE)
+                                 ((fref-this node) hx->req-from))) ; 外部or内部
+  (csym::copy-address (aref rcmd.v 0) hx->task-head)
+  (csym::send-command (ptr rcmd) 0 0)
+  ;; treq-topスタックからremove
+  (= (mref p-hx) hx->next) 
+  ;; removeしたセルをフリーリストに追加（返却）
+  (= hx->next thr->treq-free)
+  (= thr->treq-free hx)
+  )
+
+;;; Flush the top entry of thr's once accepted task requests
+;;; by sending back "none" and removing the treq entry from the thr's treq-top list.
+;;; The lock for "thr" must have been acquried.
+(def (csym::guard-task-request thr) (csym::fn void (ptr (struct thread-data)))
+  (csym::flush-treq-with-none-1 thr (ptr thr->treq-top)))
+
+;;; Same as guard-task-request but it does nothing with the probability "1-prob"
+(def (csym::guard-task-request-prob thr prob) (csym::fn int (ptr (struct thread-data)) double)
+  (if (>= prob (csym::my-random-double (ptr thr->random-seed1)
+                                       (ptr thr->random-seed2)))
+      (begin
+        (csym::flush-treq-with-none-1 thr (ptr thr->treq-top))
+        (return 1))
+    (return 0)))
+
 ;;; Called by recv-exec-send and wait-rslt.
 ;;; The lock for 'thr' must have been acquried.
 ;;; Flushes treq messages that have been once accepted, and sends none messages for them.
@@ -248,18 +298,15 @@
 ;;; for the result of equals to the specified by rslt-head and rslt-to
 (def (csym::flush-treq-with-none thr rslt-head rslt-to)
     (csym::fn void (ptr (struct thread-data)) (ptr (enum addr)) (enum node))
-  (def rcmd (struct cmd))
   (def pcur-hx (ptr (ptr (struct task-home))) (ptr thr->treq-top)) ; ref to task-home link to be updated
   (def hx (ptr (struct task-home)))
   (def flush int)
   (def ignored int 0)
   (def flushed-any-treq int 0)
   (def flushed-stealing-back-head (ptr (enum addr)) 0)
-  (= rcmd.c 1)
-  (= rcmd.w NONE)
   (while (= hx (mref pcur-hx))
     (cond 
-     ((or option.always-flush-accepted-treq      ; flush if the option specified
+     ((or option.always-flush-accepted-treq ; flush if the option specified
           (== TERM (aref hx->waiting-head 0))) ; flush if non-stealing-back treq
       (DEBUG-STMTS 2 (inc flushed-any-treq))
       (= flush 1))
@@ -267,35 +314,30 @@
            (== hx->req-from rslt-to)
            (csym::address-equal hx->waiting-head rslt-head))
       (DEBUG-STMTS 2
-                   (= flushed-stealing-back-head rslt-head)
-                   (= rslt-head 0))
+        (= flushed-stealing-back-head rslt-head)
+        (= rslt-head 0))
       (= flush 1))
      (else
       (DEBUG-STMTS 2 (inc ignored))
       (= flush 0)))
     (if flush
-        (begin
-          (= rcmd.node hx->req-from)    ; 外部or内部
-          (csym::copy-address (aref rcmd.v 0) hx->task-head)
-          (csym::send-command (ptr rcmd) 0 0)
-          (= (mref pcur-hx) hx->next)    ; treqスタックをpop
-          (= hx->next thr->treq-free)   ; フリーリストに...
-          (= thr->treq-free hx))        ; ...領域を返却
+        (csym::flush-treq-with-none-1 thr pcur-hx)
       (begin
         ;; ignores stealing back treq
         (= pcur-hx (ptr hx->next)))))
+  ;; print debug message
   (DEBUG-STMTS 2
-               (defs (array char BUFSIZE) buf0 buf1)
-               (if (or (> flushed-any-treq 0) (> ignored 0) flushed-stealing-back-head)
-                   (csym::fprintf stderr "(%d): (Thread %d) flushed %d any %s and ignored %d stealing-back treqs in flush-treq-with-none~%"
-                                  (get-universal-real-time) thr->id flushed-any-treq
-                                  (if-exp flushed-stealing-back-head
-                                      (exps
-                                       (csym::serialize-arg buf1 flushed-stealing-back-head)
-                                       (csym::sprintf buf0 "and stealing-back from %s" buf1)
-                                       buf0)
-                                    "")
-                                  ignored)))
+    (defs (array char BUFSIZE) buf0 buf1)
+    (if (or (> flushed-any-treq 0) (> ignored 0) flushed-stealing-back-head)
+        (csym::fprintf stderr "(%d): (Thread %d) flushed %d any %s and ignored %d stealing-back treqs in flush-treq-with-none~%"
+          (get-universal-real-time) thr->id flushed-any-treq
+          (if-exp flushed-stealing-back-head
+              (exps
+               (csym::serialize-arg buf1 flushed-stealing-back-head)
+               (csym::sprintf buf0 "and stealing-back from %s" buf1)
+               buf0)
+            "")
+          ignored)))
   )
 
 ;;; allocate a task in thr's task stack and return the pointer to the task.
@@ -833,15 +875,6 @@
        ))
   (csym::pthread-mutex-unlock (ptr thr->mut))
   (return avail))
-
-;; 親からのランダム用
-(def random-seed1 double 0.2403703)
-(def random-seed2 double 3.638732)
-;; 0--max-1までの整数乱数を返す
-(def (csym::my-random max pseed1 pseed2) (fn int int (ptr double) (ptr double))
-  (= (mref pseed1) (+ (* (mref pseed1) 3.0) (mref pseed2)))
-  (-= (mref pseed1) (cast int (mref pseed1)))
-  (return (* max (mref pseed1))))
 
 ;;; treq any処理中に呼ばれ，要求元がどこかに応じて
 ;;; 適当な戦略で，最初にどのワーカに問い合わせるかを決める

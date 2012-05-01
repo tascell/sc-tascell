@@ -61,10 +61,15 @@
   (put 'switch tag 1)
   (put 'cast tag 1)
   (put 'if-exp tag 2)
+  ;; SC functions
+  (put 'printf tag 1)
+  (put 'fprintf tag 2)
   ;; Tascell
   (put 'do-many tag 6)
   (put 'do-two tag 2)
   (put 'tcell-broadcast tag 1)
+  ;; Tascell Source
+  (put 'DEBUG-STMTS tag 1)
   )
 
 ;; (defadvice fi::lisp-invoke-method (around sharp-question
