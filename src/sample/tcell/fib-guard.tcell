@@ -1,0 +1,122 @@
+;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; All rights reserved.
+
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+;;; 1. Redistributions of source code must retain the above copyright
+;;;    notice, this list of conditions and the following disclaimer.
+;;; 2. Redistributions in binary form must reproduce the above copyright
+;;;    notice, this list of conditions and the following disclaimer in the
+;;;    documentation and/or other materials provided with the distribution.
+
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE
+;;; FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+;;; OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+;;; LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+;;; SUCH DAMAGE.
+
+;;; Fibonacci
+
+;; task 0 0 0 0
+;; <n>
+
+(c-exp "#include<sys/time.h>")
+
+;; ワーカごとに処理したタスクの数をカウントして表示
+;; (%defconstant COUNT-NTASK 1)
+
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
+(%include "rule/tcell-setrule.sh")
+
+(%include "clib.sh")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (csym::elapsed-time tp) 
+    (fn double (array (struct timeval) 2))
+  (return (+ (- (fref (aref tp 1) tv-sec)
+                (fref (aref tp 0) tv-sec))
+             (* 0.000001
+                (- (fref (aref tp 1) tv-usec)
+                   (fref (aref tp 0) tv-usec))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(%ifdef* COUNT-NTASK
+  (def worker-data
+      (def n-task int))
+  (def worker-init
+      (= WDATA.n-task 0))
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(decl (fib-g) (wfn int int double))
+
+(def (task fib)
+  (def n int :in)
+  (def p double :in)
+  (def r int :out))
+
+(def (task-body fib)
+    ;;(csym::fprintf stderr "start fib(%d)~%" (fref this n))
+  (%ifdef* COUNT-NTASK
+    (++ WDATA.n-task)
+    (csym::fprintf stderr "%d starts %d-th task.~%" WORKER-ID WDATA.n-task))
+  (= (fref this r)
+     (fib-g (fref this n) (fref this p)))
+  )
+
+(def (task fib-start)
+  (def n int :in)
+  (def r int :out))
+
+(def (task-body fib-start)
+  (decl tp (array (struct timeval) 2))
+  (csym::fprintf stderr "start fib(%d)~%" (fref this n))
+  (%ifdef* COUNT-NTASK
+    (++ WDATA.n-task)
+    (csym::fprintf stderr "%d starts %d-th task.~%" WORKER-ID WDATA.n-task))
+  (csym::gettimeofday tp 0)
+  (= (fref this r)
+     (fib-g (fref this n) 1.0))
+  (csym::gettimeofday (+ tp 1) 0)
+  (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp)))
+
+(def (task-receiver fib)
+    ;;(csym::fprintf stderr "receive %d~%" (fref this n))
+    )
+
+(def (task-sender fib)
+    ;;(csym::fprintf stderr "send %d~%" (fref this n))
+    )
+
+(def (rslt-sender fib)
+    ;;(csym::fprintf stderr "send fib(%d)=%d~%" (fref this n) (fref this r))
+    )
+
+(def (rslt-receiver fib)
+    ;;(csym::fprintf stderr "receive fib(%d)=%d~%" (fref this n) (fref this r))
+    )
+
+(def (fib-g n p) (wfn int int double)
+  (if (<= n 2)
+      (return 1)
+    (begin
+      (def s1 int)
+      (def s2 int)
+      (do-two
+          (= s1 (fib-g (- n 1) (/ p 2)))
+          (= s2 (fib-g (- n 2) (/ p 4)))
+        (fib
+         (:guard p)
+         (:put (= this.n (- n 2))
+               (= this.p (/ p 4)))
+         (:get (= s2 (fref this r)))))
+      (return (+ s1 s2)))))

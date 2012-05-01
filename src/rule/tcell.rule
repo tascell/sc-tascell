@@ -194,7 +194,9 @@
   ;; * stat1->stat2 の順に実行
   ;; * stat2 実行中に仕事の要求がきたら，:put以下を実行してsendする．
   ;;   <stat1>が終わり，sendした仕事の結果が返ってきたら，:get 以下を実行．
-  (#?(do-two ,stat1 ,stat2 (,id (:put ,@put-body) (:get ,@get-body)))
+  (#?(do-two ,stat1 ,stat2 (,id 
+                            {(:guard ,@guard-body ,guard-exp)}
+                            (:put ,@put-body) (:get ,@get-body)))
    (when (ruleset-param 'no-nestfunc)
      (return-from statement ~(begin ,(block-item stat1)
                                     ,(block-item stat2)) ))
@@ -215,12 +217,18 @@
           (def (,bk-id) ,(tcell:nestfunc-type)
             (if ,spn-id  (return 0))    ; すでに仕事をあげてしまってた
             (,(tcell:latest-bk))        ; より根元での分割を試みる
-            (if (fref (mref -thr) treq-top) ; タスク作成待ちスタックに要素があれば
+            (while (fref (mref -thr) treq-top) ; タスク作成待ちスタックに要素があれば
                 (begin
-                 ,@b-put-body
-                 (= ,spn-id 1)
-                 (csym::make-and-send-task -thr ,(tcell:task-no) pthis)
-                 (return 1)))
+                  ,@(if-pattern-variable guard-exp
+                        (list
+                         ~(begin 
+                            ,@guard-body
+                            (if (csym::guard-task-request-prob -thr ,guard-exp)
+                                (continue)))))
+                  (begin ,@b-put-body)
+                  (= ,spn-id 1)
+                  (csym::make-and-send-task -thr ,(tcell:task-no) pthis)
+                  (return 1)))
             (return 0))
           ;; ここから仕事本体
           (if (fref (mref -thr) req)    ; （ポーリング）タスク要求がきていたら
@@ -242,6 +250,7 @@
   (#?(do-many for ,var[identifier] from ,from to ,to
               ,@body
               (,id
+               {(:guard ,@guard-body ,guard-exp)}
                (:put from ,put-from to ,put-to ,@put-body)
                (:get ,@get-body)))
    (when (ruleset-param 'no-nestfunc)
@@ -268,11 +277,17 @@
                        (< (+ ,var 1) ,var2)) ; まだiterationが残っている
              (def ,put-to int ,var2)
              (def ,put-from int (/ (+ 1 ,var ,var2) 2))
+             ,@(if-pattern-variable guard-exp
+                   (list
+                    ~(begin 
+                       ,@guard-body
+                       (if (csym::guard-task-request-prob -thr ,guard-exp)
+                           (continue)))))
              (= ,var2 ,put-from)
              (= pthis
                 (cast (ptr (struct ,(tcell:task-struct-id)))
                   (csym::malloc (sizeof (struct ,(tcell:task-struct-id))))))
-             ,@(function-body put-body)
+             (begin ,@(function-body put-body))
              (inc ,spn-id)
              (csym::make-and-send-task -thr ,(tcell:task-no) pthis))
            (return 0))

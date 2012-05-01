@@ -1,6 +1,6 @@
 ;;;; Compile-time options
 ;;; Debug print
-(%defconstant VERBOSE 0)
+(%defconstant VERBOSE 1)
 (%include "dprint.sh")
 
 ;;; Implementation of nested functions
@@ -201,6 +201,8 @@
 
 (decl (csym::init-data-flag) (csym::fn void int))
 
+(decl (csym::guard-task-request) (csym::fn void (ptr (struct thread-data))))
+(decl (csym::guard-task-request-prob) (csym::fn int (ptr (struct thread-data)) double))
 (decl (csym::recv-rslt) (csym::fn void (ptr (struct cmd)) (ptr void)))
 (decl (csym::recv-task) (csym::fn void (ptr (struct cmd)) (ptr void)))
 (decl (csym::recv-treq) (csym::fn void (ptr (struct cmd))))

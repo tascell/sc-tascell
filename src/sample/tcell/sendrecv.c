@@ -195,3 +195,23 @@ int recv_doubles (double *a, int nelm)
   recv_binary_terminator ();
   return ret;
 }
+
+/**/
+int send_double (double d)
+{
+  int ret;
+  send_binary_header (sizeof(double), 1);
+  ret = send_binary (&d, sizeof(double), 1, sv_socket);
+  send_binary_terminator ();
+  return ret;
+}
+
+int recv_double (void)
+{
+  double d[1];
+  int swp = recv_binary_header (0, 0);
+  receive_binary (d, sizeof(double), 1, sv_socket);
+  if (swp) swap_doubles (d, 1);
+  recv_binary_terminator ();
+  return d[0];
+}

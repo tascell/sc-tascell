@@ -83,15 +83,23 @@
 
 (extendrule block-item tcell-type
   ((#?(do-two ,stat1 ,stat2
-              (,id[identifier] (:put ,@put-body) (:get ,@get-body))))
+        (,id[identifier]
+            {(:guard ,@guard-body ,guard-exp)}
+            (:put ,@put-body) (:get ,@get-body))))
    ~(do-two ,(block-item stat1) ,(block-item stat2)
             ,(tcell-type:with-task id
                ~(,id
+                 ,@(if-pattern-variable guard-exp
+                       (list (type:with-new-environment
+                                 (let ((fb (function-body guard-body))
+                                       (exp (expression guard-exp)))
+                                   ~(:guard ,@fb ,exp)))))
                  (:put ,@(type:with-new-environment (function-body put-body)))
                  (:get ,@(type:with-new-environment (function-body get-body))))))  )
   ((#?(do-many for ,var from ,from to ,to
                ,@body
                (,id
+                {(:guard ,@guard-body ,guard-exp)}
                 (:put from ,put-from to ,put-to ,@put-body)
                 (:get ,@get-body))))
    (type:with-new-environment
@@ -100,6 +108,11 @@
        ,@(function-body body)
        ,(tcell-type:with-task id
          ~(,id
+           ,@(if-pattern-variable guard-exp
+                 (list (type:with-new-environment
+                           (let ((fb (function-body guard-body))
+                                 (exp (expression guard-exp)))
+                             ~(:guard ,@fb ,exp)))))
            (:put from ,put-from to ,put-to
                  ,@(type:with-new-environment
                      (type:add-variable put-from ~int)
