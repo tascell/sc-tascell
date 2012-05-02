@@ -434,22 +434,22 @@
        )
     (if (== tx->stat TASK-NONE)
         (begin
-         ;; 取り返し失敗ならしばらく待つ
-         (if (%ifdef* BUSYWAIT 1 %else thr->sub)
-             (let ((t-until (struct timespec))
-                   (now (struct timeval)))
-               (csym::gettimeofday (ptr now) 0)
-               (csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) delay)
-               (csym::pthread-cond-timedwait (ptr thr->cond-r)
-                                             (ptr thr->mut)
-                                             (ptr t-until))
-               (+= delay delay)         ; 次回の待ち時間を増やす
-               (if (> delay DELAY-MAX) (= delay DELAY-MAX))
-               ))
-         ;; rsltが到着していたら自分のtreqリトライせず，そちらの処理を優先
-         (if (and thr->sub
-                  (== thr->sub->stat TASK-HOME-DONE))
-             (return 0))))
+         ;; noneならしばらく待つ
+          (if 1                         ; thr->sub <= 取り返しの場合のみ待つ
+              (let ((t-until (struct timespec))
+                    (now (struct timeval)))
+                (csym::gettimeofday (ptr now) 0)
+                (csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) delay)
+                (csym::pthread-cond-timedwait (ptr thr->cond-r)
+                                              (ptr thr->mut)
+                                              (ptr t-until))
+                (+= delay delay)        ; 次回の待ち時間を増やす
+                (if (> delay DELAY-MAX) (= delay DELAY-MAX))
+                ))
+          ;; rsltが到着していたら自分のtreqリトライせず，そちらの処理を優先
+          (if (and thr->sub
+                   (== thr->sub->stat TASK-HOME-DONE))
+              (return 0))))
     )
   (return 1))
 
@@ -462,6 +462,7 @@
     (fn void (ptr (struct thread-data)) (ptr (enum addr)) (enum node))
   (def tx (ptr (struct task)))
   (def old-ndiv int)
+  (def old-probability double)
   (def rcmd (struct cmd))               ; for RSLT command
 
   ;; 前に送ったtreq（取り戻し）への none が届くまで待つ
@@ -482,7 +483,9 @@
        ;; ここで，tx(=thr->task-top)->statはTASK-INITIALIZED
        (= tx->stat TASK-STARTED)
        (= old-ndiv thr->ndiv)
+       (= old-probability thr->probability)
        (= thr->ndiv tx->ndiv)
+       (= thr->probability 1.0)
        (csym::pthread-mutex-unlock (ptr thr->mut))
        (DEBUG-PRINT 1 "(%d): (Thread %d) start %d<%p>.~%"
                     (csym::get-universal-real-time) thr->id tx->task-no tx->body)
@@ -498,7 +501,9 @@
        (inc thr->w-rack)
        (csym::pthread-mutex-unlock (ptr thr->rack-mut))
        (csym::pthread-mutex-lock (ptr thr->mut))
-       (= thr->ndiv old-ndiv)))
+       (= thr->ndiv old-ndiv)
+       (= thr->probability old-probability)
+       ))
 
   ;; タスクstackをpopしてフリーリストに返す
   (= tx->stat TASK-DONE)
@@ -800,7 +805,7 @@
 
 
 (decl task-stat-strings (array (ptr char)))
-;;; Check if the id-th worker can spawn a task by the 'pcmd' treq message.
+;;; Check if the id-th worker can accept the task request 'pcmd'
 ;;; If ok, the worker allocate a task-home.
 (def (csym::try-treq pcmd id)
     (csym::fn int (ptr (struct cmd)) (enum addr))
@@ -830,6 +835,10 @@
     (if (not (csym::have-task thr from-addr pcmd->node))
                                         ; the task is already finished
         (= fail-reason 4))))
+  (if (and (not fail-reason)
+           (< thr->probability (csym::my-random-double (ptr thr->random-seed1)
+                                                       (ptr thr->random-seed2))))
+      (= fail-reason 5))
   (= avail (not fail-reason))
   (DEBUG-STMTS 2
     (if (not avail)
@@ -847,6 +856,8 @@
             (case 4)
             (csym::serialize-arg buf1 from-addr)
             (csym::sprintf rsn-str "%s is already finished" buf1) (break)
+            (case 5)
+            (csym::sprintf rsn-str "of probability (%lf)" thr->probability) (break)
             (default)
             (csym::strcpy rsn-str "Unexpected reason") (break))
           (csym::fprintf 
@@ -1465,6 +1476,7 @@
   (csym::fprintf stderr "w-rack=%d, " thr->w-rack)
   (csym::fprintf stderr "w-none=%d, " thr->w-none)
   (csym::fprintf stderr "ndiv=%d, " thr->ndiv)
+  (csym::fprintf stderr "probability=%lf, " thr->probability)
   (csym::fprintf stderr "last-treq=%d, " thr->last-treq)
   (csym::fprintf stderr "last-choose=%s, " (aref choose-strings thr->last-choose))
   (csym::fprintf stderr "random-seed(1,2)=(%f,%f), " thr->random-seed1 thr->random-seed2)
@@ -1871,6 +1883,7 @@
       (= thr->w-none 0)
       (= thr->w-bcak 0)
       (= thr->ndiv 0)
+      (= thr->probability 1.0)
       (= thr->last-treq i)
       (= thr->last-choose CHS-RANDOM)
       (let ((r double) (q double))
