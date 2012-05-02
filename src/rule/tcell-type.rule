@@ -145,6 +145,10 @@
   )
 
 (extendrule expression tcell-type
+  (#?PROBABILITY
+   (if (tcell:wdata-accessible-p)
+       ~(the double PROBABILITY)
+     (next-pattern)))
   (#?WDATA
    (if (tcell:wdata-accessible-p)
        ~(the (struct worker-data) WDATA)

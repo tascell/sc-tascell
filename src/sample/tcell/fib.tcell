@@ -31,6 +31,8 @@
 
 ;; ワーカごとに処理したタスクの数をカウントして表示
 ;; (%defconstant COUNT-NTASK 1)
+;; Probability guardを使う
+(%defconstant USE-PROBGUARD 1)
 
 (%ifndef* NF-TYPE
   (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
@@ -46,6 +48,7 @@
              (* 0.000001
                 (- (fref (aref tp 1) tv-usec)
                    (fref (aref tp 0) tv-usec))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (%ifdef* COUNT-NTASK
@@ -57,8 +60,15 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(def N0 int 0)
+(def (csym::my-probability n) (fn double int)
+  (def d int (- N0 n))
+  (if (> d 20)
+      (return (/ 1.0 (cast double (<< 1 20))))
+    (return (/ 1.0 (cast double (<< 1 d))))))
+  
 (decl (fib n) (wfn int int))
-
+  
 (def (task fib)
   (def n int :in)
   (def r int :out))
@@ -68,8 +78,9 @@
   (%ifdef* COUNT-NTASK
     (++ WDATA.n-task)
     (csym::fprintf stderr "%d starts %d-th task.~%" WORKER-ID WDATA.n-task))
-  (= (fref this r)
-     (fib (fref this n)))
+  (%ifdef* USE-PROBGUARD
+    (= PROBABILITY (csym::my-probability this.n)))
+  (= this.r (fib this.n))
   )
 
 (def (task fib-start)
@@ -82,9 +93,9 @@
   (%ifdef* COUNT-NTASK
     (++ WDATA.n-task)
     (csym::fprintf stderr "%d starts %d-th task.~%" WORKER-ID WDATA.n-task))
+  (= N0 this.n)
   (csym::gettimeofday tp 0)
-  (= (fref this r)
-     (fib (fref this n)))
+  (= this.r (fib this.n))
   (csym::gettimeofday (+ tp 1) 0)
   (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp)))
 
@@ -114,7 +125,10 @@
           (= s1 (fib (- n 1)))
         (= s2 (fib (- n 2)))
         (fib
-         (:put (= (fref this n)  (- n 2)))
+         (:put
+          (%ifdef* USE-PROBGUARD
+            (= PROBABILITY (csym::my-probability (- n 2))))
+          (= (fref this n) (- n 2)))
          (:get (= s2 (fref this r)))))
       (return (+ s1 s2)))))
 

@@ -19,9 +19,9 @@
 (%defconstant ARG-SIZE-MAX 16)          ; コマンドの各引数の許される長さ
 (%defconstant TASK-LIST-LENGTH (* 4 65536)) ; スレッドごとのTASK, TASK-HOMEリストの長さ
 (%defconstant TASK-MAX 256)             ; プログラマが定義できるタスクの最大数
-(%defconstant DUMMY-SIZE 1000)          ; false-sharing防止のためのpaddingサイズ
+(%defconstant DUMMY-SIZE 1111)          ; false-sharing防止のためのpaddingサイズ
 
-(%defconstant DELAY-MAX (* 1 1000 1000 1000))          ; none時->treq再送信までの時間の上限 [nsec]
+(%defconstant DELAY-MAX (* 100 1000 1000))          ; none時->treq再送信までの時間の上限 [nsec]
 ; (%defconstant BUSYWAIT)                 ; ワーカがtreqの返事をbusywaitで待つならuncomment
 
 (%cinclude "sock.h" (:macro))           ; 通信関係
@@ -151,6 +151,7 @@
   (def w-rack int)                      ; （rsltを送信して）rack待ちの数
   (def w-none int)                      ; none待ちの数
   (def ndiv int)                        ; 今やってる仕事の分割された回数
+  (def probability double)              ; probability of accepting a task request
   (def last-treq int)                   ; 内部へのtreq anyで，最後にtreqした相手
   (def last-choose (enum choose))       ; 内部へのtreq anyで，最後に採用した選択方法
   (def random-seed1 double)             ; 乱数の種 treq anyで使用・更新

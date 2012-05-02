@@ -395,6 +395,11 @@
   (#?(the ,texp (call (the (ptr (wfn ,@texp-list)) ,exp-f) ,@exp-list))
    ~(the ,texp (call ,@(wfn-add-argids ~((the (ptr ,(type-expression! ~(wfn ,@texp-list))) ,exp-f)
                                          ,@(mapcar #'expression! exp-list))))) )
+  ;; get acceptance probability
+  (#?(the ,texp PROBABILITY)
+   (if (tcell:wdata-accessible-p)
+       ~(fref (mref -thr) probability)
+     x))
   ;; access to worker local storage
   (#?(the ,texp WDATA)
    (if (tcell:wdata-accessible-p)
