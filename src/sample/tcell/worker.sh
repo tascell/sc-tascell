@@ -156,6 +156,8 @@
   (def last-choose (enum choose))       ; 内部へのtreq anyで，最後に採用した選択方法
   (def random-seed1 double)             ; 乱数の種 treq anyで使用・更新
   (def random-seed2 double)             ; 乱数の種 treq anyで使用・更新
+  (def random-seed-probability (array unsigned-short 3))
+                                        ; 乱数の種 probability guard
   (def task-free (ptr (struct task)))   ; タスク確保用フリーリスト
   (def task-top (ptr (struct task)))    ; スレッドに与えられた仕事のリスト（スタック）のトップ
   ;; treq-freeから始まるフリーリストから
