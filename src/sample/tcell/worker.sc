@@ -90,7 +90,7 @@
 ;; 0--1のdouble乱数を返す．probability用
 (def (csym::my-random-probability thr) (fn double (ptr (struct thread-data)))
   (def d double (csym::erand48 thr->random-seed-probability))
-  (csym::fprintf stderr "random(%d): %lf~%" thr->id d)
+  ;; (csym::fprintf stderr "random(%d): %lf~%" thr->id d)
   (return d))
 
 
