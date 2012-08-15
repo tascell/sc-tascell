@@ -82,11 +82,16 @@
   (= (mref pseed1) (+ (* (mref pseed1) 3.0) (mref pseed2)))
   (-= (mref pseed1) (cast int (mref pseed1)))
   (return (* max (mref pseed1))))
-;; 0--1までのdouble乱数を返す
+;; 0--1のdouble乱数を返す
 (def (csym::my-random-double pseed1 pseed2) (fn double (ptr double) (ptr double))
   (= (mref pseed1) (+ (* (mref pseed1) 3.0) (mref pseed2)))
   (-= (mref pseed1) (cast int (mref pseed1)))
   (return (mref pseed1)))
+;; 0--1のdouble乱数を返す．probability用
+(def (csym::my-random-probability thr) (fn double (ptr (struct thread-data)))
+  (def d double (csym::erand48 thr->random-seed-probability))
+  (csym::fprintf stderr "random(%d): %lf~%" thr->id d)
+  (return d))
 
 
 ;;; Command-line options
@@ -276,16 +281,17 @@
   (= thr->treq-free hx)
   )
 
+;;; Tascell user's function:
 ;;; Flush the top entry of thr's once accepted task requests
 ;;; by sending back "none" and removing the treq entry from the thr's treq-top list.
 ;;; The lock for "thr" must have been acquried.
 (def (csym::guard-task-request thr) (csym::fn void (ptr (struct thread-data)))
   (csym::flush-treq-with-none-1 thr (ptr thr->treq-top)))
 
+;;; Tascell user's function:
 ;;; Same as guard-task-request but it does nothing with the probability "1-prob"
 (def (csym::guard-task-request-prob thr prob) (csym::fn int (ptr (struct thread-data)) double)
-  (if (>= prob (csym::my-random-double (ptr thr->random-seed1)
-                                       (ptr thr->random-seed2)))
+  (if (>= prob (csym::my-random-probability thr))
       (begin
         (csym::flush-treq-with-none-1 thr (ptr thr->treq-top))
         (return 1))
@@ -836,8 +842,7 @@
                                         ; the task is already finished
         (= fail-reason 4))))
   (if (and (not fail-reason)
-           (< thr->probability (csym::my-random-double (ptr thr->random-seed1)
-                                                       (ptr thr->random-seed2))))
+           (< thr->probability (csym::my-random-probability thr)))
       (= fail-reason 5))
   (= avail (not fail-reason))
   (DEBUG-STMTS 2
@@ -1892,6 +1897,9 @@
         (-= r (cast int r))
         (= thr->random-seed1 r)
         (= thr->random-seed2 q))
+      (= (aref thr->random-seed-probability 0) (+ 3 (* 3 i)))
+      (= (aref thr->random-seed-probability 1) (+ 4 (* 3 i)))
+      (= (aref thr->random-seed-probability 2) (+ 5 (* 3 i)))
       (csym::pthread-mutex-init (ptr thr->mut) (ptr m-attr))
       (csym::pthread-mutex-init (ptr thr->rack-mut) (ptr m-attr))
       (csym::pthread-cond-init (ptr thr->cond) 0)
