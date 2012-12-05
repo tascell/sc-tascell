@@ -90,11 +90,7 @@
 
     (%if* (or (eq 'MKTREE-METHOD 'SS-PROB)
               (eq 'MKTREE-METHOD 'MERGE-PROB))
-        (for ((= i 0) (< i num-thrs) (inc i))
-            (= (fref (cast (ptr (struct thread-data)) (+ threads i)) -> probability)
-               1.0)
-            )
-        )
+        (reset-probabilities))
     (= bh86 (scanopt options "bh86"))
     (= sw94 (scanopt options "sw94"))
     (if (and bh86 sw94)
