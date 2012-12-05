@@ -128,14 +128,17 @@
     (def argc int)
     (def maxargc int)
     (def argv (ptr (ptr char)))
-    (def argline (ptr char) (fref this argline))
-    (csym::receive_line argline MAX_ARGLINE sv_socket)
-    
+
+    (csym::receive-line this.argline MAX_ARGLINE sv-socket)
+    (for ((= cp this.argline) (< cp (+ this.argline (csym::strlen this.argline))) (inc cp))
+        (if (== (mref cp) 59)
+            (= (mref cp) 32)))
+
     (= argc 0)
     (= maxargc 4)
     (= argv (csym::malloc (* maxargc (sizeof (ptr char)))))
     (= (aref argv (inc argc)) PROGNAME)
-    (= cp (csym::strtok argline " ~%"))
+    (= cp (csym::strtok this.argline " ~%"))
     (while (!= cp NULL)
         (if (>= (+ argc 1) (- maxargc 1))
             (begin
