@@ -256,8 +256,8 @@
             (%if* (eq 'WALK-PROB-TYPE 'LINEAR)
                 (= PROBABILITY (walk-probability lev))
              %else (%if* (eq 'WALK-PROB-TYPE 'MIN)
-                (= PROBABILITY (walk-probability subp (if-exp (< i1 j1) i1 (+ j2 1))
-                                                      (if-exp (< j2 i2) i2 (- j1 1))))
+                (= PROBABILITY (walk-probability subp (if-exp (< i1 j1) i1 j2)
+                                                      (if-exp (< j2 i2) i2 j1)))
                 ))
             )
 
@@ -283,7 +283,7 @@
         )
         (:get
         (%ifdef* USE-PROBGUARD
-            (= PROBABILITY (aref old-probs (dec n-old-probs))))
+            (= PROBABILITY (aref old-probs (-- n-old-probs))))
         (+= (mref nbbcalc-) this.nbbcalc)
         (+= (mref nbccalc-) this.nbccalc)
         (csym::free (fref this nptr))
