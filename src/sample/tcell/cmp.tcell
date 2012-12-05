@@ -39,6 +39,23 @@
 (%include "dprint.sh")
 (%cinclude "sendrecv.h" (:macro))
 
+(%defconstant USE-PROBABILITY 1)
+
+(%ifdef* USE-PROBABILITY
+    (c-exp "#if !defined(MIN)")
+    (c-exp "#define MIN(a, b) (((a) < (b)) ? (a) : (b))")
+    (c-exp "#endif")
+    (def N0 int 0)
+    (extern num-thrs unsigned-int)
+    (def (cmp-probability n)
+         (fn double int)
+        (return (csym::MIN 1.0 (* (cast double num-thrs) (/ (cast double n) (cast double N0))))))
+        ; threshold based probability
+        ; (if (<= n 512)
+        ;     (return 0.0)
+        ;     (return 1.0)))
+    )
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (def (csym::elapsed-time tp) 
     (fn double (array (struct timeval) 2))
@@ -114,6 +131,9 @@
          (= (aref (fref this d1) i) i))
        (for ((= i 0) (< i (fref this n2)) (inc i))
          (= (aref (fref this d2) i) (- i)))
+       (%ifdef* USE-PROBABILITY
+            (= N0 this.n1)
+            (= PROBABILITY 1.0))
        (csym::gettimeofday tp 0)
        (= (fref this r)
           (cmp-1 (fref this n1) (fref this n2)
@@ -121,9 +141,12 @@
        (csym::gettimeofday (+ tp 1) 0)
        (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp))
        )
-    (= (fref this r)
-       (cmp-1 (fref this n1) (fref this n2)
-              (fref this d1) (fref this d2)))))
+    (begin
+      (%ifdef* USE-PROBABILITY
+           (= PROBABILITY (cmp-probability (csym::MIN this.n1 this.n2))))
+      (= (fref this r)
+         (cmp-1 (fref this n1) (fref this n2)
+                (fref this d1) (fref this d2))))))
 
 (def (csym::cmp-2 n1 n2 d1 d2)
     (csym::fn int int int (ptr INT32) (ptr INT32))
@@ -146,6 +169,8 @@
          (= s2 (cmp-1 n1-2 n2 (+ d1 n1-1) d2))
          (cmp
           (:put 
+           (%ifdef* USE-PROBABILITY
+                (= PROBABILITY (cmp-probability n1-1)))
            (= (fref this n1) n1-2)
            (= (fref this n2) n2)
            (= (fref this d1) (+ d1 n1-1) )
@@ -160,6 +185,8 @@
        (= s2 (cmp-1 n1 n2-2 d1 (+ d2 n2-1)))
        (cmp
         (:put
+         (%ifdef* USE-PROBABILITY
+              (= PROBABILITY (cmp-probability n2-1)))
          (= (fref this n1) n1)
          (= (fref this n2) n2-2)
          (= (fref this d1) d1)

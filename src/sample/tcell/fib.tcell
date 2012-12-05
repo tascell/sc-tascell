@@ -62,10 +62,13 @@
 
 (def N0 int 0)
 (def (csym::my-probability n) (fn double int)
-  (def d int (- N0 n))
-  (if (> d 20)
-      (return (/ 1.0 (cast double (<< 1 20))))
-    (return (/ 1.0 (cast double (<< 1 d))))))
+  (if (< n 20)
+    (return (/ (cast double n) 20.0))
+    (return 1.0)))
+  ; threshold based probability
+  ; (if (< n 20)
+  ;   (return 0.0)
+  ;   (return 1.0)))
   
 (decl (fib n) (wfn int int))
   
