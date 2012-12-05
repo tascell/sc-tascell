@@ -45,6 +45,7 @@
 (c-exp "#include<sys/time.h>")
 (c-exp "#include<getopt.h>")
 #+tcell-gtk (c-exp "#include<gtk/gtk.h>")
+(%ifdef* USEMPI (c-exp "#include <mpi.h>"))
 (%cinclude "sock.h")
 
 (%include "worker.sh")
@@ -1837,6 +1838,9 @@
 (def (main argc argv) (fn int int (ptr (ptr char)))
   (defs int i j)
   (def pcmd (ptr (struct cmd)))         ; 外部から受信したコマンド
+
+  (%ifdef* USEMPI
+    (csym::MPI_Init (ptr argc) (ptr argv)))
 
   ;; show compile-time option
   (fprintf stderr (%string "compile-time options: "

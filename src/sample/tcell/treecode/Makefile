@@ -19,6 +19,7 @@ SC2C_OPT =
 GCC      = gcc
 XCC      = xcc
 ICC      = icc
+MPICC    = mpicc
 OPT      = -O2 -g $(MOPT)
 XCCOPT   = -DCT=lightweight
 XCCCLOPT = -DCT=closure
@@ -82,6 +83,10 @@ MKTREE-METHOD = MERGE-PROB
 # Uncomment the next line to build treecode for distributed memory environemnts
 # DISTRIBUTED = -D DISTRIBUTED=1
 
+# Uncomment the next line to use MPI
+# This changes broadcast behavior of Tascell
+# USEMPI = -D USEMPI=1
+
 # Uncomment the next line to use freq instead of dtime:
 # USEFREQ = -D USEFREQ=1
 
@@ -97,8 +102,8 @@ ifdef MKTREE-PROFILE
     CCFLAGS += -lrt
 endif
 
-TREEFLAGS = -D $(PREC)=1 $(FORCEREPORT) $(DISTRIBUTED) -D USELOCK=1
-             $(USEFREQ) $(BINARYIO) $(QUICKSCAN)
+TREEFLAGS = -D $(PREC)=1 $(FORCEREPORT) $(DISTRIBUTED) -D USELOCK=1 \
+             $(USEMPI) $(USEFREQ) $(BINARYIO) $(QUICKSCAN)
 
 ########################################################################
 
@@ -128,6 +133,10 @@ endif
 endif
 endif
 
+ifdef USEMPI
+    GCC = $(MPICC)
+endif
+
 C_LIBS  = sendrecv.c sock.c
 TREEOBJ = treecode.o treeio.o treeload.o treegrav.o libZeno.a
 TCELL   = worker-$(NFTYPE).c cmd-serial-$(NFTYPE).c treecode-$(NFTYPE).c
@@ -141,7 +150,7 @@ all: $(TCELL) $(TREEOBJ)
 ########################################################################
 
 worker-$(NFTYPE).c: worker.sc worker.sh
-	$(SC2C) $(SC2C_OPT) $(NFMACRO) worker.sc
+	$(SC2C) $(SC2C_OPT) $(NFMACRO) $(USEMPI) worker.sc
 	indent -kr -bli4 worker-$(NFTYPE).c
 
 cmd-serial-$(NFTYPE).c: cmd-serial.sc worker.sh
