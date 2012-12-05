@@ -841,9 +841,9 @@
     (if (not (csym::have-task thr from-addr pcmd->node))
                                         ; the task is already finished
         (= fail-reason 4))))
-  (if (and (not fail-reason)
-           (< thr->probability (csym::my-random-probability thr)))
-      (= fail-reason 5))
+  (if (and (not fail-reason) (== (aref dest-addr 0) ANY))
+    (if (< thr->probability (csym::my-random-probability thr))
+      (= fail-reason 5)))
   (= avail (not fail-reason))
   (DEBUG-STMTS 2
     (if (not avail)
