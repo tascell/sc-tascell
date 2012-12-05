@@ -12,7 +12,7 @@
 #include <pthread.h>
 #endif
 
-#if defined(BROADCAST)
+#if defined(DISTRIBUTED)
 typedef struct nindex {
     short type;
     int index;
@@ -24,7 +24,7 @@ typedef struct nindex {
 #define PointerToIndex(x) \
   ((Type(x) == BODY) ? ((bodyptr)(x) - bodytab) : ((cellptr)(x) - celltab))
 
-#endif  // #if defined(BROADCAST)
+#endif  // #if defined(DISTRIBUTED)
 
 /*
  * NODE: data common to BODY and CELL structures.
@@ -35,7 +35,7 @@ typedef struct _node {
     bool update;                /* status in force calc */
     real mass;                  /* total mass of node */
     vector pos;                 /* position of node */
-#if defined(BROADCAST)
+#if defined(DISTRIBUTED)
     nindex next;
 #else
     struct _node *next;         /* link to next force calc */
@@ -80,13 +80,13 @@ typedef struct {
 #if defined(USELOCK)
     pthread_mutex_t mx;
 #endif
-#if defined(BROADCAST)
+#if defined(DISTRIBUTED)
     nindex more;
 #else
     nodeptr more;               /* link to first descendent */
 #endif
     union {
-#if defined(BROADCAST)
+#if defined(DISTRIBUTED)
         nindex subp[NSUB];
 #else
         nodeptr subp[NSUB];     /* descendents of cell */
@@ -95,7 +95,7 @@ typedef struct {
     } sorq;
 } cell, *cellptr;
 
-#if defined(BROADCAST)
+#if defined(DISTRIBUTED)
 #define CNULL  (-1)
 #endif
 
@@ -134,11 +134,11 @@ global real eps;                        /* density smoothing parameter      */
  */
 
 /* maketree is a worker function in shared memory environments */
-#if defined(BROADCAST)
+#if defined(DISTRIBUTED)
 void maketree(bodyptr, int);            /* construct tree structure         */
 #endif
 
-#if defined(BROADCAST)
+#if defined(DISTRIBUTED)
 global int root;                        /* pointer to root cell             */
 #else
 global cellptr root;                    /* pointer to root cell             */
