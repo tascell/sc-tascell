@@ -73,7 +73,7 @@ PREC = SINGLEPREC
 # FORCEREPORT = -D FORCEREPORT=1
 
 # Uncomment the next line to build treecode for distributed memory environemnts
-# BROADCAST = -D BROADCAST=1
+# DISTRIBUTED = -D DISTRIBUTED=1
 
 # Uncomment the next line to use locks for tree construction
 # USELOCK = -D USELOCK=1
@@ -87,8 +87,8 @@ PREC = SINGLEPREC
 # Uncomment the next line to make quick-scan treecode
 # QUICKSCAN = -D QUICKSCAN=1
 
-TREEFLAGS = -D $(PREC)=1 $(FORCEREPORT) $(BROADCAST) $(USELOCK) $(USEFREQ) \
-            $(BINARYIO) $(QUICKSCAN)
+TREEFLAGS = -D $(PREC)=1 $(FORCEREPORT) $(DISTRIBUTED) $(USELOCK) $(USEFREQ) \
+	     $(BINARYIO) $(QUICKSCAN)
 
 ########################################################################
 
@@ -101,14 +101,17 @@ ifndef NFTYPE
 endif
 
 ifeq ($(NFTYPE), lw)
-    NFMACRO  = -D NF-TYPE=LW-SC
+    NFMACRO = -D NF-TYPE=LW-SC
     C_LIBS += nestfunc.c
 else
 ifeq ($(NFTYPE), xcc)
     NFMACRO = -D NF-TYPE=XCC
+    LIBOPTS += -fno-omit-frame-pointer
+    GCC = $(XCC)
 else
 ifeq (%(NFTYPE), xcccl)
     NFMACRO = -D NF-TYPE=XCCCL
+    GCC = $(XCC)
 else
     NFMACRO = -D NF-TYPE=GCC
 endif
@@ -118,6 +121,8 @@ endif
 C_LIBS  = sendrecv.c sock.c
 TREEOBJ = treecode.o treeio.o treeload.o treegrav.o libZeno.a
 TCELL   = worker-$(NFTYPE).c cmd-serial-$(NFTYPE).c treecode-$(NFTYPE).c
+
+########################################################################
 
 all: $(TCELL) $(TREEOBJ)
 	$(GCC) $(OPT) $(LIBOPTS) $(CCFLAGS) $(TREEFLAGS) $(C_LIBS) $(TCELL) \
@@ -143,7 +148,7 @@ treecode.o: treecode.c treecode.h treedefs.h
 treeio.o: treeio.c treecode.h treedefs.h
 	$(GCC) $(CCFLAGS) $(TREEFLAGS) -c treeio.c
 
-ifdef BROADCAST
+ifdef DISTRIBUTED
     ENV_SUFFIX=distributed
 else
     ENV_SUFFIX=shared

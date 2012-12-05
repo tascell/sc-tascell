@@ -26,7 +26,7 @@
 (c-exp "#include \"treecode.h\"")
 
 ; if building for distributed memory environment, include communication library
-(%ifdef BROADCAST ((%include "treecomm.tcell")))
+(%ifdef DISTRIBUTED ((%include "treecomm.tcell")))
 
 
 ;------------------------------------------------------------------------------
@@ -63,7 +63,7 @@
 
 ; the tree construction is not ready for distributed memory environments,
 ; so declare maketree as `fn' if needed
-(%ifdef BROADCAST (
+(%ifdef DISTRIBUTED (
     (decl (maketree btab nbody)
           (fn void bodyptr int))
     )(
@@ -86,7 +86,7 @@
 
 (def walk_spawned int 0)
 
-(%ifdef BROADCAST (
+(%ifdef DISTRIBUTED (
     (static brcasttime double 0.0)
     (static bodytab-initialized bool FALSE)
     (static celltab-initialized bool FALSE)
@@ -206,7 +206,7 @@
     (csym::fprintf stderr "    crtree: %.4lf~%" crtreetime)
     (csym::fprintf stderr "    hackcm: %.4lf~%" hackcmtime)
     (csym::fprintf stderr "    thread: %.4lf~%" threadtime)
-    (%ifdef BROADCAST ((csym::fprintf stderr "  brcast: %.4lf~%" brcasttime)))
+    (%ifdef DISTRIBUTED ((csym::fprintf stderr "  brcast: %.4lf~%" brcasttime)))
     (csym::fprintf stderr "  grcalc: %.4lf~%" grcalctime)
     (csym::fprintf stderr "  pscalc: %.4lf~%" pscalctime)
     (csym::fprintf stderr "task copied: %d~%" walk_spawned)
@@ -217,7 +217,7 @@
 ; bcast: task definition for broadcasting bodies and cells
 ;------------------------------------------------------------------------------
 
-(%ifdef BROADCAST
+(%ifdef DISTRIBUTED
 (
 (def (task bcast))
 
@@ -282,7 +282,7 @@
     (csym::gettimeofday (+ tp 1) 0)
     (+= mktreetime (csym::elapsed_time tp))
     
-    (%ifdef BROADCAST (
+    (%ifdef DISTRIBUTED (
         (= bodytab-initialized TRUE)
         (= celltab-initialized TRUE)
         (csym::gettimeofday tp 0)
@@ -385,9 +385,9 @@
 ; including other tcell files
 ;------------------------------------------------------------------------------
 
-(%ifndef BROADCAST ((%include "treeload.tcell")))
+(%ifndef DISTRIBUTED ((%include "treeload.tcell")))
 
-(%ifdef BROADCAST (
+(%ifdef DISTRIBUTED (
     (%include "treegrav-distributed.tcell")
     )(
     (%include "treegrav-shared.tcell")
