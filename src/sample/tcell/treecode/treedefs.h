@@ -80,6 +80,9 @@ typedef struct {
 #if defined(USELOCK)
     pthread_mutex_t mx;
 #endif
+#if defined(COUNTBODY)
+    int nbody;
+#endif
 #if defined(DISTRIBUTED)
     nindex more;
 #else
@@ -103,6 +106,7 @@ typedef struct {
 #define Rcrit2(x) (((cellptr) (x))->rcrit2)
 #endif
 
+#define Nbody(x)  ((int)((((nodeptr)(x))->mass) * (double)nbody))
 #define More(x)   (((cellptr) (x))->more)
 #define Subp(x)   (((cellptr) (x))->sorq.subp)
 #define Quad(x)   (((cellptr) (x))->sorq.quad)
@@ -142,6 +146,7 @@ void maketree(bodyptr, int);            /* construct tree structure         */
 global int root;                        /* pointer to root cell             */
 #else
 global cellptr root;                    /* pointer to root cell             */
+global cellptr old_root;
 #endif
 global real rsize;                      /* side-length of root cell         */
 global int tdepth;                      /* count of levels in tree          */

@@ -72,11 +72,15 @@ PREC = SINGLEPREC
 # Uncomment the next line to report calculation result
 # FORCEREPORT = -D FORCEREPORT=1
 
+# Specifies tree construction method
+# Available method: LOCK, SS, SS-PROB, MERGE, MERGE-PROB
+MKTREE-METHOD = MERGE-PROB
+
+# Uncomment the next line to report detailed tree construction statics
+# MKTREE-PROFILE = -D MKTREE-PROFILE=1
+
 # Uncomment the next line to build treecode for distributed memory environemnts
 # DISTRIBUTED = -D DISTRIBUTED=1
-
-# Uncomment the next line to use locks for tree construction
-# USELOCK = -D USELOCK=1
 
 # Uncomment the next line to use freq instead of dtime:
 # USEFREQ = -D USEFREQ=1
@@ -87,8 +91,14 @@ PREC = SINGLEPREC
 # Uncomment the next line to make quick-scan treecode
 # QUICKSCAN = -D QUICKSCAN=1
 
-TREEFLAGS = -D $(PREC)=1 $(FORCEREPORT) $(DISTRIBUTED) $(USELOCK) $(USEFREQ) \
-	     $(BINARYIO) $(QUICKSCAN)
+########################################################################
+
+ifdef MKTREE-PROFILE
+    CCFLAGS += -lrt
+endif
+
+TREEFLAGS = -D $(PREC)=1 $(FORCEREPORT) $(DISTRIBUTED) -D USELOCK=1
+             $(USEFREQ) $(BINARYIO) $(QUICKSCAN)
 
 ########################################################################
 
@@ -109,7 +119,7 @@ ifeq ($(NFTYPE), xcc)
     LIBOPTS += -fno-omit-frame-pointer
     GCC = $(XCC)
 else
-ifeq (%(NFTYPE), xcccl)
+ifeq ($(NFTYPE), xcccl)
     NFMACRO = -D NF-TYPE=XCCCL
     GCC = $(XCC)
 else
@@ -132,12 +142,16 @@ all: $(TCELL) $(TREEOBJ)
 
 worker-$(NFTYPE).c: worker.sc worker.sh
 	$(SC2C) $(SC2C_OPT) $(NFMACRO) worker.sc
+	indent -kr -bli4 worker-$(NFTYPE).c
 
 cmd-serial-$(NFTYPE).c: cmd-serial.sc worker.sh
 	$(SC2C) $(SC2C_OPT) $(NFMACRO) cmd-serial.sc
+	indent -kr -bli4 cmd-serial-$(NFTYPE).c
 
 treecode-$(NFTYPE).c: treecode.tcell treeload.tcell treegrav-shared.tcell treegrav-distributed.tcell treecomm.tcell
-	$(SC2C) $(SC2C_OPT) $(NFMACRO) $(TREEFLAGS) treecode.tcell
+	$(SC2C) $(SC2C_OPT) $(NFMACRO) $(TREEFLAGS) -D MKTREE-METHOD=$(MKTREE-METHOD) \
+	 $(MKTREE-PROFILE) treecode.tcell
+	indent -kr -bli4 treecode-$(NFTYPE).c
 
 ########################################################################
 # Vanila treecode:

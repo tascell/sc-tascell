@@ -11,7 +11,7 @@
 
 /* Local routines to perform force calculations. */
 
-bool accept(nodeptr, real, vector);
+bool bh_accept(nodeptr, real, vector);
 
 
 
@@ -40,7 +40,7 @@ bool accept(nodeptr, real, vector);
  * ACCEPT: quick criterion accepts any cell not touching cell p.
  */
 
-bool accept(nodeptr c, real psize, vector pmid)
+bool bh_accept(nodeptr c, real psize, vector pmid)
 {
     real p15, dk;
 
@@ -64,7 +64,7 @@ bool accept(nodeptr c, real psize, vector pmid)
  * does not intersect cell p, and also imposes above condition.
  */
 
-bool accept(nodeptr c, real psize, vector pmid)
+bool bh_accept(nodeptr c, real psize, vector pmid)
 {
     real dmax, dsq, dk;
     int k;

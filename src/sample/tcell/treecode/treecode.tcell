@@ -18,6 +18,9 @@
 (%include "rule/tcell-setrule.sh")
 
 (c-exp "#include <string.h>")
+(c-exp "#include <assert.h>")
+(c-exp "#include <time.h>")
+
 (c-exp "#include \"stdinc.h\"")
 (c-exp "#include \"mathfns.h\"")
 (c-exp "#include \"vectmath.h\"")
@@ -34,17 +37,47 @@
 ;------------------------------------------------------------------------------
 
 (def worker-data
+    ; == worker's unique memory pool for space stealing ==
     (def pool cellptr)
     (def pool-size int)
     (def pool-used int)
     (def freecell cellptr)
+    ; == evaluation results of space stealing ==
+    (%ifdef* MKTREE-PROFILE
+        (def received-bodies int)
+        (def inserted-bodies int)
+        (def received-task int)
+        (def failed-task int)
+        (def working-time long)
+        (def inserting-time long)
+        (def task-dividing-time long)
+        (def checking-time long)
+        (def redundant-time long)
+        (def fst-merging-time long)
+        (def rst-merging-time long)
+        )
     )
 
 (def worker-init
+    ; == worker's unique memory pool for space stealing ==
     (= WDATA.pool NULL)
     (= WDATA.pool-size 0)
     (= WDATA.pool-used 0)
     (= WDATA.freecell NULL)
+    ; == evaluation results of space stealing ==
+    (%ifdef* MKTREE-PROFILE
+        (= WDATA.received-bodies 0)
+        (= WDATA.inserted-bodies 0)
+        (= WDATA.received-task 0)
+        (= WDATA.failed-task 0)
+        (= WDATA.working-time 0)
+        (= WDATA.inserting-time 0)
+        (= WDATA.task-dividing-time 0)
+        (= WDATA.checking-time 0)
+        (= WDATA.redundant-time 0)
+        (= WDATA.fst-merging-time 0)
+        (= WDATA.rst-merging-time 0)
+        )
     )
 
 
@@ -81,6 +114,11 @@
     (def crtreetime double 0.0)
     (def hackcmtime double 0.0)
     (def threadtime double 0.0)
+(%if* (or (eq 'MKTREE-METHOD 'MERGE)
+          (eq 'MKTREE-METHOD 'MERGE-PROB))
+    (def firstinsert double 0.0)
+    (def otherinsert double 0.0)
+    )
 (def grcalctime double 0.0)
 (def pscalctime double 0.0)
 
@@ -162,7 +200,12 @@
     )
       
 
+;; ======== for debugging of space stealing ========
+(extern threads (array (struct thread-data) 128))
+(extern num-thrs unsigned-int)
+
 (def (task-body main)
+    (def i int)
     (def tp (array (struct timeval) 2))
     
     (csym::initparam (fref this argv) defv)
@@ -202,17 +245,121 @@
             )
         ))
     (csym::gettimeofday (+ tp 1) 0)
-    (csym::fprintf stderr "time: %.4lf~%"  (csym::elapsed-time tp))
-    (csym::fprintf stderr "  mktree: %.4lf~%" mktreetime)
-    (csym::fprintf stderr "    nwtree: %.4lf~%" nwtreetime)
-    (csym::fprintf stderr "    expand: %.4lf~%" expandtime)
-    (csym::fprintf stderr "    crtree: %.4lf~%" crtreetime)
-    (csym::fprintf stderr "    hackcm: %.4lf~%" hackcmtime)
-    (csym::fprintf stderr "    thread: %.4lf~%" threadtime)
-    (%ifdef DISTRIBUTED ((csym::fprintf stderr "  brcast: %.4lf~%" brcasttime)))
-    (csym::fprintf stderr "  grcalc: %.4lf~%" grcalctime)
-    (csym::fprintf stderr "  pscalc: %.4lf~%" pscalctime)
+ 
+    (csym::fprintf stderr "~%")
+    (%ifndef* DISTRIBUTED
+        (csym::fprintf stderr "              maketree   gravcalc  stepsystm  totaltime~%")
+        (csym::fprintf stderr " time[s.]  %8.4lf  %9.4lf  %9.4lf  %9.4lf~%"
+                              mktreetime grcalctime pscalctime (csym::elapsed-time tp))
+     %else
+        (csym::fprintf stderr "       maketree  broadcast  gravcalc  stepsystem  total~%")
+        (csym::fprintf stderr " time  %.4lf s  %.4lf s  %.4lf s  %.4lf s  %.4lf s~%"
+                              mktreetime brcasttime grcalctime pscalctime (csym::elapsed-time tp))
+        )
+    (csym::fprintf stderr "~%")
+    (csym::fprintf stderr "             maketree  newtree  expandbox  insrttree  hackcofm  thrdtree~%")
+    (csym::fprintf stderr " time[s.]  %8.4lf  %7.4lf  %9.4lf  %9.4lf  %8.4lf  %8.4lf~%"
+                          mktreetime nwtreetime expandtime crtreetime hackcmtime threadtime)
+    (csym::fprintf stderr "~%")
+    (%if* (or (eq 'MKTREE-METHOD 'MERGE)
+              (eq 'MKTREE-METHOD 'MERGE-PROB))
+        (csym::fprintf stderr "             1stinsrt  othrinsrt~%")
+        (csym::fprintf stderr " time[s.]  %8.4lf  %8.4lf~%" firstinsert otherinsert)
+        (csym::fprintf stderr "~%")
+        )
+
     (csym::fprintf stderr "task copied: %d~%" walk_spawned)
+    (csym::fprintf stderr "~%")
+
+    (%ifdef* MKTREE-PROFILE
+        (csym::fprintf stderr "worker | breceived binserted bratio | treceived tfailed |   worktime  checktime  inserttime  redundant  1stmergetime  rstmergetime  puttime~%")
+        (for ((= i 0) (< i num-thrs) (inc i))
+             (def wkdata (ptr (struct worker-data)) (cast (ptr (struct worker-data)) (fref (aref threads i) wdptr)))
+             (csym::fprintf stderr
+                 "%6d | %9d %9d %6.3f | %9d %7d | %7.2f ms %7.2f ms   %6.2f ms  %6.2f ms  %9.2f ms  %9.2f ms  %5.2f ms~%"
+                 i
+                 (fref wkdata -> received-bodies)
+                 (fref wkdata -> inserted-bodies)
+                 (/ (cast double (fref wkdata -> inserted-bodies))
+                    (cast double (fref wkdata -> received-bodies)))
+                 (fref wkdata -> received-task)
+                 (fref wkdata -> failed-task)
+                 (/ (fref wkdata -> working-time) 1000000.0)
+                 (/ (fref wkdata -> checking-time) 1000000.0)
+                 (/ (fref wkdata -> inserting-time) 1000000.0)
+                 (/ (fref wkdata -> redundant-time) 1000000.0)
+                 (/ (fref wkdata -> fst-merging-time) 1000000.0)
+                 (/ (fref wkdata -> rst-merging-time) 1000000.0)
+                 (/ (fref wkdata -> task-dividing-time) 1000000.0)
+                 )
+             )
+        (csym::fprintf stderr "~%")
+        )
+
+    (def csvname (array char 256))
+    (def csvnamecnt int 0)
+    (csym::snprintf csvname 255 "result-nbody%d-nstep%d-nworker%d-no%d.csv" nbody nstep num-thrs (inc csvnamecnt))
+    (def fp (ptr FILE) (csym::fopen csvname "r"))
+    (if fp
+        (begin
+        (do-while fp
+            (csym::fclose fp)
+            (csym::snprintf csvname 255 "result-nbody%d-nstep%d-nworker%d-no%d.csv" nbody nstep num-thrs (inc csvnamecnt))
+            (= fp (csym::fopen csvname "r"))
+            )
+        ))
+    (= fp (csym::fopen csvname "w"))
+    (if fp
+        (begin
+        (%ifndef* DISTRIBUTED
+            (csym::fprintf fp "maketree, gravcalc, stepsystm, totaltime~%")
+            (csym::fprintf fp "%.4lf, %.4lf, %.4lf, %.4lf~%"
+                              mktreetime grcalctime pscalctime (csym::elapsed-time tp))
+         %else
+            (csym::fprintf fp "maketree, broadcast, gravcalc, stepsystem, total~%")
+            (csym::fprintf fp "%.4lf, %.4lf, %.4lf, %.4lf, %.4lf~%"
+                              mktreetime brcasttime grcalctime pscalctime (csym::elapsed-time tp))
+            )
+        (csym::fprintf fp "~%")
+        (csym::fprintf fp "maketree, newtree, expandbox, insrttree, hackcofm, thrdtree~%")
+        (csym::fprintf fp "%.4lf, %.4lf, %.4lf, %.4lf, %.4lf, %.4lf~%"
+                          mktreetime nwtreetime expandtime crtreetime hackcmtime threadtime)
+        (csym::fprintf fp "~%")
+        (%if* (or (eq 'MKTREE-METHOD 'MERGE)
+                  (eq 'MKTREE-METHOD 'MERGE-PROB))
+            (csym::fprintf fp "1stinsrt  othrinsrt~%")
+            (csym::fprintf fp "%8.4lf, %8.4lf~%" firstinsert otherinsert)
+            (csym::fprintf fp "~%")
+            )
+
+        (%ifdef* MKTREE-PROFILE
+            (csym::fprintf fp "worker, bodyreceived, bodyinserted, taskreceived, taskfailed, worktime, checktime, inserttime, redundanttime, 1stmergetime, rstmergetime, puttime~%")
+            (for ((= i 0) (< i num-thrs) (inc i))
+                 (def wkdata (ptr (struct worker-data))
+                      (cast (ptr (struct worker-data)) (fref (aref threads i) wdptr)))
+                 (csym::fprintf fp
+                     "%d, %d, %d, %d, %d, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f~%"
+                     i
+                     (fref wkdata -> received-bodies)
+                     (fref wkdata -> inserted-bodies)
+                     (fref wkdata -> received-task)
+                     (fref wkdata -> failed-task)
+                     (/ (fref wkdata -> working-time) 1000000.0)
+                     (/ (fref wkdata -> checking-time) 1000000.0)
+                     (/ (fref wkdata -> inserting-time) 1000000.0)
+                     (/ (fref wkdata -> redundant-time) 1000000.0)
+                     (/ (fref wkdata -> fst-merging-time) 1000000.0)
+                     (/ (fref wkdata -> rst-merging-time) 1000000.0) 
+                     (/ (fref wkdata -> task-dividing-time) 1000000.0)
+                     )
+                 )
+            )
+        (csym::fclose fp)
+        (csym::fprintf stderr "Results stored to file: %s~%" csvname)
+        )
+        (begin
+        (csym::perror "Could not write result csv file")
+        ))
     )
 
 
@@ -283,6 +430,13 @@
     (csym::gettimeofday tp 0)
     (maketree bodytab nbody)
     (csym::gettimeofday (+ tp 1) 0)
+    (%if* (or (eq 'MKTREE-METHOD 'MERGE)
+              (eq 'MKTREE-METHOD 'MERGE-PROB))
+        (if old-root
+            (+= otherinsert (csym::elapsed-time tp))
+            (+= firstinsert (csym::elapsed-time tp))
+            )
+        )
     (+= mktreetime (csym::elapsed_time tp))
     
     (%ifdef DISTRIBUTED (
@@ -368,14 +522,27 @@
     (def tp (array (struct timeval) 2))
 
     (csym::gettimeofday tp 0)
-    (advance-time 0 nbody TRUE)
+    (%ifdef* DISTRIBUTED
+        (for ((= p bodytab) (< p (+ bodytab nbody)) (inc p))
+            (csym::ADDMULVS (csym::Vel p) (csym::Acc p) (* 0.5 dtime))
+            (csym::ADDMULVS (csym::Pos p) (csym::Vel p) dtime)
+            )
+     %else
+        (advance-time 0 nbody TRUE)
+        )
     (csym::gettimeofday (+ tp 1) 0)
     (+= pscalctime (csym::elapsed_time tp))
 
     (treeforce)
 
     (csym::gettimeofday tp 0)
-    (advance-time 0 nbody FALSE)
+    (%ifdef* DISTRIBUTED
+        (for ((= p bodytab) (< p (+ bodytab nbody)) (inc p))
+            (csym::ADDMULVS (csym::Vel p) (csym::Acc p) (* 0.5 dtime))
+            )
+     %else
+        (advance-time 0 nbody FALSE)
+        )
     (csym::gettimeofday (+ tp 1) 0)
     (+= pscalctime (csym::elapsed_time tp))
 
