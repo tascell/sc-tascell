@@ -87,6 +87,10 @@ MKTREE-METHOD = MERGE-PROB
 # This changes broadcast behavior of Tascell
 # USEMPI = -D USEMPI=1
 
+# The next line specifies method for gathering bodies from each node
+# Available methods: MPI-GATHERV MPI-REDUCE
+# GATHERMETHOD = -D GATHER-METHOD=MPI-GATHERV
+
 # Uncomment the next line to use freq instead of dtime:
 # USEFREQ = -D USEFREQ=1
 
@@ -159,7 +163,7 @@ cmd-serial-$(NFTYPE).c: cmd-serial.sc worker.sh
 
 treecode-$(NFTYPE).c: treecode.tcell treeload.tcell* treegrav-shared.tcell treegrav-distributed.tcell treecomm.tcell
 	$(SC2C) $(SC2C_OPT) $(NFMACRO) $(TREEFLAGS) -D MKTREE-METHOD=$(MKTREE-METHOD) \
-	 $(MKTREE-PROFILE) treecode.tcell
+	 $(MKTREE-PROFILE) $(GATHERMETHOD) treecode.tcell
 	indent -kr -bli4 treecode-$(NFTYPE).c
 
 ########################################################################
