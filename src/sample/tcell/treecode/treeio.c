@@ -78,32 +78,32 @@ void inputdata(void)
 
 void startoutput(void)
 {
-    printf("\n%s\n", headline);                 /* print headline, params   */
+    fprintf(stderr, "\n%s\n", headline);                 /* print headline, params   */
 #if defined(USEFREQ)
-    printf("\n%8s%10s%10s", "nbody", "freq", "eps");
+    fprintf(stderr, "\n%8s%10s%10s", "nbody", "freq", "eps");
 #else
-    printf("\n%8s%10s%10s", "nbody", "dtime", "eps");
+    fprintf(stderr, "\n%8s%10s%10s", "nbody", "dtime", "eps");
 #endif
 #if !defined(QUICKSCAN)
-    printf("%10s", "theta");
+    fprintf(stderr, "%10s", "theta");
 #endif
 #if defined(USEFREQ)
-    printf("%10s%10s%10s\n", "usequad", "freqout", "tstop");
-    printf("%8d%10.2f%10.4f", nbody, freq, eps);
+    fprintf(stderr, "%10s%10s%10s\n", "usequad", "freqout", "tstop");
+    fprintf(stderr, "%8d%10.2f%10.4f", nbody, freq, eps);
 #else
-    printf("%10s%10s%10s\n", "usequad", "dtout", "tstop");
-    printf("%8d%10.5f%10.4f", nbody, dtime, eps);
+    fprintf(stderr, "%10s%10s%10s\n", "usequad", "dtout", "tstop");
+    fprintf(stderr, "%8d%10.5f%10.4f", nbody, dtime, eps);
 #endif
 #if !defined(QUICKSCAN)
-    printf("%10.2f", theta);
+    fprintf(stderr, "%10.2f", theta);
 #endif
 #if defined(USEFREQ)
-    printf("%10s%10.2f%10.4f\n", usequad ? "true" : "false", freqout, tstop);
+    fprintf(stderr, "%10s%10.2f%10.4f\n", usequad ? "true" : "false", freqout, tstop);
 #else
-    printf("%10s%10.5f%10.4f\n", usequad ? "true" : "false", dtout, tstop);
+    fprintf(stderr, "%10s%10.5f%10.4f\n", usequad ? "true" : "false", dtout, tstop);
 #endif
     if (! strnull(options))                     /* print options, if any    */
-        printf("\n\toptions: %s\n", options);
+        fprintf(stderr, "\n\toptions: %s\n", options);
     if (! strnull(savefile))                    /* was state file given?    */
         savestate(savefile);                    /* save initial data        */
 }
@@ -114,10 +114,10 @@ void startoutput(void)
 
 void forcereport(void)
 {
-    printf("\n\t%8s%8s%8s%8s%10s%10s%8s\n",
+    fprintf(stderr, "\n\t%8s%8s%8s%8s%10s%10s%8s\n",
            "rsize", "tdepth", "ftree",
            "actmax", "nbbtot", "nbctot", "CPUfc");
-    printf("\t%8.1f%8d%8.3f%8d%10d%10d%8.3f\n",
+    fprintf(stderr, "\t%8.1f%8d%8.3f%8d%10d%10d%8.3f\n",
            rsize, tdepth, (nbody + ncell - 1) / ((real) ncell),
            actmax, nbbcalc, nbccalc, cpuforce);
 }
@@ -133,9 +133,9 @@ void output(void)
     diagnostics();                              /* compute std diagnostics  */
     ABSV(cmabs, cmvel);                         /* find magnitude of cm vel */
     ABSV(amabs, amvec);                         /* find magnitude of J vect */
-    printf("\n    %8s%8s%8s%8s%8s%8s%8s%8s\n",
+    fprintf(stderr, "\n    %8s%8s%8s%8s%8s%8s%8s%8s\n",
            "time", "|T+U|", "T", "-U", "-T/U", "|Vcom|", "|Jtot|", "CPUtot");
-    printf("    %8.3f%8.5f%8.5f%8.5f%8.5f%8.5f%8.5f%8.3f\n",
+    fprintf(stderr, "    %8.3f%8.5f%8.5f%8.5f%8.5f%8.5f%8.5f%8.3f\n",
            tnow, ABS(etot[0]), etot[1], -etot[2], -etot[1]/etot[2],
            cmabs, amabs, cputime());
 #if defined(USEFREQ)
@@ -181,7 +181,7 @@ void outputdata(void)
         for (p = bodytab; p < bodytab+nbody; p++)
             out_vector(outstr, Acc(p));         /* output accelerations     */
     fclose(outstr);                             /* close up output file     */
-    printf("\n\tdata output to file %s at time %f\n", namebuf, tnow);
+    fprintf(stderr, "\n\tdata output to file %s at time %f\n", namebuf, tnow);
 #if defined(USEFREQ)
     tout += 1.0 / freqout;                      /* schedule next output     */
 #else
@@ -389,7 +389,7 @@ void restorestate(string file)
     saferead(version, nchars * sizeof(char), str);
     if (! streq(program, getargv0()) ||         /* check program, version   */
           ! streq(version, getversion()))
-        printf("warning: state file may be outdated\n\n");
+        fprintf(stderr, "warning: state file may be outdated\n\n");
 #if defined(USEFREQ)
     saferead(&freq, sizeof(real), str);
 #else
