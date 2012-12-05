@@ -212,11 +212,15 @@
     (= headline (+ (aref defv 0) 1))
     (csym::startrun)
     
-    (%ifdef FORCEREPORT (
-        (csym::startoutput)
-        )(
-        (csym::fprintf stderr "task started~%")
-        ))
+    (fprintf stderr (%string "treecode started~%"
+                             "compile-time options: "
+                    (%ifdef* DISTRIBUTED
+                             "DISTRIBUTED "
+                     %else
+                             "SHARED "
+                             "MKTREE-METHOD=" MKTREE-METHOD " ")
+                             "~%"))
+    (%ifdef* FORCEREPORT (csym::startoutput))
     (csym::gettimeofday tp 0)
     (if (== nstep 0)
         (begin
