@@ -307,24 +307,27 @@
  
     (csym::fprintf stderr "~%")
     (%ifndef* DISTRIBUTED
-        (csym::fprintf stderr "              maketree   gravcalc  stepsystm  totaltime~%")
-        (csym::fprintf stderr " time[s.]  %8.4lf  %9.4lf  %9.4lf  %9.4lf~%"
+        (csym::fprintf stderr "         %11s%11s%11s%11s~%"
+                              "maketree" "gravcalc" "stepsystem" "totaltime")
+        (csym::fprintf stderr " time[s.]%11.4lf%11.4lf%11.4lf%11.4lf~%"
                               mktreetime grcalctime pscalctime (csym::elapsed-time tp))
      %else
-        (csym::fprintf stderr "       maketree  broadcast  gravcalc  gather  stepsystem  total~%")
-        (csym::fprintf stderr " time  %.4lf s  %.4lf s  %.4lf s  %.4lf s  %.4lf s  %.4lf s~%"
-                              mktreetime brcasttime grcalctime gathertime pscalctime (csym::elapsed-time tp))
+        (csym::fprintf stderr "         %11s%11s%11s%11s%11s%11s~%"
+                       "maketree" "broadcast" "gravcalc" "gather" "stepsystem" "totaltime")
+        (csym::fprintf stderr " time[s.]%11.4lf%11.4lf%11.4lf%11.4lf%11.4lf%11.4lf~%"
+                       mktreetime brcasttime grcalctime gathertime pscalctime (csym::elapsed-time tp))
         )
     (csym::fprintf stderr "~%")
-    (csym::fprintf stderr "             maketree  newtree  expandbox  insrttree  hackcofm  thrdtree~%")
-    (csym::fprintf stderr " time[s.]  %8.4lf  %7.4lf  %9.4lf  %9.4lf  %8.4lf  %8.4lf~%"
+    (csym::fprintf stderr "         %11s%11s%11s%11s%11s%11s~%"
+                          "maketree" "newtree" "expandbox" "insrttree" "hackcofm" "thrdtree")
+    (csym::fprintf stderr " time[s.]%11.4lf%11.4lf%11.4lf%11.4lf%11.4lf%11.4lf~%"
                           mktreetime nwtreetime expandtime crtreetime hackcmtime threadtime)
     (csym::fprintf stderr "~%")
     (%ifndef* DISTRIBUTED
         (%if* (or (eq 'MKTREE-METHOD 'MERGE)
                   (eq 'MKTREE-METHOD 'MERGE-PROB))
-            (csym::fprintf stderr "             1stinsrt  othrinsrt~%")
-            (csym::fprintf stderr " time[s.]  %8.4lf  %8.4lf~%" firstinsert otherinsert)
+            (csym::fprintf stderr "         %11s%11s~%" "1stinsrt" "othrinsrt")
+            (csym::fprintf stderr " time[s.]%11.4lf%11.4lf~%" firstinsert otherinsert)
             (csym::fprintf stderr "~%")
             )
         )
