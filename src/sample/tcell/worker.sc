@@ -169,13 +169,19 @@
   (defs char p c)
   (def b (ptr char) buf)
   (def cmdc int)
+  (def cp (ptr char) NULL)
 
-  (csym::receive-line b BUFSIZE sv-socket)
-  (= cmd-buf.node OUTSIDE)
-  (DEBUG-PRINT 1 "(%d): RECEIVED> %s" (csym::get-universal-real-time) b)
-  ;; p:一個前の文字，c:現在の文字
-  (csym::deserialize-cmd (ptr cmd-buf) b)
-  (return (ptr cmd-buf)))
+  (= cp (csym::receive-line b BUFSIZE sv-socket))
+  (if cp
+    (begin
+      (= cmd-buf.node OUTSIDE)
+      (DEBUG-PRINT 1 "(%d): RECEIVED> %s" (csym::get-universal-real-time) b)
+      ;; p:一個前の文字，c:現在の文字
+      (csym::deserialize-cmd (ptr cmd-buf) b)
+      (return (ptr cmd-buf)))
+    (begin
+      (DEBUG-PRINT 1 "(%d): RECEIVED> (failed)" (csym::get-universal-real-time))
+      (return NULL))))
 
 ;;; struct cmd -> output（stdoutへ）
 ;;; task, rsltでは bodyの内容もtask-noが指定する関数で送る
@@ -1961,8 +1967,13 @@
     (%ifdef* VERBOSE
              (csym::sprintf ext-cmd-status "Waiting for an external message."))
     (= pcmd (csym::read-command))
-    (%ifdef* VERBOSE
-             (csym::sprintf ext-cmd-status "Processing a %s command."
-                            (aref cmd-strings pcmd->w)))
-    (csym::proc-cmd pcmd 0))
+    (if pcmd
+      (begin
+        (%ifdef* VERBOSE
+                 (csym::sprintf ext-cmd-status "Processing a %s command."
+                                (aref cmd-strings pcmd->w)))
+        (csym::proc-cmd pcmd 0))
+      (begin
+        (while 1
+          (csym::sleep 4294967295)))) )
   (csym::exit 0))
