@@ -84,11 +84,7 @@
     (walktree active (+ active 1) interact interact (+ interact actlen)
               (cast nodeptr root) rsize rmid 0 (ptr nbbcalc) (ptr nbccalc))
     (%ifdef* USE-PROBGUARD
-        (def i int)
-        (for ((= i 0) (< i num-thrs) (inc i))
-            (= (fref (cast (ptr (struct thread-data)) (+ threads i)) -> probability) 1.0)
-            )
-        )
+        (reset-probabilities))
 
     (= cpuforce (- (csym::cputime) cpustart))
     (csym::free active)

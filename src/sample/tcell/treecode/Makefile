@@ -119,26 +119,44 @@ ifndef NFTYPE
     NFTYPE = gcc
 endif
 
+ifeq ($(NFTYPE), gcc)
+    NFMACRO = -D NF-TYPE=GCC
+    ifdef USEMPI
+    	CC = $(MPICC) -cc=$(GCC)
+    else
+        CC = $(GCC)
+    endif
+else
 ifeq ($(NFTYPE), lw)
     NFMACRO = -D NF-TYPE=LW-SC
     C_LIBS += nestfunc.c
+    ifdef USEMPI
+    	CC = $(MPICC) -cc=$(GCC)
+    else
+        CC = $(GCC)
+    endif
 else
 ifeq ($(NFTYPE), xcc)
     NFMACRO = -D NF-TYPE=XCC
     LIBOPTS += -fno-omit-frame-pointer
-    GCC = $(XCC)
+    ifdef USEMPI
+    	CC = $(MPICC) -cc=$(XCC)
+    else
+        CC = $(XCC)
+    endif
 else
 ifeq ($(NFTYPE), xcccl)
     NFMACRO = -D NF-TYPE=XCCCL
-    GCC = $(XCC)
+    ifdef USEMPI
+    	CC = $(MPICC) -cc=$(XCC)
+    else
+        CC = $(XCC)
+    endif
 else
-    NFMACRO = -D NF-TYPE=GCC
+    $(error Unknown nest function type $(NFTYPE))
 endif
 endif
 endif
-
-ifdef USEMPI
-    GCC = $(MPICC)
 endif
 
 C_LIBS  = sendrecv.c sock.c
@@ -148,7 +166,7 @@ TCELL   = worker-$(NFTYPE).c cmd-serial-$(NFTYPE).c treecode-$(NFTYPE).c
 ########################################################################
 
 all: $(TCELL) $(TREEOBJ)
-	$(GCC) $(OPT) $(LIBOPTS) $(CCFLAGS) $(TREEFLAGS) $(C_LIBS) $(TCELL) \
+	$(CC) $(OPT) $(LIBOPTS) $(CCFLAGS) $(TREEFLAGS) $(C_LIBS) $(TCELL) \
 	$(TREEOBJ) -o $(EXENAME)-$(NFTYPE)
 
 ########################################################################
@@ -170,10 +188,10 @@ treecode-$(NFTYPE).c: treecode.tcell treeload.tcell* treegrav-shared.tcell treeg
 # Vanila treecode:
 
 treecode.o: treecode.c treecode.h treedefs.h
-	$(GCC) $(CCFLAGS) $(TREEFLAGS) -c treecode.c
+	$(CC) $(CCFLAGS) $(TREEFLAGS) -c treecode.c
 
 treeio.o: treeio.c treecode.h treedefs.h
-	$(GCC) $(CCFLAGS) $(TREEFLAGS) -c treeio.c
+	$(CC) $(CCFLAGS) $(TREEFLAGS) -c treeio.c
 
 ifdef DISTRIBUTED
     ENV_SUFFIX=distributed
@@ -182,10 +200,10 @@ else
 endif
 
 treeload.o: treeload-$(ENV_SUFFIX).c treedefs.h
-	$(GCC) $(CCFLAGS) -O2 $(TREEFLAGS) -o treeload.o -c treeload-$(ENV_SUFFIX).c
+	$(CC) $(CCFLAGS) -O2 $(TREEFLAGS) -o treeload.o -c treeload-$(ENV_SUFFIX).c
 
 treegrav.o: treegrav.c treedefs.h
-	$(GCC) $(CCFLAGS) -O3 $(TREEFLAGS) -o treegrav.o -c treegrav.c
+	$(CC) $(CCFLAGS) -O3 $(TREEFLAGS) -o treegrav.o -c treegrav.c
 
 ########################################################################
 # Zeno library:
@@ -194,13 +212,13 @@ libZeno.a: clib.o getparam.o mathfns.o
 	ar ruv libZeno.a clib.o getparam.o mathfns.o
 
 clib.o: clib.c stdinc.h
-	$(GCC) $(CCFLAGS) -D$(PREC) -c clib.c
+	$(CC) $(CCFLAGS) -D$(PREC) -c clib.c
 
 getparam.o: getparam.c stdinc.h getparam.h
-	$(GCC) $(CCFLAGS) -D$(PREC) -c getparam.c
+	$(CC) $(CCFLAGS) -D$(PREC) -c getparam.c
 
 mathfns.o: mathfns.c stdinc.h mathfns.h
-	$(GCC) $(CCFLAGS) -D$(PREC) -c mathfns.c
+	$(CC) $(CCFLAGS) -D$(PREC) -c mathfns.c
 
 ########################################################################
 

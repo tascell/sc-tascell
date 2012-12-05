@@ -183,6 +183,22 @@
 
 
 ;------------------------------------------------------------------------------
+; reset-probabilities
+;------------------------------------------------------------------------------
+
+(extern num-thrs unsigned-int)
+(extern threads (array (struct thread-data) 128))
+
+(def (reset-probabilities)
+     (fn void)
+    (def i int)
+    (for ((= i 0) (< i num-thrs) (inc i))
+         (= (fref (aref threads i) probability) 1.0)
+         )
+    )
+
+
+;------------------------------------------------------------------------------
 ; main: task definition that replaces main function of treecode
 ;------------------------------------------------------------------------------
 
@@ -230,10 +246,6 @@
     (csym::free (fref this argv))
     )
       
-
-;; ======== for debugging of space stealing ========
-(extern threads (array (struct thread-data) 128))
-(extern num-thrs unsigned-int)
 
 (def (task-body main)
     (def i int)
@@ -508,6 +520,7 @@
     (def eps real)
     (def nbody int)
     (def ncell int)
+    (def tdepth int)
     )
 
 (def (task-sender bcast-tree)
@@ -516,6 +529,7 @@
     (send-real this.eps)
     (send-int this.nbody)
     (send-int this.ncell)
+    (send-int this.tdepth)
     )
 
 (def (task-receiver bcast-tree)
@@ -524,6 +538,7 @@
     (= eps (recv-real))
     (= nbody (recv-int))
     (= ncell (recv-int))
+    (= tdepth (recv-int))
     (if (== updated-bodies NULL)
         (= updated-bodies (csym::allocate (* nbody (sizeof updated-body))))
         )
@@ -551,6 +566,7 @@
         (= this.eps eps)
         (= this.nbody nbody)
         (= this.ncell ncell)
+        (= this.tdepth tdepth)
         ))
     (MPI_Bcast bodytab (* nbody (sizeof body)) MPI_BYTE mympirank MPI_COMM_WORLD)
     (MPI_Bcast celltab (* ncell (sizeof cell)) MPI_BYTE mympirank MPI_COMM_WORLD)
@@ -572,6 +588,8 @@
     (csym::send-binary-header (sizeof cell) ncell)
     (csym::send-binary celltab (sizeof cell) ncell sv-socket)
     (csym::send-binary-terminator)
+
+    (csym::send-int tdepth)
     )
 
 (def (task-receiver bcast-tree)
@@ -596,6 +614,8 @@
         ))
     (csym::receive-binary celltab (sizeof cell) ncell sv-socket)
     (csym::recv-binary-terminator)
+
+    (= tdepth (csym::recv-int))
     )
 
 (def (bcast-tree)
@@ -630,6 +650,8 @@
         (= this.root mympirank)
         ))
     
+    ;(reset-probabilities)
+
     (%if* (eq 'GATHER-METHOD 'MPI-GATHERV)
         (def i int)
         (def recvcounts (ptr int))
@@ -688,6 +710,8 @@
 
 
 (def (task-body gather-bodies)
+    ;(reset-probabilities)
+
     (%if* (eq 'GATHER-METHOD 'MPI-GATHERV)
         (MPI_Gather (ptr nupdated-bodies) 1 MPI_INT
                     NULL 0 MPI_INT this.root MPI_COMM_WORLD)
