@@ -37,6 +37,22 @@
 (%defconstant ASIZE 20)
 (%defconstant BSIZE 119)
 
+(%defconstant USE-PROBABILITY 1)
+
+(def (pen-probability j maxp)
+     (fn double int int)
+    (if (>= j 3)
+        (return (/ (cast double (- maxp j)) (cast double (- maxp 2))))
+        (return 1.0)))
+    ; constant probability
+    ; (if (>= j 3)
+    ;     (return (/ 1.0 16.0))
+    ;     (return 1.0)))
+    ; threshold based probability
+    ; (if (>= j 3)
+    ;     (return 0.0)
+    ;     (return 1.0)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (def (task pentomino)
   (def r int :out)
@@ -61,6 +77,8 @@
   (def maxp int (fref this maxp))
   (def maxk int (fref this maxk))
   (DEBUG-PRINT 1 "start %d %d %d %d %d %d~%" k i0 i1 i2 maxp maxk)
+  (%ifdef* USE-PROBABILITY
+    (= PROBABILITY (pen-probability i0 maxp)))
   (= (fref this r) (search k i0 i1 i2 maxp maxk (ptr this)))
   (DEBUG-PRINT 1 "end %d~%" (fref this r)))
 
@@ -102,6 +120,8 @@
   (for ((< kk BSIZE) (inc kk)) (if (== (aref (fref pen b) kk) 0)
                                    (= (aref (fref pen b) kk) #\*)))
   (= (fref pen maxp) maxp)
+  (%ifdef* USE-PROBABILITY
+    (= PROBABILITY 1.0))
   (csym::gettimeofday tp 0)
   (= (fref this r) (search 0 0 0 maxp maxp (fref pen maxk) (ptr pen)))
   (csym::gettimeofday (+ tp 1) 0)
@@ -241,6 +261,8 @@
      ;; put/get pentomino task/result
      (pentomino
       (:put from i1 to i2
+            (%ifdef* USE-PROBABILITY
+                (= PROBABILITY (pen-probability j0 maxp)))
             (= this (mref tsk))
             (= (fref this k) k)
             (= (fref this i0) j0)

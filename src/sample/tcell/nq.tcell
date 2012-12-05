@@ -35,6 +35,22 @@
 (%include "dprint.sh")
 (%cinclude "sendrecv.h" (:macro))
 
+;; Probability guardを使う
+(%defconstant USE-PROBGUARD 1)
+
+(def (csym::my-probability n k) (fn double int int)
+  (if (>= k 2)
+    (return (/ (cast double (- n (+ k 1))) (cast double (- n 2))))
+    (return 1.0)))
+  ; constant probability
+  ; (if (>= k 2)
+  ;   (return (/ 1.0 16.0))
+  ;   (return 1.0)))
+  ; threshold based probability
+  ; (if (>= k 2)
+  ;   (return 0.0)
+  ;   (return 1.0)))
+
 ;;; thread local strogae
 (def (task nqueens)
   (def r int :out)  ; （部分）解の数
@@ -104,6 +120,8 @@
                (= (aref (fref tsk -> a) i) ai)))))))
     (nqueens
      (:put from i1 to i2
+           (%ifdef* USE-PROBGUARD
+             (= PROBABILITY (csym::my-probability n k)))
            (= this (mref tsk))
            (= (fref this k) k)
            (= (fref this i1) i1)
@@ -126,6 +144,8 @@
   (def k int (fref this k))
   (decl tp (array (struct timeval) 2))
   (if (> option.verbose 0) (csym::fprintf stderr "start %d %d %d %d~%" n k (fref this i1) (fref this i2)))
+  (%ifdef* USE-PROBGUARD
+    (= PROBABILITY (csym::my-probability n k)))
   (if (< k 0)
       (begin
        (for ((= i 0) (< i n) (inc i))
