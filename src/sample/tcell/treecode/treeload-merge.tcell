@@ -1,0 +1,298 @@
+;;; Load bodies by merging method
+
+(decl (mergetree lhd rhd csize)
+      (wfn void cellptr cellptr real))
+(decl (load-all-bodies-core local-root traverse start end)
+      (wfn void cellptr cellptr int int))
+
+(def (task load)
+    (def local-root cellptr)
+    (def traverse-root cellptr)
+    (def start int)
+    (def end int)
+    )
+
+(def (task-body load)
+    (%ifdef* MKTREE-PROFILE
+        (def td (array (struct timespec) 2))
+        (inc WDATA.received-task)
+        (csym::clock-gettime CLOCK_REALTIME td)
+        )
+    (load-all-bodies-core this.local-root this.traverse-root
+                          this.start this.end)
+    (%ifdef* MKTREE-PROFILE
+        (csym::clock-gettime CLOCK_REALTIME (+ td 1))
+        (+= WDATA.working-time
+            (+ (- (fref (aref td 1) tv_nsec) (fref (aref td 0) tv_nsec))
+               (* (- (fref (aref td 1) tv_sec) (fref (aref td 0) tv_sec)) 1000000000)))
+        )
+    )
+
+(def (load-all-bodies)
+     (wfn void)
+    (def bin int nbody)
+    (%ifdef* MKTREE-PROFILE
+        (def td (array (struct timespec) 2))
+        (inc WDATA.received-task)
+        (csym::clock-gettime CLOCK_REALTIME td)
+        )
+    (if old-root
+        (load-all-bodies-core root old-root 0 NSUB)
+        (load-all-bodies-core root old-root 0 nbody)
+        )
+    (%ifdef* MKTREE-PROFILE
+        (csym::clock-gettime CLOCK_REALTIME (+ td 1))
+        (+= WDATA.working-time
+            (+ (- (fref (aref td 1) tv_nsec) (fref (aref td 0) tv_nsec))
+               (* (- (fref (aref td 1) tv_sec) (fref (aref td 0) tv_sec)) 1000000000)))
+        )
+    )
+
+(def (load-all-bodies-core local-root traverse start end)
+     (wfn void cellptr cellptr int int)
+    (if traverse
+        (begin
+        ; ==  An old tree exists, so we construct a new tree by traversing it.
+        (%if* (eq 'MKTREE-METHOD 'MERGE-PROB)
+            (def i int)
+            (def bin int 0)
+            (for ((= i start) (< i end) (inc i))
+                (if (aref (csym::Subp traverse) i)
+                    (if (== (csym::Type (aref (csym::Subp traverse) i)) CELL)
+                        (+= bin (csym::Nbody (aref (csym::Subp traverse) i)))
+                        (inc bin)
+                        )
+                    )
+                )
+            )
+        (do-many for i from start to end
+            (begin
+            (def p nodeptr (aref (csym::Subp traverse) i))
+            (if p
+                (begin
+                (if (== (csym::Type p) BODY)
+                    (begin
+                    (%ifdef* MKTREE-PROFILE
+                        (def ti (array (struct timespec) 2))
+                        (inc WDATA.inserted-bodies)
+                        (csym::clock-gettime CLOCK_REALTIME ti)
+                        )
+                    (loadbody (cast bodyptr p) local-root rsize)
+                    (%if* (eq 'MKTREE-METHOD 'MERGE-PROB)
+                        (dec bin)
+                        )
+                    (%ifdef* MKTREE-PROFILE
+                        (csym::clock-gettime CLOCK_REALTIME (+ ti 1))
+                        (+= WDATA.inserting-time
+                            (+ (- (fref (aref ti 1) tv_nsec) (fref (aref ti 0) tv_nsec))
+                               (* (- (fref (aref ti 1) tv_sec) (fref (aref ti 0) tv_sec)) 1000000000)))
+                        )
+                    )
+                    (begin
+                    (load-all-bodies-core local-root (cast cellptr p) 0 NSUB)
+                    (%if* (eq 'MKTREE-METHOD 'MERGE-PROB)
+                        (-= bin (csym::Nbody p))
+                        )
+                    ))
+                ))
+            )
+        (load
+            (:put from j1 to j2
+                (%ifdef* MKTREE-PROFILE
+                    (def td (array (struct timespec) 2))
+                    (csym::clock-gettime CLOCK_REALTIME td)
+                    )
+                (= this.local-root (makecell))
+                (csym::CLRV (csym::Pos this.local-root))
+                (= this.traverse-root traverse)
+                (= this.start j1)
+                (= this.end j2)
+
+                (%if* (eq 'MKTREE-METHOD 'MERGE-PROB)
+                    (def j int)
+                    (for ((= j j1) (< j j2) (inc j))
+                        (if (aref (csym::Subp traverse) j)
+                            (if (== (csym::Type (aref (csym::Subp traverse) j)) CELL)
+                                (-= bin (csym::Nbody (aref (csym::Subp traverse) j)))
+                                (dec bin)
+                                )
+                            )
+                        ) 
+                    (= PROBABILITY (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ (cast real bin) (cast real nbody))))))
+                    ; threshold based probability
+                    ;(if (> (* 20.0 (* (cast double num-thrs) (/ (cast real bin) (cast real nbody)))) 1.0)
+                    ;  (= PROBABILITY 1.0)
+                    ;  (= PROBABILITY 0.0))
+                    )
+
+                (%ifdef* MKTREE-PROFILE
+                    (csym::clock-gettime CLOCK_REALTIME (+ td 1))
+                    (+= WDATA.task-dividing-time
+                        (+ (- (fref (aref td 1) tv_nsec) (fref (aref td 0) tv_nsec))
+                           (* (- (fref (aref td 1) tv_sec) (fref (aref td 0) tv_sec)) 1000000000)))
+                    )
+                )
+            (:get
+                (%ifdef* MKTREE-PROFILE
+                    (def tf (array (struct timespec) 2))
+                    (csym::clock-gettime CLOCK_REALTIME tf)
+                    )
+                (mergetree local-root this.local-root rsize)
+                (collectcell this.local-root)
+                (%ifdef* MKTREE-PROFILE
+                    (csym::clock-gettime CLOCK_REALTIME (+ tf 1))
+                    (+= WDATA.rst-merging-time
+                        (+ (- (fref (aref tf 1) tv_nsec) (fref (aref tf 0) tv_nsec))
+                           (* (- (fref (aref tf 1) tv_sec) (fref (aref tf 0) tv_sec)) 1000000000)))
+                    )
+                )
+            ))
+            (%if* (eq 'MKTREE-METHOD 'MERGE-PROB)
+                (if bin
+                    (csym::error "assertion failure")
+                    )
+                )
+        )
+        (begin
+        ; ==  This is the first time tree construction.
+        (do-many for i from start to end
+            (begin
+            (def p bodyptr (+ bodytab i))
+            (%ifdef* MKTREE-PROFILE
+                (def ti (array (struct timespec) 2))
+                (inc WDATA.inserted-bodies)
+                (csym::clock-gettime CLOCK_REALTIME ti)
+                )
+            (loadbody p local-root rsize)
+            (%ifdef* MKTREE-PROFILE
+                (csym::clock-gettime CLOCK_REALTIME (+ ti 1))
+                (+= WDATA.inserting-time
+                    (+ (- (fref (aref ti 1) tv_nsec) (fref (aref ti 0) tv_nsec))
+                       (* (- (fref (aref ti 1) tv_sec) (fref (aref ti 0) tv_sec)) 1000000000)))
+                )
+            )
+        (load
+            (:put from j1 to j2
+                (%ifdef* MKTREE-PROFILE
+                    (def td (array (struct timespec) 2))
+                    (csym::clock-gettime CLOCK_REALTIME td)
+                    )
+                (= this.local-root (makecell))
+                (csym::CLRV (csym::Pos this.local-root))
+                (= this.traverse-root NULL)
+                (= this.start j1)
+                (= this.end j2)
+                (%ifdef* MKTREE-PROFILE
+                    (csym::clock-gettime CLOCK_REALTIME (+ td 1))
+                    (+= WDATA.task-dividing-time
+                        (+ (- (fref (aref td 1) tv_nsec) (fref (aref td 0) tv_nsec))
+                           (* (- (fref (aref td 1) tv_sec) (fref (aref td 0) tv_sec)) 1000000000)))
+                    )
+                )
+            (:get
+                (%ifdef* MKTREE-PROFILE
+                    (def tf (array (struct timespec) 2))
+                    (csym::clock-gettime CLOCK_REALTIME tf)
+                    )
+                (mergetree local-root this.local-root rsize)
+                (collectcell this.local-root)
+                (%ifdef* MKTREE-PROFILE
+                    (csym::clock-gettime CLOCK_REALTIME (+ tf 1))
+                    (+= WDATA.fst-merging-time
+                        (+ (- (fref (aref tf 1) tv_nsec) (fref (aref tf 0) tv_nsec))
+                           (* (- (fref (aref tf 1) tv_sec) (fref (aref tf 0) tv_sec)) 1000000000)))
+                    )
+                )
+            )))
+        )
+    )
+
+(def (mergetree lhd rhd csize)
+     (wfn void cellptr cellptr real)
+    (def i int)
+;   (for ((= i 0) (< i NDIM) (inc i))
+;       (if (!= (aref (csym::Pos lhd) i) (aref (csym::Pos rhd) i))
+;           (csym::error "mergetree: center position of cell not matched.")
+;           )
+;       )
+    (for ((= i 0) (< i NSUB) (inc i))
+        (if (== (aref (csym::Subp rhd) i) NULL)
+            ; ==  rhd[i] -> NULL ==
+            (begin
+            (continue)
+            )) 
+        (if (== (aref (csym::Subp lhd) i) NULL)
+            ; ==  lhd[i] -> NULL ==
+            (begin
+            (= (aref (csym::Subp lhd) i) (aref (csym::Subp rhd) i))
+            (continue)
+            ))
+        (if (== (csym::Type (aref (csym::Subp lhd) i)) BODY)
+            ; ==  lhd[i] -> BODY  ==
+            (begin
+            (if (== (csym::Type (aref (csym::Subp rhd) i)) BODY)
+                ; ==  rhd[i] -> BODY  ==
+                (begin
+                (def c cellptr)
+                (def k int)
+                (def dist2 real)
+                (def distv vector)
+                (csym::DOTPSUBV dist2 distv
+                                (csym::Pos (aref (csym::Subp lhd) i))
+                                (csym::Pos (aref (csym::Subp rhd) i)))
+                (if (== dist2 0.0)
+                    (csym::error "loadbody: two bodies have same position~%")
+                    )
+                (= c (makecell))
+                (for ((= k 0) (< k NDIM) (inc k))
+                    (= (aref (csym::Pos c) k)
+                       (+ (aref (csym::Pos lhd) k)
+                          (/ (if-exp (< (aref (csym::Pos (aref (csym::Subp lhd) i)) k)
+                                        (aref (csym::Pos lhd) k))
+                                     (- csize) csize) 4)))
+                    )
+;                (for ((= k 0) (< k NDIM) (inc k))
+;                    (if (or (<  (aref (csym::Pos (aref (csym::Subp lhd) i)) k) (- (aref (csym::Pos c) k) (/ csize 4)))
+;                            (>= (aref (csym::Pos (aref (csym::Subp lhd) i)) k) (+ (aref (csym::Pos c) k) (/ csize 4))))
+;                        (csym::error "mergetree: body is outside of cell.")
+;                        )
+;                    (if (or (<  (aref (csym::Pos (aref (csym::Subp rhd) i)) k) (- (aref (csym::Pos c) k) (/ csize 4)))
+;                            (>= (aref (csym::Pos (aref (csym::Subp rhd) i)) k) (+ (aref (csym::Pos c) k) (/ csize 4))))
+;                        (csym::error "mergetree: body is outside of cell.")
+;                        )
+;                    )
+                (= (aref (csym::Subp c) (csym::subindex (cast bodyptr (aref (csym::Subp lhd) i)) c))
+                   (aref (csym::Subp lhd) i))
+                (= (aref (csym::Subp lhd) i) (cast nodeptr c))
+                (loadbody (cast bodyptr (aref (csym::Subp rhd) i))
+                          (cast cellptr (aref (csym::Subp lhd) i))
+                          (/ csize 2.0))
+                )
+                ; ==  rhd[i] -> CELL  ==
+                (begin
+                (loadbody (cast bodyptr (aref (csym::Subp lhd) i))
+                          (cast cellptr (aref (csym::Subp rhd) i))
+                          (/ csize 2.0))
+                (= (aref (csym::Subp lhd) i) (aref (csym::Subp rhd) i))
+                ))
+            )
+            ; ==  lhd[i] -> CELL  ==
+            (begin
+            (if (== (csym::Type (aref (csym::Subp rhd) i)) BODY)
+                ; ==  rhd[i] -> BODY  ==
+                (begin
+                (loadbody (cast bodyptr (aref (csym::Subp rhd) i))
+                          (cast cellptr (aref (csym::Subp lhd) i))
+                          (/ csize 2.0))
+                )
+                ; ==  rhd[i] -> CELL  ==
+                (begin
+                (mergetree (cast cellptr (aref (csym::Subp lhd) i))
+                           (cast cellptr (aref (csym::Subp rhd) i))
+                           (/ csize 2.0))
+                (collectcell (cast cellptr (aref (csym::Subp rhd) i)))
+                ))
+            ))
+        )
+    )
+

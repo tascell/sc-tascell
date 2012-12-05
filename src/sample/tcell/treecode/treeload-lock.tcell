@@ -1,0 +1,34 @@
+;;; Load bodies using pthread_mutex_t
+
+(decl (load-all-bodies-for start end)
+      (wfn void int int))
+
+(def (task load)
+    (def i1 int)
+    (def i2 int)
+    )
+
+(def (task-body load)
+    (load-all-bodies-for this.i1 this.i2)
+    )
+
+(def (load-all-bodies)
+     (wfn void)
+    (load-all-bodies-for 0 nbody)
+    )
+
+(def (load-all-bodies-for start end)
+     (wfn void int int)
+    (do-many for i from start to end
+        (begin
+        (def p bodyptr (+ bodytab i))
+        (loadbody p root rsize)
+        )
+    (load
+        (:put from j1 to j2
+        (= this.i1 j1)
+        (= this.i2 j2)
+        )
+        (:get
+        )))
+    )

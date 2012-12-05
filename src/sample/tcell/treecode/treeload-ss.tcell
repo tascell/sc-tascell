@@ -1,0 +1,250 @@
+;;; Load bodies by space stealing method
+
+(decl (load-all-bodies-for p-start q-start qsize minrange maxrange)
+      (wfn void bodyptr cellptr real vector vector))
+
+(def (task load)
+    (def p-start bodyptr)
+    (def q-start cellptr)
+    (def qsize real)
+    (def minrange vector)
+    (def maxrange vector)
+    )
+
+(def (task-body load)
+    (%ifdef* MKTREE-PROFILE
+        (inc WDATA.received-task)
+        )
+    (if (== this.p-start NULL)
+        (begin
+        (%ifdef* MKTREE-PROFILE
+            (inc WDATA.failed-task)
+            )
+        (return)
+        ))
+    (load-all-bodies-for
+        this.p-start this.q-start this.qsize this.minrange this.maxrange)
+    )
+
+(def (load-all-bodies)
+     (wfn void)
+    (def i int)
+    (def minrange vector)
+    (def maxrange vector)
+    (for ((= i 0) (< i NDIM) (inc i))
+        (= (aref minrange i) (/ (- rsize) 2))
+        (= (aref maxrange i) (/ rsize 2))
+        )
+    (load-all-bodies-for bodytab root rsize minrange maxrange)
+    )
+
+(def (hacksubcell q qsize minrange maxrange)
+     (wfn cellptr cellptr real vector vector)
+    (def k int)
+    (def cofnq vector)
+    (for ((= k 0) (< k NDIM) (inc k))
+        (= (aref cofnq k) (+ (aref minrange k)
+                             (/ (- (aref maxrange k) (aref minrange k)) 2)))
+        )
+
+;   (for ((= k 0) (< k NDIM) (inc k))
+;       (if (not (and (<= (- (aref (csym::Pos q) k) (/ qsize 4)) (aref cofnq k))
+;                     (<= (aref cofnq k) (+ (aref (csym::Pos q) k) (/ qsize 4)))))
+;           (csym::error "Assertion Failed: cofnq is inner point of cell q~%")
+;           )
+;       )
+
+    (def ind int 0)
+    (for ((= k 0) (< k NDIM) (inc k))
+        (if (<= (aref (csym::Pos q) k) (aref cofnq k))
+            (+= ind (>> NSUB (+ k 1)))
+            )
+        )
+
+    (def nq nodeptr (aref (csym::Subp q) ind))
+    (if (== nq NULL)
+        (begin
+        (= nq (cast nodeptr (makecell)))
+        (csym::SETV (csym::Pos nq) cofnq)
+        )
+        (if (== (csym::Type nq) BODY)
+            (begin
+            (def b bodyptr (cast bodyptr nq))
+            (def c cellptr (makecell))
+            (csym::SETV (csym::Pos c) cofnq)
+            (loadbody b c (/ qsize 2))
+            (= nq (cast nodeptr c))
+            )
+;           (begin
+;           (for ((= k 0) (< k NDIM) (inc k))
+;               (if (!= (aref (csym::Pos nq) k) (aref cofnq k))
+;                   (csym::error "Assertion Failed: cofnq should match with existing cell.~%")
+;                   )
+;               )
+;           )
+            )
+        )
+    (= (aref (csym::Subp q) ind) nq)
+  
+;   (if (!= (csym::Type nq) CELL)
+;         (csym::error "Assertion Failed: Type(nq) == CELL~%")
+;         )
+    (return (cast cellptr nq))
+    )
+
+
+(def (load-all-bodies-for p-start q-start qsize minrange maxrange)
+     (wfn void bodyptr cellptr real vector vector)
+    (def POLLING-INTERVAL int 4)
+    (def p bodyptr)
+    (%ifdef* MKTREE-PROFILE
+        (def tp (array (struct timespec) 2))
+        (csym::clock-gettime CLOCK_REALTIME tp)
+        )
+
+    (def checked-bodies int 1)
+    (def inserted-bodies int 1)
+    
+    (do-many* ((= p p-start) (< p (+ bodytab nbody)) (+= p POLLING-INTERVAL))
+        (begin
+        (def i int)
+        (%if* (eq 'MKTREE-METHOD 'SS-PROB)
+            (= PROBABILITY (/ (cast double inserted-bodies) (cast double checked-bodies)))
+            ; threshold based probability
+            ;(if (< (/ (cast double inserted-bodies) (cast double checked-bodies)) 0.25)
+            ;  (= PROBABILITY 0.0)
+            ;  (= PROBABILITY 1.0))
+            )
+        (for ((= i 0) (< i POLLING-INTERVAL) (inc i)) 
+            (begin
+            (def -p bodyptr (+ p i))
+            (if (>= -p (+ bodytab nbody))
+                (break)
+                )
+            (inc checked-bodies)
+            ; ======== for profiling ========
+            (%ifdef* MKTREE-PROFILE
+                (def tc (array (struct timespec) 2))
+                (csym::clock-gettime CLOCK_REALTIME tc)
+                
+                (inc WDATA.received-bodies)
+                )
+            ; ======== range check ========
+            (def j int)
+            (def over int 0)
+            (for ((= j 0) (< j NDIM) (inc j))
+                (if (or (<  (aref (csym::Pos -p) j) (aref minrange j))
+                        (>= (aref (csym::Pos -p) j) (aref maxrange j)))
+                    (begin
+                    (= over 1)
+                    (break)
+                    ))
+                )
+            (%ifdef* MKTREE-PROFILE
+                (csym::clock-gettime CLOCK_REALTIME (+ tc 1))
+                )
+            ; ======== inserts a body if in range ========
+            (if (not over)
+                (begin
+                (%ifdef* MKTREE-PROFILE
+                    (+= WDATA.checking-time
+                        (+ (- (fref (aref tc 1) tv_nsec) (fref (aref tc 0) tv_nsec))
+                           (* (- (fref (aref tc 1) tv_sec) (fref (aref tc 0) tv_sec)) 1000000000)))
+                    (def ti (array (struct timespec) 2))
+                    (inc WDATA.inserted-bodies)
+                    (csym::clock-gettime CLOCK_REALTIME ti)
+                    )
+
+                (inc inserted-bodies)
+                (loadbody -p q-start qsize)
+
+                (%ifdef* MKTREE-PROFILE
+                    (csym::clock-gettime CLOCK_REALTIME (+ ti 1))
+                    (+= WDATA.inserting-time (+ (- (fref (aref ti 1) tv_nsec) (fref (aref ti 0) tv_nsec))
+                                  (* (- (fref (aref ti 1) tv_sec) (fref (aref ti 0) tv_sec)) 1000000000)))
+                    )
+                )
+                (begin
+                (%ifdef* MKTREE-PROFILE
+                    (+= WDATA.redundant-time
+                        (+ (- (fref (aref tc 1) tv_nsec) (fref (aref tc 0) tv_nsec))
+                           (* (- (fref (aref tc 1) tv_sec) (fref (aref tc 0) tv_sec)) 1000000000)))
+                    )
+                ))
+            ))
+        )
+    (load
+        (:put
+        (%ifdef* MKTREE-PROFILE
+            (def td (array (struct timespec) 2))
+            (csym::clock-gettime CLOCK_REALTIME td)
+            )
+        (= this.p-start p)
+        
+        (if (!= this.p-start NULL)
+            (begin
+            (= this.q-start q-start)
+            (= this.qsize qsize)
+            (csym::SETV this.minrange minrange)
+            (csym::SETV this.maxrange maxrange)
+            (def xsize real (- (aref maxrange 0) (aref minrange 0)))
+            (def ysize real (- (aref maxrange 1) (aref minrange 1)))
+            (def zsize real (- (aref maxrange 2) (aref minrange 2)))
+            (def MINSIZE-THRESHOLD real 0.00001)
+            (if (and (> xsize ysize) (> xsize zsize))
+                (begin
+                (if (>= xsize (* MINSIZE-THRESHOLD 2.0))
+                    (begin
+                    (= (aref maxrange 0) (+ (aref minrange 0) (/ xsize 2.0)))
+                    (= (aref this.minrange 0) (aref maxrange 0))
+                    )
+                    (= this.p-start NULL)
+                    ))
+                (if (> ysize zsize)
+                    (begin
+                    (if (>= ysize (* MINSIZE-THRESHOLD 2.0))
+                        (begin
+                        (= (aref maxrange 1) (+ (aref minrange 1) (/ ysize 2.0)))
+                        (= (aref this.minrange 1) (aref maxrange 1))
+                        )
+                        (= this.p-start NULL)
+                        ))
+                    (begin
+                    (if (>= zsize (* MINSIZE-THRESHOLD 2.0))
+                        (begin
+                        (= (aref maxrange 2) (+ (aref minrange 2) (/ zsize 2.0)))
+                        (= (aref this.minrange 2) (aref maxrange 2))
+                        )
+                        (= this.p-start NULL)
+                        ))
+                    )
+                )
+            (if (!= this.p-start NULL)
+                (if (and (> xsize ysize) (> xsize zsize))
+                    (begin
+                    ; ======== space decomposition hack for theif ========
+                    (= this.q-start (hacksubcell q-start qsize this.minrange this.maxrange))
+                    (/= this.qsize 2)
+                    ; ======== space decomposition hack for victim ========
+                    (= q-start (hacksubcell q-start qsize minrange maxrange))
+                    (/= qsize 2)
+                    ))
+                )
+            ))
+        (%ifdef* MKTREE-PROFILE
+            (csym::clock-gettime CLOCK_REALTIME (+ td 1))
+            (+= WDATA.task-dividing-time
+                (+ (- (fref (aref td 1) tv_nsec) (fref (aref td 0) tv_nsec))
+                   (* (- (fref (aref td 1) tv_sec) (fref (aref td 0) tv_sec)) 1000000000)))
+            )
+        )
+        (:get
+        )))
+    (%ifdef* MKTREE-PROFILE
+        (csym::clock-gettime CLOCK_REALTIME (+ tp 1))
+        (+= WDATA.working-time (+ (- (fref (aref tp 1) tv_nsec) (fref (aref tp 0) tv_nsec))
+                                  (* (- (fref (aref tp 1) tv_sec) (fref (aref tp 0) tv_sec)) 1000000000)))
+        )
+    )
+
+

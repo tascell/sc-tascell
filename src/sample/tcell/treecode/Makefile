@@ -73,7 +73,7 @@ PREC = SINGLEPREC
 # FORCEREPORT = -D FORCEREPORT=1
 
 # Specifies tree construction method
-# Available method: LOCK, SS, SS-PROB, MERGE, MERGE-PROB
+# Available method: LOCK, SS, SS-PROB, MERGE, MERGE-PROB, LEVEL
 MKTREE-METHOD = MERGE-PROB
 
 # Uncomment the next line to report detailed tree construction statics
@@ -148,7 +148,7 @@ cmd-serial-$(NFTYPE).c: cmd-serial.sc worker.sh
 	$(SC2C) $(SC2C_OPT) $(NFMACRO) cmd-serial.sc
 	indent -kr -bli4 cmd-serial-$(NFTYPE).c
 
-treecode-$(NFTYPE).c: treecode.tcell treeload.tcell treegrav-shared.tcell treegrav-distributed.tcell treecomm.tcell
+treecode-$(NFTYPE).c: treecode.tcell treeload.tcell* treegrav-shared.tcell treegrav-distributed.tcell treecomm.tcell
 	$(SC2C) $(SC2C_OPT) $(NFMACRO) $(TREEFLAGS) -D MKTREE-METHOD=$(MKTREE-METHOD) \
 	 $(MKTREE-PROFILE) treecode.tcell
 	indent -kr -bli4 treecode-$(NFTYPE).c

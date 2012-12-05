@@ -1,0 +1,407 @@
+(%defconstant BUCKET-SIZE 128)
+
+(def (struct bucket)
+    (def nbody int)
+    (def bodies (array bodyptr BUCKET-SIZE))
+    (def next (ptr (struct bucket)))
+    )
+
+(def (struct bucket-ring)
+    (def nbody int)
+    (def nbucket int)
+    (def head (ptr (struct bucket)))
+    (def tail (ptr (struct bucket)))
+    )
+
+
+(decl (first-filter i1 i2 subrings)
+      (wfn void int int (ptr (struct bucket-ring))))
+(decl (outer-filter ring i1 i2 q subrings)
+      (wfn void (ptr (struct bucket-ring)) int int cellptr
+                (ptr (struct bucket-ring))))
+(decl (inner-filter bucket i1 i2 q subrings)
+      (wfn void (ptr (struct bucket)) int int cellptr
+                (ptr (struct bucket-ring))))
+(decl (construct-cell ring q qsize)
+      (wfn void (ptr (struct bucket-ring)) cellptr real))
+(decl (construct-subcells q qsize subrings i1 i2)
+      (wfn void cellptr real (ptr (struct bucket-ring)) int int))
+
+
+(def (load-all-bodies)
+     (wfn void)
+    (def i int)
+    (def subrings (array (struct bucket-ring) NSUB))
+
+    ; initialization
+    (for ((= i 0) (< i NSUB) (inc i))
+        (def r (ptr (struct bucket-ring)) (+ subrings i))
+        (= r->nbody 0)
+        (= r->nbucket 0)
+        (= r->head NULL)
+        (= r->tail NULL)
+        )
+
+    ; filter all bodies into NSUB buckets.
+    (first-filter 0 nbody subrings)
+
+    ; recursively construct NSUB child cells
+    (construct-subcells root rsize subrings 0 NSUB)
+
+    ; free up buckets
+    (for ((= i 0) (< i NSUB) (inc i))
+        (def ring (ptr (struct bucket-ring)) (+ subrings i))
+        (def bucket (ptr (struct bucket)) ring->head)
+        (while bucket
+            (def next (ptr (struct bucket)) bucket->next)
+            (csym::free bucket)
+            (= bucket next)
+            )
+        ) 
+    )
+
+
+; -------------------------------------------------------------------------- 
+; filtering loop used only once at first
+; -------------------------------------------------------------------------- 
+(def (task load-first-filter)
+    (def i1 int)
+    (def i2 int)
+    (def subrings (array (struct bucket-ring) NSUB))
+    )
+
+(def (task-body load-first-filter)
+    (first-filter this.i1 this.i2 this.subrings)
+    )
+
+(def (first-filter i1 i2 subrings)
+     (wfn void int int (ptr (struct bucket-ring)))
+    (def i int)
+    (do-many for i from i1 to i2
+        (begin
+        (def p bodyptr (+ bodytab i))
+        (def ind int (csym::subindex p root))
+        (def ring (ptr (struct bucket-ring)) (+ subrings ind))
+
+        ; adding |p| into a bucket in |ring|
+        (if (== ring->nbucket 0)
+            (begin
+            (= ring->nbucket 1)
+            (= ring->head (csym::allocate (sizeof (struct bucket))))
+            (= ring->tail ring->head)
+            ))
+        (if (== ring->tail->nbody BUCKET-SIZE)
+            (begin
+            (= ring->tail->next (csym::allocate (sizeof (struct bucket))))
+            (= ring->tail ring->tail->next)
+            (inc ring->nbucket)
+            ))
+        (= (aref ring->tail->bodies ring->tail->nbody) p)
+        (inc ring->tail->nbody)
+        (inc ring->nbody)
+        )
+    (load-first-filter
+        (:put from j1 to j2
+            (def j int)
+            (= this.i1 j1)
+            (= this.i2 j2)
+            (for ((= j 0) (< j NSUB) (inc j))
+                (def r (ptr (struct bucket-ring)) (+ this.subrings j))
+                (= r->nbody 0)
+                (= r->nbucket 0)
+                (= r->head NULL)
+                (= r->tail NULL)
+                )
+            )
+        (:get
+            (def j int)
+            ; merge subrings
+            (for ((= j 0) (< j NSUB) (inc j))
+                (def myring (ptr (struct bucket-ring)) (+ subrings j))
+                (def yourring (ptr (struct bucket-ring)) (+ this.subrings j))
+                (if (> yourring->nbody 0)
+                    ; only merge occurs if the thief has non-empty ring
+                    (if (> myring->nbody 0)
+                        ; merge carefully if both workers actually have non-empty rings
+                        (begin
+                        (+= myring->nbody yourring->nbody)
+                        (+= myring->nbucket yourring->nbucket)
+                        (= myring->tail->next yourring->head)
+                        (= myring->tail yourring->tail)
+                        )
+                        ; if the victim worker has an empty ring, just use thief's
+                        (begin
+                        (= myring->nbody yourring->nbody)
+                        (= myring->nbucket yourring->nbucket)
+                        (= myring->head yourring->head)
+                        (= myring->tail yourring->tail)
+                        ))
+                    )
+                )
+            )
+        ))
+    )
+
+
+; -------------------------------------------------------------------------- 
+; outer filtering loop
+; -------------------------------------------------------------------------- 
+
+(def (task load-outer-filter)
+    (def ring (ptr (struct bucket-ring)))
+    (def i1 int)
+    (def i2 int)
+    (def q cellptr)
+    (def subrings (array (struct bucket-ring) NSUB))
+    )
+
+(def (task-body load-outer-filter)
+    (outer-filter this.ring this.i1 this.i2 this.q this.subrings)
+    )
+
+(def (outer-filter ring i1 i2 q subrings)
+     (wfn void (ptr (struct bucket-ring)) int int cellptr
+               (ptr (struct bucket-ring)))
+    (def i int)
+    (def bucket (ptr (struct bucket)) ring->head)
+    ; shift to the start bucket represented by i1
+    (for ((= i 0) (< i i1) (inc i))
+         (= bucket bucket->next)
+         )
+
+    ; loop for buckets
+    (do-many for i from i1 to i2
+        (begin
+        ; filter bucket into subrings
+        (inner-filter bucket 0 bucket->nbody q subrings)
+        ; set to the next bucket
+        (= bucket bucket->next)
+        )
+    (load-outer-filter
+        (:put from j1 to j2
+            (def j int)
+            (= this.ring ring)
+            (= this.i1 j1)
+            (= this.i2 j2)
+            (= this.q q)
+            (for ((= j 0) (< j NSUB) (inc j))
+                (def r (ptr (struct bucket-ring)) (+ this.subrings j))
+                (= r->nbody 0)
+                (= r->nbucket 0)
+                (= r->head NULL)
+                (= r->tail NULL)
+                )
+            )
+        (:get
+            (def j int)
+            ; merge subrings
+            (for ((= j 0) (< j NSUB) (inc j))
+                (def myring (ptr (struct bucket-ring)) (+ subrings j))
+                (def yourring (ptr (struct bucket-ring)) (+ this.subrings j))
+                (if (> yourring->nbody 0)
+                    ; only merge occurs if the thief has non-empty ring
+                    (if (> myring->nbody 0)
+                        ; merge carefully if both workers actually have non-empty rings
+                        (begin
+                        (+= myring->nbody yourring->nbody)
+                        (+= myring->nbucket yourring->nbucket)
+                        (= myring->tail->next yourring->head)
+                        (= myring->tail yourring->tail)
+                        )
+                        ; if the victim worker has an empty ring, just use thief's
+                        (begin
+                        (= myring->nbody yourring->nbody)
+                        (= myring->nbucket yourring->nbucket)
+                        (= myring->head yourring->head)
+                        (= myring->tail yourring->tail)
+                        ))
+                    )
+                )
+            )
+        ))
+    )
+
+
+; -------------------------------------------------------------------------- 
+; inner filtering loop
+; -------------------------------------------------------------------------- 
+
+(def (task load-inner-filter)
+    (def bucket (ptr (struct bucket)))
+    (def i1 int)
+    (def i2 int)
+    (def q cellptr)
+    (def subrings (array (struct bucket-ring) NSUB))
+    )
+
+(def (task-body load-inner-filter)
+    (inner-filter this.bucket this.i1 this.i2 this.q this.subrings)
+    )
+
+(def (inner-filter bucket i1 i2 q subrings)
+     (wfn void (ptr (struct bucket)) int int cellptr
+               (ptr (struct bucket-ring)))
+    (def i int)
+    (do-many for i from i1 to i2
+        (begin
+        (def p bodyptr (aref bucket->bodies i))
+        (def ind int (csym::subindex p q))
+        (def ring (ptr (struct bucket-ring)) (+ subrings ind))
+
+        ; adding |p| into a bucket in |ring|
+        (if (== ring->nbucket 0)
+            (begin
+            (= ring->nbucket 1)
+            (= ring->head (csym::allocate (sizeof (struct bucket))))
+            (= ring->tail ring->head)
+            ))
+        (if (== ring->tail->nbody BUCKET-SIZE)
+            (begin
+            (= ring->tail->next (csym::allocate (sizeof (struct bucket))))
+            (= ring->tail ring->tail->next)
+            (inc ring->nbucket)
+            ))
+        (= (aref ring->tail->bodies ring->tail->nbody) p)
+        (inc ring->tail->nbody)
+        (inc ring->nbody)
+        )
+    (load-inner-filter
+        (:put from j1 to j2
+            (def j int)
+            (= this.bucket bucket)
+            (= this.i1 j1)
+            (= this.i2 j2)
+            (= this.q q)
+            (for ((= j 0) (< j NSUB) (inc j))
+                (def r (ptr (struct bucket-ring)) (+ this.subrings j))
+                (= r->nbody 0)
+                (= r->nbucket 0)
+                (= r->head NULL)
+                (= r->tail NULL)
+                )
+            )
+        (:get
+            (def j int)
+            ; merge subrings
+            (for ((= j 0) (< j NSUB) (inc j))
+                (def myring (ptr (struct bucket-ring)) (+ subrings j))
+                (def yourring (ptr (struct bucket-ring)) (+ this.subrings j))
+                (if (> yourring->nbody 0)
+                    ; only merge occurs if the thief has non-empty ring
+                    (if (> myring->nbody 0)
+                        ; merge carefully if both workers actually have non-empty rings
+                        (begin
+                        (+= myring->nbody yourring->nbody)
+                        (+= myring->nbucket yourring->nbucket)
+                        (= myring->tail->next yourring->head)
+                        (= myring->tail yourring->tail)
+                        )
+                        ; if the victim worker has an empty ring, just use thief's
+                        (begin
+                        (= myring->nbody yourring->nbody)
+                        (= myring->nbucket yourring->nbucket)
+                        (= myring->head yourring->head)
+                        (= myring->tail yourring->tail)
+                        ))
+                    )
+                )
+            )
+        ))
+    )
+
+
+; -------------------------------------------------------------------------- 
+; construct-cell: recursively constructs child cells under the parent cell q
+; -------------------------------------------------------------------------- 
+
+(def (construct-cell ring q qsize)
+     (wfn void (ptr (struct bucket-ring)) cellptr real)
+    (def i int)
+    (def subrings (array (struct bucket-ring) NSUB))
+
+    ; initialization
+    (for ((= i 0) (< i NSUB) (inc i))
+        (def r (ptr (struct bucket-ring)) (+ subrings i))
+        (= r->nbody 0)
+        (= r->nbucket 0)
+        (= r->head NULL)
+        (= r->tail NULL)
+        )
+
+    ; filter all bodies into NSUB buckets.
+    (outer-filter ring 0 ring->nbucket q subrings)
+
+    ; recursively construct NSUB child cells
+    (construct-subcells q qsize subrings 0 NSUB)
+
+    ; free up buckets
+    (for ((= i 0) (< i NSUB) (inc i))
+        (def ring (ptr (struct bucket-ring)) (+ subrings i))
+        (def bucket (ptr (struct bucket)) ring->head)
+        (while bucket
+            (def next (ptr (struct bucket)) bucket->next)
+            (csym::free bucket)
+            (= bucket next)
+            )
+        ) 
+    )
+
+
+; -------------------------------------------------------------------------- 
+; construct-subcells
+; -------------------------------------------------------------------------- 
+
+(def (task load-subcells)
+    (def q cellptr)
+    (def qsize real)
+    (def subrings (ptr (struct bucket-ring)))
+    (def i1 int)
+    (def i2 int)
+    )
+
+(def (task-body load-subcells)
+    (construct-subcells this.q this.qsize this.subrings this.i1 this.i2)
+    )
+
+(def (construct-subcells q qsize subrings i1 i2)
+     (wfn void cellptr real (ptr (struct bucket-ring)) int int)
+    (def i int)
+    
+    (do-many for i from i1 to i2
+        (begin
+        (def ring (ptr (struct bucket-ring)) (+ subrings i))
+        (if (== ring->nbody 0)
+            ; if there is no body to insert, sets NULL and does nothing
+            (= (aref (csym::Subp q) i) NULL)
+            (if (== ring->nbody 1)
+                ; else if there is only one body to insert, immediately inserts it
+                ; without making a new cell
+                (= (aref (csym::Subp q) i) (cast nodeptr (aref ring->head->bodies 0)))
+                ; otherwise, makes a new subcell and recursively construct 
+                ; the inside of it
+                (begin
+                (def j int)
+                (def c cellptr (makecell))
+                (for ((= j 0) (< j NDIM) (inc j))
+                    (= (aref (csym::Pos c) j)
+                       (+ (aref (csym::Pos q) j)
+                          (/ (if-exp (bit-and i (>> NSUB (+ j 1))) qsize (- qsize)) 4)))
+                    )
+                (construct-cell ring c (/ qsize 2))
+                (= (aref (csym::Subp q) i) (cast nodeptr c))
+                ))
+            )
+        )
+    (load-subcells
+        (:put from j1 to j2
+            (= this.q q)
+            (= this.qsize qsize)
+            (= this.subrings subrings)
+            (= this.i1 j1)
+            (= this.i2 j2)
+            )
+        (:get
+            )
+        ))
+    )
+
