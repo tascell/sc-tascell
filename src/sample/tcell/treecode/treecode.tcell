@@ -21,6 +21,10 @@
 (c-exp "#include <assert.h>")
 (c-exp "#include <time.h>")
 
+(%ifdef* USEMPI
+    (c-exp "#include <mpi.h>")
+    )
+
 (c-exp "#include \"stdinc.h\"")
 (c-exp "#include \"mathfns.h\"")
 (c-exp "#include \"vectmath.h\"")
@@ -216,6 +220,7 @@
                              "compile-time options: "
                     (%ifdef* DISTRIBUTED
                              "DISTRIBUTED "
+                             (%ifdef* USEMPI "USEMPI ")
                      %else
                              "SHARED "
                              "MKTREE-METHOD=" MKTREE-METHOD " ")
@@ -265,11 +270,13 @@
     (csym::fprintf stderr " time[s.]  %8.4lf  %7.4lf  %9.4lf  %9.4lf  %8.4lf  %8.4lf~%"
                           mktreetime nwtreetime expandtime crtreetime hackcmtime threadtime)
     (csym::fprintf stderr "~%")
-    (%if* (or (eq 'MKTREE-METHOD 'MERGE)
-              (eq 'MKTREE-METHOD 'MERGE-PROB))
-        (csym::fprintf stderr "             1stinsrt  othrinsrt~%")
-        (csym::fprintf stderr " time[s.]  %8.4lf  %8.4lf~%" firstinsert otherinsert)
-        (csym::fprintf stderr "~%")
+    (%ifndef* DISTRIBUTED
+        (%if* (or (eq 'MKTREE-METHOD 'MERGE)
+                  (eq 'MKTREE-METHOD 'MERGE-PROB))
+            (csym::fprintf stderr "             1stinsrt  othrinsrt~%")
+            (csym::fprintf stderr " time[s.]  %8.4lf  %8.4lf~%" firstinsert otherinsert)
+            (csym::fprintf stderr "~%")
+            )
         )
 
     (csym::fprintf stderr "task copied: %d~%" walk_spawned)
@@ -329,11 +336,13 @@
         (csym::fprintf fp "%.4lf, %.4lf, %.4lf, %.4lf, %.4lf, %.4lf~%"
                           mktreetime nwtreetime expandtime crtreetime hackcmtime threadtime)
         (csym::fprintf fp "~%")
-        (%if* (or (eq 'MKTREE-METHOD 'MERGE)
-                  (eq 'MKTREE-METHOD 'MERGE-PROB))
-            (csym::fprintf fp "1stinsrt  othrinsrt~%")
-            (csym::fprintf fp "%8.4lf, %8.4lf~%" firstinsert otherinsert)
-            (csym::fprintf fp "~%")
+        (%ifndef* DISTRIBUTED
+            (%if* (or (eq 'MKTREE-METHOD 'MERGE)
+                      (eq 'MKTREE-METHOD 'MERGE-PROB))
+                (csym::fprintf fp "1stinsrt  othrinsrt~%")
+                (csym::fprintf fp "%8.4lf, %8.4lf~%" firstinsert otherinsert)
+                (csym::fprintf fp "~%")
+                )
             )
 
         (%ifdef* MKTREE-PROFILE
@@ -434,11 +443,13 @@
     (csym::gettimeofday tp 0)
     (maketree bodytab nbody)
     (csym::gettimeofday (+ tp 1) 0)
-    (%if* (or (eq 'MKTREE-METHOD 'MERGE)
-              (eq 'MKTREE-METHOD 'MERGE-PROB))
-        (if old-root
-            (+= otherinsert (csym::elapsed-time tp))
-            (+= firstinsert (csym::elapsed-time tp))
+    (%ifndef* DISTRIBUTED
+        (%if* (or (eq 'MKTREE-METHOD 'MERGE)
+                  (eq 'MKTREE-METHOD 'MERGE-PROB))
+            (if old-root
+                (+= otherinsert (csym::elapsed-time tp))
+                (+= firstinsert (csym::elapsed-time tp))
+                )
             )
         )
     (+= mktreetime (csym::elapsed_time tp))
