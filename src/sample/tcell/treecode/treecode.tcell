@@ -22,6 +22,9 @@
 (c-exp "#include <time.h>")
 
 (%ifdef* USEMPI
+    (%ifndef* GATHER-METHOD
+        (%defconstant GATHER-METHOD MPI-GATHERV)
+        )
     (c-exp "#include <mpi.h>")
     )
 
@@ -89,6 +92,21 @@
 ; declarations of functions and global variables
 ;------------------------------------------------------------------------------
 
+(%ifdef* USEMPI
+    (decl (mpi-init isroot) (wfn void bool))
+
+    (def MPI_MERGE_BODY MPI_Op)
+
+    (def MPI_BODY MPI_Datatype)
+    (def MPI_UPDATEDBODY MPI_Datatype)
+    (def (struct updated-body)
+        (def index int)
+        (def acc vector)
+        (def phi real)
+        )
+    (deftype updated-body (struct updated-body))
+    )
+
 ; default values for input parameters
 (extern defv (array string))
 
@@ -130,15 +148,24 @@
 
 (%ifdef DISTRIBUTED (
     (static brcasttime double 0.0)
+    (static gathertime double 0.0)
     (static bodytab-initialized bool FALSE)
     (static celltab-initialized bool FALSE)
     ))
+(%ifdef* USEMPI
+    (static mympirank int)
+    (static mympisize int)
+    (static nupdated-bodies int 0)
+    (static updated-bodies (ptr updated-body) NULL)
+    (static updated-bodies-mutex pthread-mutex-t PTHREAD-MUTEX-INITIALIZER)
+    )
 
 
 (%defconstant PROGNAME "treecode")
 (%defconstant MAX_ARGLINE 1024)
 
 (extern sv_socket int)
+(extern tcell-bcst-wait-bcak int)
 
 
 ;------------------------------------------------------------------------------
@@ -212,6 +239,8 @@
     (def i int)
     (def tp (array (struct timeval) 2))
     
+    (%ifdef* USEMPI (mpi-init TRUE))
+    
     (csym::initparam (fref this argv) defv)
     (= headline (+ (aref defv 0) 1))
     (csym::startrun)
@@ -220,12 +249,21 @@
                              "compile-time options: "
                     (%ifdef* DISTRIBUTED
                              "DISTRIBUTED "
-                             (%ifdef* USEMPI "USEMPI ")
+                        (%ifdef* USEMPI
+                             "USEMPI "
+                             "GATHER-METHOD=" GATHER-METHOD " ")
                      %else
                              "SHARED "
                              "MKTREE-METHOD=" MKTREE-METHOD " ")
                              "~%"))
     (%ifdef* FORCEREPORT (csym::startoutput))
+
+    (%ifdef* USEMPI 
+        (%if* (eq 'GATHER-METHOD 'MPI-GATHERV)
+            (= updated-bodies (csym::allocate (* nbody (sizeof updated-body))))
+            )
+        )
+
     (csym::gettimeofday tp 0)
     (if (== nstep 0)
         (begin
@@ -261,9 +299,9 @@
         (csym::fprintf stderr " time[s.]  %8.4lf  %9.4lf  %9.4lf  %9.4lf~%"
                               mktreetime grcalctime pscalctime (csym::elapsed-time tp))
      %else
-        (csym::fprintf stderr "       maketree  broadcast  gravcalc  stepsystem  total~%")
-        (csym::fprintf stderr " time  %.4lf s  %.4lf s  %.4lf s  %.4lf s  %.4lf s~%"
-                              mktreetime brcasttime grcalctime pscalctime (csym::elapsed-time tp))
+        (csym::fprintf stderr "       maketree  broadcast  gravcalc  gather  stepsystem  total~%")
+        (csym::fprintf stderr " time  %.4lf s  %.4lf s  %.4lf s  %.4lf s  %.4lf s  %.4lf s~%"
+                              mktreetime brcasttime grcalctime gathertime pscalctime (csym::elapsed-time tp))
         )
     (csym::fprintf stderr "~%")
     (csym::fprintf stderr "             maketree  newtree  expandbox  insrttree  hackcofm  thrdtree~%")
@@ -327,9 +365,9 @@
             (csym::fprintf fp "%.4lf, %.4lf, %.4lf, %.4lf~%"
                               mktreetime grcalctime pscalctime (csym::elapsed-time tp))
          %else
-            (csym::fprintf fp "maketree, broadcast, gravcalc, stepsystem, total~%")
-            (csym::fprintf fp "%.4lf, %.4lf, %.4lf, %.4lf, %.4lf~%"
-                              mktreetime brcasttime grcalctime pscalctime (csym::elapsed-time tp))
+            (csym::fprintf fp "maketree, broadcast, gravcalc, gather, stepsystem, total~%")
+            (csym::fprintf fp "%.4lf, %.4lf, %.4lf, %.4lf, %.4lf, %.4lf~%"
+                              mktreetime brcasttime grcalctime gathertime pscalctime (csym::elapsed-time tp))
             )
         (csym::fprintf fp "~%")
         (csym::fprintf fp "maketree, newtree, expandbox, insrttree, hackcofm, thrdtree~%")
@@ -377,14 +415,152 @@
 
 
 ;------------------------------------------------------------------------------
-; bcast: task definition for broadcasting bodies and cells
+; mpi-init
 ;------------------------------------------------------------------------------
 
-(%ifdef DISTRIBUTED
-(
-(def (task bcast))
+(%ifdef* USEMPI
+(def (task mpi-init))
 
-(def (task-sender bcast)
+(def (merge-updated-bodies invec inoutvec len datatype)
+     (fn void (ptr void) (ptr void) (ptr int) (ptr MPI_Datatype))
+    (def i int)
+    (def inbodies bodyptr (cast bodyptr invec))
+    (def inoutbodies bodyptr (cast bodyptr inoutvec))
+    (csym::assert (== (mref datatype) MPI_BODY))
+
+    (for ((= i 0) (< i (mref len)) (inc i))
+        (def j int)
+        (def in-p bodyptr (+ inbodies i))
+        (def out-p bodyptr (+ inoutbodies i))
+
+        (csym::ADDV (csym::Acc out-p) (csym::Acc out-p) (csym::Acc in-p))
+        (+= (csym::Phi out-p) (csym::Phi in-p))
+        )
+    )
+
+(def (mpi-init isroot)
+     (wfn void bool)
+    (if isroot
+        (begin
+	(= tcell-bcst-wait-bcak 1)
+        (tcell-broadcast mpi-init (:put ))
+        ))
+
+    (MPI_Comm_rank MPI_COMM_WORLD (ptr mympirank))
+    (MPI_Comm_size MPI_COMM_WORLD (ptr mympisize))
+
+    (MPI_Op_create (ptr merge-updated-bodies) TRUE (ptr MPI_MERGE_BODY))
+
+    ;; [Note] The size of |nindex| struct might be 8 bytes, not 6 bytes
+    ;;       due to the memory alignment. Field displacements must be calculated
+    ;;       according to the actual struct sizes.
+    (def nodesize int (sizeof node))
+    (def b (array int 9) (array 1 1 1 3 1 1 3 3 1))
+    (%ifdef* DOUBLEPREC
+        (def d (array MPI_Aint 9)
+            (array 0 2 4 12 36 38 nodesize (+ nodesize 24) (+ nodesize 48))) 
+        (def t (array MPI_Datatype 9)
+            (array MPI_SHORT MPI_SHORT MPI_DOUBLE MPI_DOUBLE MPI_SHORT
+                   MPI_INT MPI_DOUBLE MPI_DOUBLE MPI_DOUBLE))
+     %else
+        (def d (array MPI_Aint 9)
+            (array 0 2 4 8 20 22 nodesize (+ nodesize 12) (+ nodesize 24))) 
+        (def t (array MPI_Datatype 9)
+            (array MPI_SHORT MPI_SHORT MPI_FLOAT MPI_FLOAT MPI_SHORT
+                   MPI_INT MPI_FLOAT MPI_FLOAT MPI_FLOAT))
+        )
+    (MPI_Type_struct 9 b d t (ptr MPI_BODY))
+    (if (!= (MPI_Type_commit (ptr MPI_BODY)) MPI_SUCCESS)
+        (error "MPI_Type_commit failed.")
+	)
+    
+    (def b2 (array int 3) (array 1 3 1))
+    (%ifdef* DOUBLEPREC
+        (def d2 (array MPI_Aint 3) (array 0 4 28))
+        (def t2 (array MPI_Datatype 3) (array MPI_INT MPI_DOUBLE MPI_DOUBLE))
+     %else
+        (def d2 (array MPI_Aint 3) (array 0 4 16))
+        (def t2 (array MPI_Datatype 3) (array MPI_INT MPI_FLOAT MPI_FLOAT))
+        )
+    (MPI_Type_struct 3 b2 d2 t2 (ptr MPI_UPDATEDBODY))
+    (if (!= (MPI_Type_commit (ptr MPI_UPDATEDBODY)) MPI_SUCCESS)
+        (error "MPI_Type_commit failed.")
+	)
+    )
+    
+(def (task-body mpi-init)
+    (mpi-init FALSE)
+    )
+
+)  ; ======== end of %ifdef* USEMPI =========
+
+
+;------------------------------------------------------------------------------
+; bcast-tree: task definition for broadcasting bodies and cells
+;------------------------------------------------------------------------------
+
+(%ifdef* DISTRIBUTED
+(%ifdef* USEMPI
+
+(def (task bcast-tree)
+    (def root int)
+    (def usequad int)
+    (def eps real)
+    (def nbody int)
+    (def ncell int)
+    )
+
+(def (task-sender bcast-tree)
+    (send-int this.root)
+    (send-int this.usequad)
+    (send-real this.eps)
+    (send-int this.nbody)
+    (send-int this.ncell)
+    )
+
+(def (task-receiver bcast-tree)
+    (= this.root (recv-int))
+    (= usequad (recv-int))
+    (= eps (recv-real))
+    (= nbody (recv-int))
+    (= ncell (recv-int))
+    (if (== updated-bodies NULL)
+        (= updated-bodies (csym::allocate (* nbody (sizeof updated-body))))
+        )
+    (if (not bodytab-initialized)
+        (begin
+        (= bodytab-initialized TRUE)
+        (= bodytab (csym::allocate (* nbody (sizeof body))))
+        ))
+    (MPI_Bcast bodytab (* nbody (sizeof body)) MPI_BYTE this.root MPI_COMM_WORLD)
+    (if (not celltab-initialized)
+        (begin
+        (= celltab-initialized TRUE)
+        (= celltab (csym::allocate (* nbody (sizeof cell))))
+        ))
+    (MPI_Bcast celltab (* ncell (sizeof cell)) MPI_BYTE this.root MPI_COMM_WORLD)
+    )
+
+(def (bcast-tree)
+     (wfn void)
+    (= tcell-bcst-wait-bcak 0)
+    (tcell-broadcast bcast-tree
+        (:put
+        (= this.root mympirank)
+        (= this.usequad usequad)
+        (= this.eps eps)
+        (= this.nbody nbody)
+        (= this.ncell ncell)
+        ))
+    (MPI_Bcast bodytab (* nbody (sizeof body)) MPI_BYTE mympirank MPI_COMM_WORLD)
+    (MPI_Bcast celltab (* ncell (sizeof cell)) MPI_BYTE mympirank MPI_COMM_WORLD)
+    )
+
+%else
+
+(def (task bcast-tree))
+
+(def (task-sender bcast-tree)
     ; ======== global options ========
     (csym::send-int usequad)
     (csym::send-real eps)
@@ -398,7 +574,7 @@
     (csym::send-binary-terminator)
     )
 
-(def (task-receiver bcast)
+(def (task-receiver bcast-tree)
     ; ======== global options ========
     (= usequad (csym::recv-int))
     (= eps (csym::recv-real))
@@ -422,9 +598,111 @@
     (csym::recv-binary-terminator)
     )
 
-(def (task-body bcast))
+(def (bcast-tree)
+     (wfn void)
+    (= tcell-bcst-wait-bcak 1)
+    (tcell-broadcast bcast-tree (:put))
+    )
 
-))  ; ======== end of %ifdef ========
+
+)  ; ======== end of %ifdef* USEMPI ========
+
+(def (task-body bcast-tree))
+
+)  ; ======== end of %ifdef* DISTRIBUTED ========
+
+
+;------------------------------------------------------------------------------
+; gather-bodies:
+;------------------------------------------------------------------------------
+
+(%ifdef* USEMPI
+
+(def (task gather-bodies)
+    (def root int :in)
+    )
+
+(def (gather-bodies)
+     (wfn void)
+    (= tcell-bcst-wait-bcak 0)
+    (tcell-broadcast gather-bodies
+        (:put
+        (= this.root mympirank)
+        ))
+    
+    (%if* (eq 'GATHER-METHOD 'MPI-GATHERV)
+        (def i int)
+        (def recvcounts (ptr int))
+        (def recvdispls (ptr int))
+        (def recvtotal int)
+        (def bodybuf (ptr updated-body))
+        
+        (= recvcounts (csym::allocate (* mympisize (sizeof int))))
+        (MPI_Gather (ptr nupdated-bodies) 1 MPI_INT
+                    recvcounts 1 MPI_INT mympirank MPI_COMM_WORLD)
+        (= recvdispls (csym::allocate (* mympisize (sizeof int))))
+        (for ((= i 0) (< i mympisize) (inc i))
+            (if (== i 0)
+                (= (aref recvdispls i) 0)
+                (= (aref recvdispls i) (+ (aref recvdispls (- i 1))
+                                          (aref recvcounts (- i 1))))
+                )
+            )
+        (= recvtotal (+ (aref recvdispls (- mympisize 1))
+                        (aref recvcounts (- mympisize 1))))
+        (if (!= recvtotal nbody)
+            (begin
+            (for ((= i 0) (< i mympisize) (inc i))
+                (csym::fprintf stderr "recvcounts[%d] = %d~%" i (aref recvcounts i))
+                )
+            (csym::error "gather-bodies: could not gather all bodies.~%")
+            ))
+        (= bodybuf (csym::allocate (* recvtotal (sizeof updated-body))))
+        (MPI_Gatherv updated-bodies nupdated-bodies MPI_UPDATEDBODY
+                     bodybuf recvcounts recvdispls MPI_UPDATEDBODY
+                     mympirank MPI_COMM_WORLD)
+        (for ((= i 0) (< i recvtotal) (inc i))
+            (def p bodyptr (+ bodytab (fref (aref bodybuf i) index)))
+            (csym::SETV (csym::Acc p) (fref (aref bodybuf i) acc))
+            (= (csym::Phi p) (fref (aref bodybuf i) phi))
+            )
+        
+        (= nupdated-bodies 0)
+        (csym::free bodybuf)
+        (csym::free recvdispls)
+        (csym::free recvcounts)
+        )  ; end of %if* MPI-GATHERV
+    (%if* (eq 'GATHER-METHOD 'MPI-REDUCE)
+        (def tmp bodyptr)
+        (static bodybuf bodyptr NULL)
+        (if (== bodybuf NULL)
+            (= bodybuf (csym::allocate (* (sizeof body) nbody)))
+            )
+        (MPI_Reduce bodytab bodybuf nbody
+                    MPI_BODY MPI_MERGE_BODY mympirank MPI_COMM_WORLD)
+        (= tmp bodytab)
+        (= bodytab bodybuf)
+        (= bodybuf tmp)
+        )  ; end of %if* MPI-REDUCE
+    )  ; end of function |gather-bodies|
+
+
+(def (task-body gather-bodies)
+    (%if* (eq 'GATHER-METHOD 'MPI-GATHERV)
+        (MPI_Gather (ptr nupdated-bodies) 1 MPI_INT
+                    NULL 0 MPI_INT this.root MPI_COMM_WORLD)
+        (MPI_Gatherv updated-bodies nupdated-bodies MPI_UPDATEDBODY
+                     NULL NULL NULL MPI_UPDATEDBODY
+                     this.root MPI_COMM_WORLD)
+        (= nupdated-bodies 0)
+        )  ; end of %if* MPI-GATHERV
+    (%if* (eq 'GATHER-METHOD 'MPI-REDUCE)
+        (MPI_Reduce bodytab NULL nbody
+                    MPI_BODY MPI_MERGE_BODY this.root MPI_COMM_WORLD)
+        )  ; end of %if* MPI-REDUCE
+    )  ; end of task-body |gather-bodies|
+
+)  ; ======== end of %ifdef* USEMPI ========
 
 
 ;------------------------------------------------------------------------------
@@ -438,6 +716,12 @@
     
     (for ((= p bodytab) (< p (+ bodytab nbody)) (inc p))
         (= (csym::Update p) TRUE)
+        (%ifdef* USEMPI
+            (%if* (eq 'GATHER-METHOD 'MPI-REDUCE)
+                (csym::CLRV (csym::Acc p))
+                (= (csym::Phi p) 0.0)
+                )
+            )
         )
 
     (csym::gettimeofday tp 0)
@@ -458,9 +742,7 @@
         (= bodytab-initialized TRUE)
         (= celltab-initialized TRUE)
         (csym::gettimeofday tp 0)
-        (tcell-broadcast bcast
-            (:put )
-            )
+        (bcast-tree)
         (csym::gettimeofday (+ tp 1) 0)
         (+= brcasttime (csym::elapsed_time tp))
         ))
@@ -469,6 +751,13 @@
     (gravcalc)
     (csym::gettimeofday (+ tp 1) 0)
     (+= grcalctime (csym::elapsed_time tp))
+    
+    (%ifdef* USEMPI
+        (csym::gettimeofday tp 0)
+        (gather-bodies)
+        (csym::gettimeofday (+ tp 1) 0)
+        (+= gathertime (csym::elapsed_time tp))
+        )        
     
     (%ifdef FORCEREPORT (
         (csym::forcereport)

@@ -1622,6 +1622,7 @@
 
 
 ;;; ワーカがブロードキャストを実行するとき、put後に呼ばれる
+(def tcell-bcst-wait-bcak int 1)
 (def (csym::broadcast-task thr task-no body)
    (csym::fn void (ptr (struct thread-data)) int (ptr void))
   (def bcmd (struct cmd))
@@ -1639,11 +1640,13 @@
 
   ;; bcak 待ちフラグを立てて、bcak が来るまで待機
   ;; 待ちフラグが消えていたら、関数を抜ける（フラグは recv-bcak 関数内で消える）
-  (csym::pthread-mutex-lock (ptr thr->mut))
-  (= thr->w-bcak 1)
-  (while thr->w-bcak
-    (csym::pthread-cond-wait (ptr thr->cond) (ptr thr->mut)))
-  (csym::pthread-mutex-unlock (ptr thr->mut)))
+  (if tcell-bcst-wait-bcak
+    (begin
+      (csym::pthread-mutex-lock (ptr thr->mut))
+      (= thr->w-bcak 1)
+      (while thr->w-bcak
+        (csym::pthread-cond-wait (ptr thr->cond) (ptr thr->mut)))
+      (csym::pthread-mutex-unlock (ptr thr->mut)))))
    
 
 ;;; Handling command-line options

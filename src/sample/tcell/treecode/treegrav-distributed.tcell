@@ -58,7 +58,9 @@
     (= nbccalc 0)
     (= (aref active 0) (cast nodeptr (+ celltab root)))
     (csym::CLRV rmid)
-    (= ub (csym::allocate (* nbody (sizeof int))))
+    (%ifndef* USEMPI
+        (= ub (csym::allocate (* nbody (sizeof int))))
+        )
     (= ubn 0)
     
     (walktree active (+ active 1) interact interact (+ interact actlen)
@@ -71,7 +73,9 @@
     (= cpuforce (- (csym::cputime) cpustart))
     (csym::free active)
     (csym::free interact)
-    (csym::free ub)
+    (%ifndef* USEMPI
+        (csym::free ub)
+        )
     )
 
 
@@ -116,7 +120,11 @@
             (if (!= (csym::Type p) BODY)
                 (csym::error "walktree: recursion terminated with cell~%")
                 )
-            (= (mref (+ ub (inc (mref ubn)))) (- (cast bodyptr p) bodytab))
+            (%ifndef* USEMPI
+                (= (mref (+ ub (inc (mref ubn)))) (- (cast bodyptr p) bodytab))
+             %else
+                (inc (mref ubn))
+                )
             (csym::gravsum (cast bodyptr p) iptr cptr bptr nbbcalc- nbccalc-)
             ))
         ))
@@ -192,6 +200,7 @@
     (def j2 int (fref this j2))
     (def subp (ptr (struct nindex)) (fref this subp))
     
+;   (csym::printf "Debug: Rank %d: Will send walk task~%" mpirank)
     ; ======== active list ========
     (csym::send-binary-header (sizeof (struct nindex)) acn)
     (csym::send-binary ac (sizeof (struct nindex)) acn sv-socket)
@@ -221,6 +230,7 @@
     (def j2 int)
     (def subp (ptr (struct nindex)) (fref this subp))
     
+;   (csym::printf "Debug: Rank %d: Will receive walk task~%" mpirank)
     ; ======== active list ========
     (csym::recv-binary-header NULL (ptr acn))
     (= ac (csym::allocate (* acn (sizeof (struct nindex)))))
@@ -247,8 +257,10 @@
     (= (fref this j1) j1)
     (= (fref this j2) j2)
     ; ======== initialize for sending result ========
-    (= (fref this ub) (csym::allocate (* nbody (sizeof int))))
+    (%ifndef* USEMPI
+        (= (fref this ub) (csym::allocate (* nbody (sizeof int))))
                                        ; will be freed at rslt-sender
+        )
     (= (fref this ubn) 0)
     )
 
@@ -256,18 +268,24 @@
     (def i int)
     (def ubn int (fref this ubn))
     (def ub (ptr int) (fref this ub))
-    
+
+;   (csym::printf "Debug: Rank %d: Will send walk result~%" mpirank)
+
     (csym::send-int ubn)
-    (for ((= i 0) (< i ubn) (inc i))
-        (def id int (mref (+ ub i)))
-        (def b bodyptr (+ bodytab id))
-        (csym::send-int id)
-        (csym::send-real (csym::Phi b))
-        (csym::send-vector (csym::Acc b))
+    (%ifndef* USEMPI
+        (for ((= i 0) (< i ubn) (inc i))
+            (def id int (mref (+ ub i)))
+            (def b bodyptr (+ bodytab id))
+            (csym::send-int id)
+            (csym::send-real (csym::Phi b))
+            (csym::send-vector (csym::Acc b))
+            )
         )
     (csym::free (fref this ac))
     (csym::free (fref this it))
-    (csym::free ub)
+    (%ifndef* USEMPI
+        (csym::free ub)
+        )
     
     (csym::send-int this.nbbcalc)
     (csym::send-int this.nbccalc)
@@ -275,18 +293,20 @@
 
 (def (rslt-receiver walk)
     (def i int)
-    (def ubn int (csym::recv-int))
     (def ub (ptr int) (fref this ub))
     
-    (for ((= i 0) (< i ubn) (inc i))
-        (def id int (csym::recv-int))
-        (= (mref (+ ub i)) id)
-        (def b bodyptr (+ bodytab id))
-        (= (csym::Phi b) (csym::recv-real))
-        (csym::recv-vector (csym::Acc b))
+;   (csym::printf "Debug: Rank %d: Will receive walk result~%" mpirank)
+
+    (= this.ubn (csym::recv-int))
+    (%ifndef* USEMPI
+        (for ((= i 0) (< i this.ubn) (inc i))
+            (def id int (csym::recv-int))
+            (= (mref (+ ub i)) id)
+            (def b bodyptr (+ bodytab id))
+            (= (csym::Phi b) (csym::recv-real))
+            (csym::recv-vector (csym::Acc b))
+            )
         )
-    (= (fref this ubn) ubn)
-    
     (= this.nbbcalc (csym::recv-int))
     (= this.nbccalc (csym::recv-int))
     )
@@ -326,11 +346,15 @@
     (= this.nbbcalc 0)
     (= this.nbccalc 0)
     
-    (walkcell nptr np iptr cptr bptr this.psize this.pmid this.ub. (ptr this.ubn)
+    (walkcell nptr np iptr cptr bptr this.psize this.pmid this.ub (ptr this.ubn)
               this.subp (ptr this.nbbcalc) (ptr this.nbccalc) this.j1 this.j2)
   
+;   (csym::printf "Debug: Rank %d: Did finish walk task~%" mpirank)
+   
     (csym::free nptr)
     (csym::free iptr)
+
+;   (csym::printf "Debug: Rank %d: Will return from walk task~%" mpirank)
     )
 
 
@@ -394,22 +418,27 @@
         ; We must allocate memory for ub HERE!
         ; Because if destination worker is in local environment, tascell framework
         ;  seemingly does not call task-sender/reciever functions.
-        (= (fref this ub) (csym::allocate (* nbody (sizeof int))))
+        (%ifndef* USEMPI
+            (= (fref this ub) (csym::allocate (* nbody (sizeof int))))
+            )
         (= (fref this ubn) 0)
         )
         
         (:get
-        (def i int)
-        (def thisub (ptr int) (fref this ub))
-        (def thisubn int (fref this ubn))
-        (for ((= i 0) (< i thisubn) (inc i))
-            (= (mref (+ ub (inc (mref ubn)))) (mref (+ thisub i)))
+        (%ifdef* USEMPI
+	    (+= (mref ubn) this.ubn)
+	 %else
+            (def i int)
+            (def thisub (ptr int) (fref this ub))
+            (def thisubn int (fref this ubn))
+            (for ((= i 0) (< i thisubn) (inc i))
+                (= (mref (+ ub (inc (mref ubn)))) (mref (+ thisub i)))
+                )
+            (csym::free (fref this ub))
             )
-      
         (+= (mref nbbcalc-) this.nbbcalc)
         (+= (mref nbccalc-) this.nbccalc)
       
-        (csym::free (fref this ub))
         (csym::free (fref this ac))
         (csym::free (fref this it))
         )))
@@ -435,8 +464,24 @@
         )
     (csym::sumnode bptr (+ iptr actlen) pos0 (ptr phi0) acc0)
   
-    (= (csym::Phi p0) phi0)
-    (csym::SETV (csym::Acc p0) acc0)
+    (%ifdef* USEMPI
+        (%if* (eq 'GATHER-METHOD 'MPI-GATHERV)
+            (def n int)
+            (csym::pthread-mutex-lock (ptr updated-bodies-mutex))
+            (= n (inc nupdated-bodies))
+            (csym::pthread-mutex-unlock (ptr updated-bodies-mutex))
+            (= (fref (aref updated-bodies n) index) (csym::PointerToIndex p0))
+            (csym::SETV (fref (aref updated-bodies n) acc) acc0)
+            (= (fref (aref updated-bodies n) phi) phi0)
+            )
+        (%if* (eq 'GATHER-METHOD 'MPI-REDUCE)
+            (= (csym::Phi p0) phi0)
+            (csym::SETV (csym::Acc p0) acc0)
+            )
+     %else
+        (= (csym::Phi p0) phi0)
+        (csym::SETV (csym::Acc p0) acc0)
+        )
     (+= (mref nbbcalc-) (- (+ iptr actlen) bptr))
     (+= (mref nbccalc-) (- cptr iptr))
     )
