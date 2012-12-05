@@ -11,17 +11,17 @@
 ; declarations of functions and global variables
 ;------------------------------------------------------------------------------
 
-(decl (walktree aptr nptr iptr cptr bptr p psize pmid nbbcalc- nbccalc-)
+(decl (walktree aptr nptr iptr cptr bptr p psize pmid lev nbbcalc- nbccalc-)
       (wfn void (ptr nodeptr) (ptr nodeptr) cellptr cellptr cellptr
-                nodeptr real vector (ptr int) (ptr int)))
-(decl (walksub nptr np iptr cptr bptr p psize pmid nbbcalc- nbccalc-)
+                nodeptr real vector int (ptr int) (ptr int)))
+(decl (walksub nptr np iptr cptr bptr p psize pmid lev nbbcalc- nbccalc-)
       (wfn void (ptr nodeptr) (ptr nodeptr) cellptr cellptr cellptr
-                nodeptr real vector (ptr int) (ptr int)))
-(decl (walkcell nptr np iptr cptr bptr psize pmid subp nbbcalc- nbccalc- i1 i2)
+                nodeptr real vector int (ptr int) (ptr int)))
+(decl (walkcell nptr np iptr cptr bptr psize pmid subp lev nbbcalc- nbccalc- i1 i2)
       (wfn void (ptr nodeptr) (ptr nodeptr) cellptr cellptr cellptr
-                real vector (array nodeptr) (ptr int) (ptr int) int int))
+                real vector (array nodeptr) int (ptr int) (ptr int) int int))
 
-(decl (accept c psize pmid)
+(decl (bh-accept c psize pmid)
       (fn bool nodeptr real vector))
 (decl (gravsum p0 iptr cptr bptr nbbcalc- nbccalc-)
       (fn void bodyptr cellptr cellptr cellptr (ptr int) (ptr int)))
@@ -34,6 +34,28 @@
 (%defconstant FACTIVE 0.75)
 (static actlen int)
 
+
+(%defconstant USE-PROBGUARD 1)
+(%defconstant WALK-PROB-TYPE LINEAR)  ; one of LINEAR, MIN
+
+(%ifdef* USE-PROBGUARD
+    (%if* (eq 'WALK-PROB-TYPE 'LINEAR)
+        (def (walk-probability lev)
+             (fn double int)
+            (return (/ (cast double (- tdepth lev)) (cast double tdepth))))
+
+     %else (%if* (eq 'WALK-PROB-TYPE 'MIN)
+        (def (walk-probability subp i1 i2)
+             (fn double (array nodeptr) int int)
+            (def i int)
+            (def mass real 0.0)
+            (for ((= i i1) (< i i2) (inc i))
+                 (def p nodeptr (aref subp i))
+                 (+= mass (csym::Mass p))
+                 )
+            (return (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ mass 1.0))))))
+        ))
+    )
 
 ;------------------------------------------------------------------------------
 ; gravcalc
@@ -57,9 +79,17 @@
     (= (aref active 0) (cast nodeptr root))
     (csym::CLRV rmid)
     
+    (%ifdef* USE-PROBGUARD
+        (= PROBABILITY 1.0))
     (walktree active (+ active 1) interact interact (+ interact actlen)
-              (cast nodeptr root) rsize rmid (ptr nbbcalc) (ptr nbccalc))
-    
+              (cast nodeptr root) rsize rmid 0 (ptr nbbcalc) (ptr nbccalc))
+    (%ifdef* USE-PROBGUARD
+        (def i int)
+        (for ((= i 0) (< i num-thrs) (inc i))
+            (= (fref (cast (ptr (struct thread-data)) (+ threads i)) -> probability) 1.0)
+            )
+        )
+
     (= cpuforce (- (csym::cputime) cpustart))
     (csym::free active)
     (csym::free interact)
@@ -70,9 +100,9 @@
 ; walktree
 ;------------------------------------------------------------------------------
 
-(def (walktree aptr nptr iptr cptr bptr p psize pmid nbbcalc- nbccalc-)
+(def (walktree aptr nptr iptr cptr bptr p psize pmid lev nbbcalc- nbccalc-)
      (wfn void (ptr nodeptr) (ptr nodeptr) cellptr cellptr cellptr
-               nodeptr real vector (ptr int) (ptr int))
+               nodeptr real vector int (ptr int) (ptr int))
     (def np (ptr nodeptr))
     (def ap (ptr nodeptr))
     (def q nodeptr)
@@ -82,7 +112,7 @@
         (= np nptr)
         (for ((= ap aptr) (< ap nptr) (inc ap))
             (if (== (csym::Type (mref ap)) CELL)
-                (if (csym::accept (mref ap) psize pmid)
+                (if (csym::bh-accept (mref ap) psize pmid)
                     (begin
                     (= (csym::Mass cptr) (csym::Mass (mref ap)))
                     (csym::SETV (csym::Pos cptr) (csym::Pos (mref ap)))
@@ -111,7 +141,7 @@
             )
         (if (!= np nptr)
             (begin
-            (walksub nptr np iptr cptr bptr p psize pmid nbbcalc- nbccalc-)
+            (walksub nptr np iptr cptr bptr p psize pmid lev nbbcalc- nbccalc-)
             )
             (begin
             (if (!= (csym::Type p) BODY)
@@ -127,9 +157,9 @@
 ; walksub
 ;------------------------------------------------------------------------------
 
-(def (walksub nptr np iptr cptr bptr p psize pmid nbbcalc- nbccalc-)
+(def (walksub nptr np iptr cptr bptr p psize pmid lev nbbcalc- nbccalc-)
      (wfn void (ptr nodeptr) (ptr nodeptr) cellptr cellptr cellptr
-               nodeptr real vector (ptr int) (ptr int))
+               nodeptr real vector int (ptr int) (ptr int))
     (def q nodeptr)
     (def k int)
     (def nmid vector)
@@ -144,7 +174,7 @@
               (= q (csym::Next q)))
             (= (aref subp (inc i)) q)
             )
-        (walkcell nptr np iptr cptr bptr psize pmid subp nbbcalc- nbccalc- 0 i)
+        (walkcell nptr np iptr cptr bptr psize pmid subp (+ lev 1) nbbcalc- nbccalc- 0 i)
         )
         (begin
         (for ((= k 0) (< k NDIM) (inc k))
@@ -152,7 +182,7 @@
                (+ (aref pmid k)
                   (if-exp (< (aref (csym::Pos p) k) (aref pmid k)) (- poff) poff)))
             )
-        (walktree nptr np iptr cptr bptr p (/ psize 2) nmid nbbcalc- nbccalc-)
+        (walktree nptr np iptr cptr bptr p (/ psize 2) nmid lev nbbcalc- nbccalc-)
         ))
     )
 
@@ -170,6 +200,7 @@
     (def psize real :in)
     (def pmid vector :in)
     (def subp (array nodeptr NSUB) :in)
+    (def lev int :in)
     (def nbbcalc int :out)
     (def nbccalc int :out)
     (def j1 int :in)
@@ -179,8 +210,15 @@
 (def (task-body walk)
     (= this.nbbcalc 0)
     (= this.nbccalc 0)
+    (%ifdef* USE-PROBGUARD
+        (%if* (eq 'WALK-PROB-TYPE 'LINEAR)
+            (= PROBABILITY (walk-probability this.lev))
+         %else (%if* (eq 'WALK-PROB-TYPE 'MIN)
+            (= PROBABILITY (walk-probability this.subp this.j1 this.j2))
+            ))
+        )
     (walkcell this.nptr this.np this.iptr this.cptr this.bptr
-              this.psize this.pmid this.subp (ptr this.nbbcalc) (ptr this.nbccalc)
+              this.psize this.pmid this.subp this.lev (ptr this.nbbcalc) (ptr this.nbccalc)
               this.j1 this.j2)
     )
 
@@ -191,12 +229,15 @@
 
 (static walk_spawn_mx pthread_mutex_t PTHREAD_MUTEX_INITIALIZER)
 
-(def (walkcell nptr np iptr cptr bptr psize pmid subp nbbcalc- nbccalc- i1 i2)
+(def (walkcell nptr np iptr cptr bptr psize pmid subp lev nbbcalc- nbccalc- i1 i2)
      (wfn void (ptr nodeptr) (ptr nodeptr) cellptr cellptr cellptr
-               real vector (array nodeptr) (ptr int) (ptr int) int int)
+               real vector (array nodeptr) int (ptr int) (ptr int) int int)
     (def k int)
     (def nmid vector)
     (def poff real (/ psize 4))
+    (%ifdef* USE-PROBGUARD
+        (def n-old-probs int 0)
+        (def old-probs (array double NDIM)))
     
     (do-many for i from i1 to i2
         (begin
@@ -206,10 +247,20 @@
                (+ (aref pmid k)
                   (if-exp (< (aref (csym::Pos q) k) (aref pmid k)) (- poff) poff)))
             )
-        (walktree nptr np iptr cptr bptr q (/ psize 2) nmid nbbcalc- nbccalc-)
+        (walktree nptr np iptr cptr bptr q (/ psize 2) nmid lev nbbcalc- nbccalc-)
         )
     (walk
         (:put from j1 to j2
+        (%ifdef* USE-PROBGUARD
+            (= (aref old-probs (inc n-old-probs)) PROBABILITY)
+            (%if* (eq 'WALK-PROB-TYPE 'LINEAR)
+                (= PROBABILITY (walk-probability lev))
+             %else (%if* (eq 'WALK-PROB-TYPE 'MIN)
+                (= PROBABILITY (walk-probability subp (if-exp (< i1 j1) i1 (+ j2 1))
+                                                      (if-exp (< j2 i2) i2 (- j1 1))))
+                ))
+            )
+
         (csym::pthread_mutex_lock (ptr walk_spawn_mx))
         (inc walk_spawned)
         (csym::pthread_mutex_unlock (ptr walk_spawn_mx))
@@ -226,10 +277,13 @@
         (= this.psize psize)
         (csym::SETV this.pmid pmid)
         (csym::memcpy this.subp subp (* (sizeof nodeptr) NSUB))
+        (= this.lev lev)
         
         (= (fref this j1) j1) (= (fref this j2) j2)
         )
         (:get
+        (%ifdef* USE-PROBGUARD
+            (= PROBABILITY (aref old-probs (dec n-old-probs))))
         (+= (mref nbbcalc-) this.nbbcalc)
         (+= (mref nbccalc-) this.nbccalc)
         (csym::free (fref this nptr))

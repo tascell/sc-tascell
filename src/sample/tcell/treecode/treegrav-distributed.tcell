@@ -21,7 +21,7 @@
       (wfn void (ptr nodeptr) (ptr nodeptr) (ptr cellptr) (ptr cellptr) (ptr cellptr)
                 real vector (ptr int) (ptr int) (ptr (struct nindex)) (ptr int) (ptr int) int int))
 
-(decl (accept c psize pmid)
+(decl (bh-accept c psize pmid)
       (fn bool nodeptr real vector))
 (decl (gravsum p0 iptr cptr bptr nbbcalc- nbccalc-)
       (fn void bodyptr (ptr cellptr) (ptr cellptr) (ptr cellptr) (ptr int) (ptr int)))
@@ -89,10 +89,8 @@
         (= np nptr)
         (for ((= ap aptr) (< ap nptr) (inc ap))
             (if (== (csym::Type (mref ap)) CELL)
-                (if (csym::accept (mref ap) psize pmid)
-                    (begin
+                (if (bh-accept (mref ap) psize pmid)
                     (= (mref (inc cptr)) (cast cellptr (mref ap)))
-                    )
                     (begin
 ;                   (if (>= (- np active) actsafe)
 ;                       (csym::error "walktree: active list overflow~%")
