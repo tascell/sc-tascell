@@ -146,7 +146,7 @@
                 (= r->head NULL)
                 (= r->tail NULL)
                 )
-            (%ifdef* USE-LEVEL-FILTER-PROB (= PROBABILITY (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ (cast double (- i2 i1)) (cast double nbody)))))))
+            (%ifdef* USE-LEVEL-FILTER-PROB (= PROBABILITY (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ (cast double (- j1 i)) (cast double nbody)))))))
             )
         (:get
             (def j int)
@@ -231,20 +231,19 @@
         )
     (load-outer-filter
         (:put from j1 to j2
+            (def j int)
             (%ifdef* USE-LEVEL-FILTER-PROB
-                (def i int)
                 (def n int 0)
                 (def bucket (ptr (struct bucket)) ring->head)
-                (for ((= i 0) (< i i1) (inc i))
+                (for ((= j 0) (< j i) (inc j))
                      (= bucket bucket->next)
                      )
-                (for ((= i i1) (< i i2) (inc i))
+                (for ((= j i) (< j j1) (inc j))
                      (+= n bucket->nbody)
                      (= bucket bucket->next)
                      )
                 (= PROBABILITY (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ (cast double n) (cast double nbody))))))
                 )
-            (def j int)
             (= this.ring ring)
             (= this.i1 j1)
             (= this.i2 j2)
@@ -348,7 +347,7 @@
                 (= r->head NULL)
                 (= r->tail NULL)
                 )
-            (%ifdef* USE-LEVEL-FILTER-PROB (= PROBABILITY (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ (cast double (- i2 i1)) (cast double nbody)))))))
+            (%ifdef* USE-LEVEL-FILTER-PROB (= PROBABILITY (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ (cast double (- j1 i)) (cast double nbody)))))))
             )
         (:get
             (def j int)
@@ -476,8 +475,7 @@
             (= this.i1 j1)
             (= this.i2 j2)
             (%ifdef* USE-LEVEL-PROB
-                 (= PROBABILITY (level-probability subrings (if-exp (< i1 j1) i1 j2)
-                                                            (if-exp (< j2 i2) i2 j1))))
+                 (= PROBABILITY (level-probability subrings i j1)))
             )
         (:get
             )
