@@ -336,11 +336,11 @@
     (csym::fprintf stderr "~%")
 
     (%ifdef* MKTREE-PROFILE
-        (csym::fprintf stderr "worker | breceived binserted bratio | treceived tfailed |   worktime  checktime  inserttime  redundant  1stmergetime  rstmergetime  puttime~%")
+        (csym::fprintf stderr "%11s%11s%11s%11s%11s%11s~%"
+                       "workerid" "breceived" "binserted" "bratio" "treceived" "tfailed")
         (for ((= i 0) (< i num-thrs) (inc i))
              (def wkdata (ptr (struct worker-data)) (cast (ptr (struct worker-data)) (fref (aref threads i) wdptr)))
-             (csym::fprintf stderr
-                 "%6d | %9d %9d %6.3f | %9d %7d | %7.2f ms %7.2f ms   %6.2f ms  %6.2f ms  %9.2f ms  %9.2f ms  %5.2f ms~%"
+             (csym::fprintf stderr "%11d%11d%11d%11.3f%11d%11d~%"
                  i
                  (fref wkdata -> received-bodies)
                  (fref wkdata -> inserted-bodies)
@@ -348,6 +348,14 @@
                     (cast double (fref wkdata -> received-bodies)))
                  (fref wkdata -> received-task)
                  (fref wkdata -> failed-task)
+                 )
+             )
+        (csym::fprintf stderr "~%")
+        (csym::fprintf stderr "%11s%11s%11s%11s%11s%11s%11s [ms]~%"
+                       "worktime" "checktime" "inserttime" "redundant" "fstmgtime" "rstmgtime" "puttime")
+        (for ((= i 0) (< i num-thrs) (inc i))
+             (def wkdata (ptr (struct worker-data)) (cast (ptr (struct worker-data)) (fref (aref threads i) wdptr)))
+             (csym::fprintf stderr "%11.2f%11.2f%11.2f%11.2f%11.2f%11.2f%11.2f~%"
                  (/ (fref wkdata -> working-time) 1000000.0)
                  (/ (fref wkdata -> checking-time) 1000000.0)
                  (/ (fref wkdata -> inserting-time) 1000000.0)
