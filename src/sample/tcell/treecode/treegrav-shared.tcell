@@ -35,10 +35,10 @@
 (static actlen int)
 
 
-(%defconstant USE-PROBGUARD 1)
+(%defconstant USE-WALK-PROB 1)
 (%defconstant WALK-PROB-TYPE MIN)  ; one of LINEAR, MIN, THRESHOLD
 
-(%ifdef* USE-PROBGUARD
+(%ifdef* USE-WALK-PROB
     (%if* (eq 'WALK-PROB-TYPE 'LINEAR)
         (def (walk-probability lev)
              (fn double int)
@@ -92,11 +92,11 @@
     (= (aref active 0) (cast nodeptr root))
     (csym::CLRV rmid)
     
-    (%ifdef* USE-PROBGUARD
+    (%ifdef* USE-WALK-PROB
         (= PROBABILITY 1.0))
     (walktree active (+ active 1) interact interact (+ interact actlen)
               (cast nodeptr root) rsize rmid 0 (ptr nbbcalc) (ptr nbccalc))
-    (%ifdef* USE-PROBGUARD
+    (%ifdef* USE-WALK-PROB
         (reset-probabilities))
 
     (= cpuforce (- (csym::cputime) cpustart))
@@ -219,7 +219,7 @@
 (def (task-body walk)
     (= this.nbbcalc 0)
     (= this.nbccalc 0)
-    (%ifdef* USE-PROBGUARD
+    (%ifdef* USE-WALK-PROB
         (%if* (eq 'WALK-PROB-TYPE 'LINEAR)
             (= PROBABILITY (walk-probability this.lev))
          %else (%if* (or (eq 'WALK-PROB-TYPE 'MIN) (eq 'WALK-PROB-TYPE 'THRESHOLD))
@@ -244,7 +244,7 @@
     (def k int)
     (def nmid vector)
     (def poff real (/ psize 4))
-    (%ifdef* USE-PROBGUARD
+    (%ifdef* USE-WALK-PROB
         (def n-old-probs int 0)
         (def old-probs (array double NDIM)))
     
@@ -260,7 +260,7 @@
         )
     (walk
         (:put from j1 to j2
-        (%ifdef* USE-PROBGUARD
+        (%ifdef* USE-WALK-PROB
             (= (aref old-probs (inc n-old-probs)) PROBABILITY)
             (%if* (eq 'WALK-PROB-TYPE 'LINEAR)
                 (= PROBABILITY (walk-probability lev))
@@ -291,7 +291,7 @@
         (= (fref this j1) j1) (= (fref this j2) j2)
         )
         (:get
-        (%ifdef* USE-PROBGUARD
+        (%ifdef* USE-WALK-PROB
             (= PROBABILITY (aref old-probs (-- n-old-probs))))
         (+= (mref nbbcalc-) this.nbbcalc)
         (+= (mref nbccalc-) this.nbccalc)

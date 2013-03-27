@@ -1,7 +1,7 @@
 (%if* (eq 'MKTREE-METHOD 'LEVEL-PROB)
-    (%defconstant USE-PROBGUARD 1)
+    (%defconstant USE-LEVEL-PROB 1)
     (%defconstant LEVEL-PROB-TYPE MIN)  ; one of MIN, THRESHOLD
-    ;(%defconstant FILTER-PROBGUARD 1)
+    ;(%defconstant USE-LEVEL-FILTER-PROB 1)
     )
 
 
@@ -35,7 +35,7 @@
       (wfn void cellptr real (ptr (struct bucket-ring)) int int))
 
 
-(%ifdef* USE-PROBGUARD
+(%ifdef* USE-LEVEL-PROB
     (def (level-probability subrings i1 i2)
          (fn double (ptr (struct bucket-ring)) int int)
     (def i int)
@@ -71,11 +71,11 @@
         )
 
     ; filter all bodies into NSUB buckets.
-    (%ifdef* USE-PROBGUARD (= PROBABILITY 1.0))
+    (%ifdef* USE-LEVEL-PROB (= PROBABILITY 1.0))
     (first-filter 0 nbody subrings)
 
     ; recursively construct NSUB child cells
-    (%ifdef* USE-PROBGUARD (= PROBABILITY 1.0))
+    (%ifdef* USE-LEVEL-PROB (= PROBABILITY 1.0))
     (construct-subcells root rsize subrings 0 NSUB)
 
     ; free up buckets
@@ -101,8 +101,10 @@
     )
 
 (def (task-body load-first-filter)
-    ;(%ifdef* USE-PROBGUARD (= PROBABILITY 1.0))
-    (%ifdef* FILTER-PROBGUARD (= PROBABILITY (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ (cast double (- this.i2 this.i1)) (cast double nbody)))))))
+    (%ifdef* USE-LEVEL-FILTER-PROB
+        (= PROBABILITY (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ (cast double (- this.i2 this.i1)) (cast double nbody))))))
+     %else
+        (= PROBABILITY 1.0))
     (first-filter this.i1 this.i2 this.subrings)
     )
 
@@ -144,7 +146,7 @@
                 (= r->head NULL)
                 (= r->tail NULL)
                 )
-            (%ifdef* FILTER-PROBGUARD (= PROBABILITY (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ (cast double (- i2 i1)) (cast double nbody)))))))
+            (%ifdef* USE-LEVEL-FILTER-PROB (= PROBABILITY (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ (cast double (- i2 i1)) (cast double nbody)))))))
             )
         (:get
             (def j int)
@@ -189,8 +191,7 @@
     )
 
 (def (task-body load-outer-filter)
-    ;(%ifdef* USE-PROBGUARD (= PROBABILITY 1.0))
-    (%ifdef* FILTER-PROBGUARD
+    (%ifdef* USE-LEVEL-FILTER-PROB
         (def i int)
         (def n int 0)
         (def bucket (ptr (struct bucket)) this.ring->head)
@@ -202,6 +203,8 @@
              (= bucket bucket->next)
              )
         (= PROBABILITY (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ (cast double n) (cast double nbody))))))
+     %else
+        (= PROBABILITY 1.0)
         )
     (outer-filter this.ring this.i1 this.i2 this.q this.subrings)
     )
@@ -220,14 +223,15 @@
     (do-many for i from i1 to i2
         (begin
         ; filter bucket into subrings
-        ;(%ifdef* USE-PROBGUARD (= PROBABILITY 1.0))
+        (%ifdef* USE-LEVEL-PROB
+            (%ifndef* USE-LEVEL-FILTER-PROB (= PROBABILITY 1.0)))
         (inner-filter bucket 0 bucket->nbody q subrings)
         ; set to the next bucket
         (= bucket bucket->next)
         )
     (load-outer-filter
         (:put from j1 to j2
-            (%ifdef* FILTER-PROBGUARD
+            (%ifdef* USE-LEVEL-FILTER-PROB
                 (def i int)
                 (def n int 0)
                 (def bucket (ptr (struct bucket)) ring->head)
@@ -296,8 +300,10 @@
     )
 
 (def (task-body load-inner-filter)
-    ;(%ifdef* USE-PROBGUARD (= PROBABILITY 1.0))
-    (%ifdef* FILTER-PROBGUARD (= PROBABILITY (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ (cast double (- this.i2 this.i1)) (cast double nbody)))))))
+    (%ifdef* USE-LEVEL-FILTER-PROB
+        (= PROBABILITY (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ (cast double (- this.i2 this.i1)) (cast double nbody))))))
+     %else
+        (= PROBABILITY 1.0))
     (inner-filter this.bucket this.i1 this.i2 this.q this.subrings)
     )
 
@@ -342,7 +348,7 @@
                 (= r->head NULL)
                 (= r->tail NULL)
                 )
-            (%ifdef* FILTER-PROBGUARD (= PROBABILITY (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ (cast double (- i2 i1)) (cast double nbody)))))))
+            (%ifdef* USE-LEVEL-FILTER-PROB (= PROBABILITY (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ (cast double (- i2 i1)) (cast double nbody)))))))
             )
         (:get
             (def j int)
@@ -393,12 +399,14 @@
         )
 
     ; filter all bodies into NSUB buckets.
-    ;(%ifdef* USE-PROBGUARD (= PROBABILITY 1.0))
-    (%ifdef* FILTER-PROBGUARD (= PROBABILITY (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ (cast double ring->nbody) (cast double nbody)))))))
+    (%ifdef* USE-LEVEL-FILTER-PROB
+        (= PROBABILITY (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ (cast double ring->nbody) (cast double nbody))))))
+     %else
+        (= PROBABILITY 1.0))
     (outer-filter ring 0 ring->nbucket q subrings)
 
     ; recursively construct NSUB child cells
-    (%ifdef* USE-PROBGUARD (= PROBABILITY (level-probability subrings 0 NSUB)))
+    (%ifdef* USE-LEVEL-PROB (= PROBABILITY (level-probability subrings 0 NSUB)))
     (construct-subcells q qsize subrings 0 NSUB)
 
     ; free up buckets
@@ -427,7 +435,7 @@
     )
 
 (def (task-body load-subcells)
-    (%ifdef* USE-PROBGUARD (= PROBABILITY (level-probability this.subrings this.i1 this.i2)))
+    (%ifdef* USE-LEVEL-PROB (= PROBABILITY (level-probability this.subrings this.i1 this.i2)))
     (construct-subcells this.q this.qsize this.subrings this.i1 this.i2)
     )
 
@@ -467,7 +475,7 @@
             (= this.subrings subrings)
             (= this.i1 j1)
             (= this.i2 j2)
-            (%ifdef* USE-PROBGUARD
+            (%ifdef* USE-LEVEL-PROB
                  (= PROBABILITY (level-probability subrings (if-exp (< i1 j1) i1 j2)
                                                             (if-exp (< j2 i2) i2 j1))))
             )
