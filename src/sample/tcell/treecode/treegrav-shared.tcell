@@ -265,8 +265,7 @@
             (%if* (eq 'WALK-PROB-TYPE 'LINEAR)
                 (= PROBABILITY (walk-probability lev))
              %else (%if* (or (eq 'WALK-PROB-TYPE 'MIN) (eq 'WALK-PROB-TYPE 'THRESHOLD))
-                (= PROBABILITY (walk-probability subp (if-exp (< i1 j1) i1 j2)
-                                                      (if-exp (< j2 i2) i2 j1)))
+                (= PROBABILITY (walk-probability subp i j1))
                 ))
             )
 
