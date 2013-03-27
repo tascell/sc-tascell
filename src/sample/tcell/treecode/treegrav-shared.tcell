@@ -36,7 +36,7 @@
 
 
 (%defconstant USE-PROBGUARD 1)
-(%defconstant WALK-PROB-TYPE LINEAR)  ; one of LINEAR, MIN
+(%defconstant WALK-PROB-TYPE MIN)  ; one of LINEAR, MIN, THRESHOLD
 
 (%ifdef* USE-PROBGUARD
     (%if* (eq 'WALK-PROB-TYPE 'LINEAR)
@@ -54,7 +54,20 @@
                  (+= mass (csym::Mass p))
                  )
             (return (csym::MIN 1.0 (* 4.0 (* (cast double num-thrs) (/ mass 1.0))))))
-        ))
+
+    %else (%if* (eq 'WALK-PROB-TYPE 'THRESHOLD)
+        (def (walk-probability subp i1 i2)
+             (fn double (array nodeptr) int int)
+            (def i int)
+            (def mass real 0.0)
+            (for ((= i i1) (< i i2) (inc i))
+                 (def p nodeptr (aref subp i))
+                 (+= mass (csym::Mass p))
+                 )
+            (if (> (* 20.0 (* (cast double num-thrs) (/ mass 1.0))) 1.0)
+                (return 1.0)
+                (return 0.0))) 
+        )))
     )
 
 ;------------------------------------------------------------------------------
@@ -209,7 +222,7 @@
     (%ifdef* USE-PROBGUARD
         (%if* (eq 'WALK-PROB-TYPE 'LINEAR)
             (= PROBABILITY (walk-probability this.lev))
-         %else (%if* (eq 'WALK-PROB-TYPE 'MIN)
+         %else (%if* (or (eq 'WALK-PROB-TYPE 'MIN) (eq 'WALK-PROB-TYPE 'THRESHOLD))
             (= PROBABILITY (walk-probability this.subp this.j1 this.j2))
             ))
         )
@@ -251,7 +264,7 @@
             (= (aref old-probs (inc n-old-probs)) PROBABILITY)
             (%if* (eq 'WALK-PROB-TYPE 'LINEAR)
                 (= PROBABILITY (walk-probability lev))
-             %else (%if* (eq 'WALK-PROB-TYPE 'MIN)
+             %else (%if* (or (eq 'WALK-PROB-TYPE 'MIN) (eq 'WALK-PROB-TYPE 'THRESHOLD))
                 (= PROBABILITY (walk-probability subp (if-exp (< i1 j1) i1 j2)
                                                       (if-exp (< j2 i2) i2 j1)))
                 ))
