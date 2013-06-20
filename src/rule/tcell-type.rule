@@ -139,9 +139,13 @@
        (:body ,@body)
        (:after ,@aft-body)))
     ~(dynamic-wind
-      (:before ,@(type:with-new-environment (function-body bef-body)))
+      (:before ,@(type:with-new-environment
+		  (type:add-variable ~BACKTRACKING ~int)
+		  (function-body bef-body)))
       (:body ,@(type:with-new-environment (function-body body)))
-      (:after ,@(type:with-new-environment (function-body aft-body)))) )
+      (:after ,@(type:with-new-environment
+		 (type:add-variable ~BACKTRACKING ~int)
+		 (function-body aft-body)))) )
   )
 
 (extendrule expression tcell-type

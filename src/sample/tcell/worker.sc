@@ -1327,7 +1327,7 @@
   (= body ((aref task-receivers task-no)))
   (csym::read-to-eol)
   ;; task本体を実行する．第1引数（ワーカスレッド）にはNULLを渡しておく
-  ((aref task-doers task-no) 0 body)
+  ;; ((aref task-doers task-no) 0 body)
   (csym::free body)
   ;; bcak で送信元に返答
   (= rcmd.c 1)
@@ -1357,7 +1357,7 @@
 
 ;;; lack
 (def (csym::recv-lack pcmd) (csym::fn void (ptr (struct cmd)))
-  (def cur (ptr (struct task-home)))
+  (def cur (ptr (struct task)))
   (def task-top (ptr (struct task))) 
   (def thr (ptr (struct thread-data)))
   (def i int)
@@ -1367,15 +1367,15 @@
   ;; Prevent workers from modifying their own information (task stacks etc.)
   (csym::cancel-workers)
   (for ((= i 0) (< i num-thrs) (inc i))
-       (= thr (ptr (aref threads i))
-          (= task-top thr->task-top)
-          (for ((= cur task-top) cur (= cur cur->next))
-               (= rcmd.w ABRT)
-               (= rcmd.c 1)
-               (= rcmd.node cur->rslt-to)        ; 外部or内部
-               (csym::copy-address (aref rcmd.v 0) cur->rslt-head)
-               (csym::send-command (ptr rcmd) 0 0))
-          (csym::print-thread-status thr)))
+    (= thr (ptr (aref threads i)))
+    (= task-top thr->task-top)
+    (for ((= cur task-top) cur (= cur cur->next))
+      (= rcmd.w ABRT)
+      (= rcmd.c 1)
+      (= rcmd.node cur->rslt-to)        ; 外部or内部
+      (csym::copy-address (aref rcmd.v 0) cur->rslt-head)
+      (csym::send-command (ptr rcmd) 0 0))
+    (csym::print-thread-status thr))
   ;; all command check
   (csym::exit 0))
 
