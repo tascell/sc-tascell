@@ -368,16 +368,24 @@
           (b-body (tcell:with-new-bk bk-id (function-body body)))
           (b-aft-body (function-body aft-body)))
      ~(begin
-       (begin ,@b-bef-body)
+       (begin
+	(def BACKTRACKING (const int) 0)
+	,@b-bef-body)
        (begin
         ,.(unless (ruleset-param 'no-nestfunc)
             (list
              ~(def (,bk-id) ,(tcell:nestfunc-type)
-                (begin ,@b-aft-body)
+                (begin
+		 (def BACKTRACKING (const int) 1)
+		 ,@b-aft-body)
                 (,(tcell:latest-bk))
-                (begin ,@b-bef-body)) ))
+                (begin
+		 (def BACKTRACKING (const int) 1)
+		 ,@b-bef-body)) ))
         (begin ,@b-body)
-        (begin ,@b-aft-body))) ))
+        (begin
+	 (def BACKTRACKING (const int) 0)
+	 ,@b-aft-body))) ))
   )
 
 (extendrule expression tcell

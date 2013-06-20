@@ -234,7 +234,10 @@
               (+ p #\A)))
          (= (aref (fref (mref tsk) a) p)
             (aref (fref (mref tsk) a) j0))
-         (= (aref (fref (mref tsk) a) j0) ap))
+         (= (aref (fref (mref tsk) a) j0) ap)
+         (DEBUG-STMTS 2
+           (if BACKTRACKING (csym::fprintf stderr "(worker %d) redoing~%" WORKER-ID)))
+         )
         (:body
          (for ((= kk k) (< kk maxk) (inc kk))
            (if (== (aref (fref (mref tsk) b) kk) 0) (break)))
@@ -254,7 +257,10 @@
          (= (aref (fref (mref tsk) a) p) ap)
          (= (aref (fref (mref tsk) b) (= kk k)) 0)
          (for ((= l 0) (< l 4) (inc l))
-           (= (aref (fref (mref tsk) b) (+= kk (aref pss l))) 0)))
+           (= (aref (fref (mref tsk) b) (+= kk (aref pss l))) 0))
+         (DEBUG-STMTS 2
+           (if BACKTRACKING (csym::fprintf stderr "(worker %d) temporary undoing~%" WORKER-ID)))
+         )
         )
        (label Ln (continue))
        )
