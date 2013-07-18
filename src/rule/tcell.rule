@@ -194,7 +194,7 @@
   ;; * stat1->stat2 の順に実行
   ;; * stat2 実行中に仕事の要求がきたら，:put以下を実行してsendする．
   ;;   <stat1>が終わり，sendした仕事の結果が返ってきたら，:get 以下を実行．
-  (#?(do-two ,stat1 ,stat2 (,id 
+  (#?(do-two ,stat1 ,stat2 ({handles} ,id 
                             {(:guard ,@guard-body ,guard-exp)}
                             (:put ,@put-body) (:get ,@get-body)))
    (when (ruleset-param 'no-nestfunc)
@@ -249,7 +249,7 @@
   ;; * 受け取ったtaskの結果の結合は:getで指定
   (#?(do-many for ,var[identifier] from ,from to ,to
               ,@body
-              (,id
+              ({handles} ,id
                {(:guard ,@guard-body ,guard-exp)}
                (:put from ,put-from to ,put-to ,@put-body)
                (:get ,@get-body)))
@@ -308,7 +308,7 @@
   ;; * ポーリングはイテレーション毎に行う
   (#?(do-many* (,init-exp ,cond-exp ,loop-exp)
                ,@body
-               (,id
+               ({handles} ,id
                  (:put ,@put-body)
                  (:get ,@get-body)))
     (let ((spn-id (generate-id "spawned"))
