@@ -49,8 +49,6 @@
 ;;; (%ifdef <symbol>)
 ;;; (%ifndef <symbol>)
 ;;; (%if <constant>)
-;;; (%elif <constant>)
-;;; (%endif)
 ;;;;; #line, #error
 ;;; (%line <digit> {<string>})
 ;;; (%error <string> {form}*)
