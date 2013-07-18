@@ -81,10 +81,10 @@ WORKER_XCCCL=$(addsuffix -xcccl.c,$(WORKER_LIBS))
 $(addsuffix .c,$(C_PROGS)): %-c.c: %.tcell
 	$(SC2C) $(SC2C_OPT) -D NF-TYPE=RAWC $<
 $(C_PROGS): %: $(WORKER_GCC) $(LIBS) %.c
-	$(GCC) $(OPT) $(LIBOPTS) $+ -o $@
+	$(GCC) $(OPT) $+ $(LIBOPTS) -o $@
 # ICC: RAWC version (can't divide task; only for evaluation)
 $(ICC_C_PROGS): %: $(WORKER_GCC) $(LIBS) %.c
-	$(ICC) $(OPT) $(LIBOPTS) $+ -o $@
+	$(ICC) $(OPT) $+ $(LIBOPTS) -o $@
 
 # GCC nested function
 $(WORKER_GCC): %-gcc.c: %.sc worker.sh dprint.sh
@@ -92,7 +92,7 @@ $(WORKER_GCC): %-gcc.c: %.sc worker.sh dprint.sh
 $(addsuffix .c,$(GCC_PROGS)): %-gcc.c: %.tcell
 	$(SC2C) $(SC2C_OPT) -D NF-TYPE=GCC $<
 $(GCC_PROGS): %: $(WORKER_GCC) $(LIBS) %.c
-	$(GCC) $(OPT) $(LIBOPTS) $+ -o $@
+	$(GCC) $(OPT) $+ $(LIBOPTS) -o $@
 
 # LW-SC
 $(WORKER_LW): %-lw.c: %.sc worker.sh dprint.sh
@@ -100,10 +100,10 @@ $(WORKER_LW): %-lw.c: %.sc worker.sh dprint.sh
 $(addsuffix .c,$(GCCLW_PROGS)): %-lw.c: %.tcell
 	$(SC2C) $(SC2C_OPT) -D NF-TYPE=LW-SC $<
 $(GCCLW_PROGS): %: $(WORKER_LW) $(LIBS) nestfunc.c %.c
-	$(GCC) $(OPT) $(LIBOPTS) $+ -o $@
+	$(GCC) $(OPT) $+ $(LIBOPTS) -o $@
 # ICC: LW-SC
 $(ICC_LW_PROGS): %: $(WORKER_LW) $(LIBS) nestfunc.c %.c
-	$(ICC) $(OPT) $(LIBOPTS) $+ -o $@
+	$(ICC) $(OPT) $+ $(LIBOPTS) -o $@
 
 # CL-SC
 $(WORKER_CLOS): %-clos.c: %.sc worker.sh dprint.sh
@@ -111,10 +111,10 @@ $(WORKER_CLOS): %-clos.c: %.sc worker.sh dprint.sh
 $(addsuffix .c,$(GCCCLOS_PROGS)): %-clos.c: %.tcell
 	$(SC2C) $(SC2C_OPT) -D NF-TYPE=CL-SC $<
 $(GCCCLOS_PROGS): %: $(WORKER_CLOS) $(LIBS) nestfunc.c %.c
-	$(GCC) $(OPT) $(LIBOPTS) $+ -o $@
+	$(GCC) $(OPT) $+ $(LIBOPTS) -o $@
 # ICC: CL-SC
 $(ICC_CLOS_PROGS): %: $(WORKER_CLOS) $(LIBS) nestfunc.c %.c
-	$(ICC) $(OPT) $(LIBOPTS) $+ -o $@
+	$(ICC) $(OPT) $+ $(LIBOPTS) -o $@
 
 # XCC nested function (lightweight)
 $(WORKER_XCC): %-xcc.c: %.sc worker.sh dprint.sh
@@ -122,7 +122,7 @@ $(WORKER_XCC): %-xcc.c: %.sc worker.sh dprint.sh
 $(addsuffix .c,$(XCCLW_PROGS)): %-xcc.c: %.tcell
 	$(SC2C) $(SC2C_OPT) -D NF-TYPE=XCC $<
 $(XCCLW_PROGS): %: $(WORKER_XCC) $(LIBS) %.c
-	$(XCC) $(OPT) $(LIBOPTS) -fno-omit-frame-pointer $+ -o $@
+	$(XCC) $(OPT) $+ $(LIBOPTS) -fno-omit-frame-pointer -o $@
 
 # XCC nested function (closure)
 $(WORKER_XCCCL): %-xcccl.c: %.sc worker.sh dprint.sh
@@ -130,7 +130,7 @@ $(WORKER_XCCCL): %-xcccl.c: %.sc worker.sh dprint.sh
 $(addsuffix .c,$(XCCCL_PROGS)): %-xcccl.c: %.tcell
 	$(SC2C) $(SC2C_OPT) -D NF-TYPE=XCCCL $<
 $(XCCCL_PROGS): %: $(WORKER_XCCCL) $(LIBS) %.c
-	$(XCC) $(OPT) $(LIBOPTS) $+ -o $@
+	$(XCC) $(OPT) $+ $(LIBOPTS) -o $@
 
 
 
