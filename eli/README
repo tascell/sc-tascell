@@ -1,0 +1,12 @@
+This directory contains emacs lisp files that define Emacs modes
+for SC and Tascell files.
+
+Usage:
+Copy sc-mode.el and tcell-mode.el to your emacs library path
+and add the following code into your .emacs file.
+
+(require 'tcell-mode) ; recursively requires sc-mode
+(add-to-list 'auto-mode-alist (cons "\\.sc$" 'sc-mode))
+(add-to-list 'auto-mode-alist (cons "\\.tcell$" 'tcell-mode))
+;; NOTE: may conflict with shell-script mode
+(add-to-list 'auto-mode-alist (cons "\\.sh$" 'sc-mode))
