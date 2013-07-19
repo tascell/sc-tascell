@@ -48,30 +48,30 @@
 
 (def (task-sender nqueens)
   (def i int 0)
-  (if (>= (fref this k) 0)
+  (if (>= this.k 0)
       (begin
-       (csym::send-int (fref this i1))
-       (csym::send-int (fref this i2))
-       (for ((= i 0) (< i (fref this n)) (inc i))
-            (csym::send-int (aref (fref this a) i)))
-       (for ((= i 0) (< i (- (* 2 (fref this n)) 1)) (inc i))
-            (csym::send-int (aref (fref this lb) i)))
-       (for ((= i 0) (< i (- (* 2 (fref this n)) 1)) (inc i))
-            (csym::send-int (aref (fref this rb) i)))))
+       (csym::send-int this.i1)
+       (csym::send-int this.i2)
+       (for ((= i 0) (< i this.n) (inc i))
+            (csym::send-int (aref this.a i)))
+       (for ((= i 0) (< i (- (* 2 this.n) 1)) (inc i))
+            (csym::send-int (aref this.lb i)))
+       (for ((= i 0) (< i (- (* 2 this.n) 1)) (inc i))
+            (csym::send-int (aref this.rb i)))))
   )
 
 (def (task-receiver nqueens)
   (def i int 0)
-  (if (>= (fref this k) 0)
+  (if (>= this.k 0)
       (begin
-       (= (fref this i1) (csym::recv-int))
-       (= (fref this i2) (csym::recv-int))
-       (for ((= i 0) (< i (fref this n)) (inc i))
-            (= (aref (fref this a) i) (csym::recv-int)))
-       (for ((= i 0) (< i (- (* 2 (fref this n)) 1)) (inc i))
-            (= (aref (fref this lb) i) (csym::recv-int)))
-       (for ((= i 0) (< i (- (* 2 (fref this n)) 1)) (inc i))
-            (= (aref (fref this rb) i) (csym::recv-int)))
+       (= this.i1 (csym::recv-int))
+       (= this.i2 (csym::recv-int))
+       (for ((= i 0) (< i this.n) (inc i))
+            (= (aref this.a i) (csym::recv-int)))
+       (for ((= i 0) (< i (- (* 2 this.n) 1)) (inc i))
+            (= (aref this.lb i) (csym::recv-int)))
+       (for ((= i 0) (< i (- (* 2 this.n) 1)) (inc i))
+            (= (aref this.rb i) (csym::recv-int)))
   )))
 
 ;; k: a[j] (0<k)までの行にはもう置いた
@@ -83,10 +83,10 @@
   (def st (ptr (struct nqueens)))
   (= st (ptr this-tsk))
   (do-many for i from ix to iy
-    (def ai int (aref (fref tsk -> a) i))
+    (def ai int (aref tsk->a i))
     ;; 駒が置けるかチェック
-    (if (not (or (aref (fref tsk -> lb) (+ n -1 (- ai) k))
-                 (aref (fref tsk -> rb) (+ ai k))))
+    (if (not (or (aref tsk->lb (+ n -1 (- ai) k))
+                 (aref tsk->rb (+ ai k))))
         (begin
          (if (== k (- n 1)) (inc s)
              (begin
@@ -95,22 +95,22 @@
                 (= (mref st) (mref tsk))
                 )
                (begin
-                (= (aref (fref st -> lb) (+ n -1 (- ai) k)) 1)
-                (= (aref (fref st -> rb) (+ ai k)) 1)
-                (= (aref (fref st -> a) i) (aref (fref st -> a) k))
-                (= (aref (fref st -> a) k) ai))
+                (= (aref st->lb (+ n -1 (- ai) k)) 1)
+                (= (aref st->rb (+ ai k)) 1)
+                (= (aref st->a i) (aref st->a k))
+                (= (aref st->a k) ai))
                (begin
                 (+= s (nqueens n (+ k 1) (+ k 1) n st)))
 ;                (begin
 ;                 (= (mref tsk) tsk-copy))
                )))))
-    (nqueens
+    (handles nqueens
      (:put from i1 to i2
            (= this (mref tsk))
-           (= (fref this k) k)
-           (= (fref this i1) i1)
-           (= (fref this i2) i2))
-     (:get (+= s (fref this r)))))
+           (= this.k k)
+           (= this.i1 i1)
+           (= this.i2 i2))
+     (:get (+= s this.r))))
   (return s))
 
 
@@ -124,23 +124,23 @@
 
 (def (task-body nqueens)
   (def i int)
-  (def n int (fref this n))
-  (def k int (fref this k))
+  (def n int this.n)
+  (def k int this.k)
   (decl tp (array (struct timeval) 2))
-  (csym::fprintf stderr "start %d %d %d %d~%" n k (fref this i1) (fref this i2))
+  (csym::fprintf stderr "start %d %d %d %d~%" n k this.i1 this.i2)
   (if (< k 0)
       (begin
        (for ((= i 0) (< i n) (inc i))
-            (= (aref (fref this a) i) i))
+            (= (aref this.a i) i))
        (for ((= i 0) (< i (- (* 2 n) 1)) (inc i))
-            (= (aref (fref this lb) i) 0)
-            (= (aref (fref this rb) i) 0))
+            (= (aref this.lb i) 0)
+            (= (aref this.rb i) 0))
        (csym::gettimeofday tp 0)
-       (= (fref this r)
+       (= this.r
           (nqueens n 0 0 n (ptr this)))
        (csym::gettimeofday (+ tp 1) 0)
        (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp)))
-      (= (fref this r)
-         (nqueens n k (fref this i1) (fref this i2) (ptr this))))
-  (csym::fprintf stderr "end %d %d %d %d~%" k n (fref this i1) (fref this i2))
+      (= this.r
+         (nqueens n k this.i1 this.i2 (ptr this))))
+  (csym::fprintf stderr "end %d %d %d %d~%" k n this.i1 this.i2)
   )

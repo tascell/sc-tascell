@@ -69,16 +69,16 @@
   )
   
 (def (task-sender gravity)
-  (csym::send-doubles (fref this cur) 3))
+  (csym::send-doubles this.cur 3))
 
 (def (task-receiver gravity)
-  (csym::recv-doubles (fref this cur) 3))
+  (csym::recv-doubles this.cur 3))
 
 (def (rslt-sender gravity)
-  (csym::send-doubles (fref this f) 3))
+  (csym::send-doubles this.f 3))
 
 (def (rslt-receiver gravity)
-  (csym::recv-doubles (fref this f) 3))
+  (csym::recv-doubles this.f 3))
 
 
 (decl (grav-x minx miny minz maxx maxy maxz tsk)
@@ -88,28 +88,28 @@
 (def (task-body gravity)
   (def i int)
   (for ((= i 0) (< i 3) (inc i))
-    (= (aref (fref this f) i)  0.0))
+    (= (aref this.f i)  0.0))
   (for ((= i 0) (< i 3) (inc i))
-    (= (aref (fref this rf) i) 0.0))
+    (= (aref this.rf i) 0.0))
   (DEBUG-PRINT 1 "start (%d, %d, %d)--(%d, %d, %d): (%lf, %lf, %lf)~%"
-               (fref this minx)
-               (fref this miny)
-               (fref this minz)
-               (fref this maxx)
-               (fref this maxy)
-               (fref this maxz)
-               (aref (fref this cur) 0)
-               (aref (fref this cur) 1)
-               (aref (fref this cur) 2))
-  (grav-x (fref this minx)
-          (fref this miny)
-          (fref this minz)
-          (fref this maxx)
-          (fref this maxy)
-          (fref this maxz)
+               this.minx
+               this.miny
+               this.minz
+               this.maxx
+               this.maxy
+               this.maxz
+               (aref this.cur 0)
+               (aref this.cur 1)
+               (aref this.cur 2))
+  (grav-x this.minx
+          this.miny
+          this.minz
+          this.maxx
+          this.maxy
+          this.maxz
           (ptr this))
   (for ((= i 0) (< i 3) (inc i))
-    (+= (aref (fref this f) i) (aref (fref this rf) i))))
+    (+= (aref this.f i) (aref this.rf i))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -130,43 +130,43 @@
   (def i int)
   (decl tp (array (struct timeval) 2))
   (for ((= i 0) (< i 3) (inc i))
-    (= (aref (fref tsk f) i)  0.0))
+    (= (aref tsk.f i)  0.0))
   (for ((= i 0) (< i 3) (inc i))
-    (= (aref (fref tsk rf) i) 0.0))
-  (= (fref tsk minx) (fref this minx))
-  (= (fref tsk miny) (fref this miny))
-  (= (fref tsk minz) (fref this minz))
-  (= (fref tsk maxx) (fref this maxx))
-  (= (fref tsk maxy) (fref this maxy))
-  (= (fref tsk maxz) (fref this maxz))
-  (= (aref (fref tsk cur) 0) (/ (cast double (fref this curx)) 100))
-  (= (aref (fref tsk cur) 1) (/ (cast double (fref this cury)) 100))
-  (= (aref (fref tsk cur) 2) (/ (cast double (fref this curz)) 100))
+    (= (aref tsk.rf i) 0.0))
+  (= tsk.minx this.minx)
+  (= tsk.miny this.miny)
+  (= tsk.minz this.minz)
+  (= tsk.maxx this.maxx)
+  (= tsk.maxy this.maxy)
+  (= tsk.maxz this.maxz)
+  (= (aref tsk.cur 0) (/ (cast double this.curx) 100))
+  (= (aref tsk.cur 1) (/ (cast double this.cury) 100))
+  (= (aref tsk.cur 2) (/ (cast double this.curz) 100))
   (csym::fprintf stderr "start (%d, %d, %d)--(%d, %d, %d): (%lf, %lf, %lf)~%"
-                 (fref tsk minx)
-                 (fref tsk miny)
-                 (fref tsk minz)
-                 (fref tsk maxx)
-                 (fref tsk maxy)
-                 (fref tsk maxz)
-                 (aref (fref tsk cur) 0)
-                 (aref (fref tsk cur) 1)
-                 (aref (fref tsk cur) 2))
+                 tsk.minx
+                 tsk.miny
+                 tsk.minz
+                 tsk.maxx
+                 tsk.maxy
+                 tsk.maxz
+                 (aref tsk.cur 0)
+                 (aref tsk.cur 1)
+                 (aref tsk.cur 2))
   (csym::gettimeofday tp 0)
-  (grav-x (fref tsk minx)
-          (fref tsk miny)
-          (fref tsk minz)
-          (fref tsk maxx)
-          (fref tsk maxy)
-          (fref tsk maxz)
+  (grav-x tsk.minx
+          tsk.miny
+          tsk.minz
+          tsk.maxx
+          tsk.maxy
+          tsk.maxz
           (ptr tsk))
   (for ((= i 0) (< i 3) (inc i))
-    (+= (aref (fref tsk f) i) (aref (fref tsk rf) i)))
+    (+= (aref tsk.f i) (aref tsk.rf i)))
   (csym::gettimeofday (+ tp 1) 0)
   (csym::fprintf stderr "f=(%lf, %lf, %lf)~%"
-                 (aref (fref tsk f) 0)
-                 (aref (fref tsk f) 1)
-                 (aref (fref tsk f) 2))
+                 (aref tsk.f 0)
+                 (aref tsk.f 1)
+                 (aref tsk.f 2))
   (csym::fprintf stderr "time: %lf~%" (csym::elapsed-time tp))
   )
   
@@ -179,95 +179,95 @@
   (do-many for z from minz to (+ maxz 1)
     (def dx double) (def dy double) (def dz double)
     (def one-d2th double) (def one-d3th double)
-    (= dx (- (cast double x) (aref (fref tsk -> cur) 0)))
-    (= dy (- (cast double y) (aref (fref tsk -> cur) 1)))
-    (= dz (- (cast double z) (aref (fref tsk -> cur) 2)))
+    (= dx (- (cast double x) (aref tsk->cur 0)))
+    (= dy (- (cast double y) (aref tsk->cur 1)))
+    (= dz (- (cast double z) (aref tsk->cur 2)))
     (= one-d2th (/ 1.0 (+ (* dx dx) (* dy dy) (* dz dz))))
     (= one-d3th (* (csym::sqrt one-d2th) one-d2th))
-    (+= (aref (fref tsk -> rf) 0) (* dx one-d3th))
-    (+= (aref (fref tsk -> rf) 1) (* dy one-d3th))
-    (+= (aref (fref tsk -> rf) 2) (* dz one-d3th))
+    (+= (aref tsk->rf 0) (* dx one-d3th))
+    (+= (aref tsk->rf 1) (* dy one-d3th))
+    (+= (aref tsk->rf 2) (* dz one-d3th))
     (for ((= i 0) (< i 3) (inc i))
-      (if (or (> (aref (fref tsk -> rf) i) 1.0)
-              (< (aref (fref tsk -> rf) i) -1.0))
+      (if (or (> (aref tsk->rf i) 1.0)
+              (< (aref tsk->rf i) -1.0))
           (begin
-           (+= (aref (fref tsk -> f) i) (aref (fref tsk -> rf) i))
-           (= (aref (fref tsk -> rf) i) 0.0))))
-    (gravity
+           (+= (aref tsk->f i) (aref tsk->rf i))
+           (= (aref tsk->rf i) 0.0))))
+    (handles gravity
      (:put from i1 to i2
-           (= (fref this minx) x)
-           (= (fref this miny) y)
-           (= (fref this minz) i1)
-           (= (fref this maxx) x)
-           (= (fref this maxy) y)
-           (= (fref this maxz) (- i2 1))
-           (= (aref (fref this cur) 0) (aref (fref tsk -> cur) 0))
-           (= (aref (fref this cur) 1) (aref (fref tsk -> cur) 1))
-           (= (aref (fref this cur) 2) (aref (fref tsk -> cur) 2)))
+           (= this.minx x)
+           (= this.miny y)
+           (= this.minz i1)
+           (= this.maxx x)
+           (= this.maxy y)
+           (= this.maxz (- i2 1))
+           (= (aref this.cur 0) (aref tsk->cur 0))
+           (= (aref this.cur 1) (aref tsk->cur 1))
+           (= (aref this.cur 2) (aref tsk->cur 2)))
      (:get
       (def i int)
-      (+= (aref (fref tsk -> rf) 0) (aref (fref this f) 0))
-      (+= (aref (fref tsk -> rf) 1) (aref (fref this f) 1))
-      (+= (aref (fref tsk -> rf) 2) (aref (fref this f) 2))
+      (+= (aref tsk->rf 0) (aref this.f 0))
+      (+= (aref tsk->rf 1) (aref this.f 1))
+      (+= (aref tsk->rf 2) (aref this.f 2))
       (for ((= i 0) (< i 3) (inc i))
-        (if (or (> (aref (fref tsk -> rf) i) 1.0)
-                (< (aref (fref tsk -> rf) i) -1.0))
+        (if (or (> (aref tsk->rf i) 1.0)
+                (< (aref tsk->rf i) -1.0))
            (begin
-            (+= (aref (fref tsk -> f) i) (aref (fref tsk -> rf) i))
-            (= (aref (fref tsk -> rf) i) 0.0))))))))
+            (+= (aref tsk->f i) (aref tsk->rf i))
+            (= (aref tsk->rf i) 0.0))))))))
 
 (def (grav-y x miny minz maxy maxz tsk)
     (wfn void
         int int int int int (ptr (struct gravity)))
   (do-many for y from miny to (+ maxy 1)
            (grav-z x y minz maxz tsk)
-    (gravity
+    (handles gravity
      (:put from i1 to i2
-           (= (fref this minx) x)
-           (= (fref this miny) i1)
-           (= (fref this minz) (fref tsk -> minz))
-           (= (fref this maxx) x)
-           (= (fref this maxy) (- i2 1))
-           (= (fref this maxz) (fref tsk -> maxz))
-           (= (aref (fref this cur) 0) (aref (fref tsk -> cur) 0))
-           (= (aref (fref this cur) 1) (aref (fref tsk -> cur) 1))
-           (= (aref (fref this cur) 2) (aref (fref tsk -> cur) 2)))
+           (= this.minx x)
+           (= this.miny i1)
+           (= this.minz tsk->minz)
+           (= this.maxx x)
+           (= this.maxy (- i2 1))
+           (= this.maxz tsk->maxz)
+           (= (aref this.cur 0) (aref tsk->cur 0))
+           (= (aref this.cur 1) (aref tsk->cur 1))
+           (= (aref this.cur 2) (aref tsk->cur 2)))
      (:get
       (def i int)
-      (+= (aref (fref tsk -> rf) 0) (aref (fref this f) 0))
-      (+= (aref (fref tsk -> rf) 1) (aref (fref this f) 1))
-      (+= (aref (fref tsk -> rf) 2) (aref (fref this f) 2))
+      (+= (aref tsk->rf 0) (aref this.f 0))
+      (+= (aref tsk->rf 1) (aref this.f 1))
+      (+= (aref tsk->rf 2) (aref this.f 2))
       (for ((= i 0) (< i 3) (inc i))
-        (if (or (> (aref (fref tsk -> rf) i) 1.0)
-                (< (aref (fref tsk -> rf) i) -1.0))
+        (if (or (> (aref tsk->rf i) 1.0)
+                (< (aref tsk->rf i) -1.0))
             (begin
-             (+= (aref (fref tsk -> f) i) (aref (fref tsk -> rf) i))
-             (= (aref (fref tsk -> rf) i) 0.0))))))))
+             (+= (aref tsk->f i) (aref tsk->rf i))
+             (= (aref tsk->rf i) 0.0))))))))
 
 (def (grav-x minx miny minz maxx maxy maxz tsk)
     (wfn void
-        int int int int int int (ptr (struct gravity)))
+	 int int int int int int (ptr (struct gravity)))
   (do-many for x from minx to (+ maxx 1)
     (grav-y x miny minz maxy maxz tsk)
-    (gravity
+    (handles gravity
      (:put from i1 to i2
-           (= (fref this minx) i1)
-           (= (fref this miny) (fref tsk -> miny))
-           (= (fref this minz) (fref tsk -> minz))
-           (= (fref this maxx) (- i2 1))
-           (= (fref this maxy) (fref tsk -> maxy))
-           (= (fref this maxz) (fref tsk -> maxz))
-           (= (aref (fref this cur) 0) (aref (fref tsk -> cur) 0))
-           (= (aref (fref this cur) 1) (aref (fref tsk -> cur) 1))
-           (= (aref (fref this cur) 2) (aref (fref tsk -> cur) 2)))
+           (= this.minx i1)
+           (= this.miny tsk->miny)
+           (= this.minz tsk->minz)
+           (= this.maxx (- i2 1))
+           (= this.maxy tsk->maxy)
+           (= this.maxz tsk->maxz)
+           (= (aref this.cur 0) (aref tsk->cur 0))
+           (= (aref this.cur 1) (aref tsk->cur 1))
+           (= (aref this.cur 2) (aref tsk->cur 2)))
      (:get
       (def i int)
-      (+= (aref (fref tsk -> rf) 0) (aref (fref this f) 0))
-      (+= (aref (fref tsk -> rf) 1) (aref (fref this f) 1))
-      (+= (aref (fref tsk -> rf) 2) (aref (fref this f) 2))
+      (+= (aref tsk->rf 0) (aref this.f 0))
+      (+= (aref tsk->rf 1) (aref this.f 1))
+      (+= (aref tsk->rf 2) (aref this.f 2))
       (for ((= i 0) (< i 3) (inc i))
-        (if (or (> (aref (fref tsk -> rf) i) 1.0)
-                (< (aref (fref tsk -> rf) i) -1.0))
+        (if (or (> (aref tsk->rf i) 1.0)
+                (< (aref tsk->rf i) -1.0))
             (begin
-             (+= (aref (fref tsk -> f) i) (aref (fref tsk -> rf) i))
-             (= (aref (fref tsk -> rf) i) 0.0))))))))
+             (+= (aref tsk->f i) (aref tsk->rf i))
+             (= (aref tsk->rf i) 0.0))))))))
