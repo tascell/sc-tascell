@@ -413,7 +413,7 @@
            )
          (= (aref WDATA.V-List.first->v (-- WDATA.V-List.first->i)) nv))))
     (= e (fref (aref EE e) next-e))
-    (t-search1
+    (handles t-search1
      (:put from k0-2 to k1-2
            (= this.v v)  (= this.b b)
            (= this.k0 k0-2) (= this.k1 k1-2))
@@ -517,7 +517,7 @@
   (do-many for i from i0 to i1
     (search-p-c my-v-list-first my-v-list-first->i V-LIST-ALLOC-SIZE)
     (= my-v-list-first my-v-list-first->next)
-    (t-search-b                           ; my-v-list0¤Î i0-2¡Ái1-2 ¤ÎÈÏ°Ï¤òÅÏ¤¹
+    (handles t-search-b                           ; my-v-list0¤Î i0-2¡Ái1-2 ¤ÎÈÏ°Ï¤òÅÏ¤¹
      (:put from i0-2 to i1-2
            (= this.my-v-list-first my-v-list-first0)
            (= this.i0 i0-2) (= this.i1 i1-2))
@@ -623,7 +623,7 @@
   (DEBUG-PRINT 1 "[%2d] search-p-b-array %p %d %d~%" WORKER-ID my-v-array i0 i1)
   (do-many for i from i0 to i1
     (search-p-c (aref my-v-array i) (fref (aref my-v-array i) -> i) V-LIST-ALLOC-SIZE)
-    (t-search-b-array                   ; my-v-array¤Î i0-2¡Ái1-2 ¤ÎÈÏ°Ï¤òÅÏ¤¹
+    (handles t-search-b-array                   ; my-v-array¤Î i0-2¡Ái1-2 ¤ÎÈÏ°Ï¤òÅÏ¤¹
      (:put from i0-2 to i1-2
            (= this.my-v-array my-v-array)
            (= this.i0 i0-2) (= this.i1 i1-2))
@@ -686,7 +686,7 @@
   (DEBUG-PRINT 1 "[%2d] search-p-c %p %d %d~%" WORKER-ID my-v-list-cur j0 j1)
   (do-many for j from j0 to j1
     (search1-p (aref my-v-list-cur->v j) CALL-BOUND 0 (fref (aref VV (aref my-v-list-cur->v j)) degree))
-    (t-search-c
+    (handles t-search-c
      (:put from j0-2 to j1-2
            (= this.my-v-list-cur my-v-list-cur)
            (= this.j0 j0-2) (= this.j1 j1-2))
