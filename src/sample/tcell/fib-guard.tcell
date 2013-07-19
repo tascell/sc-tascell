@@ -65,12 +65,12 @@
   (def r int :out))
 
 (def (task-body fib)
-    ;;(csym::fprintf stderr "start fib(%d)~%" (fref this n))
+    ;;(csym::fprintf stderr "start fib(%d)~%" this.n)
   (%ifdef* COUNT-NTASK
     (++ WDATA.n-task)
     (csym::fprintf stderr "%d starts %d-th task.~%" WORKER-ID WDATA.n-task))
-  (= (fref this r)
-     (fib-g (fref this n) (fref this p)))
+  (= this.r
+     (fib-g this.n this.p))
   )
 
 (def (task fib-start)
@@ -79,30 +79,30 @@
 
 (def (task-body fib-start)
   (decl tp (array (struct timeval) 2))
-  (csym::fprintf stderr "start fib(%d)~%" (fref this n))
+  (csym::fprintf stderr "start fib(%d)~%" this.n)
   (%ifdef* COUNT-NTASK
     (++ WDATA.n-task)
     (csym::fprintf stderr "%d starts %d-th task.~%" WORKER-ID WDATA.n-task))
   (csym::gettimeofday tp 0)
-  (= (fref this r)
-     (fib-g (fref this n) 1.0))
+  (= this.r
+     (fib-g this.n 1.0))
   (csym::gettimeofday (+ tp 1) 0)
   (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp)))
 
 (def (task-receiver fib)
-    ;;(csym::fprintf stderr "receive %d~%" (fref this n))
+    ;;(csym::fprintf stderr "receive %d~%" this.n)
     )
 
 (def (task-sender fib)
-    ;;(csym::fprintf stderr "send %d~%" (fref this n))
+    ;;(csym::fprintf stderr "send %d~%" this.n)
     )
 
 (def (rslt-sender fib)
-    ;;(csym::fprintf stderr "send fib(%d)=%d~%" (fref this n) (fref this r))
+    ;;(csym::fprintf stderr "send fib(%d)=%d~%" this.n this.r)
     )
 
 (def (rslt-receiver fib)
-    ;;(csym::fprintf stderr "receive fib(%d)=%d~%" (fref this n) (fref this r))
+    ;;(csym::fprintf stderr "receive fib(%d)=%d~%" this.n this.r)
     )
 
 (def (fib-g n p) (wfn int int double)
@@ -118,5 +118,5 @@
          (:guard p)
          (:put (= this.n (- n 2))
                (= this.p (/ p 4)))
-         (:get (= s2 (fref this r)))))
+         (:get (= s2 this.r))))
       (return (+ s1 s2)))))
