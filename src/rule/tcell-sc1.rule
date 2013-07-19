@@ -51,11 +51,11 @@
   )
 
 (extendrule statement tcell-sc1
-  ((#?(do-two ,stat1 ,stat2 (,id
+  ((#?(do-two ,stat1 ,stat2 ({handles} ,id
                              {(:guard ,@guard-body ,guard-exp)}
                              (:put ,@put-body) (:get ,@get-body))))
    ~(do-two (begin ,(statement stat1)) (begin ,(statement stat2))
-      (,id
+      (handles ,id
        ,@(if-pattern-variable guard-exp
              (list ~(:guard ,@(function-body guard-body)
                             ,(expression guard-exp))))
@@ -63,13 +63,13 @@
        (:get ,@(function-body get-body)))) )
   ((#?(do-many for ,var from ,from to ,to
 	,@body
-	(,id
+	({handles} ,id
          {(:guard ,@guard-body ,guard-exp)}
 	 (:put from ,put-from to ,put-to ,@put-body)
 	 (:get ,@get-body))))
    ~(do-many for ,var from ,(expression from) to ,(expression to)
       ,@(function-body body)
-      (,id
+      (handles ,id
        ,@(if-pattern-variable guard-exp
              (list ~(:guard ,@(function-body guard-body)
                             ,(expression guard-exp))))
@@ -77,12 +77,12 @@
        (:get ,@(function-body get-body)))) )
   ((#?(do-many* (,init-exp ,cond-exp ,loop-exp)
     ,@body
-    (,id
+    ({handles} ,id
      (:put ,@put-body)
      (:get ,@get-body))))
    ~(do-many* (,(expression init-exp) ,(expression cond-exp) ,(expression loop-exp))
       ,@(function-body body)
-      (,id
+      (handles ,id
        (:put ,@(function-body put-body))
        (:get ,@(function-body get-body)))) )
   (#?(tcell-broadcast ,id (:put ,@put-body))

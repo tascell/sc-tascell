@@ -1982,5 +1982,5 @@
         (csym::proc-cmd pcmd 0))
       (begin
         (while 1
-          (csym::sleep 4294967295)))) )
+          (csym::sleep 2147483647)))) )
   (csym::exit 0))
