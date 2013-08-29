@@ -89,7 +89,7 @@
     (+= crtreetime (csym::elapsed-time tp))
 
     (%if* (or (eq 'MKTREE-METHOD 'SS-PROB)
-              (eq 'MKTREE-METHOD 'MERGE-PROB))
+              (or (eq 'MKTREE-METHOD 'MERGE-PROB) (eq 'MKTREE-METHOD 'LEVEL-PROB)))
         (reset-probabilities))
     (= bh86 (scanopt options "bh86"))
     (= sw94 (scanopt options "sw94"))
@@ -354,7 +354,9 @@
 %else (%if* (or (eq 'MKTREE-METHOD 'MERGE)
                 (eq 'MKTREE-METHOD 'MERGE-PROB))
     (%include "treeload-merge.tcell")
-%else (%if* (eq 'MKTREE-METHOD 'LEVEL)
+
+%else (%if* (or (eq 'MKTREE-METHOD 'LEVEL)
+                (eq 'MKTREE-METHOD 'LEVEL-PROB))
     (%include "treeload-level.tcell")
     
 ))))

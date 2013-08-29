@@ -74,7 +74,7 @@ PREC = SINGLEPREC
 # FORCEREPORT = -D FORCEREPORT=1
 
 # Specifies tree construction method
-# Available method: LOCK, SS, SS-PROB, MERGE, MERGE-PROB, LEVEL
+# Available method: LOCK, SS, SS-PROB, MERGE, MERGE-PROB, LEVEL, LEVEL-PROB
 MKTREE-METHOD = MERGE-PROB
 
 # Uncomment the next line to report detailed tree construction statics
