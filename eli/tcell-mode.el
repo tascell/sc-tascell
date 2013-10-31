@@ -76,7 +76,7 @@
 	      ;; Tascell constructs
 	      (,(concat
 		 "(" (regexp-opt
-		      '("do-two" "do-many*" ":guard" ":put" ":get"
+		      '("do-two" "do-many*" ":guard" ":spawn-from" ":put" ":get"
 			"tcell-broadcast" "dynamic-wind"
 			":before" ":body" ":after") t)
 		 "\\>")

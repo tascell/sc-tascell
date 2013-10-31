@@ -251,9 +251,11 @@
               ,@body
               ({handles} ,id
                {(:guard ,@guard-body ,guard-exp)}
+               {(:spawn-from  ,@spn-from-body ,spn-from-exp)}
                (:put from ,put-from to ,put-to ,@put-body)
                (:get ,@get-body)))
    (when (ruleset-param 'no-nestfunc)
+     ;; When no-nestfunc, translated to a sequential "for" statement
      (return-from statement
        (let ((var2 (generate-id (string+ (get-retval var) "_end"))))
          ~(begin
@@ -272,17 +274,28 @@
          (def ,spn-id int 0)            ; 仕事を他所にsendしている数
          ;; タスク要求がきたら呼ばれる
          (def (,bk-id) ,(tcell:nestfunc-type)
-           (if (not ,spn-id) (,(tcell:latest-bk))) ; まだ自分が分割していなければ，まず根元を見る
-           (while (and (fref (mref -thr) treq-top) ; まだタスク要求が残っている
-                       (< (+ ,var 1) ,var2)) ; まだiterationが残っている
+           ;; if this do-many has not spawned any tasks, continue backtracking
+           (if (not ,spn-id) (,(tcell:latest-bk)))
+           (while (and (fref (mref -thr) treq-top) ; there remains a treq?
+                       (<= 2 (- ,var2 ,var)))      ; there remains any spawnable iterations?
              (def ,put-to int ,var2)
-             (def ,put-from int (/ (+ 1 ,var ,var2) 2))
+             (def ,put-from int)
              ,@(if-pattern-variable guard-exp
                    (list
                     ~(begin 
                        ,@guard-body
                        (if (csym::guard-task-request-prob -thr ,guard-exp)
                            (continue)))))
+             ,(if-pattern-variable spn-from-exp
+                                   ~(begin
+                                     ,@spn-from-body
+                                     (= ,put-from ,spn-from-exp)
+                                     ;; Check the range
+                                     (if (<= ,put-from ,var)
+                                         (= ,put-from (+ ,var 1)))
+                                     (if (>= ,put-from ,put-to)
+                                         (break)))
+                                   ~(= ,put-from (/ (+ 1 ,var ,var2) 2)))
              (= ,var2 ,put-from)
              (= pthis
                 (cast (ptr (struct ,(tcell:task-struct-id)))
@@ -354,7 +367,7 @@
        (csym::broadcast-task -thr ,(tcell:task-no) pthis))))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; dynamic-wind
-  ;; * do-two, do-many の中で使う
+  ;; * do-two, do-many の（動的）スコープ内で使用
   ;; * bef-body, body, aft-body の順で実行
   ;; * body実行中に仕事の要求がきたら，aft-bodyを実行してから
   ;;   do-two, do-many の仕事分割を実行する．
