@@ -35,7 +35,9 @@
 (%include "dprint.sh")
 (%cinclude "sendrecv.h" (:macro))
 
-;; Probability guardを使う
+;; Use "user defined spawned range"
+(%defconstant USE-SPN-RANGE 0)
+;; Use "Probability guard"
 (%defconstant USE-PROBGUARD 1)
 
 (def (csym::my-probability n k) (fn double int int)
@@ -91,6 +93,7 @@
             (= (aref this.rb i) (csym::recv-int)))
   )))
 
+
 ;; k: a[j] (0<k)までの行にはもう置いた
 ;; ix, iy:  探索範囲
 (def (nqueens n k ix iy tsk)
@@ -119,8 +122,10 @@
                (= (aref tsk->a k) (aref tsk->a i))
                (= (aref tsk->a i) ai)))))))
     (handles nqueens
+     (%if* USE-SPN-RANGE
+        (:spawn-from (+ i 3)))
      (:put from i1 to i2
-           (%ifdef* USE-PROBGUARD
+           (%if* USE-PROBGUARD
              (= PROBABILITY (csym::my-probability n k)))
            (= this (mref tsk))
            (= this.k k)

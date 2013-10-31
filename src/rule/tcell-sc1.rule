@@ -65,6 +65,7 @@
 	,@body
 	({handles} ,id
          {(:guard ,@guard-body ,guard-exp)}
+         {(:spawn-from ,@spn-from-body ,spn-from-exp)}
 	 (:put from ,put-from to ,put-to ,@put-body)
 	 (:get ,@get-body))))
    ~(do-many for ,var from ,(expression from) to ,(expression to)
@@ -73,6 +74,9 @@
        ,@(if-pattern-variable guard-exp
              (list ~(:guard ,@(function-body guard-body)
                             ,(expression guard-exp))))
+       ,@(if-pattern-variable spn-from-exp
+             (list ~(:spawn-from ,@(function-body spn-from-body)
+                                 ,(expression spn-from-exp))))
        (:put from ,put-from to ,put-to ,@(function-body put-body))
        (:get ,@(function-body get-body)))) )
   ((#?(do-many* (,init-exp ,cond-exp ,loop-exp)
