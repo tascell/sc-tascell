@@ -4,7 +4,7 @@ SC2C_OPT=
 XCC=xcc
 GCC=gcc #$(XCC)
 ICC=icc
-OPT=-O2 -g $(MOPT)
+OPT=-O2 -g$(MOPT)
 XCCOPT=-DCT=lightweight
 XCCCLOPT=-DCT=closure
 
@@ -29,7 +29,7 @@ ifeq ($(OS),SunOS)
 endif
 
 
-APPS=fib fib-guard lu cmp pen pen6x17 pen6x17-guard nq grav matmul spanning bcast
+APPS=fib fib-guard lu cmp pen pen6x17 pen6x17-guard nq grav matmul spanning bcast copine0 copine1 copine2 copine2RT copine3
 
 C_PROGS=$(addsuffix -c,$(APPS))
 GCC_PROGS=$(addsuffix -gcc,$(APPS))
