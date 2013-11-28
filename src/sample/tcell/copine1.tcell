@@ -1,0 +1,949 @@
+(c-exp "#include <stdio.h>")
+(c-exp "#include <stdlib.h>")
+(c-exp "#include <math.h>")
+(c-exp "#include <time.h>")
+(c-exp "#include <limits.h>")
+(c-exp "#include <string.h>")
+(c-exp "#include <stdint.h>")
+(c-exp "#include <sys/time.h>")
+(c-exp "#include <sys/resource.h>")
+;(c-exp "#include <nmmintrin.h>")
+
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
+(%include "rule/tcell-setrule.sh")
+
+(%include "clib.sh")
+(%include "dprint.sh")
+
+;;; Use "user defined spawned range"
+(%defconstant USE-SPN-RANGE 0)
+
+;;; Use "popcount (SSE4.2)"
+(%defconstant USE-SSE 0)
+
+;;; Max # of workers
+(%defconstant NUM-WORKERS 16)
+
+;;; Constants
+(%defconstant E-SIZE 500000)  ; # of edges
+(%defconstant V-SIZE 20000)   ; # of vertices
+(%defconstant BIT-LEN 32)     ; bit length of bitset
+(%defconstant BIT-ITEM 5)     ; # of items = BIT-ITEM * BIT-LEN
+(%defconstant BIT-EDGE 8125)  ; # of edges = BIT-EDGE * BIT-LEN
+(%defconstant BIT-VERTEX 625) ; # of vertices = BIT-VERTEX * BIT-LEN
+
+;;; Debug Flags
+(%defconstant DEBUG-DATA 0) ; flag to show some data
+(%defconstant DEBUG-RSLT 0) ; flag to output result file
+(%defconstant DEBUG-SHOW 0) ; flag to show traversal
+(%defconstant DEBUG-TASK 0) ; flag to show task request
+(%defconstant DEBUG-TIME 0) ; flag to output time file
+
+;;; Typedef
+(deftype set uint32_t) ; bitset
+(deftype vtx uint32_t) ; vertex
+
+;;; Structure of ITnode
+(def (struct --ITnode)
+  (decl item (array set BIT-ITEM))     ; itemset
+  (decl prev (ptr (struct --ITnode)))  ; pointer to the previous node
+  (decl next (ptr (struct --ITnode)))) ; pointer to the next node
+(deftype ITnode (struct --ITnode))
+
+;;; Structure of ITlist
+(deftype ITlist struct
+  (decl head (ptr ITnode))  ; pointer to the head node
+  (decl crnt (ptr ITnode))) ; pointer to the current node
+
+;;; Structure of Gnode
+(def (struct --Gnode)
+  (decl T (ptr vtx))                  ; vertices of CCIG
+  (decl numT int)                     ; element counts of T
+  (decl item (array set BIT-ITEM))    ; common itemset
+  (decl prev (ptr (struct --Gnode)))  ; pointer to the previsou node
+  (decl next (ptr (struct --Gnode)))) ; pointer to the next node
+(deftype Gnode (struct --Gnode))
+
+;;; Structure of Glist
+(deftype Glist struct
+  (decl head (ptr Gnode))  ; pointer to the head node
+  (decl crnt (ptr Gnode))) ; pointer to the current node
+
+;;; Edge Data
+(decl eTo (array int E-SIZE))   ; vertex that this edge points to
+(decl eNext (array int E-SIZE)) ; next edge (index for eTo)
+
+;;; Vertex Data
+(decl vDegree (array int V-SIZE))                ; # of edges from this vertex
+(decl vFirstEdge (array int V-SIZE))             ; first edge (index for eTo)
+(decl vItem (array (array set BIT-ITEM) V-SIZE)) ; itemset ("i-th bit ==1" means the vertex has the item 'i')
+(decl vNumItems (array int V-SIZE))              ; # of items the vertex has
+
+;;; Global variables
+(decl th int) ; threshold of common itemset size
+(decl t0 (struct timeval))
+(decl t (array (array (struct timeval) 2) V-SIZE))
+(decl doneID  (array int V-SIZE))
+
+
+;;; Worker Data
+(decl searchSpace (array uint64_t NUM-WORKERS))
+(decl taskRequest (array int NUM-WORKERS))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; Function: getrusageSec - have the user time
+(def (csym::getrusageSec) (fn double void)
+  (decl t (struct rusage))
+  (decl tv (struct timeval))
+  (csym::getrusage RUSAGE-SELF (ptr t))
+  (= tv t.ru-utime)
+  (return (+ tv.tv-sec (* (cast double tv.tv-usec) 0.000001))))
+
+;;; Function: elapsedTime - have the time
+(def (csym::elapsedTime t1 t2) (fn double (ptr (struct timeval)) (ptr (struct timeval)))
+  (return (+ (- (fref t2 -> tv-sec) (fref t1 -> tv-sec)) (* 0.000001 (- (fref t2 -> tv-usec) (fref t1 -> tv-usec))))))
+
+;;; Function: countBits - count the number of "i-th bit == 1"
+(def (csym::countBits x) (fn int set)
+  (= x (+ (bit-and x #x55555555) (bit-and (>> x 1) #x55555555))) 
+  (= x (+ (bit-and x #x33333333) (bit-and (>> x 2) #x33333333))) 
+  (= x (+ (bit-and x #x0f0f0f0f) (bit-and (>> x 4) #x0f0f0f0f))) 
+  (= x (+ (bit-and x #x00ff00ff) (bit-and (>> x 8) #x00ff00ff))) 
+  (return (+ (bit-and x #x0000ffff) (bit-and (>> x 16) #x0000ffff))))
+
+;;; Function: printBits - print a variable with set data type by binary representation
+(def (csym::printBits x) (fn void (const set))
+  (decl i int)
+  (def mask set (<< 1 (- BIT-LEN 1)))
+  (for ((= i 0) (< i BIT-LEN) (inc i))
+    (if (bit-and x mask)
+      (csym::fprintf stderr "1")
+      (csym::fprintf stderr "0"))
+    (>>= mask 1)))
+
+;;; Function: fprintBits - write a variable with set data type by binary representation to stream
+(def (csym::fprintBits fp x) (fn void (ptr FILE) (const set))
+  (decl i int)
+  (def mask set (<< 1 (- BIT-LEN 1)))
+  (for ((= i 0) (< i BIT-LEN) (inc i))
+    (if (bit-and x mask)
+      (csym::fprintf fp "1")
+      (csym::fprintf fp "0"))
+    (>>= mask 1)))
+
+;;; Function: fprintDecimally - write a variable with set date type by decimal representation to stream
+(def (csym::fprintDecimally fp x k) (fn void (ptr FILE) (const set) int)
+  (decl i int)
+  (def mask set 1)
+  (for ((= i 0) (< i BIT-LEN) (inc i))
+    (if (bit-and x mask)
+      (csym::fprintf fp "%d " (+ i (* k BIT-LEN))))
+    (<<= mask 1)))
+
+;;; Function: allocITnode - allocate a ITnode
+(def (csym::allocITnode) (fn (ptr ITnode))
+  (return (cast (ptr ITnode) (csym::malloc(sizeof ITnode)))))
+
+;;; Function: isEmptyITlist - determine whether ITlist is empty
+(def (csym::isEmptyITlist list) (fn int (ptr ITlist))
+  (return (== (fref (fref list -> head) -> next) (fref list -> head))))
+
+;;; Function: initITlist - initialize ITlist
+(def (csym::initITlist list) (fn void (ptr ITlist))
+  (decl i int)
+  (def dummyNode (ptr ITnode) (csym::allocITnode))
+  (for ((= i 0) (< i BIT-ITEM) (inc i))
+    (= (aref (fref dummyNode -> item) i) (cast set 0)))
+  (= (fref list -> crnt) dummyNode)
+  (= (fref list -> head) dummyNode)
+  (= (fref dummyNode -> next) dummyNode)
+  (= (fref dummyNode -> prev) dummyNode))
+
+;;; Function: insertITnodeAfter - insert a new ITnode after the pointer 'p'
+(def (csym::insertITnodeAfter list p data) (fn void (ptr ITlist) (ptr ITnode) (array set))
+  (decl i int)
+  (def new (ptr ITnode) (csym::allocITnode))
+  (def nxt (ptr ITnode) (fref p -> next))
+  (= (fref (fref p -> next) -> prev) new)
+  (= (fref p -> next) new)
+  (for ((= i 0) (< i BIT-ITEM) (inc i))
+    (= (aref (fref new -> item) i) (aref data i)))
+  (= (fref new -> prev) p)
+  (= (fref new -> next) nxt)
+  (= (fref list -> crnt) new))
+
+;;; Function: removeITnode - remove ITnode
+(def (csym::removeITnode list p) (fn void (ptr ITlist) (ptr ITnode))
+  (= (fref (fref p -> prev) -> next) (fref p -> next))
+  (= (fref (fref p -> next) -> prev) (fref p -> prev))
+  (= (fref list -> crnt) (fref p -> prev))
+  (csym::free p))
+
+;;; Function: clearITlist - remove all ITnodes of ITlist
+(def (csym::clearITlist list) (fn void (ptr ITlist))
+  (while (not (csym::isEmptyITlist list))
+    (csym::removeITnode list (fref (fref list -> head) -> next))))
+
+;;; Function: termITlist - dispose of ITlist
+(def (csym::termITlist list) (fn void (ptr ITlist))
+  (while (not (csym::isEmptyITlist list))
+    (csym::removeITnode list (fref (fref list -> head) -> next)))
+  (csym::free (fref list -> head))
+  (= (fref list -> crnt) NULL)
+  (= (fref list -> head) NULL))
+
+;;; Function: allocGnode - allocate a Gnode
+(def (csym::allocGnode) (fn (ptr Gnode))
+  (return (cast (ptr Gnode) (csym::malloc(sizeof Gnode)))))
+
+;;; Function: isEmptyGlist - determine whether Glist is empty
+(def (csym::isEmptyGlist list) (fn int (ptr Glist))
+  (return (== (fref (fref list -> head) -> next) (fref list -> head))))
+
+;;; Function: initGlist - initialize Glist
+(def (csym::initGlist list) (fn void (ptr Glist))
+  (def dummyNode (ptr Gnode) (csym::allocGnode))
+  (= (fref list -> crnt) dummyNode)
+  (= (fref list -> head) dummyNode)
+  (= (fref dummyNode -> next) dummyNode)
+  (= (fref dummyNode -> prev) dummyNode))
+
+;;; Function: insertGnodeAfter - insert a new Gnode after the pointer 'p'
+(def (csym::insertGnodeAfter list p T numT item) (fn void (ptr Glist) (ptr Gnode) (array vtx) int (array set))
+  (decl i int)
+  (def new (ptr Gnode) (csym::allocGnode))
+  (def nxt (ptr Gnode) (fref p -> next))
+
+  (= (fref (fref p -> next) -> prev) new)
+  (= (fref p -> next) new)
+
+  (= (fref new -> numT) numT)
+
+  (= (fref new -> T) (cast (ptr vtx) (csym::malloc (* (fref new ->  numT) (sizeof vtx)))))
+  (for ((= i 0) (< i (fref new -> numT)) (inc i))
+    (= (aref (fref new -> T) i) (aref T i)))
+
+  (for ((= i 0) (< i BIT-ITEM) (inc i))
+    (= (aref (fref new -> item) i) (aref item i)))
+
+  (= (fref new -> prev) p)
+  (= (fref new -> next) nxt)
+  (= (fref list -> crnt) new))
+
+;;; Function: removeGnode - remove Gnode
+(def (csym::removeGnode list p) (fn void (ptr Glist) (ptr Gnode))
+  (= (fref (fref p -> prev) -> next) (fref p -> next))
+  (= (fref (fref p -> next) -> prev) (fref p -> prev))
+  (= (fref list -> crnt) (fref p -> prev))
+  (csym::free p))
+
+;;; Function: termGlist - dispose of Glist
+(def (csym::termGlist list) (fn void (ptr Glist))
+  (while (not (csym::isEmptyGlist list))
+    (csym::removeGnode list (fref (fref list -> head) -> next)))
+  (csym::free (fref list -> head))
+  (= (fref list -> crnt) NULL)
+  (= (fref list -> head) NULL))
+
+;;;
+(def (task T-exploreCCIG)
+  (def minC int)
+  (def maxC int)
+  (def v int)
+  (def itemSet (array set BIT-ITEM))
+  (def vTraversed (ptr int))
+  (def vItemTable (ptr ITlist))
+  (def C (ptr vtx))
+  (def numC int)
+  (def sizeOfC int)
+  (def T (ptr vtx))
+  (def numT int)
+  (def sizeOfT int)
+  (def subgraph Glist)
+  (def treeDepth uint64_t)
+  (def numTraversed uint64_t)
+  (def numSubgraph int)
+  (def numSearch uint64_t)
+  (def numThreshold uint64_t)
+  (def numPruning int))
+
+;;;Function: initExploreCCIG - 
+(def (initExploreCCIG traversed itemTable C T pTsk) (fn void int (ptr ITlist) (ptr vtx) (ptr vtx) (ptr (struct T-exploreCCIG)))
+  (decl i int)
+
+  ;; initialize vTraversed
+  (if (== traversed 0)
+    (begin
+      (= (fref pTsk -> vTraversed) (cast (ptr int) (csym::calloc V-SIZE (sizeof int)))))
+    (begin
+      (= (fref pTsk -> vTraversed) (cast (ptr int) (csym::malloc (* V-SIZE (sizeof int)))))))
+
+  ;; initialize vItemTable
+  (= (fref pTsk -> vItemTable) (cast (ptr ITlist) (csym::malloc (* V-SIZE (sizeof ITlist)))))
+  (for ((= i 0) (< i V-SIZE) (inc i))
+    (csym::initITlist (ptr (aref (fref pTsk -> vItemTable) i))))
+
+  ;; initialize C
+  (= (fref pTsk -> numC) 0)
+  (= (fref pTsk -> sizeOfC) 10000)
+  (= (fref pTsk -> C) (cast (ptr vtx) (csym::malloc (* (fref pTsk ->  sizeOfC) (sizeof vtx)))))
+
+  ;; initialize T
+  (= (fref pTsk -> numT) 0)
+  (= (fref pTsk -> sizeOfT) 100)
+  (= (fref pTsk -> T) (cast (ptr vtx) (csym::malloc (* (fref pTsk ->  sizeOfT) (sizeof vtx)))))
+
+  ;; init subgraph
+  (csym::initGlist (ptr (fref pTsk -> subgraph)))
+
+  ;; init Debug Data
+  (= (fref pTsk -> treeDepth) 0)
+  (= (fref pTsk -> numTraversed) 0)
+  (= (fref pTsk -> numSubgraph) 0)
+  (= (fref pTsk -> numSearch) 0)
+  (= (fref pTsk -> numThreshold) 0) 
+  (= (fref pTsk -> numPruning) 0))
+
+;;; Function: exploreCCIG - create a common-itemset tree with recursive call
+(def (exploreCCIG minC maxC v itemSet pTsk) (wfn void int int int (array set) (ptr (struct T-exploreCCIG)))
+  (defs int i j k l m)                   ; temporary variable
+  (def cc int 0)                         ; # of newly added candidates
+  (decl vv int)                          ; vertex whice is searched next time
+  (def numC int (fref pTsk -> numC))     ; 
+  (decl commonNum int)                   ; # of common itemset
+  (decl commonItem (array set BIT-ITEM)) ; common itemset
+  (def closed int 1)                     ; flag which denotes subgraph is closed
+  (decl pruning int)                     ; flag to prune
+  (decl ITptr (ptr ITnode))              ; pointer to the ITnode
+
+  ;; DFS
+  (do-many for i from minC to maxC
+    (= vv (aref (fref pTsk -> C) (- (- (fref pTsk -> numC) i) 1)))
+    (inc (aref (fref pTsk -> vTraversed) vv))
+
+    (if (== (aref (fref pTsk -> vTraversed) vv) 1)
+      (begin
+        (inc (fref pTsk -> numSearch))
+
+        ;; evaluate common itemset
+        (for ((= k 0) (= m 0) (= commonNum 0) (< k BIT-ITEM) (inc k))
+          (= (aref commonItem k) (cast set (bit-and (aref itemSet k) (aref vItem vv k))))
+          (+= commonNum (csym::countBits (aref commonItem k)))
+          ;(+= commonNum (csym::--builtin-popcount (aref commonItem k)))
+          (if (== (aref commonItem k) (aref itemSet k))
+            (inc m)))
+        (if (== m BIT-ITEM)
+          (= closed 0))
+
+        ;; if # of common-itemset >= th, then
+        (if (>= commonNum th)
+          (begin
+            (= pruning 0)
+
+            ;; check that common-itemset is subset of item table
+            (= ITptr (fref (fref (aref (fref pTsk -> vItemTable) vv) head) -> next))
+            (while (!= ITptr (fref (aref (fref pTsk -> vItemTable) vv) head))
+              (for ((= k 0) (= m 0) (< k BIT-ITEM) (inc k))
+                (if (== (cast set (bit-and (aref commonItem k) (aref (fref ITptr -> item) k))) (aref commonItem k))
+                  (inc m)))
+              (if (== m BIT-ITEM)
+                (begin
+                  (= pruning 1)
+                  (break)))
+              (= ITptr (fref ITptr -> next)))
+
+            ;; if common-itemset is not subset of item table, then
+            (if (not pruning)
+              (begin
+                (inc (fref pTsk -> numTraversed))
+                (+= (fref pTsk -> treeDepth) (+ (fref pTsk -> numT) 1))
+
+                (= ITptr (fref (fref (aref (fref pTsk -> vItemTable) vv) head) -> next))
+                (while (!= ITptr (fref (aref (fref pTsk -> vItemTable) vv) head))
+                  (for ((= k 0) (= m 0) (< k BIT-ITEM) (inc k))
+                    (if (== (cast set (bit-and (aref (fref ITptr -> item) k) (aref commonItem k))) (aref (fref ITptr -> item) k))
+                      (inc m)))
+                  (= ITptr (fref ITptr -> next))
+                  (if (== m BIT-ITEM)
+                    (csym::removeITnode (ptr (aref (fref pTsk -> vItemTable) vv)) (fref ITptr -> prev))))
+                (csym::insertITnodeAfter (ptr (aref (fref pTsk -> vItemTable) vv)) (fref (aref (fref pTsk -> vItemTable) vv) head) commonItem)
+
+                ;; add new candidates 
+                (if (>= (+ (fref pTsk -> numC) (aref vDegree vv)) (fref pTsk -> sizeOfC))
+                  (begin
+                    (*= (fref pTsk -> sizeOfC) 2)
+                    (= (fref pTsk -> C) (cast (ptr vtx) (csym::realloc (fref pTsk -> C) (* (fref pTsk ->  sizeOfC) (sizeof vtx)))))))
+                (for ((= cc 0) (= j (aref vFirstEdge vv)) (!= j -1) (= j (aref eNext j)))
+                  (if (and (< (aref (fref pTsk -> T) 0) (aref eTo j)) (== (aref (fref pTsk -> vTraversed) (aref eTo j)) 0))
+                    (begin
+                      (= (aref (fref pTsk -> C) (+ cc (fref pTsk -> numC))) (aref eTo j))
+                      (inc cc))))
+
+                ;; update vertices of CCIG
+                (if (== (+ (fref pTsk -> numT) 1) (fref pTsk -> sizeOfT))
+                  (begin
+                    (*= (fref pTsk -> sizeOfT) 2)
+                    (= (fref pTsk -> T) (cast (ptr vtx) (csym::realloc (fref pTsk -> T) (* (fref pTsk ->  sizeOfT) (sizeof vtx)))))))
+                (= (aref (fref pTsk -> T) (fref pTsk -> numT)) vv)
+
+                (dynamic-wind
+                  (:before
+                    ;; update numC & numT
+                    (+= (fref pTsk -> numC) cc)
+                    (inc (fref pTsk -> numT))
+
+                    (if BACKTRACKING
+                      (begin
+                        (for ((= j 0) (<= j i) (inc j))
+                          (inc (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) (- (- numC j) 1))))))))
+                  (:body
+                    (%if* DEBUG-SHOW (begin
+                      (begin
+                        (for ((= l 0) (< l (- (fref pTsk -> numT) 1)) (inc l))
+                          (csym::fprintf stderr " %d -" (aref (fref pTsk -> T) l)))
+                        (csym::fprintf stderr "> %d~%" (aref (fref pTsk -> T) (- (fref pTsk -> numT) 1))))))
+
+                    ;; recursive call
+                    (exploreCCIG 0 (fref pTsk -> numC) vv commonItem pTsk)
+                    
+                    (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
+                      (dec (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j)))))
+                  (:after
+                    (if BACKTRACKING
+                      (begin
+                        (for ((= j 0) (<= j i) (inc j))
+                          (dec (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) (- (- numC j) 1)))))))
+
+                    (-= (fref pTsk -> numC) cc)
+                    (dec (fref pTsk -> numT)))))
+              (begin
+                (inc (fref pTsk -> numPruning))
+                (%if* DEBUG-SHOW (begin
+                  (begin
+                    (csym::fprintf stderr " pruning!! ")
+                    (for ((= l 0) (< l (fref pTsk -> numT)) (inc l))
+                      (csym::fprintf stderr " %d -" (aref (fref pTsk -> T) l)))
+                    (csym::fprintf stderr "> %d~%" vv)))))))
+          (begin
+            (inc (fref pTsk -> numThreshold))
+            (%if* DEBUG-SHOW (begin
+              (begin
+                (csym::fprintf stderr " threshold!! ")
+                (for ((= l 0) (< l (fref pTsk -> numT)) (inc l))
+                  (csym::fprintf stderr " %d -" (aref (fref pTsk -> T) l)))
+                (csym::fprintf stderr "> %d~%" vv))))))))
+
+    (handles T-exploreCCIG
+      (%if* USE-SPN-RANGE
+        (:spawn-from (+ i 3)))
+      (:put from i1 to i2
+        (= (fref this minC) i1)
+        (= (fref this maxC) i2)
+        (= (fref this v) v)
+        (csym::memcpy (fref this itemSet) itemSet (* (sizeof set) BIT-ITEM))
+        (initExploreCCIG 1 NULL NULL NULL (ptr this))
+        (csym::memcpy (fref this vTraversed) (fref pTsk -> vTraversed) (* (sizeof int) V-SIZE))
+        (for ((= j 0) (< j i1) (inc j))
+          (inc (aref (fref this vTraversed) (aref (fref pTsk -> C) (- (- numC j) 1)))))
+        (csym::memcpy (fref this C) (fref pTsk -> C) (* (sizeof vtx) numC))
+        (= (fref this numC) numC)
+        (csym::memcpy (fref this T) (fref pTsk -> T) (* (sizeof vtx) (fref pTsk -> numT)))
+        (= (fref this numT) (fref pTsk -> numT)))
+      (:get
+        (= (fref (fref (fref (fref pTsk -> subgraph) head) -> prev) -> next) (fref (fref (fref this subgraph) head) -> next))
+        (= (fref (fref (fref (fref this subgraph) head) -> next) -> prev) (fref (fref (fref pTsk -> subgraph) head) -> prev))
+        (= (fref (fref (fref (fref this subgraph) head) -> prev) -> next) (fref (fref pTsk -> subgraph) head))
+        (= (fref (fref (fref pTsk -> subgraph) head) -> prev) (fref (fref (fref this subgraph) head) -> prev))
+        (+= (fref pTsk -> treeDepth) (fref this treeDepth))
+        (+= (fref pTsk -> numTraversed) (fref this numTraversed))
+        (+= (fref pTsk -> numSubgraph) (fref this numSubgraph))
+        (+= (fref pTsk -> numThreshold) (fref this numThreshold))
+        (+= (fref pTsk -> numPruning) (fref this numPruning)))))
+
+  (if closed
+    ;; output common-itemset subgraph
+    (begin
+      (%if* DEBUG-RSLT (begin
+        (csym::insertGnodeAfter (ptr (fref pTsk -> subgraph)) (fref (fref pTsk -> subgraph) crnt) (fref pTsk -> T) (fref pTsk -> numT) itemSet)))
+      (inc (fref pTsk -> numSubgraph)))))
+
+;;; 
+(def (task-body T-exploreCCIG)
+  (decl i int)
+  (decl tp (array (struct timeval) 2))
+  (inc (aref taskRequest (fref -thr -> id)))
+  (csym::gettimeofday tp 0)
+  (exploreCCIG (fref this minC) (fref this maxC) (fref this v) (fref this itemSet) (ptr this))
+  (csym::gettimeofday (+ tp 1) 0)
+  (+= (aref searchSpace (fref -thr -> id)) (fref this numSearch))
+  (%if* DEBUG-TASK (begin
+    (csym::fprintf stderr "T-exploreCCIG(%d): %f[sec](%f[sec]), %llu, ID:%d~%" (aref (fref this T) 0) (csym::elapsedTime tp (+ tp 1)) (csym::elapsedTime (ptr t0) (+ tp 1)) (fref this numSearch) (fref -thr -> id))))
+  (csym::free (fref this vTraversed))
+  (for ((= i 0) (< i V-SIZE) (inc i))
+    (csym::termITlist (ptr (aref (fref this vItemTable) i))))
+  (csym::free (fref this vItemTable))
+  (csym::free (fref this C))
+  (csym::free (fref this T)))
+
+;;; 
+(def (task T-enumCCIG)
+  (def minVertex int :in)
+  (def maxVertex int :in)
+  (def tsk (struct T-exploreCCIG)))
+
+;;; Function: enumCCIG - enumerate CCIG
+(def (enumCCIG minVertex maxVertex pTsk) (wfn void int int (ptr (struct T-exploreCCIG)))
+  (defs int i j k)          ; temporary variable
+  (decl visiting int)       ; flag to search
+  (decl ITptr (ptr ITnode)) ; 
+
+  (do-many for i from minVertex to maxVertex
+    (%if* DEBUG-TIME (begin
+      (csym::gettimeofday (aref t i) 0)))
+    (if (> (aref vDegree i) 0)
+      (begin
+        (%if* DEBUG-SHOW (begin
+          (csym::fprintf stderr "Starting Point: %d~%" i)))
+
+        (= (aref (fref pTsk -> vTraversed) i) 2)
+        (= visiting 0)
+
+        ;; check that itemset of 'i' is subset of itemset-table
+        (= ITptr (fref (fref (aref (fref pTsk -> vItemTable) i) head) -> next))
+        (for ((= k 0) (< k BIT-ITEM) (inc k))
+          (if (!= (cast set (bit-and (aref vItem i k) (aref (fref ITptr -> item) k))) (aref vItem i k))
+            (begin 
+              (= visiting 1)
+              (break))))
+
+        ;; if search the CCIG whose starting point is 'i', then
+        (if visiting
+          (begin
+            (%if* DEBUG-SHOW (begin
+              (csym::fprintf stderr "+++ Allons-y! +++~%")))
+
+            (csym::clearITlist (ptr (aref (fref pTsk -> vItemTable) i)))
+            (csym::insertITnodeAfter (ptr (aref (fref pTsk -> vItemTable) i)) (fref (aref (fref pTsk -> vItemTable) i) head) (aref vItem i))
+
+            (for ((= j (aref vFirstEdge i)) (!= j -1) (= j (aref eNext j)))
+              (if (< i (aref eTo j))
+                (begin
+                  (= (aref (fref pTsk -> C) (fref pTsk -> numC)) (aref eTo j))
+                  (inc (fref pTsk -> numC)))))
+
+            (= (aref (fref pTsk -> T) (fref pTsk -> numT)) i)
+            (inc (fref pTsk -> numT))
+            (inc (fref pTsk -> treeDepth))
+            (inc (fref pTsk -> numTraversed))
+
+            (exploreCCIG 0 (fref pTsk -> numC) i (aref vItem i) pTsk)
+              
+            (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
+              (= (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j)) 0))
+            (= (fref pTsk -> numC) 0)
+
+            (= (fref pTsk -> numT) 0)
+
+            (%if* DEBUG-SHOW (begin
+              (csym::fprintf stderr "~%"))))
+          (begin
+            (inc (fref pTsk -> numPruning))
+
+            (%if* DEBUG-SHOW (begin
+              (csym::fprintf stderr "- PRUNING! -~%~%")))))))
+
+    (%if* DEBUG-TIME (begin
+      (csym::gettimeofday (+ (aref t i) 1) 0)
+      (= (aref doneID i) (fref -thr -> id))))
+
+    (handles T-enumCCIG
+      (%if* USE-SPN-RANGE
+        (:spawn-from (+ i 3)))
+      (:put from i1 to i2
+        (= (fref this minVertex) i1)
+        (= (fref this maxVertex) i2)
+        (initExploreCCIG 0 NULL NULL NULL (ptr (fref this tsk))))
+      (:get
+        (= (fref (fref (fref (fref pTsk -> subgraph) head) -> prev) -> next) (fref (fref (fref (fref this tsk) subgraph) head) -> next))
+        (= (fref (fref (fref (fref (fref this tsk) subgraph) head) -> next) -> prev) (fref (fref (fref pTsk -> subgraph) head) -> prev))
+        (= (fref (fref (fref (fref (fref this tsk) subgraph) head) -> prev) -> next) (fref (fref pTsk -> subgraph) head))
+        (= (fref (fref (fref pTsk -> subgraph) head) -> prev) (fref (fref (fref (fref this tsk) subgraph) head) -> prev))
+        (+= (fref pTsk -> treeDepth) (fref (fref this tsk) treeDepth))
+        (+= (fref pTsk -> numTraversed) (fref (fref this tsk) numTraversed))
+        (+= (fref pTsk -> numSubgraph) (fref (fref this tsk) numSubgraph))
+        (+= (fref pTsk -> numThreshold) (fref (fref this tsk) numThreshold))
+        (+= (fref pTsk -> numPruning) (fref (fref this tsk) numPruning))
+        (csym::free (fref (fref this tsk) vTraversed))
+        (for ((= j 0) (< j V-SIZE) (inc j))
+          (csym::termITlist (ptr (aref (fref (fref this tsk) vItemTable) j))))
+        (csym::free (fref (fref this tsk) vItemTable))
+        (csym::free (fref (fref this tsk) C))
+        (csym::free (fref (fref this tsk) T))))))
+
+;;;
+(def (task-body T-enumCCIG)
+  (decl tp (array (struct timeval) 2))
+  (inc (aref taskRequest (fref -thr -> id)))
+  (csym::gettimeofday tp 0)
+  (enumCCIG (fref this minVertex) (fref this maxVertex) (ptr (fref this tsk)))
+  (csym::gettimeofday (+ tp 1) 0)
+  (+= (aref searchSpace (fref -thr -> id)) (fref (fref this tsk) numSearch))
+  (%if* DEBUG-TASK (begin
+    (csym::fprintf stderr "T-enumCCIG(from %d to %d): %f[sec](%f[sec]), %llu, ID:%d~%" (fref this minVertex) (fref this maxVertex) (csym::elapsedTime tp (+ tp 1)) (csym::elapsedTime (ptr t0) (+ tp 1)) (fref (fref this tsk) numSearch) (fref -thr -> id)))))
+
+;;; Function: thresholdItem - delete the vertex whose # of items is less than the user-specified threshold
+(def (thresholdItem minVertex maxVertex) (fn void (const int) (const int))
+  (defs int i j k l) ; temporary variable
+
+  (for ((= i minVertex) (< i maxVertex) (inc i))
+    ;; if # of items is less than the use-specified threshold, then
+    (if (and (> (aref vDegree i) 0) (< (aref vNumItems i) th))
+      (begin
+        ;; delete edges connected from the vertex
+        (= (aref vDegree i) 0)
+        (= (aref vFirstEdge i) -1)
+
+        (for ((= j minVertex) (< j maxVertex) (inc j))
+          (for ((= k (aref vFirstEdge j)) (!= k -1) (= k (aref eNext k)))
+            ;; delete edges connected to the vertex
+            (if (== (aref eTo k) i)
+              (begin
+                ;; if degree of starting point == 1, then
+                (if (== (aref vDegree j) 1)
+                  (begin
+                    (= (aref vDegree j) 0)
+                    (= (aref vFirstEdge j) -1))
+                  ;; if degree of starting point >= 2, then
+                  (begin
+                    (if (== k (aref vFirstEdge j))
+                      (begin
+                        (= (aref vFirstEdge j) (aref eNext k)))
+                      (if (== (aref eNext k) -1)
+                        (= (aref eNext l) -1)
+                        (begin 
+                          (= (aref eNext l) (aref eNext k)))))
+                    (dec (aref vDegree j))))))
+            (= l k)))))))
+
+;;; Function: loadPatternFile - load pattern file
+(def (loadPatternFile patternFile maxNumItems) (fn void (ptr (const char)) (ptr int))
+  (decl n int)                 ; item number
+  (decl v int)                 ; vertex number
+  (decl item (ptr char))       ; 
+  (decl buff (array char 256)) ; buffer
+  (decl fp (ptr FILE))         ; file pointer
+
+  ;; open pattern file
+  (if (== (= fp (csym::fopen patternFile "r")) NULL)
+    (begin
+      (csym::fprintf stderr "Cannot open pattern file: %s~%" patternFile)
+      (exit EXIT-FAILURE)))
+
+  ;; read a line of data from pattern file
+  (while (!= (csym::fgets buff 256 fp) NULL)
+    ;; skip a comment line
+    (if (!= (csym::strncmp buff "#" 1) 0)
+      (begin
+        (= v (csym::atoi (csym::strtok buff "~|11|")))
+        ;; add item to Vertex Data
+        (while (!= (= item (csym::strtok NULL ",")) NULL)
+          (= n (csym::atoi item))
+          (bit-or= (aref vItem v (cast int (/ n BIT-LEN))) (<< 1 (cast int (% n BIT-LEN))))
+          (inc (aref vNumItems v)) ; increase # of items
+          ;; evaluate maximum # of items
+          (if (> n (mref maxNumItems))
+            (= (mref maxNumItems) n))))))
+
+  ;; close pattern file
+  (csym::fclose fp))
+
+;;; Function: createEdge - add edge to eTo 
+(def (createEdge v1 v2 edgeMax minVertex maxVertex) (fn void int int (ptr int) (ptr int) (ptr int))
+  (defs int i j temp1 temp2) ; temporary variable
+
+  ;; if degree of the starting point == 0, then
+  (if (== (aref vDegree v1) 0)
+    (begin
+      (inc (mref edgeMax))
+      (= (aref eTo (mref edgeMax)) v2)
+      (= (aref vFirstEdge v1) (mref edgeMax)))
+
+    ;; if degree of starting point >= 1, then
+    (begin
+      (= temp1 v2)
+      (for ((= i (aref vFirstEdge v1)) 1 (= i (aref eNext i)))
+        (if (== temp1 (aref eTo i))
+          (return)) ; the edge already exists
+        (if (> temp1 (aref eTo i))
+          (begin
+            (= temp2 (aref eTo i))
+            (= (aref eTo i) temp1)
+            (= temp1 temp2)))
+        (if (== (aref eNext i) -1)
+          (break)))
+
+      ;; update Edge Data
+      (inc (mref edgeMax))
+      (= (aref eTo (mref edgeMax)) temp1)
+      (= (aref eNext i) (mref edgeMax))))
+
+  ;; evaluate mimimum vertex number
+  (if (< v1 (mref minVertex))
+    (= (mref minVertex) v1))
+  (if (< v2 (mref minVertex))
+    (= (mref minVertex) v2))
+
+  ;; evaluate maximum vertex number
+  (if (> v1 (mref maxVertex))
+    (= (mref maxVertex) v1))
+  (if (> v2 (mref maxVertex))
+    (= (mref maxVertex) v2))
+
+  ;; increase degree of the starting point
+  (inc (aref vDegree v1)))
+
+;;; Function: loadGraphFile - load graph file
+(def (loadGraphFile graphFile edgeMax minVertex maxVertex) (fn void (ptr (const char)) (ptr int) (ptr int) (ptr int))
+  (defs int v1 v2)             ; starting point, ending point
+  (decl eLabel (ptr char))     ; label of edge
+  (decl empty (ptr char))      ; 
+  (decl buff (array char 256)) ; buffer
+  (decl fp (ptr FILE))         ; file pointer
+
+  ;; open graph file
+  (if (== (= fp (csym::fopen graphFile "r")) NULL)
+    (begin
+      (csym::fprintf stderr "Cannot open graph file: %s~%" graphFile)
+      (exit EXIT-FAILURE)))
+
+  ;; read a line of data from graph file
+  (while (!= (csym::fgets buff 256 fp) NULL)
+    ;; skip a comment line
+    (if (!= (csym::strncmp buff "#" 1) 0)
+      (begin
+        (= v1 (csym::atoi (csym::strtok buff "~|11|")))
+        (= eLabel (csym::strtok NULL "~|11|"))
+        (= v2 (csym::atoi (csym::strtok NULL "~|11|")))
+        (= empty (csym::strtok NULL "~|11|"))
+        ;; add edge to Edge List
+        (if (== empty NULL)
+          (if (!= v1 v2)
+            (begin
+              (createEdge v1 v2 edgeMax minVertex maxVertex)
+              (createEdge v2 v1 edgeMax minVertex maxVertex)))))))
+
+  ;; close graph file
+  (csym::fclose fp))
+
+;;; Function: initData - initialize Edge Data & Vertex Data & Debug Data
+(def (initData edgeMax minVertex maxVertex maxNumItems) (fn void (ptr int) (ptr int) (ptr int) (ptr int))
+  (defs int i j) ; temporary variable
+
+  ;; initialize Edge Data
+  (= (mref edgeMax) -1)
+  (for ((= i 0) (< i E-SIZE) (inc i))
+    (= (aref eTo i) -1)
+    (= (aref eNext i) -1))
+
+  ;; initialize Vertex Data
+  (= (mref minVertex) INT_MAX)
+  (= (mref maxVertex) -1)
+  (= (mref maxNumItems) -1)
+  (for ((= i 0) (< i V-SIZE) (inc i))
+    (= (aref vDegree i) 0)
+    (= (aref vFirstEdge i) -1)
+    (= (aref vNumItems i) 0)
+    (for ((= j 0) (< j BIT-ITEM) (inc j))
+      (= (aref vItem i j) 0)))
+
+  ;; initialize Debug Data
+  (for ((= i 0) (< i NUM-WORKERS) (inc i))
+    (= (aref searchSpace i) 0)
+    (= (aref taskRequest i) 0))
+  (for ((= i 0) (< i V-SIZE) (inc i))
+    (= (aref doneID i) 0)))
+
+;;; 
+(def (task T-startCCIG)
+  (def th int :in))
+
+;;; Main 
+(def (task-body T-startCCIG)
+  (defs int i j)                       ; temporary variable
+  (decl tp (array (struct timeval) 2)) ; start time, end time
+  (defs double t1 t2)                  ; start user time, end user time
+  (decl patternFile (ptr char))        ; name of pattern file
+  (decl graphFile (ptr char))          ; name of graph file
+  (decl resultFile (ptr char))         ; name of result file
+  (decl timeFile (ptr char))           ; name of time file
+  (defs (ptr FILE) fp fpt)             ; file pointer
+
+  ;; Task
+  (def tsk (struct T-exploreCCIG))
+
+  ;; Edge Data
+  (decl edgeMax int)     ; maximum edge number
+
+  ;; Vertex Data
+  (decl minVertex int)           ; minimum vertex number
+  (decl maxVertex int)           ; maximum vertex number
+  (decl maxNumItems int)         ; maximum # of items
+
+  ;; Subgraph Data
+  (decl Gptr (ptr Gnode))
+
+  ;; Debug Data
+  (def numSearch uint64_t 0)      ; # of search space
+  (def avgWorkerSearch double 0.0); 
+  (def workerSearchSD double 0.0) ;
+  (def numTaskRequest int 0)      ; # of task request 
+  (def avgTaskRequest double 0.0) ;
+  (def taskRequestSD double 0.0)  ;
+  (def avgSizeSubgraph uint64_t 0) ;
+  (def maxSizeSubgraph int 0)      ;
+
+  ;; arguments
+  (= patternFile "data/symatlas_pattern.txt")
+  (= graphFile "data/symatlas_graph.txt")
+  ;(= patternFile "data/eg_pattern.txt")
+  ;(= graphFile "data/eg_graph.txt")
+  (= th this.th)
+  (= resultFile "result.txt")
+  (= timeFile "time.csv")
+
+  ;; initialize Edge Data & Vertex Data & Debug Data
+  (initData (ptr edgeMax) (ptr minVertex) (ptr maxVertex) (ptr maxNumItems))
+
+  ;; load graph file
+  (loadGraphFile graphFile (ptr edgeMax) (ptr minVertex) (ptr maxVertex))
+
+  ;; load pattern file
+  (loadPatternFile patternFile (ptr maxNumItems))
+
+  ;; delete the vertex whose # of items is less than the user-specified threshold
+  (thresholdItem minVertex maxVertex)
+
+  ;; init T-exploreCCIG
+  (initExploreCCIG 0 NULL NULL NULL (ptr tsk))
+
+  ;; get start time of program
+  (= t1 (csym::getrusageSec))
+  (csym::gettimeofday (ptr t0) 0)
+  (csym::gettimeofday tp 0)
+
+  ;; enumerate CCIG
+  (enumCCIG minVertex (+ maxVertex 1) (ptr tsk))
+
+  ;; get end time of program
+  (csym::gettimeofday (+ tp 1) 0)
+  (= t2 (csym::getrusageSec))
+
+  (%if* DEBUG-TASK (begin
+    (csym::fprintf stderr "T-enumCCIG(from %d to %d): %f[sec](%f[sec]), %llu, ID:%d~%" minVertex maxVertex (csym::elapsedTime tp (+ tp 1)) (csym::elapsedTime (ptr t0) (+ tp 1)) (fref tsk numSearch) (fref -thr -> id))))
+  (+= (aref searchSpace (fref -thr -> id)) (fref tsk numSearch))
+
+  (%if* DEBUG-TIME (begin
+    ;; open time file
+    (if (== (= fpt (csym::fopen timeFile "w")) NULL)
+      (begin
+        (csym::fprintf stderr "Cannot open time file: %s~%" timeFile)
+        (exit EXIT-FAILURE)))
+
+    (for ((= i minVertex) (< i maxVertex) (inc i))
+      (csym::fprintf fpt "%d, %f, %f, %d~%" i (csym::elapsedTime tp (+ (aref t i) 1)) (csym::elapsedTime (aref t i) (+ (aref t i) 1)) (aref doneID i)))
+
+    ;; close time file
+    (csym::fclose fpt)))
+
+  ;; debug mode
+  (%if* DEBUG-DATA (begin
+    (begin
+      (csym::fprintf stderr "~%----- Edge Data -----~%")
+      (for ((= i 0) (<= i edgeMax) (inc i))
+        (csym::fprintf stderr "Edge %d: %d, %d~%" i (aref eTo i) (aref eNext i)))
+      (csym::fprintf stderr "~%----- Vertex Data -----~%")
+      (for ((= i minVertex) (<= i maxVertex) (inc i))
+        (csym::fprintf stderr "Vertex %d: %d, %d, " i (aref vDegree i) (aref vFirstEdge i))
+        (for ((= j (/ maxNumItems BIT-LEN)) (>= j 0) (dec j))
+          (printBits (aref vItem i j)))
+        (csym::fprintf stderr ", %d~%" (aref vNumItems i)))
+      (csym::fprintf stderr "~%----- Subgraph List -----~%")
+      (= i 0)
+      (= Gptr (fref (fref (fref tsk subgraph) head) -> next))
+      (while (!= Gptr (fref (fref tsk subgraph) head))
+        ;; print vertices of CCIG
+        (csym::fprintf stderr "Subgraph %d:" i)
+        (for ((= j 0) (< j (fref Gptr -> numT)) (inc j))
+          (csym::fprintf stderr " %d" (aref (fref Gptr -> T) j)))
+        (csym::fprintf stderr " ( ")
+        ;; print common itemset of CCIG
+        (for ((= j 0) (< j BIT-ITEM) (inc j))
+          (csym::fprintDecimally stderr (aref (fref Gptr -> item) j) j))
+        (inc i)
+        (= Gptr (fref Gptr -> next))
+        (csym::fprintf stderr ")~%"))
+      (csym::fprintf stderr "~%")
+      (csym::fprintf stderr "edgeMax = %d, minVertex = %d, maxVertex = %d, maxNumItems = %d~%" edgeMax minVertex maxVertex maxNumItems))))
+
+  ;; output result file
+  (%if* DEBUG-RSLT (begin
+    (begin
+      ;; open result file
+      (if (== (= fp (csym::fopen resultFile "w")) NULL)
+        (begin
+          (csym::fprintf stderr "Cannot open result file: %s~%" resultFile)
+          (exit EXIT-FAILURE)))
+      (= Gptr (fref (fref (fref tsk subgraph) head) -> next))
+      (while (!= Gptr (fref (fref tsk subgraph) head))
+        ;; write vertices of CCIG to stream
+        (for ((= j 0) (< j (fref Gptr -> numT)) (inc j))
+          (csym::fprintf fp "%d " (aref (fref Gptr -> T) j)))
+        (csym::fprintf fp "( ")
+        ;; write common itemset of CCIG to stream
+        (for ((= j 0) (< j BIT-ITEM) (inc j))
+          (csym::fprintDecimally fp (aref (fref Gptr -> item) j) j))
+        (= Gptr (fref Gptr -> next))
+        (csym::fprintf fp ")~%"))
+
+      ;; close result file
+      (csym::fclose fp))))
+
+  (%if* DEBUG-RSLT (begin
+    (= Gptr (fref (fref (fref tsk subgraph) head) -> next))
+    (while (!= Gptr (fref (fref tsk subgraph) head))
+      (+= avgSizeSubgraph (fref Gptr -> numT))
+      (if (< maxSizeSubgraph (fref Gptr -> numT))
+        (= maxSizeSubgraph (fref Gptr -> numT)))
+      (= Gptr (fref Gptr -> next)))))
+
+  ;; show debug datas
+  (csym::fprintf stderr "time = %f[sec]~%" (csym::elapsedTime tp (+ tp 1)))
+  (csym::fprintf stderr "user time = %f[sec]~%" (- t2 t1))
+  (csym::fprintf stderr "# of subgraphs = %d~%" (fref tsk numSubgraph))
+  (csym::fprintf stderr "# of thresholds = %llu~%" (fref tsk numThreshold))
+  (csym::fprintf stderr "# of prunings = %u~%" (fref tsk numPruning))
+  (csym::fprintf stderr "Avg. tree depth = %f~%" (/ (cast double (fref tsk treeDepth)) (cast double (fref tsk numTraversed))))
+  (%if* DEBUG-RSLT (begin
+    (csym::fprintf stderr "Max size of subgraph = %d~%" maxSizeSubgraph)
+    (csym::fprintf stderr "Avg. size of subgraph = %f~%" (/ (cast double avgSizeSubgraph) (cast double (fref tsk numSubgraph))))))
+
+  (csym::fprintf stderr "~%# of searches & task-requests~%")
+  (for ((= j 0) (< j (fref option num-thrs)) (inc j))
+    (csym::fprintf stderr " ID:%d, %llu, %d~%" j (aref searchSpace j) (aref taskRequest j))
+    (+= numSearch (aref searchSpace j))
+    (+= numTaskRequest (aref taskRequest j)))
+  (= avgWorkerSearch (/ (cast double numSearch) (cast double (fref option num-thrs))))
+  (= avgTaskRequest (/ (cast double numTaskRequest) (cast double (fref option num-thrs))))
+
+  (for ((= j 0) (< j (fref option num-thrs)) (inc j))
+    (+= workerSearchSD (csym::pow (- (aref searchSpace j) avgWorkerSearch) 2.0))
+    (+= taskRequestSD (csym::pow (- (aref taskRequest j) avgTaskRequest) 2.0)))
+  (/= workerSearchSD (fref option num-thrs))
+  (/= taskRequestSD (fref option num-thrs))
+  (= workerSearchSD (csym::sqrt workerSearchSD))
+  (= taskRequestSD (csym::sqrt taskRequestSD))
+
+  (csym::fprintf stderr "# of searches = %llu, Avg. = %.1f, S.D. = %.1f~%" numSearch avgWorkerSearch workerSearchSD)
+  (csym::fprintf stderr "# of task requests = %d, Avg. = %.2f, S.D. = %.2f~%" numTaskRequest avgTaskRequest taskRequestSD))
