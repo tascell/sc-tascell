@@ -67,7 +67,7 @@
 ;; (enum command)の値が配列添字に対応
 ;; ここを変えると deserilalize-cmdname の「ゆるい文字列比較」も変える必要があるので注意
 (def cmd-strings (array (ptr char))
-  (array "task" "rslt" "treq" "none" "back" "rack" "dreq" "data"
+  (array "task" "rslt" "treq" "none" "rack" "dreq" "data"
          "bcst" "bcak" "stat" "verb" "exit" "leav" "lack" "abrt" "cncl" "wrng" 0))
 
 ;; コマンド->文字列 (returns 書いた文字数)
@@ -114,7 +114,6 @@
      
      (case #\b)
      (switch (mref (inc p))
-       (case #\a) (= (mref buf) BACK) (break)
        (case #\c)
        (switch (mref (inc p))
          (case #\s) (= (mref buf) BCST) (break)

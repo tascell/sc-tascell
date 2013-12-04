@@ -84,7 +84,7 @@
 ;;; コマンドに続いてデータをともなうコマンド
 ;;; These constants are referred to in compile time with #. reader macros.
 (eval-when (:execute :load-toplevel :compile-toplevel)
-  (defparameter *commands* '("treq" "task" "none" "back" "rslt" "rack" "bcst" "bcak" "dreq" "data"
+  (defparameter *commands* '("treq" "task" "none" "rslt" "rack" "bcst" "bcak" "dreq" "data"
                              "leav" "lack" "abrt" "cncl"
                              "log"  "stat" "verb" "eval" "exit"))
   (defparameter *commands-with-data* '("task" "rslt" "data"))
@@ -1013,14 +1013,6 @@
 (defmethod send-none (to task-head)
   (send to (list "none " task-head #\Newline)))
 
-(defgeneric send-back (to task-head))
-(defmethod send-back (to task-head)
-  (send to (list "back " task-head #\Newline)))
-
-(defmethod send-back ((to parent) task-head)
-  (declare (ignore task-head))
-  (decf (parent-diff-task-rslt to)))
-
 (defgeneric send-rack (to task-head))
 (defmethod send-rack (to task-head)
   (send to (list "rack " task-head #\Newline)))
@@ -1084,7 +1076,6 @@
     ("treq" (proc-treq sv from cmd))
     ("task" (proc-task sv from cmd))
     ("none" (proc-none sv from cmd))
-    ("back" (proc-back sv from cmd))
     ("rslt" (proc-rslt sv from cmd))
     ("rack" (proc-rack sv from cmd))
     ("bcst" (proc-bcst sv from cmd))
@@ -1258,18 +1249,6 @@
   (declare (ignorable sv cmd))
   (setf (host-none-time from) (get-internal-real-time)))
 
-;;; back
-(defgeneric proc-back (sv from cmd))
-(defmethod proc-back ((sv tcell-server) (from host) cmd)
-  (destructuring-bind (to s-task-head)
-      (head-shift sv (second cmd))      ; back送信先
-    (send-back to s-task-head)))
-
-(defmethod proc-back :before ((sv tcell-server) (from child) cmd)
-  (declare (ignore cmd))
-  (when (< (decf (child-diff-task-rslt from)) 0)
-    (warn "~S: diff-task-rslt less than 0!" (hostinfo from))))
-
 ;;; rslt
 (defgeneric proc-rslt (sv from cmd))
 (defmethod proc-rslt ((sv tcell-server) (from host) cmd)
@@ -1326,14 +1305,14 @@
 	(if (null receipants-entry)	; bcak-headからのbcstがあったかチェック
 	    (warn "No bcst from ~S is remenbered." bcak-head)
 	  (if (not (member from (cdr receipants-entry) :test #'eq))
-					; fromがback待ちリストにあるかチェック
+					; fromがbcak待ちリストにあるかチェック
 	      (warn "No bcst from ~S to ~S is remembered."
 		    bcak-head (hostinfo from))
 	    (progn
-	      ;; back待ちからfromを削除
+	      ;; bcak待ちからfromを削除
 	      (rplacd receipants-entry
 		      (delete from (cdr receipants-entry) :test #'eq))
-	      ;; 待ちリストが空になっていたらbackを返す
+	      ;; 待ちリストが空になっていたらbcakを返す
 	      (when (null (cdr receipants-entry))
 		(send-bcak to s-bcak-head)
                 (setf (ts-bcst-receipants sv)
