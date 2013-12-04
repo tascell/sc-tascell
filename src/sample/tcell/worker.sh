@@ -32,7 +32,7 @@
 (def (enum addr) (ANY -3) (PARENT -4) (FORWARD -5) (TERM -99))
 (def (enum node) INSIDE OUTSIDE)
 (def (enum command)
-    TASK RSLT TREQ NONE BACK RACK DREQ DATA
+    TASK RSLT TREQ NONE RACK DREQ DATA
     BCST BCAK STAT VERB EXIT LEAV LACK ABRT CNCL WRNG)
 (extern-decl cmd-strings (array (ptr char))) ; ↑に対応する文字列．cmd-serial.scで定義．
 
@@ -250,7 +250,6 @@
   (def auto-exit int)                   ; 外部に最初のrsltを送ったら自動終了
   (def affinity int)                    ; use sched_setaffinity
   (def always-flush-accepted-treq int)  ; flush stealing back (accepted) treq message
-  (def prefetch int)                    ; 投機的に外部へtreq
   (def verbose int)                     ; verbose level
   )
 (extern-decl option (struct runtime-option))
