@@ -4,7 +4,7 @@ SC2C_OPT=
 XCC=xcc
 GCC=gcc #$(XCC)
 ICC=icc
-OPT=-O2 -g $(MOPT)
+OPT=-O3 -g -msse4.2$(MOPT)
 XCCOPT=-DCT=lightweight
 XCCCLOPT=-DCT=closure
 
