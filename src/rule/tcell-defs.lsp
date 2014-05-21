@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; Copyright (c) 2008-2014 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -157,15 +157,28 @@
   (push (list id texp size)
         (task-info-output-vars (get-task task-or-scid))))
 
-;;; do-task を作る
+;;; Generate the body of "task-body" method
 (defun task-body-function (body &optional (task *current-task*))
   (let ((id (do-task-id task))
-        (struct-id (task-struct-id task)))
+	(struct-id (task-struct-id task))
+	(label-id (generate-id (string+ (task-cid task) "_exit"))))
     ~(def (,id -thr pthis) ,(task-body-type ~(struct ,struct-id))
-          ,.(unless (ruleset-param 'rule::no-nestfunc)
-              (list
-               ~(def (-bk) ,(nestfunc-type) (return 0)) ))
-          ,@body)
+       (def ,label-id __label__)
+       ,@(unless (ruleset-param 'rule::no-nestfunc)
+	   (list
+	    ;; Nested function
+	    ~(def (-bk) ,(nestfunc-type)
+	       ;; * When called by exception, exit from nested function.
+	       (if -thr->exiting
+		   (begin
+		     (= -thr->exiting 0)
+		     (= -thr->exception-tag 0)
+		     (goto ,label-id)))
+	       ;; * The terminal of temporary backtracking
+	       (return 0)) ))
+       ,@body
+       (label ,label-id (return))
+       )
     ))
 
 ;;; task/rslt sender/receiver （変形済み）本体のset
