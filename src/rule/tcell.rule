@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; Copyright (c) 2008-2014 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,12 @@
           (list ~(%include "rule/tcell.sh")
                 ~(decl (handle-req) (fn void
                                         (ptr ,(tcell:nestfunc-type))
-                                        (ptr (struct thread-data)))) )
+                                        (ptr (struct thread-data))))
+                ~(decl (handle-exception) (fn void
+					      (ptr ,(tcell:nestfunc-type))
+					      (ptr (struct thread-data))
+					      long))
+		)
           pg
           ;; データ系の関数が定義されてなければ空定義の関数を追加する
           (unless (tcell:func-name-exists-p ~csym::data-allocate)
@@ -213,9 +218,19 @@
          (def pthis (ptr (struct ,(tcell:task-struct-id))) (ptr ,tdat-id))
          (def ,spn-id int 0)            ; すでに仕事をsendしていたら '1'
          (begin
-          ;; タスク要求がきたら呼ばれる
+          ;; Called for backtracking to handle a task request or an exception
           (def (,bk-id) ,(tcell:nestfunc-type)
-            (if ,spn-id  (return 0))    ; すでに仕事をあげてしまってた
+	    ;; If this nested function is called by an exception:
+	    (if -thr->exiting
+		(begin
+		  ;; Wait for spawned tasks to be completed
+		  (while (> (dec ,spn-id) 0)
+		    (wait-rslt -thr 0))
+		  ;; Continue backtracking (never returns)
+		  (,(tcell:latest-bk))))
+	    ;; If this do-two has spawned a task:
+            (if ,spn-id  (return 0))
+	    ;; Try further backtracking
             (,(tcell:latest-bk))        ; より根元での分割を試みる
             (while (fref (mref -thr) treq-top) ; タスク作成待ちスタックに要素があれば
                 (begin
@@ -236,7 +251,7 @@
                  (wfn-add-argids ~(handle-req))))
           ,b-stat1)
          (if (and ,spn-id
-                  (wait-rslt -thr))
+                  (wait-rslt -thr 1))
              (begin ,@b-get-body)
            (begin ,b-stat2))
          ) )))
@@ -272,9 +287,20 @@
          (def ,var2 int ,(expression to)) ; ,var <= i < ,var2 が未処理
          (def pthis (ptr (struct ,(tcell:task-struct-id)))) ; 送信用 task-body
          (def ,spn-id int 0)            ; 仕事を他所にsendしている数
-         ;; タスク要求がきたら呼ばれる
+	 ;; <-- Nestfunc start
+	 ;; Called for backtracking to handle a task request or an exception
          (def (,bk-id) ,(tcell:nestfunc-type)
-           ;; if this do-many has not spawned any tasks, continue backtracking
+	   ;; If this nested function is called by an exception:
+	   (if -thr->exiting
+	       (begin
+		 ;; Wait for spawned tasks to be completed
+		 (while (> (dec ,spn-id) 0)
+		   (= pthis (cast (ptr (struct ,(tcell:task-struct-id)))
+			      (wait-rslt -thr 0)))
+		   (csym::free pthis))
+		 ;; Continue backtracking (never returns)
+		 (,(tcell:latest-bk))))
+           ;; If this do-many has not spawned any tasks, continue backtracking
            (if (not ,spn-id) (,(tcell:latest-bk)))
            (while (and (fref (mref -thr) treq-top) ; there remains a treq?
                        (<= 2 (- ,var2 ,var)))      ; there remains any spawnable iterations?
@@ -304,14 +330,18 @@
              (inc ,spn-id)
              (csym::make-and-send-task -thr ,(tcell:task-no) pthis))
            (return 0))
-         (if (fref (mref -thr) req)     ; （ポーリング）タスク要求がきていたら
-             ,(tcell:with-new-bk bk-id  ; 分割を試みる
+	 ;; Nestfunc End -->
+	 ;; Polling for task requests
+         (if (fref (mref -thr) req)
+             ,(tcell:with-new-bk bk-id
                 (wfn-add-argids ~(handle-req))))
+	 ;; Loop body
          (for ((< ,var ,var2) (inc ,var))
            ,@(tcell:with-new-bk bk-id (function-body body)))
+	 ;; Collect the results of spawned tasks
          (while (> (dec ,spn-id) 0)
            (= pthis (cast (ptr (struct ,(tcell:task-struct-id)))
-                      (wait-rslt -thr)))
+                      (wait-rslt -thr 1)))
            ,@(function-body get-body)
            (csym::free pthis))) )))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -319,6 +349,7 @@
   ;; * Space Stealing用のdo-many
   ;; * 通常のfor文と同様に記述することができる
   ;; * ポーリングはイテレーション毎に行う
+  ;; !!! does not support non-local exit by "throw" yet
   (#?(do-many* (,init-exp ,cond-exp ,loop-exp)
                ,@body
                ({handles} ,id
@@ -341,14 +372,14 @@
                 (inc ,spn-id)
                 (csym::make-and-send-task -thr ,(tcell:task-no) pthis)))
             (return 0))
-          (for (,(expression init-exp) ,(expression cond-exp) ,(expression loop-exp))
+          (for (,(expression! init-exp) ,(expression! cond-exp) ,(expression! loop-exp))
             (if (fref (mref -thr) req)     ; （ポーリング）タスク要求がきていたら
              ,(tcell:with-new-bk bk-id  ; 分割を試みる
                 (wfn-add-argids ~(handle-req))))
             ,@(function-body body))
           (while (> (dec ,spn-id) 0)
             (= pthis (cast (ptr (struct ,(tcell:task-struct-id)))
-                       (wait-rslt -thr)))
+                       (wait-rslt -thr 1)))
             ,@(function-body get-body)
             (csym::free pthis))) )))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -399,6 +430,11 @@
         (begin
 	 (def BACKTRACKING (const int) 0)
 	 ,@b-aft-body))) ))
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; throw
+  ;; Throws an exception
+  (#?(throw ,exp)
+   (wfn-add-argids ~(handle-exception ,(expression! exp))))
   )
 
 (extendrule expression tcell
@@ -429,7 +465,13 @@
   ;; get WORKER-ID
   (#?(the ,texp WORKER-ID)
    (if (tcell:wdata-accessible-p)
-       ~(fref (mref -thr) id) ))
+       ~(fref (mref -thr) id)
+       -1))
+  ;; get whether propagating an exception
+  (#?(the ,texp EXITING)
+   (if (tcell:wdata-accessible-p)
+       ~(fref (mref -thr) exiting)
+       0))
   ;; this -> (mref pthis)
   (#?(the ,texp this)
    (if (tcell:current-task)

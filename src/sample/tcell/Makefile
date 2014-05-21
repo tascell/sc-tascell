@@ -1,6 +1,7 @@
 OS=${shell uname}
 SC2C=sc2c
 SC2C_OPT=
+#SC2C_OPT=-m  # keep intermediate files
 XCC=xcc
 GCC=gcc #$(XCC)
 ICC=icc
@@ -28,8 +29,7 @@ ifeq ($(OS),SunOS)
     OPT += -DNO_VASPRINTF
 endif
 
-
-APPS=fib fib-guard lu cmp pen pen6x17 pen6x17-guard nq grav matmul spanning bcast copine0 copine1 copine2 copine3
+APPS=fib fib-guard fib-excep lu cmp pen pen6x17 pen6x17-guard nq grav matmul spanning bcast copine0 copine1 copine2 copine3
 
 C_PROGS=$(addsuffix -c,$(APPS))
 GCC_PROGS=$(addsuffix -gcc,$(APPS))
