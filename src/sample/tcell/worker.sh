@@ -116,7 +116,7 @@
   TASK-HOME-DONE        ; 結果が求まっている
   TASK-HOME-ABORTED)
 
-;; 計算するworkerにまで移動してきたタスク
+;; Information of a task assigned to a worker
 (def (struct task)
   (def stat (enum task-stat))       ; タスクの状態
   (def next (ptr (struct task)))    ; 双方向リスト......
@@ -173,6 +173,8 @@
   (def w-bcak int)                      ; （bcstを送信して）bcak待ちか否か
                                         ; 新しい変数を treq-top より上に追加すると
                                         ; ワーカが正しく動いてくれません（松井）
+  (def exiting int)                   ; non-zero when backtracking to propagate an exception by a throw statement
+  (def exception-tag long)            ; the exception tag to be catched
   (def dummy (array char DUMMY-SIZE)) ; false sharing防止のpadding
   )
 
@@ -191,11 +193,10 @@
   (def end int)                         ; データの要求範囲
   )
 
-
 ;;;; worker.sc の関数プロトタイプ宣言
 (decl (csym::make-and-send-task thr task-no body)
       (csym::fn void (ptr (struct thread-data)) int (ptr void)))
-(decl (wait-rslt thr) (fn (ptr void) (ptr (struct thread-data))))
+(decl (wait-rslt thr stback) (fn (ptr void) (ptr (struct thread-data)) int))
 (decl (csym::broadcast-task thr task-no body)
       (csym::fn void (ptr (struct thread-data)) int (ptr void)))
   

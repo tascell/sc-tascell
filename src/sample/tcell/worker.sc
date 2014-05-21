@@ -1,4 +1,4 @@
-;;; Copyright (c) 2009-2011 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; Copyright (c) 2009-2014 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -1402,7 +1402,7 @@
   (csym::exit 0))
 
 
-;; ワーカスレッドが仕事分割開始時に呼ぶ
+;; Start temporary backtracking to spawn tasks
 (def (handle-req -bk -thr)
     (fn void (ptr (NESTFN int void)) (ptr (struct thread-data)))
   (csym::pthread-mutex-lock (ptr -thr->mut))
@@ -1411,6 +1411,13 @@
        (-bk)
        (= -thr->req -thr->treq-top)))
   (csym::pthread-mutex-unlock (ptr -thr->mut)))
+
+;; Start propagating an exception
+(def (handle-exception -bk -thr excep)
+    (fn void (ptr (NESTFN int void)) (ptr (struct thread-data)) long)
+  (= -thr->exiting 1)
+  (= -thr->exception-tag excep)
+  (-bk)) ; never returns
 
 ;; ワーカスレッドがput時に呼ぶ
 ;; thr->mut ロック済み
@@ -1443,11 +1450,10 @@
   (= (aref tcmd.v 3 1) TERM)
   (csym::send-command (ptr tcmd) body task-no))
 
-;;; ワーカのdo-two, do-manyのところから呼ばれる．
-;;; サブタスクの結果の受け取り完了を待ち，サブタスクリストから外す．
-;;; （受け取り作業は rsltメッセージを受け取るルーチンにて実行される）
-;;; しばらく返ってこなかったら仕事を取り返しにいく．
-(def (wait-rslt thr) (fn (ptr void) (ptr (struct thread-data)))
+;;; Wait for the result of the subtask thr->sub, remove it from the worker's subtask list,
+;;; and returns the pointer to the task object of the subtask.
+;;; If stback is non-zero, steal back another task during waiting the result.
+(def (wait-rslt thr stback) (fn (ptr void) (ptr (struct thread-data)) int)
   (def body (ptr void))
   (def sub (ptr (struct task-home)))
   (csym::pthread-mutex-lock (ptr thr->mut))
@@ -1455,21 +1461,28 @@
   (while (and (!= sub->stat TASK-HOME-DONE)  ; iterate until the subtask is done
              (!= sub->stat TASK-HOME-ABORTED))
     (= thr->task-top->stat TASK-SUSPENDED)
-    ;; 外部ノードに送った仕事ならちょっと待つ
-    (if (== OUTSIDE sub->req-from)
-        (let ((now (struct timeval))
-              (t-until (struct timespec)))
-          (csym::gettimeofday (ptr now) 0)
-          (csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) 1000)
-          (csym::pthread-cond-timedwait (ptr thr->cond-r) (ptr thr->mut)
-                                        (ptr t-until))
-          ))
-    (if (or (== sub->stat TASK-HOME-DONE)
-            (== sub->stat TASK-HOME-ABORTED)) 
-        (break))  
-    ;; 取り返しにいく (leapfrogging)
-    (recv-exec-send thr sub->task-head sub->req-from))
-
+    (if stback
+	;; If stealing back is enabled
+	(begin
+	  ;; Wait for a moment if the victim is an external worker.
+	  (if (== OUTSIDE sub->req-from)
+	      (let ((now (struct timeval))
+		    (t-until (struct timespec)))
+		(csym::gettimeofday (ptr now) 0)
+		(csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) 1000)
+		(csym::pthread-cond-timedwait (ptr thr->cond-r) (ptr thr->mut)
+					      (ptr t-until))
+		))
+	  ;; Quit if the subtask is finished or aborted.
+	  (if (or (== sub->stat TASK-HOME-DONE)
+		  (== sub->stat TASK-HOME-ABORTED)) 
+	      (break))  
+	  ;; Steal and execute a task
+	  (recv-exec-send thr sub->task-head sub->req-from))
+      ;; If stealing back is disabled, just wait for the result.
+      (csym::pthread-cond-wait (ptr thr->cond-r) (ptr thr->mut)))
+    )
+  
   (if (== sub->stat TASK-HOME-ABORTED) 
       (= body 0)
     (= body sub->body))
@@ -1759,6 +1772,8 @@
       (= thr->probability 1.0)
       (= thr->last-treq i)
       (= thr->last-choose CHS-RANDOM)
+      (= thr->exiting 0)
+      (= thr->exception-tag 0)
       (let ((r double) (q double))
         (= r (csym::sqrt (+ 0.5 i)))
         (= q (csym::sqrt (+ r i)))
