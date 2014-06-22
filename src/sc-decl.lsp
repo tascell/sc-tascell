@@ -73,6 +73,7 @@
 (defconstant *fasl-dir-base* (pathname-directory *fasl-path-base*))
 (assert (eq :absolute (car *fasl-dir-base*)))
 
+#+comment
 (when (and (not (equal "/" *fasl-path-base*))
            #+clisp (not (ext:probe-directory *fasl-path-base*))
            #+allegro (not (excl:probe-directory *fasl-path-base*)))
