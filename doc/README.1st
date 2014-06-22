@@ -30,6 +30,8 @@ sc/
 3.3 To translate an SC program into a C program, call the sc2c function. For example:
 > (sc2c "sample/fib.sc")
 
+NOTE: At this time, a directory named .sc-fasl is created in your $HOME directory and compiled lisp files are stored in this directory.
+
 3.4 You can compile the resulting C program using a C compiler (e.g., gcc) and run it.
 % cd sample
 % gcc fib.c -o fib
