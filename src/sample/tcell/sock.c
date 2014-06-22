@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+Copyright (c) 2008-2014 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,8 @@ SUCH DAMAGE.
 #define VSNPRINTF_LEN 1000
 #endif
 
-/* ここに文字列があれば優先的にこちらから読み込む */
+/* If receive_buf points a string, Tascell reads this as if this is an external message
+   before reading a sokcet/stdin (until receive_buf_p points the end of the string) */
 char *receive_buf = 0;
 char *receive_buf_p = 0;
 
@@ -95,7 +96,7 @@ int dbg_printf (char *fmt_string, ...)
 
 #endif
 
-/* 送信 */
+/* send */
 int send_char (char ch, int socket)
 {
     if (socket<0)
@@ -190,8 +191,8 @@ int send_binary (void *src, unsigned long elm_size, unsigned long n_elm,
         }
 }
 
-/* 受信 */
-/* 確実にlenだけ受信 */
+/* receive */
+/* Invoke recv() repeatedly to read len characters */
 ssize_t recv2 (int s, void *buf, size_t len, int flags)
 {
     size_t rest=len;
@@ -216,8 +217,8 @@ int receive_char (int socket)
       if ( *receive_buf_p )
         return ( *(receive_buf_p++) );
       else {
+        /* Finished reading receive_buf */
         receive_buf = 0;
-        /* →socketから読み込む */
       }
     } 
     if (socket<0)
@@ -258,8 +259,8 @@ char* receive_line (char *buf, int maxlen, int socket)
         return buf;
       }
       else {
+        /* Finished reading receive_buf */
         receive_buf = 0;
-        /* →socketから読み込む */
       }
     } 
     if (socket<0)
@@ -314,13 +315,13 @@ int receive_binary (void *dst, unsigned long elm_size, unsigned long n_elm,
 }
 
 
-/* 接続・切断 */
+/* Connect to the server */
 /* <hostname, port> => socket */
 int connect_to (char *hostname, unsigned short port)
 {
     struct hostent *servhost;
     int dstSocket;              /* socket */
-    struct sockaddr_in dstAddr; /* sockaddr_in 構造体 */
+    struct sockaddr_in dstAddr; /* sockaddr_in structure object */
 
     /* 名前->IP address */
     servhost = gethostbyname(hostname);
@@ -328,21 +329,21 @@ int connect_to (char *hostname, unsigned short port)
         perror ("gethostbyname");
         exit (1);
     }
-    /* sockaddr_in 構造体のセット */
+    /* Initialize sockaddr_in object */
     memset(&dstAddr, 0, sizeof(dstAddr));      /* zero clear */
     dstAddr.sin_port = htons(port);            /* port */
     dstAddr.sin_family = AF_INET;              /* omajinai */
     memcpy((char*)&dstAddr.sin_addr,           /* address */
            servhost->h_addr, servhost->h_length);
     
-    /* ソケット生成 */
+    /* Generate a socket */
     dstSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (socket < 0) {
         perror ("socket");
         exit (1);
     }
 
-    /* 接続 */
+    /* Connect */
     fprintf(stderr, "Trying to connect to %s:%d \n", hostname, port);
     if (0 != connect(dstSocket, (struct sockaddr *) &dstAddr, sizeof(dstAddr))) {
         perror ("connection");

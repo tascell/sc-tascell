@@ -1,3 +1,27 @@
+;;; Copyright (c) 2009-2014 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; All rights reserved.
+
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+;;; 1. Redistributions of source code must retain the above copyright
+;;;    notice, this list of conditions and the following disclaimer.
+;;; 2. Redistributions in binary form must reproduce the above copyright
+;;;    notice, this list of conditions and the following disclaimer in the
+;;;    documentation and/or other materials provided with the distribution.
+
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE
+;;; FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+;;; OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+;;; LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+;;; SUCH DAMAGE.
+
 ;;;; Compile-time options
 ;;; Debug print
 (%defconstant VERBOSE 1)
@@ -7,61 +31,70 @@
 (%ifndef* NF-TYPE
   (%defconstant NF-TYPE GCC))           ; one of GCC LW-SC CL-SC XCC XCCCL
 
-;;; Use setaffinity to bind CPU cores to workers
-; (%ifndef* USE-AFFINITY
-;   (%defconstant USE-AFFINITY SCHED))    ; one of SCHED(for Linux), PBIND(for Solaris)
+;;; Uncomment to use setaffinity to bind CPU cores to workers
+;; (%defconstant USE-AFFINITY SCHED)    ; for Linux
+;; (%defconstant USE-AFFINITY PBIND)    ; for SunOS
 
 ;;; 
 
 ;;; Sizes
-(%defconstant BUFSIZE 1280)             ; コマンド行の文字数の最大+1
-(%defconstant MAXCMDC 4)                ; コマンドのargument数の最大（コマンド名自身含む）
-(%defconstant ARG-SIZE-MAX 16)          ; コマンドの各引数の許される長さ
-(%defconstant TASK-LIST-LENGTH (* 4 65536)) ; スレッドごとのTASK, TASK-HOMEリストの長さ
-(%defconstant TASK-MAX 256)             ; プログラマが定義できるタスクの最大数
-(%defconstant DUMMY-SIZE 1111)          ; false-sharing防止のためのpaddingサイズ
+(%defconstant BUFSIZE 1280)             ; buffer size for a command string from an external node
+(%defconstant MAXCMDC 4)                ; maximum number of arguments of a command incl. a command name
+(%defconstant ARG-SIZE-MAX 16)          ; maximum length of each argument
+(%defconstant TASK-LIST-LENGTH (* 4 65536)) ; maximum size of a task stack and a subtask stack for each worker
+(%defconstant TASK-MAX 256)             ; maximum number of the kinds of user defined tasks.
+(%defconstant DUMMY-SIZE 1111)          ; size of padding for preventing false-sharing
 
-(%defconstant DELAY-MAX (* 100 1000 1000))          ; none時->treq再送信までの時間の上限 [nsec]
-; (%defconstant BUSYWAIT)                 ; ワーカがtreqの返事をbusywaitで待つならuncomment
+(%defconstant DELAY-MAX (* 100 1000 1000))  ; max sleeping time before sending treq when receiving none [nsec]
 
-(%cinclude "sock.h" (:macro))           ; 通信関係
+;; NOTE: this BUSYWAIT implementation is incorrect now
+;; Uncomment this to let worker wait for a reply to a treq by busywait rather than condwait
+;; (%defconstant BUSYWAIT)
+
+;; Declarations for external communication functionalities
+(%cinclude "sock.h" (:macro))
 
 ;;;; Declarations
-
-;; 0以上の数はthread-idに相当するので，enum idには負の数を割り当てる
+;; Special elements for address.
+;; Non-negative numbers are uesd for worker-ID and node-ID
 (def (enum addr) (ANY -3) (PARENT -4) (FORWARD -5) (TERM -99))
+;; External or Internal
 (def (enum node) INSIDE OUTSIDE)
+;; Commands
 (def (enum command)
     TASK RSLT TREQ NONE RACK DREQ DATA
     BCST BCAK STAT VERB EXIT LEAV LACK ABRT CNCL WRNG)
-(extern-decl cmd-strings (array (ptr char))) ; ↑に対応する文字列．cmd-serial.scで定義．
+;; Strings corresponding to the commands above. Defined in cmd-serial.sc.
+(extern-decl cmd-strings (array (ptr char)))
 
-;; treq any の相手選択方法
+;; How to determine the recipient of "treq any" (random or in-order)
 (def (enum choose) CHS-RANDOM CHS-ORDER)
-(%defconstant NKIND-CHOOSE 2)           ; chooseの種類数
+(%defconstant NKIND-CHOOSE 2)           ; # of kinds of (enum choose)
 
-;; ワーカ間でやりとりするコマンド
-;; task, rsltの本体はcmd-listにある
+;; A message transferred among workers.
 (def (struct cmd)
-  (def w (enum command))                ; コマンドの種類
-  (def c int)                           ; コマンドのargument数（コマンド名自身も含む）
-  (def node (enum node))                ; どこに送るメッセージか INSIDE|OUTSIDE
-  (def v (array (enum addr) MAXCMDC ARG-SIZE-MAX)) ; v[i]: i-th argument of the command
-                                        ; TERMでおわる[enum定数|0以上の整数]の配列
+  (def w (enum command))                ; kind of command
+  (def c int)                           ; # arguments including the command itself
+  (def node (enum node))                ; internal or external message
+  (def v (array (enum addr) MAXCMDC ARG-SIZE-MAX)) 
+					; v[i]: i-th argument of the command
+                                        ; Each argument is an array of (enum addr)|(int>=0)
+					; that ends with TERM
   )
 
+;; The body of task, rslt, and bcst.
 (def (struct cmd-list)
-  (def cmd (struct cmd))
-  (def body (ptr void))              ; task, rsltの本体（タスク種類依存の構造体）
-  (def task-no int)                  ; task番号（bodyの送信関数を決定するため）
+  (def cmd (struct cmd))             ; corresponding command object
+  (def body (ptr void))              ; task object
+  (def task-no int)                  ; kind of task
   (def next (ptr (struct cmd-list)))
   )
 
 (decl (struct task))
 (decl (struct thread-data))
 
-;;; ☆ do_task_body 以外は，thread_data 引数が不要では?
-;;; Tascellプログラム側で（自動）定義するtask objectのsender/receiver
+;;; Arrays of task/result sender/receiver methods.
+;;; Each method body is defined by a Tascell programmer or generated by Tascell compiler.
 (decl task-doers
       (array (ptr (fn void (ptr (struct thread-data)) (ptr void))) TASK-MAX))
 (decl task-senders
@@ -73,61 +106,70 @@
 (decl rslt-receivers
       (array (ptr (csym::fn void (ptr void))) TASK-MAX))
 
-;;; Tascellプログラム側で定義する要求時取得データのallocator/sender/receiver．
-;; 引数はデータのサイズ＝data-flagの数
-;; -init-data が data-flagsの初期化後に呼出す
+;;;; NOTE: this functionality (on-demand data request) is incomplete now.
+;;;; Functions for on-demand data communications.
+;;; Allocate the array for on-demand data. Invoked during initialization.
 (decl (csym::data-allocate) (csym::fn void int))
-;; 引数の整数は送受信するデータの範囲（data-flagsの添字に対応する整数）
+;;; Send data
 (decl (csym::data-send) (csym::fn void int int))
+;;; Receive data
 (decl (csym::data-receive) (csym::fn void int int))
 
-;;; worker local storage の構造体および初期化関数（定義はユーザプログラムで）
-(decl (struct worker-data))
-(decl (csym::worker-init) (csym::fn void (ptr (struct thread-data))))
-
-;;; Tascellプログラマに提供する機能 (worker.scで定義)
-;;; （Tascellでは最初の 'csym::-' を除いた名前．request-dataの先頭引数thrはtcell.ruleが追加）
-;; データ領域の確保およびフラグを初期化（引数はデータのサイズ＝data-flagの数）
-;; 複数回呼出しても一度しか実行されない
+;;; Tascell user functions for the on-demand data requsest functionality.
+;;; "csym::-F" is provided as the built-in function named "F" for Tascell programmers
+;; Allocate and initialize data space and flags for om-demand data.
 (decl (csym::-setup-data) (csym::fn void int))
-;; 親タスクに指定された範囲のデータのdreqを発行する
+;; Send dreq messages for a given range to the holder of a parent task.
+;; (The first argument (thread data) is added by Tascell compiler.)
 (decl (csym::-request-data) (csym::fn void (ptr (struct thread-data)) int int))
-;; 指定された範囲のデータが揃うまで待つ
+;; Wait for data of a given range reaching this node.
 (decl (csym::-wait-data) (csym::fn void int int))
-;; 指定された範囲のdata-flagsをDATA-EXISTにする（仕事開始ノード用）
+;; Set data-flags of a given range to DATA-EXIST
 (decl (csym::-set-exist-flag) (csym::fn void int int))
 
+;;;; Worker local storage
+;;; Declaration of the struct for worker local storage objects.
+;;; Members are defined in each Tascell program.
+(decl (struct worker-data))
+;;; Initialize worker local stroage objects.
+;;; Function body is defined in each Tascell program.
+(decl (csym::worker-init) (csym::fn void (ptr (struct thread-data))))
+
+;;;; Status of a task being executed by the owner worker
 (def (enum task-stat)
-  TASK-ALLOCATED   ; 領域のみ．未初期化
-  TASK-INITIALIZED ; セットされている
-  TASK-STARTED     ; 実行開始済
-  TASK-DONE        ; 完了済み
-  TASK-NONE        ; ALLOC後treqしたがnoneが返ってきた
-  TASK-SUSPENDED)  ; 待ち状態
-;; -(treq送信)-> ALLOCATED --(task受け取り)--> INITIALIZED --> STARTED --> DONE -->
-;;                 |  |none受け取り                            |     |結果受取
-;;           再挑戦|  |                                結果待ち|     |
-;;                 NONE                                        SUSPENDED
+  TASK-ALLOCATED   ; Allocated in task stack but uninitialized
+  TASK-INITIALIZED ; Entry object is initialized
+  TASK-STARTED     ; The task is running
+  TASK-DONE        ; The task is completed
+  TASK-NONE        ; Sent treq for ALLOCATED entry but received none
+  TASK-SUSPENDED)  ; The task is suspended (due to waiting the result of a subtask)
+;; -(send treq)-> ALLOCATED -(receive task)-> INITIALIZED --> STARTED --> DONE -->
+;;                 ^  |receive none                           ^     |receive the result
+;;      resend treq|  V                 wait result of subtask|     V
+;;                 NONE                                      SUSPENDED
 
+;;;; Status of a subtask sent to another worker
 (def (enum task-home-stat)
-  TASK-HOME-ALLOCATED    ; 領域のみ，未初期化
-  TASK-HOME-INITIALIZED  ; セットされている
-  ;;  結果待ちは？ taskのほうでわかる？
-  TASK-HOME-DONE        ; 結果が求まっている
-  TASK-HOME-ABORTED)
+  TASK-HOME-ALLOCATED    ; Allocated to request queue, or then moved to subtask stack but uninitialized
+  TASK-HOME-INITIALIZED  ; Initialized in subtask stack
+  TASK-HOME-DONE         ; Completed (received and handled the result)
+  TASK-HOME-ABORTED      ; Aborted (received abrt)
+)
 
-;; Information of a task assigned to a worker
+;; Entry in the task stack of a worker
 (def (struct task)
-  (def stat (enum task-stat))       ; タスクの状態
-  (def next (ptr (struct task)))    ; 双方向リスト......
-  (def prev (ptr (struct task)))    ; ..........のリンク
-  (def task-no int)                 ; 実行するタスク番号（tcell追加）
-  (def body (ptr void))             ; task object構造体へのポインタ
-  (def ndiv int)                    ; 何回分裂してできたタスク (task cell)か
-  (def rslt-to (enum node))         ; 結果送信先の種別（INSIDE or OUTSIDE）
-  (def rslt-head (array (enum addr) ARG-SIZE-MAX))) ; 結果送信先アドレス
+  (def stat (enum task-stat))       ; task status
+  (def next (ptr (struct task)))    ; next task (toward the bottom)
+  (def prev (ptr (struct task)))    ; previous task (toward the top)
+  (def task-no int)                 ; kind of the task
+  (def body (ptr void))             ; task object
+  (def ndiv int)                    ; # of task division
+  (def rslt-to (enum node))         ; task sender (= result recipient) is INSIDE/OUTSIDE of this node
+  (def rslt-head (array (enum addr) ARG-SIZE-MAX)))
+					; address of task sender (= result recipient)
+					; including the subtask ID in the sender worker
 
-;; Information of a subtask assigned to another worker
+;; Entry in the request queue or subtask stack of a worker
 (def (struct task-home)
   (def stat (enum task-home-stat))      ; status
   (def id int)                          ; ID (unique in each worker)
@@ -145,55 +187,51 @@
   )
 
 (def (struct thread-data)
-  (def id int)                          ; 初期化時に割当てられるID
-  (def pthr-id pthread-t)               ; pthread ID
-  (def req (ptr (struct task-home)))    ; 仕事の要求が来ているか？
-  (def w-rack int)                      ; （rsltを送信して）rack待ちの数
-  (def w-none int)                      ; none待ちの数
-  (def ndiv int)                        ; 今やってる仕事の分割された回数
+  (def id int)                          ; worker ID
+  (def pthr-id pthread-t)               ; pthread assigned to the worker
+  (def req (ptr (struct task-home)))    ; flag to check whether there are any task requests
+  (def w-rack int)                      ; # of rack messages to be received
+  (def w-none int)                      ; # of none messages to be received
+  (def ndiv int)                        ; # of division of the task being executed by this worker
   (def probability double)              ; probability of accepting a task request
-  (def last-treq int)                   ; 内部へのtreq anyで，最後にtreqした相手
-  (def last-choose (enum choose))       ; 内部へのtreq anyで，最後に採用した選択方法
-  (def random-seed1 double)             ; 乱数の種 treq anyで使用・更新
-  (def random-seed2 double)             ; 乱数の種 treq anyで使用・更新
+  (def last-treq int)                   ; the last recipient of internal "treq any"
+  (def last-choose (enum choose))       ; the last used strategy for deciding recipient of internal "treq any"
+  (def random-seed1 double)             ; random seed 1 for deciding recipient of treq any
+  (def random-seed2 double)             ; random seed 2 for deciding recipient of treq any
   (def random-seed-probability (array unsigned-short 3))
-                                        ; 乱数の種 probability guard
-  (def task-free (ptr (struct task)))   ; タスク確保用フリーリスト
-  (def task-top (ptr (struct task)))    ; スレッドに与えられた仕事のリスト（スタック）のトップ
-  ;; treq-freeから始まるフリーリストから
-  ;; 2つのスタック（treq-topスタックとsubスタック）を確保している
-  (def treq-free (ptr (struct task-home))) ; free list for task-home
-  (def treq-top (ptr (struct task-home))) ; stack of subtasks to be initialized (corresponds accepted "treq")
-  (def sub (ptr (struct task-home)))      ; stack of initialized subtasks (corresponds already sent "task")
+                                        ; random seeds for probability guard
+  (def task-free (ptr (struct task)))   ; free list for task stack
+  (def task-top (ptr (struct task)))    ; task stack (tasks to be/being/have been executed by this worker)
+  (def treq-free (ptr (struct task-home))) ; free list for both request queue and subtask stack
+  (def treq-top (ptr (struct task-home)))  ; stack of subtasks to be initialized (corresponds accepted "treq")
+  (def sub (ptr (struct task-home)))       ; stack of initialized subtasks (corresponds already sent "task")
   (def mut pthread-mutex-t)             ; mutex
-  (def rack-mut pthread-mutex-t)        ; rack mutex
-  (def cond pthread-cond-t)             ; task, none待ちで眠らせるときの条件変数
-  (def cond-r pthread-cond-t)           ; rslt待ちで眠らせるときの条件変数
-  (def wdptr (ptr void))                ; worker local storage構造体（ユーザが定義）へのポインタ
-  (def w-bcak int)                      ; （bcstを送信して）bcak待ちか否か
-                                        ; 新しい変数を treq-top より上に追加すると
-                                        ; ワーカが正しく動いてくれません（松井）
-  (def exiting int)                   ; non-zero when backtracking to propagate an exception by a throw statement
-  (def exception-tag long)            ; the exception tag to be catched
-  (def dummy (array char DUMMY-SIZE)) ; false sharing防止のpadding
+  (def rack-mut pthread-mutex-t)        ; mutex for w-rack
+  (def cond pthread-cond-t)             ; condition variable for notifying task/none messages
+  (def cond-r pthread-cond-t)           ; condition variable for notifying rslt messages
+  (def wdptr (ptr void))                ; worker local storage object
+  (def w-bcak int)                      ; # of bcak messages to be recieved
+  (def exiting int)                     ; non-zero when backtracking to propagate an exception by a throw statement
+  (def exception-tag long)              ; the exception tag to be catched
+  (def dummy (array char DUMMY-SIZE))   ; padding for preventing false sharing
   )
 
-;;;; 必要時データ要求関連
-
-;; 存在フラグの種類
+;;;; NOTE: this functionality (on-demand data request) is incomplete now.
+;;;; Declarations for on-demand data communications.
+;; Status of data elements
 (def (enum DATA-FLAG) DATA-NONE DATA-REQUESTING DATA-EXIST)
 
-;; dreq処理関数に渡す引数
+;; Parameters of dreq-handler() (entry point of dreq handler thread)
 (def (struct dhandler-arg)
-  (def data-to (enum node))                   ; データのrequester (INSIDE|OUTSIDE)
-  (def head (array (enum addr) ARG-SIZE-MAX)) ; データのrequester
-  (def dreq-cmd (struct cmd))           ; さらに親にdreqを投げる際の雛形 (for DATA-NONE)
-  (def dreq-cmd-fwd (struct cmd))       ; さらに親にdreqを投げる際の雛形 (for DATA-REQUESTING)
-  (def start int)                       ; データの要求範囲
-  (def end int)                         ; データの要求範囲
+  (def data-to (enum node))                   ; whether data requester is INSIDE or OUTSIDE of this node
+  (def head (array (enum addr) ARG-SIZE-MAX)) ; address of data requester
+  (def dreq-cmd (struct cmd))           ; template of dreq for requesting to parent (for DATA-NONE data)
+  (def dreq-cmd-fwd (struct cmd))       ; template of dreq for requesting to parent (for DATA-REQUESTING data)
+  (def start int)                       ; requesting data range (start)
+  (def end int)                         ; requesting data range (end)
   )
 
-;;;; worker.sc の関数プロトタイプ宣言
+;;;; Declarations of functions in worker.sc
 (decl (csym::make-and-send-task thr task-no body)
       (csym::fn void (ptr (struct thread-data)) int (ptr void)))
 (decl (wait-rslt thr stback) (fn (ptr void) (ptr (struct thread-data)) int))
@@ -228,7 +266,7 @@
 (decl (csym::recv-abrt) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-cncl) (csym::fn void (ptr (struct cmd))))
 
-;;;; cmd-serial.sc の関数プロトタイプ宣言
+;;;; Declarations of functions in cmd-serial.sc
 (decl (csym::serialize-cmdname buf w) (fn int (ptr char) (enum command)))
 (decl (csym::deserialize-cmdname buf str) (fn int (ptr (enum command)) (ptr char)))
 (decl (csym::serialize-arg buf arg) (fn int (ptr char) (ptr (enum addr))))
@@ -242,14 +280,15 @@
 ;;;; Command line options
 (%defconstant HOSTNAME-MAXSIZE 256)
 (def (struct runtime-option)
-  (def num-thrs int)                    ; worker数
+  (def num-thrs int)                    ; # of workers
   (def sv-hostname (array char HOSTNAME-MAXSIZE))
-                                        ; Tascellサーバのホスト名．""ならstdout
-  (def port unsigned-short)             ; Tascellサーバへの接続ポート番号
-  (def node-name (ptr char))            ; worker識別文字列
-  (def initial-task (ptr char))         ; 自動的に最初に投入するタスクパラメータ
-  (def auto-exit int)                   ; 外部に最初のrsltを送ったら自動終了
-  (def affinity int)                    ; use sched_setaffinity
+                                        ; hostname of connecting Tascell server
+                                        ; If the string is "", external messages are output to stdout
+  (def port unsigned-short)             ; port # used to connect to Tascell server
+  (def node-name (ptr char))            ; node name (used for debugging only)
+  (def initial-task (ptr char))         ; string for arguments of initial task
+  (def auto-exit int)                   ; When true, the process exits after sending external rslt message
+  (def affinity int)                    ; use sched_setaffinity to assign a physical core/thread to each worker
   (def always-flush-accepted-treq int)  ; flush stealing back (accepted) treq message
   (def verbose int)                     ; verbose level
   )
