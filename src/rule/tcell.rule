@@ -411,6 +411,9 @@
           (b-bef-body (function-body bef-body))
           (b-body (tcell:with-new-bk bk-id (function-body body)))
           (b-aft-body (function-body aft-body)))
+     ;; The local variable BACKTARCKING can be referred to
+     ;; by Tascell programmers to know whether a worker is
+     ;; executing/resuming from a (temporary) backtracking.
      ~(begin
        (begin
 	(def BACKTRACKING (const int) 0)
@@ -418,6 +421,8 @@
        (begin
         ,.(unless (ruleset-param 'no-nestfunc)
             (list
+	     ;; nestfunc: execute after-body (undo), take a further
+	     ;; backtracking step, then execute before-body (redo)
              ~(def (,bk-id) ,(tcell:nestfunc-type)
                 (begin
 		 (def BACKTRACKING (const int) 1)
@@ -431,10 +436,38 @@
 	 (def BACKTRACKING (const int) 0)
 	 ,@b-aft-body))) ))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;; throw
-  ;; Throws an exception
+  ;; throw: Common Lisp-like throw but no evaluation value (of catch)
+  ;; is specified.
   (#?(throw ,exp)
    (wfn-add-argids ~(handle-exception ,(expression! exp))))
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; catch: Lisp-like catch
+  (#?(catch ,exp ,@body)
+   (let* ((bk-id (generate-id "catch_bk"))
+	  (catchval-id (generate-id "catchval"))
+	  (label-id (generate-id "catch_exit"))
+	  (e-exp (expression! exp))
+          (b-body (tcell:with-new-bk bk-id (function-body body))))
+     ~(begin
+	(def ,label-id __label__)
+	(def ,catchval-id long)
+        ,.(unless (ruleset-param 'no-nestfunc)
+            (list
+	     ;; nestfunc: If worker is handling an exception and
+	     ;; the thrown value equals to the catch value,
+	     ;; exit from the catch block. Otherwise, continue
+	     ;; backtracking.
+             ~(def (,bk-id) ,(tcell:nestfunc-type)
+		(if (and -thr->exiting
+			 (== ,e-exp -thr->exception-tag))
+		    (begin 
+		      (= -thr->exiting 0)
+		      (goto ,label-id))
+		  (,(tcell:latest-bk))))))
+	(= ,catchval-id ,e-exp)	
+        (begin ,@b-body)
+	(label ,label-id ())
+	)))
   )
 
 (extendrule expression tcell

@@ -86,7 +86,8 @@
     (csym::fprintf stderr "%d starts %d-th task.~%" WORKER-ID WDATA.n-task))
   (= N0 this.n)
   (csym::gettimeofday tp 0)
-  (= this.r (fib this.n))
+  (catch 0
+    (= this.r (fib this.n)))
   (csym::gettimeofday (+ tp 1) 0)
   (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp)))
 
@@ -107,6 +108,8 @@
     )
 
 (def (fib n) (wfn int int)
+  ;; When non-zero is thrown here, the exception is not caught in task-body
+  ;; and thus execution time is not printed.
   (if (== n 10)
       (throw 0))
   (if (<= n 2)
