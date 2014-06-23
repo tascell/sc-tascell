@@ -78,7 +78,8 @@
 		 "(" (regexp-opt
 		      '("do-two" "do-many*" ":guard" ":spawn-from" ":put" ":get"
 			"tcell-broadcast" "dynamic-wind"
-			":before" ":body" ":after") t)
+			":before" ":body" ":after"
+			"throw" "catch") t)
 		 "\\>")
 	       (1 tcell-keyword-face t t))
 	      (,(concat
@@ -136,6 +137,7 @@
     (put :before tag 0)
     (put :body tag 0)
     (put :after tag 0)
+    (put catch tag 1)
     ))
 
 (provide 'tcell-mode)

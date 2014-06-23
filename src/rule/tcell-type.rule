@@ -154,6 +154,9 @@
 		 (function-body aft-body)))) )
   ((#?(throw ,exp))
    ~(throw ,(expression! exp)))
+  ((#?(catch ,exp ,@body))
+   ~(catch ,(expression! exp)
+      ,@(type:with-new-environment (function-body body))) )
   )
 
 (extendrule expression tcell-type

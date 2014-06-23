@@ -168,11 +168,11 @@
 	   (list
 	    ;; Nested function
 	    ~(def (-bk) ,(nestfunc-type)
-	       ;; * When called by exception, exit from nested function.
+	       ;; * When worker is handling an exception, exit this task
+	       ;; with returning an "abrt" message.
 	       (if -thr->exiting
 		   (begin
 		     (= -thr->exiting 0)
-		     (= -thr->exception-tag 0)
 		     (goto ,label-id)))
 	       ;; * The terminal of temporary backtracking
 	       (return 0)) ))

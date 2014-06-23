@@ -90,7 +90,7 @@
        (:put ,@(function-body put-body))
        (:get ,@(function-body get-body)))) )
   (#?(tcell-broadcast ,id (:put ,@put-body))
-   ~(tcell-broadcast ,id (:put ,@(function-body! put-body))))
+   ~(tcell-broadcast ,id (:put ,@(function-body put-body))))
   ((#?(dynamic-wind
        (:before ,@bef-body)
        (:body ,@body)
@@ -100,5 +100,7 @@
       (:body ,@(function-body body))
       (:after ,@(function-body aft-body))) )
   (#?(throw ,exp)
-     ~(throw ,(expression! exp)))
+   ~(throw ,(expression! exp)))
+  (#?(catch ,exp ,@body)
+   ~(catch ,(expression! exp) ,@(function-body body)))
   )
