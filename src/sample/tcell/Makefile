@@ -1,4 +1,4 @@
-OS=${shell uname -o}
+OS=${shell uname}
 # Command for sc2c compiler
 SC2C=sc2c
 # set -m option not to  remove intermediate files
