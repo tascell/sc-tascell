@@ -170,12 +170,11 @@
 	    ~(def (-bk) ,(nestfunc-type)
 	       ;; * When worker is handling an exception, exit this task
 	       ;; with returning an "abrt" message.
-	       (if -thr->exiting
-		   (begin
-		     (= -thr->exiting 0)
-		     (goto ,label-id)))
+	       (if (or (== -thr->exiting EXITING-EXCEPTION)
+		       (== -thr->exiting EXITING-CANCEL))
+		   (goto ,label-id))
 	       ;; * The terminal of temporary backtracking
-	       (return 0)) ))
+	       (return)) ))
        ,@body
        (label ,label-id (return))
        )
