@@ -23,7 +23,6 @@
 ;;; SUCH DAMAGE.
 
 ;;; Tascell --> LW-SC
-;;; To be rewritten as an extension of sc0t-to-sc0t
 
 (define-ruleset tcell (sc0t-to-sc0t)
   (ignore-cfunc t)
@@ -458,10 +457,10 @@
 	     ;; exit from the catch block. Otherwise, continue
 	     ;; backtracking.
              ~(def (,bk-id) ,(tcell:nestfunc-type)
-		(if (and -thr->exiting
+		(if (and (== -thr->exiting EXITING-EXCEPTION)
 			 (== ,e-exp -thr->exception-tag))
 		    (begin 
-		      (= -thr->exiting 0)
+		      (= -thr->exiting EXITING-NORMAL)
 		      (goto ,label-id))
 		  (,(tcell:latest-bk))))))
 	(= ,catchval-id ,e-exp)	

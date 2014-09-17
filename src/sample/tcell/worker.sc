@@ -479,6 +479,8 @@
   (def tx (ptr (struct task)))
   (def old-ndiv int)
   (def old-probability double)
+  (def rsn (enum exiting-rsn))
+  (def reason int)
   (def rcmd (struct cmd))               ; for RSLT command
 
   ;; If there is a treq message that was sent by this worker
@@ -489,7 +491,9 @@
     ;; If the result for the most recent suspended task has arrived,
     ;; stop requesting a new task and resume the suspended task.
     (if (and thr->sub
-             (== thr->sub->stat TASK-HOME-DONE))
+             (or (== thr->sub->stat TASK-HOME-DONE)
+		 (== thr->sub->stat TASK-HOME-EXCEPTION)
+		 (== thr->sub->stat TASK-HOME-ABORTED)))
         (return)))
 
   ;; Allocate task to be initialized
@@ -507,13 +511,40 @@
 	(DEBUG-PRINT 1 "(%d): (Thread %d) start %d<%p>.~%"
 		     (csym::get-universal-real-time) thr->id tx->task-no tx->body)
 	((aref task-doers tx->task-no) thr tx->body) ; Invoke the task body method
-	(DEBUG-PRINT 1 "(%d): (Thread %d) end %d<%p>.~%"
-		     (csym::get-universal-real-time) thr->id tx->task-no tx->body)
+	(= rsn thr->exiting)
+	(= thr->exiting EXITING-NORMAL)
+	(switch rsn
+	  (case EXITING-NORMAL)
+	  (DEBUG-PRINT 1 "(%d): (Thread %d) end %d<%p>.~%" 
+		       (csym::get-universal-real-time)
+		       thr->id tx->task-no tx->body)
+	  (= reason 0)
+	  (break)
+	  (case EXITING-EXCEPTION)
+	  (DEBUG-PRINT 1 "(%d): (Thread %d) end %d<%p> with exception %d.~%" 
+		       (csym::get-universal-real-time)
+		       thr->id tx->task-no tx->body thr->exception-tag)
+	  (= reason 1)
+	  (break)
+	  (case EXITING-CANCEL)
+	  (DEBUG-PRINT 1 "(%d): (Thread %d) aborted %d<%p>.~%" 
+		       (csym::get-universal-real-time)
+		       thr->id tx->task-no tx->body)
+	  (= reason 2)
+	  (break)
+	  (default)
+	  (csym::fprintf 
+	   stderr "(%d) Warn: Thread %d ended with unexpected reason.~%"
+	   (csym::get-universal-real-time) thr->id)
+	  (= reason 0))
 	;; Send the result to the task sender (== the recipient of the treq)
 	(= rcmd.w RSLT)
-	(= rcmd.c 1)
+	(= rcmd.c 3)
 	(= rcmd.node tx->rslt-to)        ; internal or external
-	(csym::copy-address (aref rcmd.v 0) tx->rslt-head)
+	(csym::copy-address (aref rcmd.v 0) tx->rslt-head)      ;[0]:recipient
+	(= (aref rcmd.v 1 0) reason) (= (aref rcmd.v 1 1) TERM) ;[1]:reason
+        (= (aref rcmd.v 2 0) thr->exception-tag) (= (aref rcmd.v 2 1) TERM)
+                             ; [2]:exception-tag (meaningful only when [1]==1)
 	(csym::send-command (ptr rcmd) tx->body tx->task-no)
 	(inc thr->w-rack) ; Increase w-rack counter. This is decreased when the worker
 	                  ; receives a rack message as a reply to the rslt. While this
@@ -668,15 +699,17 @@
 
 
 ;;; rslt message: a reply to a task message to send the result of the task
-;;; rslt <recipient>
+;;; rslt <recipient> <reason(0:normal,1:exception,2:abort)> <excption-tag>
 (def (csym::recv-rslt pcmd body) (csym::fn void (ptr (struct cmd)) (ptr void))
   (def rcmd (struct cmd))               ; rack command
   (def thr (ptr (struct thread-data)))
   (def hx (ptr (struct task-home)))
   (def tid (enum addr))
   (def sid int)
+  (def reason int)
+  (def exception-tag int)
   ;; Check # of arguments
-  (if (< pcmd->c 1)
+  (if (< pcmd->c 2)
       (csym::proto-error "Wrong rslt" pcmd))
   ;; Extract the recipient worker id and the task-home id from <recipient>
   ;; <recipient> = <worker-id>:<task-home-id>
@@ -687,13 +720,17 @@
   (if (== TERM sid)
       (csym::proto-error "Wrong rslt-head (no task-home-id)" pcmd))
   (= thr (+ threads tid))
-  
+  ;; Get <reason>
+  (= reason (aref pcmd->v 1 0))
+  ;; Get <exception-tag> (ignored when <reason> is not 1)
+  (= exception-tag (aref pcmd->v 2 0))
+
   (csym::pthread-mutex-lock (ptr thr->mut))
   ;; Determine the task-home entry whose id is <task-home-id>
   (if (not (= hx (csym::search-task-home-by-id sid thr->sub)))
       (csym::proto-error "Wrong rslt-head (specified task not exists)" pcmd))
-  ;; For an external rslt message, receive the body of the result by
-  ;; invoking the user-defined receiver method.
+  ;; IF the rslt message is from external node and the task is normally exited,
+  ;; receive the body of thea result by invoking the user-defined receiver method.
   ;; (for an internal rslt, the body is passed as the argument)
   (cond
    ((== pcmd->node OUTSIDE)
@@ -711,9 +748,15 @@
 					; Set the recipient address 
                                         ; (same to the recipient of the task message)
 
-  ;; Change the status of the task-home entry and notify that to the worker
-  ;; that is waiting for the result.
-  (= hx->stat TASK-HOME-DONE)
+  ;; Change the status of the task-home entry 
+  (cond
+   ((== reason 0)
+    (= hx->stat TASK-HOME-DONE))
+   ((== reason 1)
+    (= hx->stat TASK-HOME-EXCEPTION))
+   ((== reason 2)
+    (= hx->stat TASK-HOME-ABORTED)))
+  ;; Notify the worker waiting for the result.
   (if (== hx thr->sub)
       (begin
        (csym::pthread-cond-broadcast (ptr thr->cond-r))
@@ -721,6 +764,7 @@
     )
   (csym::pthread-mutex-unlock (ptr thr->mut))
   (csym::send-command (ptr rcmd) 0 0))  ; Send the rack command
+
 
 ;; The Thread 'thr' has the task specified by [<addr>,...,<ID>]x(INSIDE|OUTSIDE) ?
 (def (csym::have-task thr task-spec task-from) 
@@ -738,7 +782,6 @@
   (return 0))
 
 
-(decl task-stat-strings (array (ptr char)))
 ;;; Check if the id-th worker can accept the task request 'pcmd'
 ;;; If ok, the worker allocate a task-home.
 (def (csym::try-treq pcmd id)
@@ -1348,8 +1391,6 @@
 
 
 ;;; Print information of a task entry in human-friendly style
-(def task-stat-strings (array (ptr char)) ; consistent with (enum task-stat) definition
-  (array "TASK-ALLOCATED" "TASK-INITIALIZED" "TASK-STARTED" "TASK-DONE" "TASK-NONE" "TASK-SUSPENDED"))
 (def (csym::node-to-string buf node) (csym::fn void (ptr char) (enum node))
   (switch node
     (case INSIDE)   (csym::strcpy buf "INSIDE")      (break)
@@ -1374,8 +1415,6 @@
   (return))
 
 ;;; Print information of a task-home entry in human-friendly style
-(def task-home-stat-strings (array (ptr char)) ; consistent with (enum task-home-stat) definition
-  (array "TASK-HOME-ALLOCATED" "TASK-HOME-INITIALIZED" "TASK-HOME-DONE"))
 (def (csym::print-task-home-list treq-top name) (csym::fn void (ptr (struct task-home)) (ptr char))
   (def cur (ptr (struct task-home)))
   (defs (array char BUFSIZE) buf0 buf1 buf2)
@@ -1391,13 +1430,14 @@
   (return))
 
 ;;; Print the status of a worker in human-friendly style
-(def choose-strings (array (ptr char)) (array "CHS-RANDOM" "CHS-ORDER")) ; consistent with (enum choose)
 (def (csym::print-thread-status thr) (csym::fn void (ptr (struct thread-data)))
   (csym::fprintf stderr "<Thread %d>~%" thr->id)
   (csym::fprintf stderr "req=%p, " thr->req)
   (csym::fprintf stderr "w-rack=%d, " thr->w-rack)
   (csym::fprintf stderr "w-none=%d, " thr->w-none)
   (csym::fprintf stderr "ndiv=%d, " thr->ndiv)
+  (csym::fprintf stderr "exiting=%s, " (aref exiting-rsn-strings thr->exiting))
+  (csym::fprintf stderr "exception-tag=%d, " thr->exception-tag)
   (csym::fprintf stderr "probability=%lf, " thr->probability)
   (csym::fprintf stderr "last-treq=%d, " thr->last-treq)
   (csym::fprintf stderr "last-choose=%s, " (aref choose-strings thr->last-choose))
@@ -1457,14 +1497,16 @@
   (csym::pthread-mutex-lock (ptr -thr->mut))
   (if -thr->req
       (begin
-       (-bk)
-       (= -thr->req -thr->treq-top)))
+	(= -thr->exiting EXITING-SPAWN)
+	(-bk)
+	(= -thr->exiting EXITING-NORMAL)
+	(= -thr->req -thr->treq-top)))
   (csym::pthread-mutex-unlock (ptr -thr->mut)))
 
 ;; Start propagating an exception
 (def (handle-exception -bk -thr excep)
-    (fn void (ptr (NESTFN int void)) (ptr (struct thread-data)) long)
-  (= -thr->exiting 1)
+    (fn void (ptr (NESTFN int void)) (ptr (struct thread-data)) int)
+  (= -thr->exiting EXITING-EXCEPTION)
   (= -thr->exception-tag excep)
   (-bk)) ; never returns
 
@@ -1750,7 +1792,7 @@
       (= thr->probability 1.0)
       (= thr->last-treq i)
       (= thr->last-choose CHS-RANDOM)
-      (= thr->exiting 0)
+      (= thr->exiting EXITING-NORMAL)
       (= thr->exception-tag 0)
       (let ((r double) (q double))
         (= r (csym::sqrt (+ 0.5 i)))

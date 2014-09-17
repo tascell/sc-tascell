@@ -64,11 +64,16 @@
 (def (enum command)
     TASK RSLT TREQ NONE RACK DREQ DATA
     BCST BCAK STAT VERB EXIT LEAV LACK ABRT CNCL WRNG)
-;; Strings corresponding to the commands above. Defined in cmd-serial.sc.
-(extern-decl cmd-strings (array (ptr char)))
+;; Strings corresponding to the commands above.
+(static cmd-strings (array (ptr char))
+  (array "task" "rslt" "treq" "none" "rack" "dreq" "data"
+         "bcst" "bcak" "stat" "verb" "exit" "leav" "lack" "abrt" "cncl" "wrng" 0))
 
 ;; How to determine the recipient of "treq any" (random or in-order)
 (def (enum choose) CHS-RANDOM CHS-ORDER)
+;; consistent with (enum choose)
+(static choose-strings (array (ptr char))
+  (array "CHS-RANDOM" "CHS-ORDER"))
 (%defconstant NKIND-CHOOSE 2)           ; # of kinds of (enum choose)
 
 ;; A message transferred among workers.
@@ -143,6 +148,9 @@
   TASK-DONE        ; The task is completed
   TASK-NONE        ; Sent treq for ALLOCATED entry but received none
   TASK-SUSPENDED)  ; The task is suspended (due to waiting the result of a subtask)
+(static task-stat-strings (array (ptr char))
+  (array "TASK-ALLOCATED" "TASK-INITIALIZED" "TASK-STARTED"
+	 "TASK-DONE" "TASK-NONE" "TASK-SUSPENDED"))
 ;; -(send treq)-> ALLOCATED -(receive task)-> INITIALIZED --> STARTED --> DONE -->
 ;;                 ^  |receive none                           ^     |receive the result
 ;;      resend treq|  V                 wait result of subtask|     V
@@ -153,8 +161,22 @@
   TASK-HOME-ALLOCATED    ; Allocated to request queue, or then moved to subtask stack but uninitialized
   TASK-HOME-INITIALIZED  ; Initialized in subtask stack
   TASK-HOME-DONE         ; Completed (received and handled the result)
-  TASK-HOME-ABORTED      ; Aborted (received abrt)
+  TASK-HOME-EXCEPTION    ; Completed with an exception
+  TASK-HOME-ABORTED      ; Aborted by a cancellation message
 )
+(static task-home-stat-strings (array (ptr char))
+  (array "TASK-HOME-ALLOCATED" "TASK-HOME-INITIALIZED" "TASK-HOME-DONE"
+	 "TASK-HOME-EXCEPTION" "TASK-HOME-ABORTED"))
+
+;;;; The reason for the abnormal exit.
+(def (enum exiting-rsn)
+  EXITING-NORMAL         ; normal exit
+  EXITING-EXCEPTION      ; exiting due to an exception
+  EXITING-CANCEL         ; exiting due to a cancellation
+  EXITING-SPAWN          ; temporary exiting to spawning a task
+  )
+(static exiting-rsn-strings (array (ptr char))
+  (array "EXITING-NORMAL" "EXITING-EXCEPTION" "EXITING-CANCEL" "EXITING-SPAWN"))
 
 ;; Entry in the task stack of a worker
 (def (struct task)
@@ -211,8 +233,8 @@
   (def cond-r pthread-cond-t)           ; condition variable for notifying rslt messages
   (def wdptr (ptr void))                ; worker local storage object
   (def w-bcak int)                      ; # of bcak messages to be recieved
-  (def exiting int)                     ; non-zero when backtracking to propagate an exception by a throw statement
-  (def exception-tag long)              ; the exception tag to be catched
+  (def exiting (enum exiting-rsn))      ; the reason for abnormal exiting
+  (def exception-tag int)               ; the exception tag to be catched
   (def dummy (array char DUMMY-SIZE))   ; padding for preventing false sharing
   )
 
