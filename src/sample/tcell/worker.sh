@@ -186,6 +186,7 @@
   (def task-no int)                 ; kind of the task
   (def body (ptr void))             ; task object
   (def ndiv int)                    ; # of task division
+  (def cancellation int)            ; # of partial cancellation flags
   (def rslt-to (enum node))         ; task sender (= result recipient) is INSIDE/OUTSIDE of this node
   (def rslt-head (array (enum addr) ARG-SIZE-MAX)))
 					; address of task sender (= result recipient)
@@ -195,6 +196,7 @@
 (def (struct task-home)
   (def stat (enum task-home-stat))      ; status
   (def id int)                          ; ID (unique in each worker)
+  (def exception-tag int)               ; thrown exception value (when stat is TASK-HOME-EXCEPTION)
   (def waiting-head (array (enum addr) ARG-SIZE-MAX))
                                         ; for stealing-back treq, the task head of which
                                         ; the requester is waiting for the result
