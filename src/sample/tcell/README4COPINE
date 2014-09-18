@@ -1,0 +1,89 @@
+                      ----- Readme file for COPINE -----                      
+                                                                      Ver. 1. 
+                                                                              
+                                                     Shingo OKUNO, Sep. 2014. 
+==============================================================================
+
+1. Introduction
+-------------------------
+I am currently developing parallelization techniques of graph mining that 
+extracts all connected subgraphs, each of which shares a common itemset whose 
+size is not less than a given threshold, from a given graph in which each 
+vertex is associated to an itemset. For this problem, an efficient sequential 
+backtrack search algorithm called COmmon Pattern Itemset NEtwork mining 
+(COPINE) [Seki et al., BIBE’08] has been already proposed. COPINE reduces the 
+search space of a dynamically growing tree structure by pruning its branches 
+corresponding to the following subgraphs; already visited, having itemsets 
+smaller than a given threshold, and having already-visited supergraphs with 
+identical itemsets. For the third pruning, we use a table associating already-
+visited subgraphs and their itemsets. To avoid excess pruning in a parallel 
+search where a unique set of subtrees (tasks) is assigned to each worker, we 
+should put a certain restriction on a worker when it is referring to a table 
+entry registered by another worker. I designed a parallel algorithm as an 
+extension of COPINE by introducing this restriction, and implemented it using 
+the task-parallel language Tascell [Hiraishi et al., PPoPP'09].
+
+2. Files
+-------------------------
+Here is a list of files with respect to COPINE. 
+
+Tascell programs
+ - copine0.tcell: No worker registers any itemsets during a search, that is, 
+                  the third pruning is not applied.
+ - copine1.tcell: Each task manages its own table, and no table information 
+                  is shared among tasks.
+ - copine2.tcell: Just as in copine1.tcell, each task manages its own table. 
+                  When a thief worker steals a task from a victim worker, the 
+                  victim makes a copy of its own table and passes it to the 
+                  thief.
+ - copine3.tcell: All the workers share a single table with a lock for each 
+                  table entry for mutual exclusion.
+ - copine4.tcell: Just as in copine3.tcell, a single table controlled by locks 
+                  is shared among workers. This program supports a mechanism 
+                  to abort a redundant partial search.
+
+Input files
+ (a) Example
+      - data/eg_pattern.txt: pattern file
+      - data/eg_graph.txt: graph file
+ (b) Real protein network 
+      - data/symatlas_pattern.txt: pattern file
+      - data/symatlas_graph.txt: graph file
+
+3. How to run programs
+-------------------------
+(0) Make sure that you install Tascell BEFORE you build programs.
+
+(1) Build the COPINE program.
+     e.g.) $ make copine3-gcc
+
+(2) Run the program.
+     e.g.) $ ./copine3-gcc -n <# of threads>
+
+Note that input files are specified in the main function currently. For more information about runtime arguments, see each source code.
+
+4. Publication
+-------------------------
+[1] S. Okuno, T. Hiraishi, H. Nakashima, M. Yasugi and J. Sese: Parallelization 
+of Extracting Connected Subgraphs with Common Itemsets, IPSJ Transactions on 
+Programming, Vol. 7, No. 3, pp. 22-39, 2014. (IPSJ Online Transactions, Vol. 7, 
+pp. 93-110.).
+
+5. Contact information
+-------------------------
+If you have any further questions, please contact me by e-mail.
+
+
+****************************************************
+Shingo OKUNO
+Ph.D. Student
+
+Supercomputing Laboratory (Nakashima Lab.)
+Department of Systems Science
+Graduate School of Informatics
+Kyoto University
+Yoshida-Honmachi, Sakyo, Kyoto 606-8501, Japan
+
+E-mail: shingo@sys.i.kyoto-u.ac.jp
+http://ais.sys.i.kyoto-u.ac.jp/~shingo/index.html
+****************************************************

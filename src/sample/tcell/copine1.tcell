@@ -1,3 +1,38 @@
+;;; Copyright (c) 2013 Shingo OKUNO <shingo@sys.i.kyoto-u.ac.jp>
+;;; All rights reserved.
+
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+;;; 1. Redistributions of source code must retain the above copyright
+;;;    notice, this list of conditions and the following disclaimer.
+;;; 2. Redistributions in binary form must reproduce the above copyright
+;;;    notice, this list of conditions and the following disclaimer in the
+;;;    documentation and/or other materials provided with the distribution.
+
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE
+;;; FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+;;; OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+;;; LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+;;; SUCH DAMAGE.
+
+;;; copine1.tcell
+
+;;; Extract all connected subgraphs, each of which shares a common itemset
+;;; whose size is not less than a given threshold, from a given graph
+;;; in which each vertex is associated to an itemset
+
+;; task 0 0 0 2
+;; <th>         ; threshold
+;; <it>         ; # of iterations left for a victim worker
+
+
 (c-exp "#include <stdio.h>")
 (c-exp "#include <stdlib.h>")
 (c-exp "#include <math.h>")
@@ -16,9 +51,10 @@
 (%include "clib.sh")
 (%include "dprint.sh")
 
-;;; Use "user defined spawned range"
-(%defconstant USE-SPN-RANGE 0)
-(%defconstant USE-SPN-RATIO 0)
+;;; Set # of iterations left for a victim worker
+;;; default: half of the unexecuted iterations
+(%defconstant USE-SPN-RANGE 0) ; set # directly
+(%defconstant USE-SPN-RATIO 0) ; set # by the ratio to the number of unexecuted iterations
 
 ;;; Use "popcount (SSE4.2)"
 (%defconstant USE-SSE 0)
@@ -40,7 +76,7 @@
 (%defconstant DEBUG-SHOW 0) ; flag to show traversal
 (%defconstant DEBUG-TASK 0) ; flag to show task request
 (%defconstant DEBUG-TIME 0) ; flag to output time file
-(%defconstant DEBUG-COPY 1) ; flag to output copy file
+(%defconstant DEBUG-COPY 0) ; flag to output copy file
 
 ;;; Typedef
 (deftype set uint32_t) ; bitset
@@ -840,8 +876,8 @@
   (def maxSizeSubgraph int 0)            ;
 
   ;; arguments
-  (= patternFile "data/symatlas_pattern2.txt")
-  (= graphFile "data/symatlas_graph2.txt")
+  (= patternFile "data/symatlas_pattern.txt")
+  (= graphFile "data/symatlas_graph.txt")
   ;(= patternFile "data/eg_pattern.txt")
   ;(= graphFile "data/eg_graph.txt")
   (= th (fref this th))
