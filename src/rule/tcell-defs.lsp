@@ -172,7 +172,8 @@
 	       ;; with returning an "abrt" message.
 	       (if (or (== -thr->exiting EXITING-EXCEPTION)
 		       (== -thr->exiting EXITING-CANCEL))
-		   (goto ,label-id))
+		   (begin
+		     (goto ,label-id)))
 	       ;; * The terminal of temporary backtracking
 	       (return)) ))
        ,@body
