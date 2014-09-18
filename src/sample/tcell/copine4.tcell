@@ -1,3 +1,39 @@
+;;; Copyright (c) 2014 Shingo OKUNO <shingo@sys.i.kyoto-u.ac.jp>
+;;; All rights reserved.
+
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+;;; 1. Redistributions of source code must retain the above copyright
+;;;    notice, this list of conditions and the following disclaimer.
+;;; 2. Redistributions in binary form must reproduce the above copyright
+;;;    notice, this list of conditions and the following disclaimer in the
+;;;    documentation and/or other materials provided with the distribution.
+
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE
+;;; FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+;;; OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+;;; LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+;;; SUCH DAMAGE.
+
+;;; copine4.tcell
+
+;;; Extract all connected subgraphs, each of which shares a common itemset
+;;; whose size is not less than a given threshold, from a given graph
+;;; in which each vertex is associated to an itemset
+
+;; task 0 0 0 2
+;; <th>         ; threshold
+;; <it>         ; # of iterations left for a victim worker
+;; <dv>         ; # of divisions of the higher layer of the search tree
+
+
 (c-exp "#include <stdio.h>")
 (c-exp "#include <stdlib.h>")
 (c-exp "#include <math.h>")
@@ -21,9 +57,10 @@
 (%include "clib.sh")
 (%include "dprint.sh")
 
-;;; Use "user defined spawned range"
-(%defconstant USE-SPN-RANGE 1)
-(%defconstant USE-SPN-RATIO 0)
+;;; Set # of iterations left for a victim worker
+;;; default: half of the unexecuted iterations
+(%defconstant USE-SPN-RANGE 1) ; set # directly
+(%defconstant USE-SPN-RATIO 0) ; set # by the ratio to the number of unexecuted iterations
 
 ;;; Use "popcount (SSE4.2)"
 (%defconstant USE-SSE 0)

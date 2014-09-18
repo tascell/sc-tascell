@@ -1,8 +1,4 @@
 OS=${shell uname}
-<<<<<<< local
-=======
-# Command for sc2c compiler
->>>>>>> other
 SC2C=sc2c
 SC2C_OPT=
 XCC=xcc
