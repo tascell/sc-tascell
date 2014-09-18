@@ -113,7 +113,8 @@
 (def (fib n) (wfn int int)
   ;; When non-zero is thrown here, the exception is not caught in task-body
   ;; and thus execution time is not printed.
-  (if (== n 10)
+  (if (and (== WORKER-ID 1)
+	   (== n 10))
       (throw 3))
   (if (<= n 2)
       (return 1)

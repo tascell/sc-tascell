@@ -503,6 +503,7 @@
       (begin
 	;; Execute the task
 	(= tx->stat TASK-STARTED) ; TASK-INITIALIZED => TASK-STARTED
+	(= tx->cancellation 0)    ; initialize # of cancellation flags
 	(= old-ndiv thr->ndiv)
 	(= old-probability thr->probability)
 	(= thr->ndiv tx->ndiv)
@@ -753,7 +754,9 @@
    ((== reason 0)
     (= hx->stat TASK-HOME-DONE))
    ((== reason 1)
-    (= hx->stat TASK-HOME-EXCEPTION))
+    (= hx->stat TASK-HOME-EXCEPTION)
+    (= hx->exception-tag exception-tag)
+    (inc hx->owner->cancellation))
    ((== reason 2)
     (= hx->stat TASK-HOME-ABORTED)))
   ;; Notify the worker waiting for the result.
@@ -1503,12 +1506,26 @@
 	(= -thr->req -thr->treq-top)))
   (csym::pthread-mutex-unlock (ptr -thr->mut)))
 
-;; Start propagating an exception
+;; Start propagating an exception. Invoked by a Tascell throw statement.
 (def (handle-exception -bk -thr excep)
     (fn void (ptr (NESTFN int void)) (ptr (struct thread-data)) int)
   (= -thr->exiting EXITING-EXCEPTION)
   (= -thr->exception-tag excep)
   (-bk)) ; never returns
+
+;; Check (partial) cancellation flags and abort if needed.
+(def (handle-cancellation -bk -thr)
+    (fn void (ptr (NESTFN int void)) (ptr (struct thread-data)))
+  (csym::pthread-mutex-lock (ptr -thr->mut))
+  (if -thr->task-top->cancellation
+      (begin
+	(DEBUG-PRINT 1 "(%d): (Thread %d) detected cancellation flag (%d)~%" (csym::get-universal-real-time) -thr->id -thr->task-top->cancellation)
+	(= -thr->exiting EXITING-CANCEL)
+	(csym::pthread-mutex-unlock (ptr -thr->mut))
+	(-bk)))
+  (csym::pthread-mutex-unlock (ptr -thr->mut))
+  ) ; never returns
+
 
 ;; Make a task message and send it.
 ;; (The recipient is determined by the top of the task request stack)
@@ -1529,7 +1546,7 @@
   (= hx->id (if-exp hx->next            ; the subtask ID (= height_of_the_stack + 1)
                     (+  hx->next->id 1)
                     0))
-  (= hx->owner thr->task-top)           ; the parent task (= the top of the task stack)
+  (= hx->owner thr->task-top)           ; the parent task (= current top of the task stack)
   (= hx->stat TASK-HOME-INITIALIZED)    ; ALLOCATED => INITIALIZED
   ;; Make a task message
   (= tcmd.c 4)                          ; # of arguments
@@ -1553,7 +1570,8 @@
   (def sub (ptr (struct task-home)))
   (csym::pthread-mutex-lock (ptr thr->mut))
   (= sub thr->sub)                           ; sub: the top of the worker's subtask stack
-  (while (and (!= sub->stat TASK-HOME-DONE)  ; Until the subtask is done or aborted
+  (while (and (!= sub->stat TASK-HOME-DONE)  ; Until the subtask is done/aborted
+	      (!= sub->stat TASK-HOME-EXCEPTION)
 	      (!= sub->stat TASK-HOME-ABORTED))
     (= thr->task-top->stat TASK-SUSPENDED)   ; STARTED => SUSPENDED (thr->task-top is the task being executed)
     (if stback
@@ -1570,6 +1588,7 @@
 		))
 	  ;; Quit if the subtask is finished or aborted.
 	  (if (or (== sub->stat TASK-HOME-DONE)
+		  (== sub->stat TASK-HOME-EXCEPTION)
 		  (== sub->stat TASK-HOME-ABORTED)) 
 	      (break))  
 	  ;; Steal and execute a task
@@ -1577,9 +1596,20 @@
       ;; If stealing back is disabled, just wait for the result.
       (csym::pthread-cond-wait (ptr thr->cond-r) (ptr thr->mut)))
     )
-  
-  (if (== sub->stat TASK-HOME-ABORTED) 
-      (= body 0)
+
+  ;; When the subtask has thrown an exception, propagate it
+  (if (== sub->stat TASK-HOME-EXCEPTION)
+      (begin
+	(= thr->exiting EXITING-EXCEPTION)
+	(= thr->exception-tag sub->exception-tag)
+	(dec sub->owner->cancellation)
+	))
+  ;; When the subtask is abnormally exited, a task object is not returned as the result
+  (if (or (== sub->stat TASK-HOME-EXCEPTION)
+	  (== sub->stat TASK-HOME-ABORTED))
+      (begin
+	(csym::free body)
+	(= body 0))
     (= body sub->body))
   ;; Pop the subtask stack
   (= thr->sub sub->next)                ; stack top <== 2nd entry
@@ -1789,6 +1819,7 @@
       (= thr->w-none 0)
       (= thr->w-bcak 0)
       (= thr->ndiv 0)
+      (= thr-> 0)
       (= thr->probability 1.0)
       (= thr->last-treq i)
       (= thr->last-choose CHS-RANDOM)
