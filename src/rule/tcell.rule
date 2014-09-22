@@ -247,10 +247,14 @@
 		     (csym::malloc (sizeof (struct ,(tcell:task-struct-id))))))
 		(begin ,@b-put-body)
 		(= ,spn-id 1)
-		(csym::make-and-send-task -thr ,(tcell:task-no) pthis)
+		(csym::make-and-send-task -thr ,(tcell:task-no) pthis 1)
 		(return 1)))
             (return 0))
 	    ;; ここから仕事本体
+	    ;; Polling for cancel message requests
+	    (if -thr->req-cncl
+		,(tcell:with-new-bk bk-id
+		   (wfn-add-argids ~(handle-req-cncl))))
 	    ;; Polling for cancellation flags
 	    (if -thr->task-top->cancellation
 		,(tcell:with-new-bk bk-id
@@ -345,9 +349,13 @@
                   (csym::malloc (sizeof (struct ,(tcell:task-struct-id))))))
              (begin ,@(function-body put-body))
              (inc ,spn-id)
-             (csym::make-and-send-task -thr ,(tcell:task-no) pthis))
+             (csym::make-and-send-task -thr ,(tcell:task-no) pthis (== ,spn-id 1)))
            (return 0))
 	 ;; --- Nestfunc End -->
+	 ;; Polling for cancel message requests
+         (if -thr->req-cncl
+             ,(tcell:with-new-bk bk-id
+                (wfn-add-argids ~(handle-req-cncl))))
 	 ;; Polling for cancellation flags
          (if -thr->task-top->cancellation
              ,(tcell:with-new-bk bk-id

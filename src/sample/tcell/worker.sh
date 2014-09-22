@@ -197,23 +197,29 @@
   (def stat (enum task-home-stat))      ; status
   (def id int)                          ; ID (unique in each worker)
   (def exception-tag int)               ; thrown exception value (when stat is TASK-HOME-EXCEPTION)
+  (def msg-cncl int)                    ; a request flag for a cncl message
+					; 1: a cncl message would be sent for this subtask
+					; 2: the cncl message is already sent
   (def waiting-head (array (enum addr) ARG-SIZE-MAX))
                                         ; for stealing-back treq, the task head of which
                                         ; the requester is waiting for the result
   (def owner (ptr (struct task)))       ; the task that spawned this subtask
+  (def eldest (ptr (struct task-home))) ; the task-home that is first spawned
+					; in a parallel region
   (def task-no int)                     ; task number (corresponds to a task function)
   (def req-from (enum node))            ; where to send this subtask (INSIDE or OUTSIDE)
   (def task-head (array (enum addr) ARG-SIZE-MAX))
                                         ; the address of the worker which this task is sent to
                                         ; (referred when sending stealing back "treq" or "rack")
-  (def next (ptr (struct task-home)))   ; link to the next task-home
+  (def next (ptr (struct task-home)))   ; link to the next (older) task-home
   (def body (ptr void))                 ; task object
   )
 
 (def (struct thread-data)
   (def id int)                          ; worker ID
   (def pthr-id pthread-t)               ; pthread assigned to the worker
-  (def req (ptr (struct task-home)))    ; flag to check whether there are any task requests
+  (def req (ptr (struct task-home)))    ; request to check task request queue and spawn tasks if needed
+  (def req-cncl int)                    ; request to check subtask stack and send cncl messages if needed
   (def w-rack int)                      ; # of rack messages to be received
   (def w-none int)                      ; # of none messages to be received
   (def ndiv int)                        ; # of division of the task being executed by this worker
@@ -256,8 +262,8 @@
   )
 
 ;;;; Declarations of functions in worker.sc
-(decl (csym::make-and-send-task thr task-no body)
-      (csym::fn void (ptr (struct thread-data)) int (ptr void)))
+(decl (csym::make-and-send-task thr task-no body eldest-p)
+      (csym::fn void (ptr (struct thread-data)) int (ptr void) int))
 (decl (wait-rslt thr stback) (fn (ptr void) (ptr (struct thread-data)) int))
 (decl (csym::broadcast-task thr task-no body)
       (csym::fn void (ptr (struct thread-data)) int (ptr void)))
