@@ -421,8 +421,10 @@
       ;; stop getting a new task and resume the suspended task.
       (if (and (!= tx->stat TASK-INITIALIZED)
 	       thr->sub
-	       (== thr->sub->stat TASK-HOME-DONE))
-	  ;; The worker sent a treq and its response may not have arrived.
+	       (or (== thr->sub->stat TASK-HOME-DONE)
+                   (== thr->sub->stat TASK-HOME-EXCEPTION)
+                   (== thr->sub->stat TASK-HOME-ABORTED)))
+          ;; The worker sent a treq and its response may not have arrived.
 	  ;; However, we can guarantee that the response is "none" because
 	  ;; this treq is a stealing back and the result of the spawned task
 	  ;; that caused the stealing back has been sent (and received).
@@ -465,7 +467,9 @@
 	  ;; If the most recent spawned task has been completed,
 	  ;; stop getting a new task and resume the suspended task.
           (if (and thr->sub
-                   (== thr->sub->stat TASK-HOME-DONE))
+                   (or (== thr->sub->stat TASK-HOME-DONE)
+                       (== thr->sub->stat TASK-HOME-EXCEPTION)
+                       (== thr->sub->stat TASK-HOME-ABORTED)))
               (return 0))))
     )
   (return 1))
@@ -1691,10 +1695,12 @@
     (if (or (== sub->stat TASK-HOME-DONE)
 	    (== sub->stat TASK-HOME-EXCEPTION)
 	    (== sub->stat TASK-HOME-ABORTED)) 
-	(break))  
-    ;; Steal and execute a task
+	(break))
     (if stback
-	(recv-exec-send thr sub->task-head sub->req-from))
+        ;; Steal and execute a task
+	(recv-exec-send thr sub->task-head sub->req-from)
+      ;; Just wait for the subtask finishing
+      (csym::pthread-cond-wait (ptr thr->cond-r) (ptr thr->mut)))
     )
 
   ;; When the subtask has thrown an exception, propagate it
