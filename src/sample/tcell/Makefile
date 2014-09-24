@@ -6,7 +6,7 @@ XCC=xcc
 GCC=gcc #$(XCC)
 ICC=icc
 # Optimization options for C Compilers
-OPT=-O3 -g -msse4.2$ (MOPT)
+OPT=-O3 -g -msse4.2 $(MOPT)
 XCCOPT=-DCT=lightweight
 XCCCLOPT=-DCT=closure
 
