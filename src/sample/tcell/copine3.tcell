@@ -719,7 +719,7 @@
                     (+= (fref pTsk -> numC) cc)
                     (inc (fref pTsk -> numT))
 
-                    (if BACKTRACKING
+                    (if (== EXITING EXITING-SPAWN)
                       (begin
                         (for ((= j 0) (<= j i) (inc j))
                           (inc (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) (- (- numC j) 1))))))))
@@ -741,7 +741,7 @@
                     (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
                       (dec (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j)))))
                   (:after
-                    (if BACKTRACKING
+                    (if (== EXITING EXITING-SPAWN)
                       (begin
                         (for ((= j 0) (<= j i) (inc j))
                           (dec (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) (- (- numC j) 1)))))))

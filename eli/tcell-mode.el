@@ -107,7 +107,9 @@
 	      ;; pseudo variables
 	      (,(concat
 		 "\\<" (regexp-opt
-			'("PROBABILITY" "WDATA" "WORKER-ID" "EXITING" "this") t)
+			'("PROBABILITY" "WDATA" "WORKER-ID" "EXITING"
+                          "EXITING-NORMAL" "EXITING-EXCEPTION" "EXITING-CANCEL" "EXITING-SPAWN"
+                          "this") t)
 		 "\\(\\.\\sw+\\)?\\>")
 	       (1 tcell-variable-name-face))
 	      ))))
