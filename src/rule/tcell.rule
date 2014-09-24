@@ -23,7 +23,6 @@
 ;;; SUCH DAMAGE.
 
 ;;; Tascell --> LW-SC
-;;; To be rewritten as an extension of sc0t-to-sc0t
 
 (define-ruleset tcell (sc0t-to-sc0t)
   (ignore-cfunc t)
@@ -214,47 +213,68 @@
             (b-put-body (function-body put-body))
             (b-get-body (function-body get-body)))
        ~(begin
-         (def ,tdat-id (struct ,(tcell:task-struct-id))) ; 送信用 task-body
-         (def pthis (ptr (struct ,(tcell:task-struct-id))) (ptr ,tdat-id))
-         (def ,spn-id int 0)            ; すでに仕事をsendしていたら '1'
-         (begin
-          ;; Called for backtracking to handle a task request or an exception
-          (def (,bk-id) ,(tcell:nestfunc-type)
-	    ;; If this nested function is called by an exception:
-	    (if -thr->exiting
-		(begin
-		  ;; Wait for spawned tasks to be completed
-		  (while (> (dec ,spn-id) 0)
-		    (wait-rslt -thr 0))
-		  ;; Continue backtracking (never returns)
-		  (,(tcell:latest-bk))))
-	    ;; If this do-two has spawned a task:
+	  #+comment 
+	  (def ,tdat-id (struct ,(tcell:task-struct-id))) ; 送信用 task-body
+	  (def pthis (ptr (struct ,(tcell:task-struct-id)))
+	    #+comment (ptr ,tdat-id))
+	  (def ,spn-id int 0)            ; すでに仕事をsendしていたら '1'
+	  (begin
+	    ;; Called for backtracking to handle a task request or an exception
+	    (def (,bk-id) ,(tcell:nestfunc-type)
+	      ;; If this nested function is called for abnormal exit:
+	      (if (or (== -thr->exiting EXITING-EXCEPTION)
+		      (== -thr->exiting EXITING-CANCEL))
+		  (begin
+		    ;; Wait for spawned tasks to be completed
+		    (while (> (dec ,spn-id) 0)
+		      (wait-rslt -thr 0))
+		    ;; Continue backtracking (never returns)
+		    (,(tcell:latest-bk))))
+	      ;; If this do-two has spawned a task:
             (if ,spn-id  (return 0))
 	    ;; Try further backtracking
             (,(tcell:latest-bk))        ; より根元での分割を試みる
-            (while (fref (mref -thr) treq-top) ; タスク作成待ちスタックに要素があれば
-                (begin
-                  ,@(if-pattern-variable guard-exp
-                        (list
-                         ~(begin 
-                            ,@guard-body
-                            (if (csym::guard-task-request-prob -thr ,guard-exp)
-                                (continue)))))
-                  (begin ,@b-put-body)
-                  (= ,spn-id 1)
-                  (csym::make-and-send-task -thr ,(tcell:task-no) pthis)
-                  (return 1)))
+            (while -thr->treq-top       ; タスク作成待ちスタックに要素があれば
+	      (begin
+		,@(if-pattern-variable guard-exp
+		    (list
+		     ~(begin 
+			,@guard-body
+			(if (csym::guard-task-request-prob -thr ,guard-exp)
+			    (continue)))))
+		(= pthis
+		   (cast (ptr (struct ,(tcell:task-struct-id)))
+		     (csym::malloc (sizeof (struct ,(tcell:task-struct-id))))))
+		(begin ,@b-put-body)
+		(= ,spn-id 1)
+		(csym::make-and-send-task -thr ,(tcell:task-no) pthis 1)
+		(return 1)))
             (return 0))
-          ;; ここから仕事本体
-          (if (fref (mref -thr) req)    ; （ポーリング）タスク要求がきていたら
-              ,(tcell:with-new-bk bk-id ; 分割を試みる
-                 (wfn-add-argids ~(handle-req))))
-          ,b-stat1)
-         (if (and ,spn-id
-                  (wait-rslt -thr 1))
-             (begin ,@b-get-body)
-           (begin ,b-stat2))
-         ) )))
+	    ;; ここから仕事本体
+	    ;; Polling for cancel message requests
+	    (if -thr->req-cncl
+		,(tcell:with-new-bk bk-id
+		   (wfn-add-argids ~(handle-req-cncl))))
+	    ;; Polling for cancellation flags
+	    (if -thr->task-top->cancellation
+		,(tcell:with-new-bk bk-id
+		   (wfn-add-argids ~(handle-cancellation))))
+	    ;; Polling for task requests
+	    (if -thr->req
+		,(tcell:with-new-bk bk-id
+	           (wfn-add-argids ~(handle-req))))
+	    ,b-stat1)
+	  (if ,spn-id
+	      ;; If a subtask is spawned, wait for the result.
+	      (if (= pthis (wait-rslt -thr 1))
+		  (begin
+		    (begin ,@b-get-body)
+		    (csym::free pthis))
+		;; If the subtask has thrown an exception, propagate it.
+		(if (== -thr->exiting EXITING-EXCEPTION)
+		    ,(wfn-add-argids ~(handle-exception -thr->exception-tag))))
+	    (begin ,b-stat2))
+	  ) )))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; do-many
   ;; * ,var を制御変数として，,fromから ,toまでについて ,@bodyを実行
@@ -287,11 +307,12 @@
          (def ,var2 int ,(expression to)) ; ,var <= i < ,var2 が未処理
          (def pthis (ptr (struct ,(tcell:task-struct-id)))) ; 送信用 task-body
          (def ,spn-id int 0)            ; 仕事を他所にsendしている数
-	 ;; <-- Nestfunc start
+	 ;; <-- Nestfunc start ---
 	 ;; Called for backtracking to handle a task request or an exception
          (def (,bk-id) ,(tcell:nestfunc-type)
-	   ;; If this nested function is called by an exception:
-	   (if -thr->exiting
+	   ;; If this nested function is called for abnormal exit
+	   (if (or (== -thr->exiting EXITING-EXCEPTION)
+		   (== -thr->exiting EXITING-CANCEL))
 	       (begin
 		 ;; Wait for spawned tasks to be completed
 		 (while (> (dec ,spn-id) 0)
@@ -302,7 +323,7 @@
 		 (,(tcell:latest-bk))))
            ;; If this do-many has not spawned any tasks, continue backtracking
            (if (not ,spn-id) (,(tcell:latest-bk)))
-           (while (and (fref (mref -thr) treq-top) ; there remains a treq?
+           (while (and -thr->treq-top              ; there remains a treq?
                        (<= 2 (- ,var2 ,var)))      ; there remains any spawnable iterations?
              (def ,put-to int ,var2)
              (def ,put-from int)
@@ -328,11 +349,19 @@
                   (csym::malloc (sizeof (struct ,(tcell:task-struct-id))))))
              (begin ,@(function-body put-body))
              (inc ,spn-id)
-             (csym::make-and-send-task -thr ,(tcell:task-no) pthis))
+             (csym::make-and-send-task -thr ,(tcell:task-no) pthis (== ,spn-id 1)))
            (return 0))
-	 ;; Nestfunc End -->
+	 ;; --- Nestfunc End -->
+	 ;; Polling for cancel message requests
+         (if -thr->req-cncl
+             ,(tcell:with-new-bk bk-id
+                (wfn-add-argids ~(handle-req-cncl))))
+	 ;; Polling for cancellation flags
+         (if -thr->task-top->cancellation
+             ,(tcell:with-new-bk bk-id
+                (wfn-add-argids ~(handle-cancellation))))
 	 ;; Polling for task requests
-         (if (fref (mref -thr) req)
+         (if -thr->req
              ,(tcell:with-new-bk bk-id
                 (wfn-add-argids ~(handle-req))))
 	 ;; Loop body
@@ -342,8 +371,13 @@
          (while (> (dec ,spn-id) 0)
            (= pthis (cast (ptr (struct ,(tcell:task-struct-id)))
                       (wait-rslt -thr 1)))
-           ,@(function-body get-body)
-           (csym::free pthis))) )))
+	   (if pthis (begin
+		       ,@(function-body get-body)
+		       (csym::free pthis))))
+	 ;; If there is a subtask that has thrown an exception, propagate it.
+	 (if (== -thr->exiting EXITING-EXCEPTION)
+	     ,(wfn-add-argids ~(handle-exception -thr->exception-tag)))
+	 ) )))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; do-many*
   ;; * Space Stealing用のdo-many
@@ -364,7 +398,7 @@
           ;; タスク要求がきたら呼ばれる
           (def (,bk-id) ,(tcell:nestfunc-type)
             (if (not ,spn-id) (,(tcell:latest-bk)))
-            (if (fref (mref -thr) treq-top) ; タスク作成待ちスタックに要素があれば
+            (if -thr->treq-top           ; タスク作成待ちスタックに要素があれば
               (begin
                 (= pthis (cast (ptr (struct ,(tcell:task-struct-id)))
                          (csym::malloc (sizeof (struct ,(tcell:task-struct-id))))))
@@ -373,15 +407,21 @@
                 (csym::make-and-send-task -thr ,(tcell:task-no) pthis)))
             (return 0))
           (for (,(expression! init-exp) ,(expression! cond-exp) ,(expression! loop-exp))
-            (if (fref (mref -thr) req)     ; （ポーリング）タスク要求がきていたら
+            (if -thr->req                   ; （ポーリング）タスク要求がきていたら
              ,(tcell:with-new-bk bk-id  ; 分割を試みる
                 (wfn-add-argids ~(handle-req))))
             ,@(function-body body))
           (while (> (dec ,spn-id) 0)
             (= pthis (cast (ptr (struct ,(tcell:task-struct-id)))
                        (wait-rslt -thr 1)))
-            ,@(function-body get-body)
-            (csym::free pthis))) )))
+	    (if pthis
+		(begin
+		  ,@(function-body get-body)
+		  (csym::free pthis))))
+	  ;; If there is a subtask that has thrown an exception, propagate it.
+	  (if (== -thr->exiting EXITING-EXCEPTION)
+	      ,(wfn-add-argids ~(handle-exception -thr->exception-tag)))
+	  ) )))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; tcell-broadcast
   ;; * タスクを全ノードに送りつける
@@ -458,10 +498,11 @@
 	     ;; exit from the catch block. Otherwise, continue
 	     ;; backtracking.
              ~(def (,bk-id) ,(tcell:nestfunc-type)
-		(if (and -thr->exiting
+		(if (and (== -thr->exiting EXITING-EXCEPTION)
 			 (== ,e-exp -thr->exception-tag))
 		    (begin 
-		      (= -thr->exiting 0)
+		      (= -thr->exiting EXITING-NORMAL)
+		      (csym::pthread-mutex-unlock (ptr -thr->mut))
 		      (goto ,label-id))
 		  (,(tcell:latest-bk))))))
 	(= ,catchval-id ,e-exp)	
@@ -488,22 +529,22 @@
   ;; get acceptance probability
   (#?(the ,texp PROBABILITY)
    (if (tcell:wdata-accessible-p)
-       ~(fref (mref -thr) probability)
+       ~-thr->probability
      x))
   ;; access to worker local storage
   (#?(the ,texp WDATA)
    (if (tcell:wdata-accessible-p)
-       ~(mref (cast (ptr (struct worker-data)) (fref (mref -thr) wdptr)))
+       ~(mref (cast (ptr (struct worker-data)) -thr->wdptr))
        x))
   ;; get WORKER-ID
   (#?(the ,texp WORKER-ID)
    (if (tcell:wdata-accessible-p)
-       ~(fref (mref -thr) id)
+       ~-thr->id
        -1))
   ;; get whether propagating an exception
   (#?(the ,texp EXITING)
    (if (tcell:wdata-accessible-p)
-       ~(fref (mref -thr) exiting)
+       ~-thr->exiting
        0))
   ;; this -> (mref pthis)
   (#?(the ,texp this)

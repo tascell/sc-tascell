@@ -64,11 +64,16 @@
 (def (enum command)
     TASK RSLT TREQ NONE RACK DREQ DATA
     BCST BCAK STAT VERB EXIT LEAV LACK ABRT CNCL WRNG)
-;; Strings corresponding to the commands above. Defined in cmd-serial.sc.
-(extern-decl cmd-strings (array (ptr char)))
+;; Strings corresponding to the commands above.
+(static cmd-strings (array (ptr char))
+  (array "task" "rslt" "treq" "none" "rack" "dreq" "data"
+         "bcst" "bcak" "stat" "verb" "exit" "leav" "lack" "abrt" "cncl" "wrng" 0))
 
 ;; How to determine the recipient of "treq any" (random or in-order)
 (def (enum choose) CHS-RANDOM CHS-ORDER)
+;; consistent with (enum choose)
+(static choose-strings (array (ptr char))
+  (array "CHS-RANDOM" "CHS-ORDER"))
 (%defconstant NKIND-CHOOSE 2)           ; # of kinds of (enum choose)
 
 ;; A message transferred among workers.
@@ -143,6 +148,9 @@
   TASK-DONE        ; The task is completed
   TASK-NONE        ; Sent treq for ALLOCATED entry but received none
   TASK-SUSPENDED)  ; The task is suspended (due to waiting the result of a subtask)
+(static task-stat-strings (array (ptr char))
+  (array "TASK-ALLOCATED" "TASK-INITIALIZED" "TASK-STARTED"
+	 "TASK-DONE" "TASK-NONE" "TASK-SUSPENDED"))
 ;; -(send treq)-> ALLOCATED -(receive task)-> INITIALIZED --> STARTED --> DONE -->
 ;;                 ^  |receive none                           ^     |receive the result
 ;;      resend treq|  V                 wait result of subtask|     V
@@ -153,8 +161,22 @@
   TASK-HOME-ALLOCATED    ; Allocated to request queue, or then moved to subtask stack but uninitialized
   TASK-HOME-INITIALIZED  ; Initialized in subtask stack
   TASK-HOME-DONE         ; Completed (received and handled the result)
-  TASK-HOME-ABORTED      ; Aborted (received abrt)
+  TASK-HOME-EXCEPTION    ; Completed with an exception
+  TASK-HOME-ABORTED      ; Aborted by a cancellation message
 )
+(static task-home-stat-strings (array (ptr char))
+  (array "TASK-HOME-ALLOCATED" "TASK-HOME-INITIALIZED" "TASK-HOME-DONE"
+	 "TASK-HOME-EXCEPTION" "TASK-HOME-ABORTED"))
+
+;;;; The reason for the abnormal exit.
+(def (enum exiting-rsn)
+  EXITING-NORMAL         ; normal exit
+  EXITING-EXCEPTION      ; exiting due to an exception
+  EXITING-CANCEL         ; exiting due to a cancellation
+  EXITING-SPAWN          ; temporary exiting to spawning a task
+  )
+(static exiting-rsn-strings (array (ptr char))
+  (array "EXITING-NORMAL" "EXITING-EXCEPTION" "EXITING-CANCEL" "EXITING-SPAWN"))
 
 ;; Entry in the task stack of a worker
 (def (struct task)
@@ -164,6 +186,7 @@
   (def task-no int)                 ; kind of the task
   (def body (ptr void))             ; task object
   (def ndiv int)                    ; # of task division
+  (def cancellation int)            ; # of partial cancellation flags
   (def rslt-to (enum node))         ; task sender (= result recipient) is INSIDE/OUTSIDE of this node
   (def rslt-head (array (enum addr) ARG-SIZE-MAX)))
 					; address of task sender (= result recipient)
@@ -173,23 +196,30 @@
 (def (struct task-home)
   (def stat (enum task-home-stat))      ; status
   (def id int)                          ; ID (unique in each worker)
+  (def exception-tag int)               ; thrown exception value (when stat is TASK-HOME-EXCEPTION)
+  (def msg-cncl int)                    ; a request flag for a cncl message
+					; 1: a cncl message would be sent for this subtask
+					; 2: the cncl message is already sent
   (def waiting-head (array (enum addr) ARG-SIZE-MAX))
                                         ; for stealing-back treq, the task head of which
                                         ; the requester is waiting for the result
   (def owner (ptr (struct task)))       ; the task that spawned this subtask
+  (def eldest (ptr (struct task-home))) ; the task-home that is first spawned
+					; in a parallel region
   (def task-no int)                     ; task number (corresponds to a task function)
   (def req-from (enum node))            ; where to send this subtask (INSIDE or OUTSIDE)
   (def task-head (array (enum addr) ARG-SIZE-MAX))
                                         ; the address of the worker which this task is sent to
                                         ; (referred when sending stealing back "treq" or "rack")
-  (def next (ptr (struct task-home)))   ; link to the next task-home
+  (def next (ptr (struct task-home)))   ; link to the next (older) task-home
   (def body (ptr void))                 ; task object
   )
 
 (def (struct thread-data)
   (def id int)                          ; worker ID
   (def pthr-id pthread-t)               ; pthread assigned to the worker
-  (def req (ptr (struct task-home)))    ; flag to check whether there are any task requests
+  (def req (ptr (struct task-home)))    ; request to check task request queue and spawn tasks if needed
+  (def req-cncl int)                    ; request to check subtask stack and send cncl messages if needed
   (def w-rack int)                      ; # of rack messages to be received
   (def w-none int)                      ; # of none messages to be received
   (def ndiv int)                        ; # of division of the task being executed by this worker
@@ -211,8 +241,8 @@
   (def cond-r pthread-cond-t)           ; condition variable for notifying rslt messages
   (def wdptr (ptr void))                ; worker local storage object
   (def w-bcak int)                      ; # of bcak messages to be recieved
-  (def exiting int)                     ; non-zero when backtracking to propagate an exception by a throw statement
-  (def exception-tag long)              ; the exception tag to be catched
+  (def exiting (enum exiting-rsn))      ; the reason for abnormal exiting
+  (def exception-tag int)               ; the exception tag to be catched
   (def dummy (array char DUMMY-SIZE))   ; padding for preventing false sharing
   )
 
@@ -232,8 +262,8 @@
   )
 
 ;;;; Declarations of functions in worker.sc
-(decl (csym::make-and-send-task thr task-no body)
-      (csym::fn void (ptr (struct thread-data)) int (ptr void)))
+(decl (csym::make-and-send-task thr task-no body eldest-p)
+      (csym::fn void (ptr (struct thread-data)) int (ptr void) int))
 (decl (wait-rslt thr stback) (fn (ptr void) (ptr (struct thread-data)) int))
 (decl (csym::broadcast-task thr task-no body)
       (csym::fn void (ptr (struct thread-data)) int (ptr void)))
