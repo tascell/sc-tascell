@@ -1,10 +1,12 @@
 OS=${shell uname}
+# Command for sc2c compiler
 SC2C=sc2c
 SC2C_OPT=
 XCC=xcc
 GCC=gcc #$(XCC)
 ICC=icc
-OPT=-O3 -g -msse4.2$(MOPT)
+# Optimization options for C Compilers
+OPT=-O3 -g -msse4.2$ (MOPT)
 XCCOPT=-DCT=lightweight
 XCCCLOPT=-DCT=closure
 
@@ -28,8 +30,12 @@ ifeq ($(OS),SunOS)
     OPT += -DNO_VASPRINTF
 endif
 
-
-APPS=fib fib-guard fib-excep lu cmp pen pen6x17 pen6x17-guard nq grav matmul spanning bcast copine0 copine1 copine2 copine3 copine4
+# Set targets
+# The set of all targets (ALL_PROGS) is {(apps)-(imp) | (apps) is one of APPS and (imp) is one of c, gcc, lw, clos, xcc, xcccl,
+# icc-c, icc-lw, and icc-clos}
+# By default, this Makefile makes all ALL_PROGS. You can make just one of targets by specifying the target file name,
+# (e.g., "make fib-gcc")
+APPS=fib fib-guard fib-excep lu cmp pen pen-excep pen6x17 pen6x17-guard nq grav matmul spanning bcast copine0 copine1 copine2 copine3 copine4
 
 C_PROGS=$(addsuffix -c,$(APPS))
 GCC_PROGS=$(addsuffix -gcc,$(APPS))
