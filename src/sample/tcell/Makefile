@@ -10,7 +10,7 @@ GCC=gcc #$(XCC)
 # Command for Intel C Compiler
 ICC=icc
 # Optimization options for C Compilers
-OPT=-O3 -g -msse4.2$(MOPT)
+OPT=-O2 -g -msse4.2 $(MOPT)
 
 # Keyword for L-Closures and Closures in XC Cube. Don't modify.
 XCCOPT=-DCT=lightweight

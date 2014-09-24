@@ -1478,8 +1478,9 @@
   (defs (array char BUFSIZE) buf0 buf1 buf2)
   (csym::fprintf stderr "%s= {" name)
   (for ((= cur treq-top) cur (= cur cur->next))
-    (csym::fprintf stderr "{stat=%s, id=%d, waiting=%s, owner=%p, eldest=%p(%d), task-no=%d, body=%p, req-from=%s, task-head=%s}, "
+    (csym::fprintf stderr "{stat=%s, id=%d, exception-tag=%d, msg-cncl=%d, waiting=%s, owner=%p, eldest=%p(%d), task-no=%d, body=%p, req-from=%s, task-head=%s}, "
                    (aref task-home-stat-strings cur->stat) cur->id
+		   cur->exception-tag cur->msg-cncl
                    (exps (csym::serialize-arg buf0 cur->waiting-head) buf0)
                    cur->owner
                    cur->eldest (if-exp cur->eldest cur->eldest->id 0)
@@ -1491,7 +1492,7 @@
 
 ;;; Print the status of a worker in human-friendly style
 (def (csym::print-thread-status thr) (csym::fn void (ptr (struct thread-data)))
-  (csym::fprintf stderr "<Thread %d>~%" thr->id)
+  (csym::fprintf stderr "*** Worker %d ***~%" thr->id)
   (csym::fprintf stderr "req=%p, " thr->req)
   (csym::fprintf stderr "w-rack=%d, " thr->w-rack)
   (csym::fprintf stderr "w-none=%d, " thr->w-none)
@@ -1563,30 +1564,39 @@
 	(= -thr->req -thr->treq-top) ))
   (csym::pthread-mutex-unlock (ptr -thr->mut)))
 
+;; Send a cncl message for each flagged subtask spawned by "thr"
+;; The mutex thr->mut must be acquired before calling.
+;; Returns # of sent cncl messages.
+(def (csym::send-cncl-for-flagged-subtasks thr)
+    (csym::fn int (ptr (struct thread-data)))
+  (def rcmd (struct cmd))               ; for CNCL command
+  (def cur (ptr (struct task-home)))
+  (def count int 0)
+  (= rcmd.w CNCL)
+  (= rcmd.c 2)
+  (= (aref rcmd.v 0 0) thr->id)
+  (= (aref rcmd.v 0 2) TERM)
+  (for ((= cur thr->sub) cur (= cur cur->next))
+    (if (and (== cur->msg-cncl 1)
+	     (== cur->stat TASK-HOME-INITIALIZED))
+	(begin
+	  (= rcmd.node cur->req-from)
+	  (= (aref rcmd.v 0 1) cur->id)                       ; <sender>=<thread-id>:<task-home-id>
+	  (csym::copy-address (aref rcmd.v 1) cur->task-head) ; <recipient>
+	  (csym::send-command (ptr rcmd) 0 0)
+	  (= cur->msg-cncl 2)
+	  (inc count) )))
+  (return count) )
+
 ;; Check -thr's subtask queue and send a cncl message for each flagged subtask
 (def (handle-req-cncl -bk -thr)
     (fn void (ptr (NESTFN int void)) (ptr (struct thread-data)))
-  (def rcmd (struct cmd))               ; for CNCL command
-  (def cur (ptr (struct task-home)))
   (csym::pthread-mutex-lock (ptr -thr->mut))
-  (= rcmd.w CNCL)
-  (= rcmd.c 2)
-  (= (aref rcmd.v 0 0) -thr->id)
-  (= (aref rcmd.v 0 2) TERM)
   (if -thr->req-cncl
       (begin
 	(DEBUG-PRINT 1 "(%d): (Thread %d) detected cncl message request~%"
 		     (csym::get-universal-real-time) -thr->id)
-	(for ((= cur -thr->sub) cur (= cur cur->next))
-	  (if (and (== cur->msg-cncl 1)
-		   (== cur->stat TASK-HOME-INITIALIZED))
-	      (begin
-		(= rcmd.node cur->req-from)
-		(= (aref rcmd.v 0 1) cur->id)                       ; <sender>=<thread-id>:<task-home-id>
-		(csym::copy-address (aref rcmd.v 1) cur->task-head) ; <recipient>
-		(csym::send-command (ptr rcmd) 0 0)
-		(= cur->msg-cncl 2)
-		)))
+	(csym::send-cncl-for-flagged-subtasks -thr)
 	(= -thr->req-cncl 0) ))
   (csym::pthread-mutex-unlock (ptr -thr->mut)))
 
@@ -1663,27 +1673,28 @@
 	      (!= sub->stat TASK-HOME-EXCEPTION)
 	      (!= sub->stat TASK-HOME-ABORTED))
     (= thr->task-top->stat TASK-SUSPENDED)   ; STARTED => SUSPENDED (thr->task-top is the task being executed)
-    (if stback
-	;; If stealing back is enabled
+    ;; When propagating exception, send cncl messages for subtasks
+    (if (== thr->exiting EXITING-EXCEPTION)
 	(begin
-	  ;; Wait for a moment if the victim is an external worker.
-	  (if (== OUTSIDE sub->req-from)
-	      (let ((now (struct timeval))
-		    (t-until (struct timespec)))
-		(csym::gettimeofday (ptr now) 0)
-		(csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) 1000)
-		(csym::pthread-cond-timedwait (ptr thr->cond-r) (ptr thr->mut)
-					      (ptr t-until))
-		))
-	  ;; Quit if the subtask is finished or aborted.
-	  (if (or (== sub->stat TASK-HOME-DONE)
-		  (== sub->stat TASK-HOME-EXCEPTION)
-		  (== sub->stat TASK-HOME-ABORTED)) 
-	      (break))  
-	  ;; Steal and execute a task
-	  (recv-exec-send thr sub->task-head sub->req-from))
-      ;; If stealing back is disabled, just wait for the result.
-      (csym::pthread-cond-wait (ptr thr->cond-r) (ptr thr->mut)))
+	  (csym::set-cancelled thr thr->task-top sub->eldest)
+	  (csym::send-cncl-for-flagged-subtasks thr)))
+    ;; Wait for a moment if the victim is an external worker.
+    (if (== OUTSIDE sub->req-from)
+	(let ((now (struct timeval))
+	      (t-until (struct timespec)))
+	  (csym::gettimeofday (ptr now) 0)
+	  (csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) 1000)
+	  (csym::pthread-cond-timedwait (ptr thr->cond-r) (ptr thr->mut)
+					(ptr t-until))
+	  ))
+    ;; Quit if the subtask is finished or aborted.
+    (if (or (== sub->stat TASK-HOME-DONE)
+	    (== sub->stat TASK-HOME-EXCEPTION)
+	    (== sub->stat TASK-HOME-ABORTED)) 
+	(break))  
+    ;; Steal and execute a task
+    (if stback
+	(recv-exec-send thr sub->task-head sub->req-from))
     )
 
   ;; When the subtask has thrown an exception, propagate it
