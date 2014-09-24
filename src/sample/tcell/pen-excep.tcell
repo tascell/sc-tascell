@@ -219,5 +219,5 @@
 	(= this.i2 i2))
       (:get
 	(+= s this.r))))
-  (if (> s 100) (throw 0))
+  (if (> s 100) (throw WORKER-ID))
   (return s))
