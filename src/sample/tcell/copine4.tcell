@@ -893,7 +893,7 @@
                     (+= (fref pTsk -> numC) cc)
                     (inc (fref pTsk -> numT))
 
-                    (if BACKTRACKING
+                    (if (== EXITING EXITING-SPAWN)
                       (begin
                         (for ((= j 0) (<= j i) (inc j))
                           (inc (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) (- (- numC j) 1))))))))
@@ -928,7 +928,8 @@
                         (csym::pthread_mutex_unlock (ptr (aref excpMutex (fref -thr -> id))))
                         (= (aref flagQe (fref -thr -> id)) 0))))
                   (:after
-                    (if EXITING
+                   (if (or (== EXITING EXITING-CANCEL)
+                           (== EXITING EXITING-EXCEPTION))
                       (begin
                         (%if* DEBUG-LOCK (begin
                           (= locked 0)))
@@ -948,7 +949,7 @@
                         (csym::removeITnode (ptr (aref vItemTable vv)) ITadd)
                         (csym::pthread_mutex_unlock (ptr (aref itMutex vv)))))
 
-                    (if (and (not BACKTRACKING) (not EXITING))
+                    (if (== EXITING EXITING-NORMAL)
                       (begin
                         (%if* DEBUG-LOCK (begin
                           (= locked 0)))
@@ -971,7 +972,7 @@
                             (csym::removeITnode (ptr (aref vItemTable vv)) ITadd)))
                         (csym::pthread_mutex_unlock (ptr (aref itMutex vv)))))
 
-                    (if (or BACKTRACKING EXITING)
+                    (if (!= EXITING EXITING-NORMAL)
                       (begin
                         (for ((= j 0) (<= j i) (inc j))
                           (dec (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) (- (- numC j) 1)))))))
