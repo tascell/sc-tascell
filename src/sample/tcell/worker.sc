@@ -72,6 +72,9 @@
     ))
 
 
+;;;; Worker threads
+(def threads (array (struct thread-data) 128))
+(def num-thrs unsigned-int)
 ;;;; Random number generator
 (def random-seed1 double 0.2403703)
 (def random-seed2 double 3.638732)
@@ -219,7 +222,10 @@
   (if (and (== w RSLT) option.auto-exit)
       (begin
 	(PROF-CODE
-	 (csym::show-tcounter))
+	 (let ((i int))
+	   (for ((= i 0) (< i num-thrs) (inc i))
+	     (csym::tcounter-change-state (+ threads i) TCOUNTER-INIT))
+	   (csym::show-tcounter)))
 	(csym::exit 0)))
   )
 
@@ -264,9 +270,6 @@
       (csym::send-out-command pcmd body task-no) ; Send to external node
       )
     ))
-
-(def threads (array (struct thread-data) 128))
-(def num-thrs unsigned-int)
 
 
 ;;; Flush the once accepted task request pointed by "(mref p-hx)"
@@ -1958,7 +1961,8 @@
       (begin
 	(csym::gettimeofday (ptr tp) 0)
 	(+= (aref thr->tcnt tcnt-stat0)
-	    (csym::diff-timevals (ptr tp) (ptr (aref thr->tcnt-tp tcnt-stat))))
+	    (csym::diff-timevals (ptr tp)
+				 (ptr (aref thr->tcnt-tp tcnt-stat0))))
 	(= (aref thr->tcnt-tp tcnt-stat) tp)
 	(= thr->tcnt-stat tcnt-stat)))
   (return tcnt-stat0))
