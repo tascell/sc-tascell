@@ -1,8 +1,11 @@
 OS=${shell uname}
 # Command for sc2c compiler
 SC2C=sc2c
-# set -m option not to  remove intermediate files
+# Options for SC-to-C compiler
 SC2C_OPT=
+# SC2C_OPT=-m              # don't remove intermediate files
+# SC2C_OPT="-D DEBUG=0"    # invalidate debugging code
+# SC2C_OPT="-D PROFILE=1"  # validate profiling code
 # Command for XC Cube (an extended GCC that supports L-Closures and Closures)
 XCC=xcc
 # Command for gcc

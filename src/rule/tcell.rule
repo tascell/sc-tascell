@@ -42,10 +42,16 @@
                 ~(decl (handle-req) (fn void
                                         (ptr ,(tcell:nestfunc-type))
                                         (ptr (struct thread-data))))
+                ~(decl (handle-req-cncl) (fn void
+					     (ptr ,(tcell:nestfunc-type))
+					     (ptr (struct thread-data))))
                 ~(decl (handle-exception) (fn void
 					      (ptr ,(tcell:nestfunc-type))
 					      (ptr (struct thread-data))
 					      long))
+                ~(decl (handle-cancellation) (fn void
+						 (ptr ,(tcell:nestfunc-type))
+						 (ptr (struct thread-data))))
 		)
           pg
           ;; データ系の関数が定義されてなければ空定義の関数を追加する
@@ -219,6 +225,7 @@
 	    #+comment (ptr ,tdat-id))
 	  (def ,spn-id int 0)            ; すでに仕事をsendしていたら '1'
 	  (begin
+	    ;; <-- Nestfunc start ---
 	    ;; Called for backtracking to handle a task request or an exception
 	    (def (,bk-id) ,(tcell:nestfunc-type)
 	      ;; If this nested function is called for abnormal exit:
@@ -250,7 +257,7 @@
 		(csym::make-and-send-task -thr ,(tcell:task-no) pthis 1)
 		(return 1)))
             (return 0))
-	    ;; ここから仕事本体
+	    ;; --- Nestfunc End -->
 	    ;; Polling for cancel message requests
 	    (if -thr->req-cncl
 		,(tcell:with-new-bk bk-id
@@ -395,6 +402,7 @@
        ~(begin
           (def pthis (ptr (struct ,(tcell:task-struct-id)))) ; 送信用 task-body
           (def ,spn-id int 0)            ; 仕事を他所にsendしている数
+	  ;; <-- Nestfunc start ---
           ;; タスク要求がきたら呼ばれる
           (def (,bk-id) ,(tcell:nestfunc-type)
             (if (not ,spn-id) (,(tcell:latest-bk)))
@@ -406,6 +414,7 @@
                 (inc ,spn-id)
                 (csym::make-and-send-task -thr ,(tcell:task-no) pthis)))
             (return 0))
+	  ;; --- Nestfunc end -->
           (for (,(expression! init-exp) ,(expression! cond-exp) ,(expression! loop-exp))
             (if -thr->req                   ; （ポーリング）タスク要求がきていたら
              ,(tcell:with-new-bk bk-id  ; 分割を試みる
@@ -490,7 +499,7 @@
           (b-body (tcell:with-new-bk bk-id (function-body body))))
      ~(begin
 	(def ,label-id __label__)
-	(def ,catchval-id long)
+	(def ,catchval-id int)
         ,.(unless (ruleset-param 'no-nestfunc)
             (list
 	     ;; nestfunc: If worker is handling an exception and
@@ -502,7 +511,8 @@
 			 (== ,e-exp -thr->exception-tag))
 		    (begin 
 		      (= -thr->exiting EXITING-NORMAL)
-		      (csym::pthread-mutex-unlock (ptr -thr->mut))
+		      (PROF-CODE
+		       (csym::tcounter-change-state -thr TCOUNTER-EXEC))
 		      (goto ,label-id))
 		  (,(tcell:latest-bk))))))
 	(= ,catchval-id ,e-exp)	

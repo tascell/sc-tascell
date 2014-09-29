@@ -35,6 +35,8 @@
 ;; (%defconstant USE-AFFINITY SCHED)    ; for Linux
 ;; (%defconstant USE-AFFINITY PBIND)    ; for SunOS
 
+(c-exp "#include<sys/time.h>")
+
 ;;; 
 
 ;;; Sizes
@@ -178,6 +180,25 @@
 (static exiting-rsn-strings (array (ptr char))
   (array "EXITING-NORMAL" "EXITING-EXCEPTION" "EXITING-CANCEL" "EXITING-SPAWN"))
 
+(PROF-CODE
+;;; Kinds of time counter (for evaluations)
+(%defconstant NKIND-TCOUNTER 8)
+(def (enum tcounter)
+  TCOUNTER-INIT          ; before execution
+  TCOUNTER-EXEC          ; task execution time
+  TCOUNTER-SPWN          ; task spawning time
+  TCOUNTER-WAIT          ; waiting result (does not include time for stealing back)
+  TCOUNTER-ABRT          ; exiting due to abortion or propagating exception
+  TCOUNTER-ABRT-WAIT     ; waiting result during abortion
+  TCOUNTER-TREQ-BK       ; time for task request for stealing back
+  TCOUNTER-TREQ-ANY      ; time for task request when having no task
+)
+(static tcounter-strings (array (ptr char))
+  (array "TCOUNTER-INIT" "TCOUNTER-EXEC" "TCOUNTER-SPWN"
+	 "TCOUNTER-WAIT" "TCOUNTER-ABRT" "TCOUNTER-ABRT-WAIT"
+	 "TCOUNTER-TREQ-BK" "TCOUNTER-TREQ-ANY"))
+)
+
 ;; Entry in the task stack of a worker
 (def (struct task)
   (def stat (enum task-stat))       ; task status
@@ -243,6 +264,14 @@
   (def w-bcak int)                      ; # of bcak messages to be recieved
   (def exiting (enum exiting-rsn))      ; the reason for abnormal exiting
   (def exception-tag int)               ; the exception tag to be catched
+  (PROF-CODE
+   ;; time counter (for profiling)
+   (def tcnt-stat (enum tcounter))           ; the last state by tcounter-change-state
+   (def tcnt (array double NKIND-TCOUNTER))  ; total time of each state
+   (def tcnt-tp (array (struct timeval) NKIND-TCOUNTER))
+					; start time of each state
+   )
+  ;; dummy
   (def dummy (array char DUMMY-SIZE))   ; padding for preventing false sharing
   )
 
@@ -295,6 +324,17 @@
 (decl (csym::recv-lack) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-abrt) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-cncl) (csym::fn void (ptr (struct cmd))))
+
+(PROF-CODE
+ (decl (csym::initialize-tcounter) (fn void (ptr (struct thread-data))))
+ (decl (csym::tcounter-start)
+     (fn void (ptr (struct thread-data)) (enum tcounter)))
+ (decl (csym::tcounter-end)
+     (fn void (ptr (struct thread-data)) (enum tcounter)))
+ (decl (csym::tcounter-change-state)
+     (fn (enum tcounter) (ptr (struct thread-data)) (enum tcounter)))
+ (decl (csym::show-tcounter) (fn void))
+ )
 
 ;;;; Declarations of functions in cmd-serial.sc
 (decl (csym::serialize-cmdname buf w) (fn int (ptr char) (enum command)))
