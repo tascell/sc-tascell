@@ -78,6 +78,10 @@
 ;;;; Random number generator
 (def random-seed1 double 0.2403703)
 (def random-seed2 double 3.638732)
+;;;; Start time of the first task execution
+(PROF-CODE
+ (def tp-strt (struct timeval)))
+
 ;; Random integer in [0, max-1]
 (def (csym::my-random max pseed1 pseed2) (fn int int (ptr double) (ptr double))
   (= (mref pseed1) (+ (* (mref pseed1) 3.0) (mref pseed2)))
@@ -222,10 +226,16 @@
   (if (and (== w RSLT) option.auto-exit)
       (begin
 	(PROF-CODE
-	 (let ((i int))
+	 (let ((i int) (thr (ptr (struct thread-data))) (fp (ptr FILE)))
 	   (for ((= i 0) (< i num-thrs) (inc i))
-	     (csym::tcounter-change-state (+ threads i) TCOUNTER-INIT))
-	   (csym::show-tcounter)))
+	     (= thr (+ threads i))
+	     (csym::tcounter-change-state thr TCOUNTER-INIT)
+	     (if thr->fp-tc
+		 (begin
+		   (= fp thr->fp-tc)
+		   (= thr->fp-tc 0)
+		   (csym::fclose fp)))))
+	 (csym::show-tcounter))
 	(csym::exit 0)))
   )
 
@@ -1812,7 +1822,7 @@
 (def (set-option argc argv) (csym::fn void int (ptr (ptr char)))
   (def i int) (def ch int)
   ;; Default values
-  (= (aref option.sv-hostname 0) #\NULL)
+  (= option.sv-hostname 0)
   (= option.port 9865)
   (= option.num-thrs 1)
   (= option.node-name 0)
@@ -1821,20 +1831,19 @@
   (= option.affinity 0)
   (= option.always-flush-accepted-treq 0)
   (= option.verbose 0)
+  (PROF-CODE
+   (= option.timechart-file 0))
+
   ;; Parse and set options
-  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:N:i:xafP:v:h")))
+  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:N:i:xafP:v:T:h")))
     (switch ch
       (case #\n)                        ; number of threads
       (= option.num-thrs (csym::atoi optarg))
       (break)
 
       (case #\s)                        ; server name
-      (if (csym::strcmp "stdout" optarg)
-          (begin
-            (csym::strncpy option.sv-hostname optarg
-                           HOSTNAME-MAXSIZE)
-            (= (aref option.sv-hostname (- HOSTNAME-MAXSIZE 1)) 0))
-        (= (aref option.sv-hostname 0) #\NULL))
+      (= option.sv-hostname
+	 (if-exp (csym::strcmp "stdout" optarg) optarg 0))
       (break)
 
       (case #\p)                        ; connection port number
@@ -1877,7 +1886,17 @@
       (break)
       
       (case #\v)                        ; verbose level
-      (= option.verbose (csym::atoi optarg))
+      (%if* VERBOSE
+	(= option.verbose (csym::atoi optarg))
+	%else
+	(csym::fprintf stderr "Warning: -v option is invalidated at compile-time.~%"))
+      (break)
+
+      (case #\T)                        ; output time chart
+      (%if* PROFILE
+	(= option.timechart-file optarg)
+	%else
+	(csym::fprintf stderr "Warning: -T option is invalidated at compile-time.~%"))
       (break)
 
       (case #\h)                        ; usage
@@ -1956,15 +1975,33 @@
     (fn (enum tcounter) (ptr (struct thread-data)) (enum tcounter))
   (def tp (struct timeval))
   (def tcnt-stat0 (enum tcounter))
-  (= tcnt-stat0 thr->tcnt-stat)
+  (defs double tcnt0 tcnt)
+  (= tcnt-stat0 thr->tcnt-stat)               ; old state
   (if (!= tcnt-stat0 tcnt-stat)
       (begin
-	(csym::gettimeofday (ptr tp) 0)
-	(+= (aref thr->tcnt tcnt-stat0)
-	    (csym::diff-timevals (ptr tp)
-				 (ptr (aref thr->tcnt-tp tcnt-stat0))))
-	(= (aref thr->tcnt-tp tcnt-stat) tp)
-	(= thr->tcnt-stat tcnt-stat)))
+	(= tcnt0 (aref thr->tcnt tcnt-stat0)) ; total time of old state
+	(csym::gettimeofday (ptr tp) 0)       ; end time of old state
+	(= tcnt (+ tcnt0                      ; increase total time of old state
+		   (csym::diff-timevals (ptr tp)
+					(ptr (aref thr->tcnt-tp tcnt-stat0)))))
+	(= (aref thr->tcnt tcnt-stat0) tcnt)  ; update total time of old state
+	(= (aref thr->tcnt-tp tcnt-stat) tp)  ; set start time of new state
+	(= thr->tcnt-stat tcnt-stat)          ; set the new state of the worker
+	(if thr->fp-tc
+	    ;; Write time chart
+	    (let ((tp0 (ptr (struct timeval))))
+	      (= tp0 (ptr (aref thr->tcnt-tp tcnt-stat0)))
+	      (if (and (== tcnt-stat0 TCOUNTER-INIT)
+		       (== thr->id 0))
+		  (= tp-strt tp))             ; start time of whole execution
+	      (csym::fprintf thr->fp-tc "%s %d.%05d %d.%05d~%"
+			   (aref tcounter-strings tcnt-stat0)
+			   (- tp0->tv-sec tp-strt.tv-sec)
+			   (- tp0->tv-usec tp-strt.tv-usec)
+			   (- tp.tv-sec tp-strt.tv-sec)
+			   (- tp.tv-usec tp-strt.tv-usec))
+	      ))
+	))
   (return tcnt-stat0))
 
 ;;; Show time counters
@@ -2002,9 +2039,9 @@
   (csym::set-option argc argv)
 
   ;; Connect to a Tascell server
-  (= sv-socket (if-exp (== #\NULL (aref option.sv-hostname 0))
-                       -1
-                       (csym::connect-to option.sv-hostname option.port)))
+  (= sv-socket (if-exp option.sv-hostname
+		   (csym::connect-to option.sv-hostname option.port)
+		 -1))
 
   ;; Initialized mutex attribute
   (def m-attr pthread-mutexattr-t)
@@ -2064,6 +2101,19 @@
       (csym::initialize-task-home-list hx TASK-LIST-LENGTH
                                        (ptr thr->treq-top) (ptr thr->treq-free))
       (= thr->sub 0)
+
+      ;; open timechart output file
+      (PROF-CODE
+       (if option.timechart-file
+	   (let ((fname (ptr char)) (len int))
+	     (= len (+ (csym::strlen option.timechart-file) 10))
+	     (= fname (csym::malloc (* (sizeof char) len)))
+	     (csym::snprintf fname len "%s-%04d.dat"
+			     option.timechart-file thr->id)
+	     (= thr->fp-tc (csym::fopen fname "w"))
+	     (if (not thr->fp-tc) (csym::perror "Failed to open timechart-file for writing"))
+	     (csym::free fname))
+	 (= thr->fp-tc 0)))
       ))
   
   ;; Create and run worker threads

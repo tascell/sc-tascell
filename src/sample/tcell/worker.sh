@@ -270,6 +270,8 @@
    (def tcnt (array double NKIND-TCOUNTER))  ; total time of each state
    (def tcnt-tp (array (struct timeval) NKIND-TCOUNTER))
 					; start time of each state
+   ;; time chart output
+   (def fp-tc (ptr FILE))               ; file pointer for time chart data output
    )
   ;; dummy
   (def dummy (array char DUMMY-SIZE))   ; padding for preventing false sharing
@@ -348,11 +350,9 @@
 (decl (csym::address-equal adr1 adr2) (fn int (ptr (enum addr)) (ptr (enum addr))))
 
 ;;;; Command line options
-(%defconstant HOSTNAME-MAXSIZE 256)
 (def (struct runtime-option)
   (def num-thrs int)                    ; # of workers
-  (def sv-hostname (array char HOSTNAME-MAXSIZE))
-                                        ; hostname of connecting Tascell server
+  (def sv-hostname (ptr char))          ; hostname of connecting Tascell server
                                         ; If the string is "", external messages are output to stdout
   (def port unsigned-short)             ; port # used to connect to Tascell server
   (def node-name (ptr char))            ; node name (used for debugging only)
@@ -361,5 +361,7 @@
   (def affinity int)                    ; use sched_setaffinity to assign a physical core/thread to each worker
   (def always-flush-accepted-treq int)  ; flush stealing back (accepted) treq message
   (def verbose int)                     ; verbose level
+  (PROF-CODE                            
+   (def timechart-file (ptr char)))     ; postfix of timechart output file names
   )
 (extern-decl option (struct runtime-option))
