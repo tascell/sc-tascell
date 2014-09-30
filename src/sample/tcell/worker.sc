@@ -1815,7 +1815,11 @@
 ;;; Handling command-line options
 (def (csym::usage argc argv) (csym::fn void int (ptr (ptr char)))
   (csym::fprintf stderr
-                 "Usage: %s [-s hostname] [-p port-num] [-n n-threads] [-i initial-task-parms] [-a] [-v verbosity]~%"
+                 (%string
+                  "Usage: %s [-s hostname] [-p port-num] [-n n-threads] [-i initial-task-parms] [-a]"
+                  (%if* VERBOSE " [-v verbosity]" %else "")
+                  (%if* PROFILE " [-T timechart-prefix]" %else "")
+                  "~%")
                  (aref argv 0))
   (csym::exit 1))
 
