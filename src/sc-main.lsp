@@ -180,7 +180,7 @@ X is an S-expression or a filespec."
               ;; apply scpp
               ;;(format *error-output* "~&>>> Applying SCPP...~%")
               ;;(force-output *error-output*)
-              (setq x (apply #'scpp:scpp x common-scpp-args))
+              (setq x (apply #'scpp:scpp (append predefinitions x) common-scpp-args))
               ;; write to intermediate file (preprocessed) if requried
               (when intermediate
                 (write-intermediate-file
