@@ -1998,12 +1998,10 @@
 	      (if (and (== tcnt-stat0 TCOUNTER-INIT)
 		       (== thr->id 0))
 		  (= tp-strt tp))             ; start time of whole execution
-	      (csym::fprintf thr->fp-tc "%s %d.%05d %d.%05d~%"
-			   (aref tcounter-strings tcnt-stat0)
-			   (- tp0->tv-sec tp-strt.tv-sec)
-			   (- tp0->tv-usec tp-strt.tv-usec)
-			   (- tp.tv-sec tp-strt.tv-sec)
-			   (- tp.tv-usec tp-strt.tv-usec))
+	      (csym::fprintf thr->fp-tc "%s %lf %lf~%"
+			     (aref tcounter-strings tcnt-stat0)
+			     (csym::diff-timevals tp0 (ptr tp-strt))
+			     (csym::diff-timevals (ptr tp) (ptr tp-strt)))
 	      ))
 	))
   (return tcnt-stat0))
