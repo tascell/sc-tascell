@@ -11,7 +11,7 @@ extracts all connected subgraphs, each of which shares a common itemset whose
 size is not less than a given threshold, from a given graph in which each 
 vertex is associated to an itemset. For this problem, an efficient sequential 
 backtrack search algorithm called COmmon Pattern Itemset NEtwork mining 
-(COPINE) [Seki et al., BIBE’08] has been already proposed. COPINE reduces the 
+(COPINE) [Seki et al., BIBE'08] has been already proposed. COPINE reduces the 
 search space of a dynamically growing tree structure by pruning its branches 
 corresponding to the following subgraphs; already visited, having itemsets 
 smaller than a given threshold, and having already-visited supergraphs with 
@@ -60,7 +60,8 @@ Input files
 (2) Run the program.
      e.g.) $ ./copine3-gcc -n <# of threads>
 
-Note that input files are specified in the main function currently. For more information about runtime arguments, see each source code.
+Note that input files are specified in the main function currently. For more 
+information about runtime arguments, see each source code.
 
 4. Publication
 -------------------------

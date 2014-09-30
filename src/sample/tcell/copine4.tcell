@@ -66,7 +66,7 @@
 (%defconstant USE-SSE 0)
 
 ;;; Max # of workers
-(%defconstant NUM-WORKERS 16)
+(%defconstant NUM-WORKERS 32)
 
 ;;; Constants
 (%defconstant E-SIZE 500000)               ; # of edges
@@ -685,38 +685,13 @@
   (decl tp (array (struct timeval) 2))   ;
   (decl tpc (array (struct timeval) 4))  ;
 
-  (inc (fref pTsk -> numEmutexTrylock))
-  (if (!= (csym::pthread_mutex_trylock (ptr (aref excpMutex (fref -thr -> id)))) 0)
-    (begin
-      (inc (fref pTsk -> numEmutexLocked))
-      (csym::pthread_mutex_lock (ptr (aref excpMutex (fref -thr -> id))))))
-  (if (aref numQe (fref -thr -> id))
-    (begin
-      (= excpIndex INT_MAX)
-      (for ((= j 0) (< j (aref numQe (fref -thr -> id))) (inc j))
-        (for ((= k 0) (< k (fref pTsk -> numT)) (inc k))
-          (if (== (aref Qe (fref -thr -> id) j) (aref (fref pTsk -> T) k))
-            (begin
-              (if (< k excpIndex)
-                (begin
-                  (= excpValue (cast int (aref (fref pTsk -> T) k)))
-                  (= excpIndex k)))
-              (break)))))))
-  (csym::pthread_mutex_unlock (ptr (aref excpMutex (fref -thr -> id))))
-  (if (!= excpValue -1)
-    (begin
-      (inc (aref numThrow (fref -thr -> id)))
-      (= (aref flagQe (fref -thr -> id)) 1)
-      (throw excpValue)))
-
+  ;(inc (fref pTsk -> numEmutexTrylock))
+  ;(if (!= (csym::pthread_mutex_trylock (ptr (aref excpMutex (fref -thr -> id)))) 0)
+  ;  (begin
+  ;    (inc (fref pTsk -> numEmutexLocked))
+  ;    (csym::pthread_mutex_lock (ptr (aref excpMutex (fref -thr -> id))))))
   ;(if (aref numQe (fref -thr -> id))
   ;  (begin
-  ;    (inc (fref pTsk -> numEmutexTrylock))
-  ;    (if (!= (csym::pthread_mutex_trylock (ptr (aref excpMutex (fref -thr -> id)))) 0)
-  ;      (begin
-  ;        (inc (fref pTsk -> numEmutexLocked))
-  ;        (csym::pthread_mutex_lock (ptr (aref excpMutex (fref -thr -> id))))))
-  ;    (= excpValue -1)
   ;    (= excpIndex INT_MAX)
   ;    (for ((= j 0) (< j (aref numQe (fref -thr -> id))) (inc j))
   ;      (for ((= k 0) (< k (fref pTsk -> numT)) (inc k))
@@ -726,14 +701,38 @@
   ;              (begin
   ;                (= excpValue (cast int (aref (fref pTsk -> T) k)))
   ;                (= excpIndex k)))
-  ;            (break)))))
-  ;    (= (aref numQe (fref -thr -> id)) 0)
-  ;    (csym::pthread_mutex_unlock (ptr (aref excpMutex (fref -thr -> id))))
-  ;    (if (!= excpValue -1)
-  ;      (begin
-  ;        (inc (aref numThrow (fref -thr -> id)))
-  ;        (= (aref flagQe (fref -thr -> id)) 1)
-  ;        (throw excpValue)))))
+  ;            (break)))))))
+  ;(csym::pthread_mutex_unlock (ptr (aref excpMutex (fref -thr -> id))))
+  ;(if (!= excpValue -1)
+  ;  (begin
+  ;    (inc (aref numThrow (fref -thr -> id)))
+  ;    (= (aref flagQe (fref -thr -> id)) 1)
+  ;    (throw excpValue)))
+
+  (if (aref numQe (fref -thr -> id))
+    (begin
+      (inc (fref pTsk -> numEmutexTrylock))
+      (if (!= (csym::pthread_mutex_trylock (ptr (aref excpMutex (fref -thr -> id)))) 0)
+        (begin
+          (inc (fref pTsk -> numEmutexLocked))
+          (csym::pthread_mutex_lock (ptr (aref excpMutex (fref -thr -> id))))))
+      (= excpValue -1)
+      (= excpIndex INT_MAX)
+      (for ((= j 0) (< j (aref numQe (fref -thr -> id))) (inc j))
+        (for ((= k 0) (< k (fref pTsk -> numT)) (inc k))
+          (if (== (aref Qe (fref -thr -> id) j) (aref (fref pTsk -> T) k))
+            (begin
+              (if (< k excpIndex)
+                (begin
+                  (= excpValue (cast int (aref (fref pTsk -> T) k)))
+                  (= excpIndex k)))
+              (break)))))
+      (csym::pthread_mutex_unlock (ptr (aref excpMutex (fref -thr -> id))))
+      (if (!= excpValue -1)
+        (begin
+          (inc (aref numThrow (fref -thr -> id)))
+          (= (aref flagQe (fref -thr -> id)) 1)
+          (throw excpValue)))))
 
   ;; DFS
   (do-many for i from minC to maxC
@@ -1775,19 +1774,19 @@
   (defs (struct hsearch_data) eHash iHash)
 
   ;; Debug Data
-  (def numSearch uint64_t 0)             ; # of search space
+  (def numSearch uint64_t 0)             ; # of search spaces
   (def maxWorkerSearch uint64_t 0)       ; 
   (def avgWorkerSearch double 0.0)       ;  
   (def workerSearchSD double 0.0)        ;
   (def avgWorkerSearchPerSec double 0.0) ; 
   (def workerSearchPerSecSD double 0.0)  ;
-  (def numTaskRequest int 0)             ; # of task request 
+  (def numTaskRequest int 0)             ; # of task requests
   (def avgTaskRequest double 0.0)        ;
   (def taskRequestSD double 0.0)         ;
-  (def numSeqTaskRequest int 0)          ; # of seq. task request
+  (def numSeqTaskRequest int 0)          ; # of seq. task requests
   (def avgSeqTaskRequest double 0.0)     ;
   (def seqTaskRequestSD double 0.0)      ;
-  (def numAllTaskRequest int 0)          ; # of all task request
+  (def numAllTaskRequest int 0)          ; # of all task requests
   (def avgAllTaskRequest double 0.0)     ;
   (def allTaskRequestSD double 0.0)      ;
   (def numTableReference uint64_t 0)     ; 
@@ -1795,7 +1794,12 @@
   (def tableReferenceSD double 0.0)      ; 
   (def avgSizeSubgraph uint64_t 0)       ;
   (def maxSizeSubgraph int 0)            ;
+  (def numFindRedundant int 0)           ; # of finding redundant searches
+  (def avgFindRedundant double 0.0)      ; 
+  (def findRedundantSD double 0.0)       ; 
   (def numThrowException int 0)          ; # of thrown exceptions
+  (def avgThrowException double 0.0)     ; 
+  (def throwExceptionSD double 0.0)      ; 
 
   ;; arguments
   (= patternFile "data/symatlas_pattern.txt")
@@ -2057,13 +2061,17 @@
     (+= numSeqTaskRequest (aref seqTaskRequest j))
     (+= numAllTaskRequest (aref taskRequest j))
     (+= numAllTaskRequest (aref seqTaskRequest j))
-    (+= numTableReference (aref tableReference j)))
+    (+= numTableReference (aref tableReference j))
+    (+= numFindRedundant (aref numRedundantSearch j))
+    (+= numThrowException (aref numThrow j)))
   (= avgWorkerSearch (/ (cast double numSearch) (cast double (fref option num-thrs))))
   (= avgWorkerSearchPerSec (/ avgWorkerSearchPerSec (cast double (fref option num-thrs))))
   (= avgTaskRequest (/ (cast double numTaskRequest) (cast double (fref option num-thrs))))
   (= avgSeqTaskRequest (/ (cast double numSeqTaskRequest) (cast double (fref option num-thrs))))
   (= avgAllTaskRequest (/ (cast double (+ numTaskRequest numSeqTaskRequest)) (cast double (fref option num-thrs))))
   (= avgTableReference (/ (cast double numTableReference) (cast double (fref option num-thrs))))
+  (= avgFindRedundant (/ (cast double numFindRedundant) (cast double (fref option num-thrs))))
+  (= avgThrowException (/ (cast double numThrowException) (cast double (fref option num-thrs))))
 
   (for ((= j 0) (< j (fref option num-thrs)) (inc j))
     (+= workerSearchSD (csym::pow (- (aref searchSpace j) avgWorkerSearch) 2.0))
@@ -2071,19 +2079,25 @@
     (+= taskRequestSD (csym::pow (- (aref taskRequest j) avgTaskRequest) 2.0))
     (+= seqTaskRequestSD (csym::pow (- (aref seqTaskRequest j) avgSeqTaskRequest) 2.0))
     (+= allTaskRequestSD (csym::pow (- (+ (aref taskRequest j) (aref seqTaskRequest j)) avgAllTaskRequest) 2.0))
-    (+= tableReferenceSD (csym::pow (- (aref tableReference j) avgTableReference) 2.0)))
+    (+= tableReferenceSD (csym::pow (- (aref tableReference j) avgTableReference) 2.0))
+    (+= findRedundantSD (csym::pow (- (aref numRedundantSearch j) avgFindRedundant) 2.0))
+    (+= throwExceptionSD (csym::pow (- (aref numThrow j) avgThrowException) 2.0)))
   (/= workerSearchSD (fref option num-thrs))
   (/= workerSearchPerSecSD (fref option num-thrs))
   (/= taskRequestSD (fref option num-thrs))
   (/= seqTaskRequestSD (fref option num-thrs))
   (/= allTaskRequestSD (fref option num-thrs))
   (/= tableReferenceSD (fref option num-thrs))
+  (/= findRedundantSD (fref option num-thrs))
+  (/= throwExceptionSD (fref option num-thrs))
   (= workerSearchSD (csym::sqrt workerSearchSD))
   (= workerSearchPerSecSD (csym::sqrt workerSearchPerSecSD))
   (= taskRequestSD (csym::sqrt taskRequestSD))
   (= seqTaskRequestSD (csym::sqrt seqTaskRequestSD))
   (= allTaskRequestSD (csym::sqrt allTaskRequestSD))
   (= tableReferenceSD (csym::sqrt tableReferenceSD))
+  (= findRedundantSD (csym::sqrt findRedundantSD))
+  (= throwExceptionSD (csym::sqrt throwExceptionSD))
 
   (csym::fprintf stderr "# of searches = %llu, Max = %d, Avg. = %.1f, S.D. = %.1f~%" numSearch maxWorkerSearch avgWorkerSearch workerSearchSD)
   (csym::fprintf stderr "# of task requests = %d, Avg. = %.1f, S.D. = %.1f~%" numTaskRequest avgTaskRequest taskRequestSD)
@@ -2094,4 +2108,6 @@
   (csym::fprintf stderr "# of ITmutex trylock = %llu, " (fref tsk numITmutexTrylock))
   (csym::fprintf stderr "# of ITmutex locked = %llu(%.3f%%)~%" (fref tsk numITmutexLocked) (* (/ (cast double (fref tsk numITmutexLocked)) (cast double (fref tsk numITmutexTrylock))) 100.0))
   (csym::fprintf stderr "# of Emutex trylock = %llu, " (fref tsk numEmutexTrylock))
-  (csym::fprintf stderr "# of Emutex locked = %llu(%.3f%%)~%" (fref tsk numEmutexLocked) (* (/ (cast double (fref tsk numEmutexLocked)) (cast double (fref tsk numEmutexTrylock))) 100.0)))
+  (csym::fprintf stderr "# of Emutex locked = %llu(%.3f%%)~%" (fref tsk numEmutexLocked) (* (/ (cast double (fref tsk numEmutexLocked)) (cast double (fref tsk numEmutexTrylock))) 100.0))
+  (csym::fprintf stderr "# of finding redundant searches = %d, Avg. = %.1f, S.D. = %.1f~%" numFindRedundant avgFindRedundant findRedundantSD)
+  (csym::fprintf stderr "# of throwing exceptions = %d, Avg. = %.1f, S.D. =%.1f~%" numThrowException avgThrowException throwExceptionSD))
