@@ -182,7 +182,7 @@
 
 (PROF-CODE
 ;;; Kinds of time counter (for evaluations)
-(%defconstant NKIND-TCOUNTER 8)
+(%defconstant NKIND-TCOUNTER 10)
 (def (enum tcounter)
   TCOUNTER-INIT          ; before execution
   TCOUNTER-EXEC          ; task execution time
