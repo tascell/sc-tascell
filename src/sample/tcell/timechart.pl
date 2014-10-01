@@ -18,7 +18,8 @@ if ($prefix eq '') {
 
 # States (equivalent to tcounter-strings in worker.sh)
 my @Tcounter=("TCOUNTER-INIT","TCOUNTER-EXEC","TCOUNTER-SPWN",
-	      "TCOUNTER-WAIT","TCOUNTER-ABRT","TCOUNTER-ABRT-WAIT",
+	      "TCOUNTER-WAIT","TCOUNTER-EXCP","TCOUNTER-EXCP-WAIT",
+	      "TCOUNTER-ABRT","TCOUNTER-ABRT-WAIT",
 	      "TCOUNTER-TREQ-BK","TCOUNTER-TREQ-ANY");
 # Plot file name for each state.
 my %Plot_file = ();
@@ -29,11 +30,13 @@ my %Color = ();
 $Color{'TCOUNTER-INIT'} = '"black"';
 $Color{'TCOUNTER-EXEC'} = '"green"';
 $Color{'TCOUNTER-SPWN'} = '"magenta"';
-$Color{'TCOUNTER-WAIT'} = '"blue"';
+$Color{'TCOUNTER-WAIT'} = '"dark-green"';
+$Color{'TCOUNTER-EXCP'} = '"orange"';
+$Color{'TCOUNTER-EXCP-WAIT'} = '"dark-orange"';
 $Color{'TCOUNTER-ABRT'} = '"red"';
-$Color{'TCOUNTER-ABRT-WAIT'} = '"cyan"';
-$Color{'TCOUNTER-TREQ-BK'} = '"khaki"';
-$Color{'TCOUNTER-TREQ-ANY'} = '"orange"';
+$Color{'TCOUNTER-ABRT-WAIT'} = '"dark-red"';
+$Color{'TCOUNTER-TREQ-BK'} = '"dark-khaki"';
+$Color{'TCOUNTER-TREQ-ANY'} = '"khaki"';
 # Title in legend for each state.
 my %Title = ();
 foreach my $stat (@Tcounter) {
