@@ -188,14 +188,17 @@
   TCOUNTER-EXEC          ; task execution time
   TCOUNTER-SPWN          ; task spawning time
   TCOUNTER-WAIT          ; waiting result (does not include time for stealing back)
-  TCOUNTER-ABRT          ; exiting due to abortion or propagating exception
+  TCOUNTER-EXCP          ; exiting due to propagating an exception
+  TCOUNTER-EXCP-WAIT     ; waiting result during propagating an exception
+  TCOUNTER-ABRT          ; exiting due to abortion
   TCOUNTER-ABRT-WAIT     ; waiting result during abortion
   TCOUNTER-TREQ-BK       ; time for task request for stealing back
   TCOUNTER-TREQ-ANY      ; time for task request when having no task
 )
 (static tcounter-strings (array (ptr char))
   (array "TCOUNTER-INIT" "TCOUNTER-EXEC" "TCOUNTER-SPWN"
-	 "TCOUNTER-WAIT" "TCOUNTER-ABRT" "TCOUNTER-ABRT-WAIT"
+	 "TCOUNTER-WAIT" "TCOUNTER-EXCP" "TCOUNTER-EXCP-WAIT"
+	 "TCOUNTER-ABRT" "TCOUNTER-ABRT-WAIT"
 	 "TCOUNTER-TREQ-BK" "TCOUNTER-TREQ-ANY"))
 )
 
