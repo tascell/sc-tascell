@@ -1641,7 +1641,7 @@
   (= -thr->exiting EXITING-EXCEPTION)
   (= -thr->exception-tag excep)
   (PROF-CODE
-   (csym::tcounter-change-state -thr TCOUNTER-ABRT))
+   (csym::tcounter-change-state -thr TCOUNTER-EXCP))
   (-bk)) ; never returns
 
 ;; Check (partial) cancellation flags and abort if needed.
@@ -1719,7 +1719,9 @@
     (PROF-CODE
      (= tcnt-stat-w (if-exp (== tcnt-stat TCOUNTER-EXEC)
 			TCOUNTER-WAIT
-		      TCOUNTER-ABRT-WAIT))
+		      (if-exp (== tcnt-stat TCOUNTER-ABRT)
+			  TCOUNTER-ABRT-WAIT
+			TCOUNTER-EXCP-WAIT)))
      (csym::tcounter-change-state thr tcnt-stat-w))
     (= thr->task-top->stat TASK-SUSPENDED)   ; STARTED => SUSPENDED (thr->task-top is the task being executed)
     ;; When propagating exception, send cncl messages for subtasks
