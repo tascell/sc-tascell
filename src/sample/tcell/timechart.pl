@@ -104,7 +104,7 @@ foreach my $stat (@Tcounter) {
 	$id++;
 	open (FP, "< $file") or die "Failed to open $file.";
 	while (my $line = <FP>) {
-	    if ($line =~ /\s*(\S+)\s+(\S+)\s+(\S+)/) {
+	    if ($line =~ /^\s*(\S+)\s+(\S+)\s+(\S+)/) {
 		my ($l_stat, $start, $end) = ($1, $2, $3);
 		if ($l_stat eq $stat) {
 		    $Valid{$stat} = 1;

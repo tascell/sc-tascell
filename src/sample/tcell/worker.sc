@@ -229,7 +229,7 @@
 	 (let ((i int) (thr (ptr (struct thread-data))) (fp (ptr FILE)))
 	   (for ((= i 0) (< i num-thrs) (inc i))
 	     (= thr (+ threads i))
-	     (csym::tcounter-change-state thr TCOUNTER-INIT)
+	     (csym::tcounter-change-state thr TCOUNTER-INIT OBJ-NULL 0)
 	     (if thr->fp-tc
 		 (begin
 		   (= fp thr->fp-tc)
@@ -529,7 +529,7 @@
       (begin
 	;; Execute the task
 	(PROF-CODE
-	 (csym::tcounter-change-state thr TCOUNTER-EXEC))
+	 (csym::tcounter-change-state thr TCOUNTER-EXEC OBJ-NULL 0))
 	(= tx->stat TASK-STARTED) ; TASK-INITIALIZED => TASK-STARTED
 	(= tx->cancellation 0)    ; initialize # of cancellation flags
 	(= old-ndiv thr->ndiv)
@@ -648,7 +648,7 @@
   (loop
     (PROF-CODE
      (if (!= thr->tcnt-stat TCOUNTER-INIT)
-	 (csym::tcounter-change-state thr TCOUNTER-TREQ-ANY)))
+	 (csym::tcounter-change-state thr TCOUNTER-TREQ-ANY OBJ-NULL 0)))
     (recv-exec-send thr (init (array (enum addr) 2) (array ANY TERM)) INSIDE))
   (csym::pthread-mutex-unlock (ptr thr->mut)))
 
@@ -1591,10 +1591,10 @@
       (begin
 	(= -thr->exiting EXITING-SPAWN)
 	(PROF-CODE
-	 (csym::tcounter-change-state -thr TCOUNTER-SPWN))
+	 (csym::tcounter-change-state -thr TCOUNTER-SPWN OBJ-NULL 0))
 	(-bk)
 	(PROF-CODE
-	 (csym::tcounter-change-state -thr TCOUNTER-EXEC))
+	 (csym::tcounter-change-state -thr TCOUNTER-EXEC OBJ-NULL 0))
 	(= -thr->exiting EXITING-NORMAL)
 	(= -thr->req -thr->treq-top) ))
   (csym::pthread-mutex-unlock (ptr -thr->mut)))
@@ -1641,7 +1641,7 @@
   (= -thr->exiting EXITING-EXCEPTION)
   (= -thr->exception-tag excep)
   (PROF-CODE
-   (csym::tcounter-change-state -thr TCOUNTER-EXCP))
+   (csym::tcounter-change-state -thr TCOUNTER-EXCP OBJ-INT (cast (ptr void) excep)))
   (-bk)) ; never returns
 
 ;; Check (partial) cancellation flags and abort if needed.
@@ -1654,7 +1654,8 @@
 		     (csym::get-universal-real-time) -thr->id -thr->task-top->cancellation)
 	(= -thr->exiting EXITING-CANCEL)
 	(PROF-CODE
-	 (csym::tcounter-change-state -thr TCOUNTER-ABRT))
+	 (csym::tcounter-change-state -thr TCOUNTER-ABRT
+				      OBJ-INT (cast (ptr void) -thr->task-top->cancellation)))
 	(csym::pthread-mutex-unlock (ptr -thr->mut))
 	(-bk)))
   (csym::pthread-mutex-unlock (ptr -thr->mut))
@@ -1722,7 +1723,7 @@
 		      (if-exp (== tcnt-stat TCOUNTER-ABRT)
 			  TCOUNTER-ABRT-WAIT
 			TCOUNTER-EXCP-WAIT)))
-     (csym::tcounter-change-state thr tcnt-stat-w))
+     (csym::tcounter-change-state thr tcnt-stat-w OBJ-NULL 0))
     (= thr->task-top->stat TASK-SUSPENDED)   ; STARTED => SUSPENDED (thr->task-top is the task being executed)
     ;; When propagating exception, send cncl messages for subtasks
     (if (== thr->exiting EXITING-EXCEPTION)
@@ -1747,16 +1748,18 @@
         ;; Steal and execute a task
 	(begin
 	  (PROF-CODE
-	   (csym::tcounter-change-state thr TCOUNTER-TREQ-BK))
+	   (csym::tcounter-change-state thr TCOUNTER-TREQ-BK
+					OBJ-ADDR sub->task-head))
 	  (recv-exec-send thr sub->task-head sub->req-from)
 	  (PROF-CODE
-	   (csym::tcounter-change-state thr tcnt-stat-w))
+	   (csym::tcounter-change-state thr tcnt-stat-w
+					OBJ-NULL 0))
 	  )
       ;; Just wait for the subtask finishing
       (csym::pthread-cond-wait (ptr thr->cond-r) (ptr thr->mut)))
     )
   (PROF-CODE
-   (csym::tcounter-change-state thr tcnt-stat))
+   (csym::tcounter-change-state thr tcnt-stat OBJ-NULL 0))
 
   ;; When the subtask has thrown an exception, propagate it
   (if (== sub->stat TASK-HOME-EXCEPTION)
@@ -1955,6 +1958,7 @@
   (for ((= i 0) (< i NKIND-TCOUNTER) (inc i))
     (= (aref thr->tcnt i) 0)
     (= (aref thr->tcnt-tp i) tp))
+  (= thr->tc-aux.type OBJ-NULL)
   )
 
 ;;; Set the start a time of tcnt-stat to the current time
@@ -1977,11 +1981,14 @@
 ;;; (tcounter-end <current state>) and (tcounter-start tcnt-stat)
 ;;; at the same time and change the <current state> to tcnt-stat.
 ;;; Return the original state.
-(def (csym::tcounter-change-state thr tcnt-stat)
-    (fn (enum tcounter) (ptr (struct thread-data)) (enum tcounter))
+;;; aux-type/aux-body is auxiliary data type/body for timechart:
+(def (csym::tcounter-change-state thr tcnt-stat aux-type aux-body)
+    (fn (enum tcounter) (ptr (struct thread-data)) (enum tcounter)
+	(enum obj-type) (ptr void))
   (def tp (struct timeval))
   (def tcnt-stat0 (enum tcounter))
   (defs double tcnt0 tcnt)
+  (def buf (array char BUFSIZE))
   (= tcnt-stat0 thr->tcnt-stat)               ; old state
   (if (!= tcnt-stat0 tcnt-stat)
       (begin
@@ -2000,10 +2007,32 @@
 	      (if (and (== tcnt-stat0 TCOUNTER-INIT)
 		       (== thr->id 0))
 		  (= tp-strt tp))             ; start time of whole execution
-	      (csym::fprintf thr->fp-tc "%s %lf %lf~%"
+	      ;; Output the previous state name, and the time range of the state.
+	      (csym::fprintf thr->fp-tc "%s %lf %lf"
 			     (aref tcounter-strings tcnt-stat0)
 			     (csym::diff-timevals tp0 (ptr tp-strt))
 			     (csym::diff-timevals (ptr tp) (ptr tp-strt)))
+	      ;; Output auxiliary data of the previous state.
+	      (switch thr->tc-aux.type
+		(case OBJ-INT)
+		(csym::fprintf thr->fp-tc " %d" thr->tc-aux.body.aux-int)
+		(break)
+		(case OBJ-ADDR)
+		(csym::serialize-arg buf thr->tc-aux.body.aux-addr)
+		(csym::fputc #\Space thr->fp-tc)
+		(csym::fputs buf thr->fp-tc)
+		(break))
+	      (csym::fputc #\Newline thr->fp-tc)
+	      ;; Save the given aux data for the next output
+	      (= thr->tc-aux.type aux-type)
+	      (switch aux-type
+		(case OBJ-INT)
+		(= thr->tc-aux.body.aux-int (cast int aux-body))
+		(break)
+		(case OBJ-ADDR)
+		(csym::copy-address thr->tc-aux.body.aux-addr
+				    (cast (ptr (enum addr)) aux-body))
+		(break))
 	      ))
 	))
   (return tcnt-stat0))
@@ -2073,7 +2102,6 @@
       (= thr->w-none 0)
       (= thr->w-bcak 0)
       (= thr->ndiv 0)
-      (= thr-> 0)
       (= thr->probability 1.0)
       (= thr->last-treq i)
       (= thr->last-choose CHS-RANDOM)

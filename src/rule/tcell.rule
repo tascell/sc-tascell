@@ -512,7 +512,7 @@
 		    (begin 
 		      (= -thr->exiting EXITING-NORMAL)
 		      (PROF-CODE
-		       (csym::tcounter-change-state -thr TCOUNTER-EXEC))
+		       (csym::tcounter-change-state -thr TCOUNTER-EXEC OBJ-NULL 0))
 		      (goto ,label-id))
 		  (,(tcell:latest-bk))))))
 	(= ,catchval-id ,e-exp)	
