@@ -180,6 +180,7 @@
 (static exiting-rsn-strings (array (ptr char))
   (array "EXITING-NORMAL" "EXITING-EXCEPTION" "EXITING-CANCEL" "EXITING-SPAWN"))
 
+
 (PROF-CODE
 ;;; Kinds of time counter (for evaluations)
 (%defconstant NKIND-TCOUNTER 10)
@@ -200,8 +201,24 @@
 	 "TCOUNTER-WAIT" "TCOUNTER-EXCP" "TCOUNTER-EXCP-WAIT"
 	 "TCOUNTER-ABRT" "TCOUNTER-ABRT-WAIT"
 	 "TCOUNTER-TREQ-BK" "TCOUNTER-TREQ-ANY"))
-)
 
+;;; Obj types of auxiliary data
+(def (enum obj-type)
+  OBJ-NULL
+  OBJ-INT
+  OBJ-ADDR
+)
+(def (union aux-data-body)
+  (def aux-int int)
+  (def aux-addr (array (enum addr) ARG-SIZE-MAX))
+  )
+(def (struct aux-data)
+  (def type (enum obj-type))
+  (def body (union aux-data-body))
+  )
+)   ; end of PROF-CODE
+
+
 ;; Entry in the task stack of a worker
 (def (struct task)
   (def stat (enum task-stat))       ; task status
@@ -275,6 +292,7 @@
 					; start time of each state
    ;; time chart output
    (def fp-tc (ptr FILE))               ; file pointer for time chart data output
+   (def tc-aux (struct aux-data))       ; auxiliary data for time chart
    )
   ;; dummy
   (def dummy (array char DUMMY-SIZE))   ; padding for preventing false sharing
@@ -337,7 +355,8 @@
  (decl (csym::tcounter-end)
      (fn void (ptr (struct thread-data)) (enum tcounter)))
  (decl (csym::tcounter-change-state)
-     (fn (enum tcounter) (ptr (struct thread-data)) (enum tcounter)))
+     (fn (enum tcounter) (ptr (struct thread-data)) (enum tcounter)
+	 (enum obj-type) (ptr void)))
  (decl (csym::show-tcounter) (fn void))
  )
 
