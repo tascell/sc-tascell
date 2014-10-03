@@ -182,7 +182,7 @@
 
 
 (PROF-CODE
-;;; Kinds of time counter (for evaluations)
+;;; Kinds of time counter (for profiling)
 (%defconstant NKIND-TCOUNTER 10)
 (def (enum tcounter)
   TCOUNTER-INIT          ; before execution
@@ -202,15 +202,25 @@
 	 "TCOUNTER-ABRT" "TCOUNTER-ABRT-WAIT"
 	 "TCOUNTER-TREQ-BK" "TCOUNTER-TREQ-ANY"))
 
+;;; Kinds of events (for profiling)
+(%defconstant NKIND-EV 1)
+(def (enum event)
+  EV-SEND-TASK           ; task send
+  )
+(static ev-strings (array (ptr char))
+  (array "EV-SEND-TASK"))
+
 ;;; Obj types of auxiliary data
 (def (enum obj-type)
   OBJ-NULL
   OBJ-INT
   OBJ-ADDR
+  OBJ-PADDR
 )
 (def (union aux-data-body)
   (def aux-int long)
   (def aux-addr (array (enum addr) ARG-SIZE-MAX))
+  (def aux-paddr (ptr (enum addr)))
   )
 (def (struct aux-data)
   (def type (enum obj-type))
@@ -290,9 +300,11 @@
    (def tcnt (array double NKIND-TCOUNTER))  ; total time of each state
    (def tcnt-tp (array (struct timeval) NKIND-TCOUNTER))
 					; start time of each state
-   ;; time chart output
-   (def fp-tc (ptr FILE))               ; file pointer for time chart data output
    (def tc-aux (struct aux-data))       ; auxiliary data for time chart
+   ;; event (for profiling)
+   (def ev-cnt (array int NKIND-EV))    ; number of events
+   ;; time chart / event output
+   (def fp-tc (ptr FILE))               ; file pointer for time chart data output
    )
   ;; dummy
   (def dummy (array char DUMMY-SIZE))   ; padding for preventing false sharing
@@ -357,7 +369,10 @@
  (decl (csym::tcounter-change-state)
      (fn (enum tcounter) (ptr (struct thread-data)) (enum tcounter)
 	 (enum obj-type) (ptr void)))
- (decl (csym::show-tcounter) (fn void))
+ (decl (csym::initialize-evcounter) (fn void (ptr (struct thread-data))))
+ (decl (csym::evcounter-count)
+     (fn int (ptr (struct thread-data)) (enum event) (enum obj-type) (ptr void)))
+ (decl (csym::show-counters) (fn void))
  )
 
 ;;;; Declarations of functions in cmd-serial.sc
