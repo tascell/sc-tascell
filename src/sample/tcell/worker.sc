@@ -535,6 +535,7 @@
 	(= old-ndiv thr->ndiv)
 	(= old-probability thr->probability)
 	(= thr->ndiv tx->ndiv)
+        (= thr->cnt-polling 0)
 	(= thr->probability 1.0)
 	(csym::pthread-mutex-unlock (ptr thr->mut))
 	(DEBUG-PRINT 1 "(%d): (Thread %d) start %d<%p> (body=%p).~%"
@@ -1596,7 +1597,8 @@
 	(PROF-CODE
 	 (csym::tcounter-change-state -thr TCOUNTER-EXEC OBJ-NULL 0))
 	(= -thr->exiting EXITING-NORMAL)
-	(= -thr->req -thr->treq-top) ))
+	(= -thr->req -thr->treq-top)
+        (= -thr->cnt-polling 0) ))
   (csym::pthread-mutex-unlock (ptr -thr->mut)))
 
 ;; Send a cncl message for each flagged subtask spawned by "thr"
@@ -2102,6 +2104,7 @@
       (= thr->w-none 0)
       (= thr->w-bcak 0)
       (= thr->ndiv 0)
+      (= thr->cnt-polling 0)
       (= thr->probability 1.0)
       (= thr->last-treq i)
       (= thr->last-choose CHS-RANDOM)

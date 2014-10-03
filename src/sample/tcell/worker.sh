@@ -49,6 +49,9 @@
 
 (%defconstant DELAY-MAX (* 100 1000 1000))  ; max sleeping time before sending treq when receiving none [nsec]
 
+(%ifndef* POLLING-THRESHOLD
+  (%defconstant POLLING-THRESHOLD 1000)) ; Worker does not spawn tasks until cnt-polling exceeds this value
+
 ;; NOTE: this BUSYWAIT implementation is incorrect now
 ;; Uncomment this to let worker wait for a reply to a treq by busywait rather than condwait
 ;; (%defconstant BUSYWAIT)
@@ -264,6 +267,7 @@
   (def w-rack int)                      ; # of rack messages to be received
   (def w-none int)                      ; # of none messages to be received
   (def ndiv int)                        ; # of division of the task being executed by this worker
+  (def cnt-polling unsigned-long)       ; polling counter
   (def probability double)              ; probability of accepting a task request
   (def last-treq int)                   ; the last recipient of internal "treq any"
   (def last-choose (enum choose))       ; the last used strategy for deciding recipient of internal "treq any"
