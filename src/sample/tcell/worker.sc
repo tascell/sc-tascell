@@ -1657,9 +1657,9 @@
 	 (csym::tcounter-change-state -thr TCOUNTER-ABRT
 				      OBJ-INT (cast (ptr void) -thr->task-top->cancellation)))
 	(csym::pthread-mutex-unlock (ptr -thr->mut))
-	(-bk)))
+	(-bk)))  ; never returns
   (csym::pthread-mutex-unlock (ptr -thr->mut))
-  ) ; never returns
+  )
 
 
 ;; Make a task message and send it.
