@@ -1641,7 +1641,7 @@
   (= -thr->exiting EXITING-EXCEPTION)
   (= -thr->exception-tag excep)
   (PROF-CODE
-   (csym::tcounter-change-state -thr TCOUNTER-EXCP OBJ-INT (cast (ptr void) excep)))
+   (csym::tcounter-change-state -thr TCOUNTER-EXCP OBJ-INT (cast (ptr void) (cast long excep))))
   (-bk)) ; never returns
 
 ;; Check (partial) cancellation flags and abort if needed.
@@ -1655,7 +1655,7 @@
 	(= -thr->exiting EXITING-CANCEL)
 	(PROF-CODE
 	 (csym::tcounter-change-state -thr TCOUNTER-ABRT
-				      OBJ-INT (cast (ptr void) -thr->task-top->cancellation)))
+				      OBJ-INT (cast (ptr void) (cast long -thr->task-top->cancellation))))
 	(csym::pthread-mutex-unlock (ptr -thr->mut))
 	(-bk)))  ; never returns
   (csym::pthread-mutex-unlock (ptr -thr->mut))
@@ -1978,6 +1978,22 @@
       (csym::diff-timevals (ptr tp) (ptr (aref thr->tcnt-tp tcnt-stat))))
   (= (aref thr->tcnt-tp tcnt-stat) tp))
 
+
+;;; Output (struct aux-data) object pointed by paux to fp.
+(def (csym::print-aux-data fp paux)
+    (fn void (ptr FILE) (ptr (struct aux-data)))
+  (def buf (array char BUFSIZE))
+  (switch paux->type
+    (case OBJ-INT)
+    (csym::fprintf fp " %d" paux->body.aux-int)
+    (break)
+    (case OBJ-ADDR)
+    (csym::serialize-arg buf paux->body.aux-addr)
+    (csym::fputc #\Space fp)
+    (csym::fputs buf fp)
+    (break))
+  )
+
 ;;; (tcounter-end <current state>) and (tcounter-start tcnt-stat)
 ;;; at the same time and change the <current state> to tcnt-stat.
 ;;; Return the original state.
@@ -1988,7 +2004,6 @@
   (def tp (struct timeval))
   (def tcnt-stat0 (enum tcounter))
   (defs double tcnt0 tcnt)
-  (def buf (array char BUFSIZE))
   (= tcnt-stat0 thr->tcnt-stat)               ; old state
   (if (!= tcnt-stat0 tcnt-stat)
       (begin
@@ -2012,22 +2027,15 @@
 			     (aref tcounter-strings tcnt-stat0)
 			     (csym::diff-timevals tp0 (ptr tp-strt))
 			     (csym::diff-timevals (ptr tp) (ptr tp-strt)))
-	      ;; Output auxiliary data of the previous state.
-	      (switch thr->tc-aux.type
-		(case OBJ-INT)
-		(csym::fprintf thr->fp-tc " %d" thr->tc-aux.body.aux-int)
-		(break)
-		(case OBJ-ADDR)
-		(csym::serialize-arg buf thr->tc-aux.body.aux-addr)
-		(csym::fputc #\Space thr->fp-tc)
-		(csym::fputs buf thr->fp-tc)
-		(break))
+              ;; Output auxiliary data of the previous state.
+              (csym::fputc #\Space thr->fp-tc)
+              (csym::print-aux-data thr->fp-tc (ptr thr->tc-aux))
 	      (csym::fputc #\Newline thr->fp-tc)
 	      ;; Save the given aux data for the next output
 	      (= thr->tc-aux.type aux-type)
 	      (switch aux-type
 		(case OBJ-INT)
-		(= thr->tc-aux.body.aux-int (cast int aux-body))
+		(= thr->tc-aux.body.aux-int (cast long aux-body))
 		(break)
 		(case OBJ-ADDR)
 		(csym::copy-address thr->tc-aux.body.aux-addr
