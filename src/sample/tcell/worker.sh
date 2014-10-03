@@ -209,7 +209,7 @@
   OBJ-ADDR
 )
 (def (union aux-data-body)
-  (def aux-int int)
+  (def aux-int long)
   (def aux-addr (array (enum addr) ARG-SIZE-MAX))
   )
 (def (struct aux-data)
