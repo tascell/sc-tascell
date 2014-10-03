@@ -267,7 +267,8 @@
 		,(tcell:with-new-bk bk-id
 		   (wfn-add-argids ~(handle-cancellation))))
 	    ;; Polling for task requests
-	    (if -thr->req
+	    (if (and (> (++ -thr->cnt-polling) POLLING-THRESHOLD)
+                     -thr->req)
 		,(tcell:with-new-bk bk-id
 	           (wfn-add-argids ~(handle-req))))
 	    ,b-stat1)
@@ -368,7 +369,8 @@
              ,(tcell:with-new-bk bk-id
                 (wfn-add-argids ~(handle-cancellation))))
 	 ;; Polling for task requests
-         (if -thr->req
+         (if (and (> (++ -thr->cnt-polling) POLLING-THRESHOLD)
+                  -thr->req)
              ,(tcell:with-new-bk bk-id
                 (wfn-add-argids ~(handle-req))))
 	 ;; Loop body
@@ -416,9 +418,10 @@
             (return 0))
 	  ;; --- Nestfunc end -->
           (for (,(expression! init-exp) ,(expression! cond-exp) ,(expression! loop-exp))
-            (if -thr->req                   ; （ポーリング）タスク要求がきていたら
-             ,(tcell:with-new-bk bk-id  ; 分割を試みる
-                (wfn-add-argids ~(handle-req))))
+            (if (and (> (++ -thr->cnt-polling) POLLING-THRESHOLD)
+                     -thr->req)
+                ,(tcell:with-new-bk bk-id ; start backtracking to spawn tasks
+                   (wfn-add-argids ~(handle-req))))
             ,@(function-body body))
           (while (> (dec ,spn-id) 0)
             (= pthis (cast (ptr (struct ,(tcell:task-struct-id)))
