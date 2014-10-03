@@ -235,7 +235,7 @@
 		   (= fp thr->fp-tc)
 		   (= thr->fp-tc 0)
 		   (csym::fclose fp)))))
-	 (csym::show-tcounter))
+	 (csym::show-counters))
 	(csym::exit 0)))
   )
 
@@ -1699,6 +1699,8 @@
   (csym::copy-address (aref tcmd.v 2) hx->task-head) ; recipient: use the information in the task request
   (= (aref tcmd.v 3 0) task-no)         ; the kind of task
   (= (aref tcmd.v 3 1) TERM)
+  (PROF-CODE
+   (csym::evcounter-count thr EV-SEND-TASK OBJ-PADDR hx->task-head))
   (csym::send-command (ptr tcmd) body task-no))
 
 ;;; Wait for the result of the subtask thr->sub, remove it from the worker's subtask list,
@@ -1949,6 +1951,43 @@
 
 
 (PROF-CODE
+;;; Initialize (struct aux-data) object pointed by paux by given type and value
+(def (csym::set-aux-data paux aux-type aux-body)
+    (fn void (ptr (struct aux-data)) (enum obj-type) (ptr void))
+  (= paux->type aux-type)
+  (switch aux-type
+    (case OBJ-INT)
+    (= paux->body.aux-int (cast long aux-body))
+    (break)
+    (case OBJ-ADDR)                     ; copy address
+    (csym::copy-address paux->body.aux-addr
+                        (cast (ptr (enum addr)) aux-body))
+    (break)
+    (case OBJ-PADDR)                    ; copy pointer to address
+    (= paux->body.aux-paddr (cast (ptr (enum addr)) aux-body))
+    (break))
+  )
+
+;;; Output (struct aux-data) object pointed by paux to fp.
+(def (csym::print-aux-data fp paux)
+    (fn void (ptr FILE) (ptr (struct aux-data)))
+  (def buf (array char BUFSIZE))
+  (switch paux->type
+    (case OBJ-INT)
+    (csym::fprintf fp " %d" paux->body.aux-int)
+    (break)
+    (case OBJ-ADDR)
+    (csym::serialize-arg buf paux->body.aux-addr)
+    (csym::fputc #\Space fp)
+    (csym::fputs buf fp)
+    (break)
+    (case OBJ-PADDR)
+    (csym::serialize-arg buf paux->body.aux-paddr)
+    (csym::fputc #\Space fp)
+    (csym::fputs buf fp)
+    (break))
+  )
+
 ;;; Initialize time counters
 (def (csym::initialize-tcounter thr) (fn void (ptr (struct thread-data)))
   (def i int)
@@ -1977,22 +2016,6 @@
   (+= (aref thr->tcnt tcnt-stat)
       (csym::diff-timevals (ptr tp) (ptr (aref thr->tcnt-tp tcnt-stat))))
   (= (aref thr->tcnt-tp tcnt-stat) tp))
-
-
-;;; Output (struct aux-data) object pointed by paux to fp.
-(def (csym::print-aux-data fp paux)
-    (fn void (ptr FILE) (ptr (struct aux-data)))
-  (def buf (array char BUFSIZE))
-  (switch paux->type
-    (case OBJ-INT)
-    (csym::fprintf fp " %d" paux->body.aux-int)
-    (break)
-    (case OBJ-ADDR)
-    (csym::serialize-arg buf paux->body.aux-addr)
-    (csym::fputc #\Space fp)
-    (csym::fputs buf fp)
-    (break))
-  )
 
 ;;; (tcounter-end <current state>) and (tcounter-start tcnt-stat)
 ;;; at the same time and change the <current state> to tcnt-stat.
@@ -2031,22 +2054,40 @@
               (csym::fputc #\Space thr->fp-tc)
               (csym::print-aux-data thr->fp-tc (ptr thr->tc-aux))
 	      (csym::fputc #\Newline thr->fp-tc)
-	      ;; Save the given aux data for the next output
-	      (= thr->tc-aux.type aux-type)
-	      (switch aux-type
-		(case OBJ-INT)
-		(= thr->tc-aux.body.aux-int (cast long aux-body))
-		(break)
-		(case OBJ-ADDR)
-		(csym::copy-address thr->tc-aux.body.aux-addr
-				    (cast (ptr (enum addr)) aux-body))
-		(break))
+              ;; Save the given aux data for the next output
+              (csym::set-aux-data (ptr thr->tc-aux) aux-type aux-body)
 	      ))
 	))
   (return tcnt-stat0))
 
-;;; Show time counters
-(def (csym::show-tcounter) (fn void)
+;;; Initialize event counters
+(def (csym::initialize-evcounter thr) (fn void (ptr (struct thread-data)))
+  (def i int)
+  (for ((= i 0) (< i NKIND-EV) (inc i))
+    (= (aref thr->ev-cnt i) 0))
+  )
+
+;;; Add event counter and output to log file
+(def (csym::evcounter-count thr ev aux-type aux-body)
+    (fn int (ptr (struct thread-data)) (enum event) (enum obj-type) (ptr void))
+  (def tp (struct timeval))
+  (def aux (struct aux-data))
+  (inc (aref thr->ev-cnt ev))
+  (if thr->fp-tc
+      (begin
+        (csym::gettimeofday (ptr tp) 0)
+        (csym::fprintf thr->fp-tc "%s %lf"
+                       (aref ev-strings ev)
+                       (csym::diff-timevals (ptr tp) (ptr tp-strt)))
+        ;; Output auxiliary data of the previous state.
+        (csym::fputc #\Space thr->fp-tc)
+        (csym::set-aux-data (ptr aux) aux-type aux-body)
+        (csym::print-aux-data thr->fp-tc (ptr aux))
+        (csym::fputc #\Newline thr->fp-tc)))
+  (return))
+
+;;; Show time / event counters
+(def (csym::show-counters) (fn void)
   (defs int i j)
   (def thr (ptr (struct thread-data)))
   (for ((= i 0) (< i num-thrs) (inc i))
@@ -2054,9 +2095,13 @@
     (= thr (+ threads i))
     (for ((= j 0) (< j NKIND-TCOUNTER) (inc j))
       (csym::fprintf stderr "%s: %lf~%"
-		     (aref tcounter-strings j) (aref thr->tcnt j))))
+		     (aref tcounter-strings j) (aref thr->tcnt j)))
+    (for ((= j 0) (< j NKIND-EV) (inc j))
+         (csym::fprintf stderr "%s: %ld~%"
+                        (aref ev-strings j) (aref thr->ev-cnt j))))
   (return))
-)  ; end PROF-CODE
+
+)                                       ; end PROF-CODE
 
 
 ;; main (entry point)
@@ -2160,6 +2205,7 @@
   (for ((= i 0) (< i num-thrs) (inc i))
     (let ((thr (ptr (struct thread-data)) (+ threads i)))
       (PROF-CODE                       ; initialize time counter
+       (csym::initialize-evcounter thr)
        (csym::initialize-tcounter thr))
       (systhr-create (ptr thr->pthr-id) worker thr)))
 
