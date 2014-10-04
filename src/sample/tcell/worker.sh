@@ -203,12 +203,16 @@
 	 "TCOUNTER-TREQ-BK" "TCOUNTER-TREQ-ANY"))
 
 ;;; Kinds of events (for profiling)
-(%defconstant NKIND-EV 1)
+(%defconstant NKIND-EV 5)
 (def (enum event)
-  EV-SEND-TASK           ; task send
+  EV-SEND-TASK                          ; task send (aux: recipient)
+  EV-STRT-TASK                          ; task start (aux: task sender)
+  EV-RSLT-TASK                          ; task finished normally (aux: rslt recipient)
+  EV-EXCP-TASK                          ; task finished with an exce[tion (aux: rslt recipient)
+  EV-ABRT-TASK                          ; task aborted (aux: rslt recipient)
   )
 (static ev-strings (array (ptr char))
-  (array "EV-SEND-TASK"))
+  (array "EV-SEND-TASK" "EV-STRT-TASK" "EV-RSLT-TASK" "EV-EXCP-TASK" "EV-ABRT-TASK"))
 
 ;;; Obj types of auxiliary data
 (def (enum obj-type)

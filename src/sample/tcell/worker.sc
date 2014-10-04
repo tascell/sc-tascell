@@ -529,7 +529,9 @@
       (begin
 	;; Execute the task
 	(PROF-CODE
-	 (csym::tcounter-change-state thr TCOUNTER-EXEC OBJ-NULL 0))
+	 (csym::tcounter-change-state thr TCOUNTER-EXEC OBJ-NULL 0)
+         (csym::evcounter-count thr EV-STRT-TASK OBJ-PADDR tx->rslt-head) 
+         )
 	(= tx->stat TASK-STARTED) ; TASK-INITIALIZED => TASK-STARTED
 	(= tx->cancellation 0)    ; initialize # of cancellation flags
 	(= old-ndiv thr->ndiv)
@@ -548,18 +550,21 @@
 	  (DEBUG-PRINT 1 "(%d): (Thread %d) end %d<%p> (body=%p).~%" 
 		       (csym::get-universal-real-time)
 		       thr->id tx->task-no tx tx->body)
+          (csym::evcounter-count thr EV-RSLT-TASK OBJ-PADDR tx->rslt-head) 
 	  (= reason 0)
 	  (break)
 	  (case EXITING-EXCEPTION)
 	  (DEBUG-PRINT 1 "(%d): (Thread %d) end %d<%p> (body=%p) with exception %d.~%" 
 		       (csym::get-universal-real-time)
 		       thr->id tx->task-no tx tx->body thr->exception-tag)
+          (csym::evcounter-count thr EV-EXCP-TASK OBJ-PADDR tx->rslt-head)
 	  (= reason 1)
 	  (break)
 	  (case EXITING-CANCEL)
 	  (DEBUG-PRINT 1 "(%d): (Thread %d) aborted %d<%p> (body=%p).~%" 
 		       (csym::get-universal-real-time)
 		       thr->id tx->task-no tx tx->body)
+          (csym::evcounter-count thr EV-ABRT-TASK OBJ-PADDR tx->rslt-head)
 	  (= reason 2)
 	  (break)
 	  (default)
