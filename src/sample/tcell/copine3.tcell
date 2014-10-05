@@ -87,9 +87,9 @@
 (%defconstant DEBUG-COPY 0) ; flag to output copy file
 
 ;;; Typedef
-(deftype set uint64_t)     ; bitset
-(deftype vtx uint32_t)     ; vertex
-(deftype task-id uint64_t) ; task ID
+(deftype set uint64_t)        ; bitset
+(deftype vtx uint32_t)        ; vertex
+(deftype task-id __uint128_t) ; task ID
 
 ;;; Structure of ITnode
 (def (struct --ITnode)
@@ -1412,27 +1412,27 @@
   (defs (struct hsearch_data) eHash iHash)
 
   ;; Debug Data
-  (def numSearch uint64_t 0)             ; # of search space
-  (def maxWorkerSearch uint64_t 0)       ; 
-  (def avgWorkerSearch double 0.0)       ;  
-  (def workerSearchSD double 0.0)        ;
-  (def avgWorkerSearchPerSec double 0.0) ; 
-  (def workerSearchPerSecSD double 0.0)  ;
-  (def numTaskRequest int 0)             ; # of task request 
-  (def avgTaskRequest double 0.0)        ;
-  (def taskRequestSD double 0.0)         ;
-  (def numSeqTaskRequest int 0)          ; # of seq. task request
-  (def avgSeqTaskRequest double 0.0)     ;
-  (def seqTaskRequestSD double 0.0)      ;
-  (def numAllTaskRequest int 0)          ; # of all task request
-  (def avgAllTaskRequest double 0.0)     ;
-  (def allTaskRequestSD double 0.0)      ;
-  (def numTableReference uint64_t 0)     ; 
-  (def avgTableReference double 0.0)     ; 
-  (def tableReferenceSD double 0.0)      ; 
-  (def avgSizeSubgraph uint64_t 0)       ;
-  (def maxSizeSubgraph int 0)            ;
-
+  (def numSearch uint64_t 0)                      ; # of search space
+  (def maxWorkerSearch uint64_t 0)                ; 
+  (def minWorkerSearch uint64_t UINT-LEAST64-MAX) ; 
+  (def avgWorkerSearch double 0.0)                ;  
+  (def workerSearchSD double 0.0)                 ; 
+  (def avgWorkerSearchPerSec double 0.0)          ; 
+  (def workerSearchPerSecSD double 0.0)           ; 
+  (def numTaskRequest int 0)                      ; # of task request 
+  (def avgTaskRequest double 0.0)                 ; 
+  (def taskRequestSD double 0.0)                  ; 
+  (def numSeqTaskRequest int 0)                   ; # of seq. task request
+  (def avgSeqTaskRequest double 0.0)              ; 
+  (def seqTaskRequestSD double 0.0)               ; 
+  (def numAllTaskRequest int 0)                   ; # of all task request
+  (def avgAllTaskRequest double 0.0)              ; 
+  (def allTaskRequestSD double 0.0)               ; 
+  (def numTableReference uint64_t 0)              ; 
+  (def avgTableReference double 0.0)              ; 
+  (def tableReferenceSD double 0.0)               ; 
+  (def avgSizeSubgraph uint64_t 0)                ; 
+  (def maxSizeSubgraph int 0)                     ; 
 
   ;; arguments
   (= patternFile "data/symatlas_pattern.txt")
@@ -1467,7 +1467,7 @@
 
   ;; set ID
   (= (fref tsk minID) 0)
-  (= (fref tsk maxID) UINT-LEAST64-MAX)
+  (= (fref tsk maxID) (bit-not (cast task-id 0)))
 
   ;; init pthread
   ;(csym::pthread_attr_init (ptr attr))
@@ -1540,7 +1540,7 @@
 
     ;; re-set ID
     (= (fref tsk minID) 0)
-    (= (fref tsk maxID) UINT-LEAST64-MAX))
+    (= (fref tsk maxID) (bit-not (cast task-id 0))))
   (enumCCIG i (+ maxVertex 1) (ptr tsk))
 
   ;(for ((= j 1) (< j (fref this loopRatio)) (inc j)) 
@@ -1673,8 +1673,6 @@
   (csym::fprintf stderr "time = %f[sec]~%" (csym::elapsedTime tp (+ tp 1)))
   (csym::fprintf stderr "user time = %f[sec]~%" (- t2 t1))
   (csym::fprintf stderr "# of subgraphs = %d~%" (fref tsk numSubgraph))
-  (csym::fprintf stderr "# of thresholds = %llu~%" (fref tsk numThreshold))
-  (csym::fprintf stderr "# of prunings = %u~%" (fref tsk numPruning))
   (csym::fprintf stderr "Avg. size of tree depth = %f~%" (/ (cast double (fref tsk treeDepth)) (cast double (fref tsk numTraversed))))
   (%if* DEBUG-RSLT (begin
     (csym::fprintf stderr "Max size of subgraph = %d~%" maxSizeSubgraph)
@@ -1688,6 +1686,8 @@ aref inclusivePruning j)))
     (+= numSearch (aref searchSpace j))
     (if (< maxWorkerSearch (aref searchSpace j))
       (= maxWorkerSearch (aref searchSpace j)))
+    (if (> minWorkerSearch (aref searchSpace j))
+      (= minWorkerSearch (aref searchSpace j)))
     (+= avgWorkerSearchPerSec (/ (aref searchSpace j) (csym::elapsedTime tp (+ tp 1))))
     (+= numTaskRequest (aref taskRequest j))
     (+= numSeqTaskRequest (aref seqTaskRequest j))
@@ -1721,7 +1721,7 @@ aref inclusivePruning j)))
   (= allTaskRequestSD (csym::sqrt allTaskRequestSD))
   (= tableReferenceSD (csym::sqrt tableReferenceSD))
 
-  (csym::fprintf stderr "# of searches = %llu, Max = %d, Avg. = %.1f, S.D. = %.1f~%" numSearch maxWorkerSearch avgWorkerSearch workerSearchSD)
+  (csym::fprintf stderr "# of searches = %llu, Min = %llu, Max = %llu, Avg. = %.1f, S.D. = %.1f~%" numSearch minWorkerSearch maxWorkerSearch avgWorkerSearch workerSearchSD)
   (csym::fprintf stderr "# of task requests = %d, Avg. = %.1f, S.D. = %.1f~%" numTaskRequest avgTaskRequest taskRequestSD)
   (csym::fprintf stderr "# of seq. task requests = %d, Avg. = %.1f, S.D. = %.1f~%" numSeqTaskRequest avgSeqTaskRequest seqTaskRequestSD)
   (csym::fprintf stderr "# of all task requests = %d, Avg. = %.1f, S.D. = %.1f~%" numAllTaskRequest avgAllTaskRequest allTaskRequestSD)

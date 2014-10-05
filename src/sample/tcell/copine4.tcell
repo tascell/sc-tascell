@@ -88,9 +88,9 @@
 (%defconstant DEBUG-COPY 0) ; flag to output copy file
 
 ;;; Typedef
-(deftype set uint64_t)     ; bitset
-(deftype vtx uint32_t)     ; vertex
-(deftype task-id uint64_t) ; task ID
+(deftype set uint64_t)        ; bitset
+(deftype vtx uint32_t)        ; vertex
+(deftype task-id __uint128_t) ; task ID
 
 ;;; Structure of ITnode
 (def (struct --ITnode)
@@ -1774,32 +1774,33 @@
   (defs (struct hsearch_data) eHash iHash)
 
   ;; Debug Data
-  (def numSearch uint64_t 0)             ; # of search spaces
-  (def maxWorkerSearch uint64_t 0)       ; 
-  (def avgWorkerSearch double 0.0)       ;  
-  (def workerSearchSD double 0.0)        ;
-  (def avgWorkerSearchPerSec double 0.0) ; 
-  (def workerSearchPerSecSD double 0.0)  ;
-  (def numTaskRequest int 0)             ; # of task requests
-  (def avgTaskRequest double 0.0)        ;
-  (def taskRequestSD double 0.0)         ;
-  (def numSeqTaskRequest int 0)          ; # of seq. task requests
-  (def avgSeqTaskRequest double 0.0)     ;
-  (def seqTaskRequestSD double 0.0)      ;
-  (def numAllTaskRequest int 0)          ; # of all task requests
-  (def avgAllTaskRequest double 0.0)     ;
-  (def allTaskRequestSD double 0.0)      ;
-  (def numTableReference uint64_t 0)     ; 
-  (def avgTableReference double 0.0)     ; 
-  (def tableReferenceSD double 0.0)      ; 
-  (def avgSizeSubgraph uint64_t 0)       ;
-  (def maxSizeSubgraph int 0)            ;
-  (def numFindRedundant int 0)           ; # of finding redundant searches
-  (def avgFindRedundant double 0.0)      ; 
-  (def findRedundantSD double 0.0)       ; 
-  (def numThrowException int 0)          ; # of thrown exceptions
-  (def avgThrowException double 0.0)     ; 
-  (def throwExceptionSD double 0.0)      ; 
+  (def numSearch uint64_t 0)                      ; # of search spaces
+  (def maxWorkerSearch uint64_t 0)                ; 
+  (def minWorkerSearch uint64_t UINT-LEAST64-MAX) ; 
+  (def avgWorkerSearch double 0.0)                ; 
+  (def workerSearchSD double 0.0)                 ; 
+  (def avgWorkerSearchPerSec double 0.0)          ; 
+  (def workerSearchPerSecSD double 0.0)           ; 
+  (def numTaskRequest int 0)                      ; # of task requests
+  (def avgTaskRequest double 0.0)                 ; 
+  (def taskRequestSD double 0.0)                  ; 
+  (def numSeqTaskRequest int 0)                   ; # of seq. task requests
+  (def avgSeqTaskRequest double 0.0)              ; 
+  (def seqTaskRequestSD double 0.0)               ; 
+  (def numAllTaskRequest int 0)                   ; # of all task requests
+  (def avgAllTaskRequest double 0.0)              ; 
+  (def allTaskRequestSD double 0.0)               ; 
+  (def numTableReference uint64_t 0)              ; 
+  (def avgTableReference double 0.0)              ; 
+  (def tableReferenceSD double 0.0)               ; 
+  (def avgSizeSubgraph uint64_t 0)                ; 
+  (def maxSizeSubgraph int 0)                     ; 
+  (def numFindRedundant int 0)                    ; # of finding redundant searches
+  (def avgFindRedundant double 0.0)               ; 
+  (def findRedundantSD double 0.0)                ; 
+  (def numThrowException int 0)                   ; # of thrown exceptions
+  (def avgThrowException double 0.0)              ; 
+  (def throwExceptionSD double 0.0)               ; 
 
   ;; arguments
   (= patternFile "data/symatlas_pattern.txt")
@@ -1815,26 +1816,26 @@
   (= resultFile "result.txt")
   (if USE-SPN-RANGE
     (begin
-      (csym::sprintf timeFile "time3-%02d_%d-%d.csv" (fref option num-thrs) (fref this th) (fref this spawnSize))
-      (csym::sprintf taskFile "task3-%02d_%d-%d.csv" (fref option num-thrs) (fref this th) (fref this spawnSize))
-      (csym::sprintf lockFile "lock3-%02d_%d-%d.csv" (fref option num-thrs) (fref this th) (fref this spawnSize))
-      (csym::sprintf copyFile "copy3-%02d_%d-%d.csv" (fref option num-thrs) (fref this th) (fref this spawnSize)))
+      (csym::sprintf timeFile "time4-%02d_%d-%d.csv" (fref option num-thrs) (fref this th) (fref this spawnSize))
+      (csym::sprintf taskFile "task4-%02d_%d-%d.csv" (fref option num-thrs) (fref this th) (fref this spawnSize))
+      (csym::sprintf lockFile "lock4-%02d_%d-%d.csv" (fref option num-thrs) (fref this th) (fref this spawnSize))
+      (csym::sprintf copyFile "copy4-%02d_%d-%d.csv" (fref option num-thrs) (fref this th) (fref this spawnSize)))
     (begin
       (if USE-SPN-RATIO
         (begin
-          (csym::sprintf timeFile "time3-%02d_%d_%d.csv" (fref option num-thrs) (fref this th) (fref this spawnSize))
-          (csym::sprintf taskFile "task3-%02d_%d_%d.csv" (fref option num-thrs) (fref this th) (fref this spawnSize))
-          (csym::sprintf lockFile "lock3-%02d_%d_%d.csv" (fref option num-thrs) (fref this th) (fref this spawnSize))
-          (csym::sprintf copyFile "copy3-%02d_%d_%d.csv" (fref option num-thrs) (fref this th) (fref this spawnSize)))
+          (csym::sprintf timeFile "time4-%02d_%d_%d.csv" (fref option num-thrs) (fref this th) (fref this spawnSize))
+          (csym::sprintf taskFile "task4-%02d_%d_%d.csv" (fref option num-thrs) (fref this th) (fref this spawnSize))
+          (csym::sprintf lockFile "lock4-%02d_%d_%d.csv" (fref option num-thrs) (fref this th) (fref this spawnSize))
+          (csym::sprintf copyFile "copy4-%02d_%d_%d.csv" (fref option num-thrs) (fref this th) (fref this spawnSize)))
         (begin
-          (csym::sprintf timeFile "time3-%02d_%d-half.csv" (fref option num-thrs) (fref this th))
-          (csym::sprintf taskFile "task3-%02d_%d-half.csv" (fref option num-thrs) (fref this th))
-          (csym::sprintf lockFile "lock3-%02d_%d-half.csv" (fref option num-thrs) (fref this th))
-          (csym::sprintf copyFile "copy3-%02d_%d-half.csv" (fref option num-thrs) (fref this th))))))
+          (csym::sprintf timeFile "time4-%02d_%d-half.csv" (fref option num-thrs) (fref this th))
+          (csym::sprintf taskFile "task4-%02d_%d-half.csv" (fref option num-thrs) (fref this th))
+          (csym::sprintf lockFile "lock4-%02d_%d-half.csv" (fref option num-thrs) (fref this th))
+          (csym::sprintf copyFile "copy4-%02d_%d-half.csv" (fref option num-thrs) (fref this th))))))
 
   ;; set ID
   (= (fref tsk minID) 0)
-  (= (fref tsk maxID) UINT-LEAST64-MAX)
+  (= (fref tsk maxID) (bit-not (cast task-id 0)))
 
   ;; init pthread
   ;(csym::pthread_attr_init (ptr attr))
@@ -1909,7 +1910,7 @@
 
     ;; re-set ID
     (= (fref tsk minID) 0)
-    (= (fref tsk maxID) UINT-LEAST64-MAX))
+    (= (fref tsk maxID) (bit-not (cast task-id 0))))
   (enumCCIG i (+ maxVertex 1) (ptr tsk))
 
   ;(for ((= j 1) (< j (fref this loopRatio)) (inc j)) 
@@ -2056,6 +2057,8 @@
     (+= numSearch (aref searchSpace j))
     (if (< maxWorkerSearch (aref searchSpace j))
       (= maxWorkerSearch (aref searchSpace j)))
+    (if (> minWorkerSearch (aref searchSpace j))
+      (= minWorkerSearch (aref searchSpace j)))
     (+= avgWorkerSearchPerSec (/ (aref searchSpace j) (csym::elapsedTime tp (+ tp 1))))
     (+= numTaskRequest (aref taskRequest j))
     (+= numSeqTaskRequest (aref seqTaskRequest j))
@@ -2099,7 +2102,7 @@
   (= findRedundantSD (csym::sqrt findRedundantSD))
   (= throwExceptionSD (csym::sqrt throwExceptionSD))
 
-  (csym::fprintf stderr "# of searches = %llu, Max = %d, Avg. = %.1f, S.D. = %.1f~%" numSearch maxWorkerSearch avgWorkerSearch workerSearchSD)
+  (csym::fprintf stderr "# of searches = %llu, Min = %llu, Max = %llu, Avg. = %.1f, S.D. = %.1f~%" numSearch minWorkerSearch maxWorkerSearch avgWorkerSearch workerSearchSD)
   (csym::fprintf stderr "# of task requests = %d, Avg. = %.1f, S.D. = %.1f~%" numTaskRequest avgTaskRequest taskRequestSD)
   (csym::fprintf stderr "# of seq. task requests = %d, Avg. = %.1f, S.D. = %.1f~%" numSeqTaskRequest avgSeqTaskRequest seqTaskRequestSD)
   (csym::fprintf stderr "# of all task requests = %d, Avg. = %.1f, S.D. = %.1f~%" numAllTaskRequest avgAllTaskRequest allTaskRequestSD)
@@ -2110,4 +2113,4 @@
   (csym::fprintf stderr "# of Emutex trylock = %llu, " (fref tsk numEmutexTrylock))
   (csym::fprintf stderr "# of Emutex locked = %llu(%.3f%%)~%" (fref tsk numEmutexLocked) (* (/ (cast double (fref tsk numEmutexLocked)) (cast double (fref tsk numEmutexTrylock))) 100.0))
   (csym::fprintf stderr "# of finding redundant searches = %d, Avg. = %.1f, S.D. = %.1f~%" numFindRedundant avgFindRedundant findRedundantSD)
-  (csym::fprintf stderr "# of throwing exceptions = %d, Avg. = %.1f, S.D. =%.1f~%" numThrowException avgThrowException throwExceptionSD))
+  (csym::fprintf stderr "# of throwing exceptions = %d, Avg. = %.1f, S.D. = %.1f~%" numThrowException avgThrowException throwExceptionSD))
