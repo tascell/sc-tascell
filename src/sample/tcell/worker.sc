@@ -550,21 +550,24 @@
 	  (DEBUG-PRINT 1 "(%d): (Thread %d) end %d<%p> (body=%p).~%" 
 		       (csym::get-universal-real-time)
 		       thr->id tx->task-no tx tx->body)
-          (csym::evcounter-count thr EV-RSLT-TASK OBJ-PADDR tx->rslt-head) 
+          (PROF-CODE
+           (csym::evcounter-count thr EV-RSLT-TASK OBJ-PADDR tx->rslt-head))
 	  (= reason 0)
 	  (break)
 	  (case EXITING-EXCEPTION)
 	  (DEBUG-PRINT 1 "(%d): (Thread %d) end %d<%p> (body=%p) with exception %d.~%" 
 		       (csym::get-universal-real-time)
 		       thr->id tx->task-no tx tx->body thr->exception-tag)
-          (csym::evcounter-count thr EV-EXCP-TASK OBJ-PADDR tx->rslt-head)
+          (PROF-CODE
+           (csym::evcounter-count thr EV-EXCP-TASK OBJ-PADDR tx->rslt-head))
 	  (= reason 1)
 	  (break)
 	  (case EXITING-CANCEL)
 	  (DEBUG-PRINT 1 "(%d): (Thread %d) aborted %d<%p> (body=%p).~%" 
 		       (csym::get-universal-real-time)
 		       thr->id tx->task-no tx tx->body)
-          (csym::evcounter-count thr EV-ABRT-TASK OBJ-PADDR tx->rslt-head)
+          (PROF-CODE
+           (csym::evcounter-count thr EV-ABRT-TASK OBJ-PADDR tx->rslt-head))
 	  (= reason 2)
 	  (break)
 	  (default)
