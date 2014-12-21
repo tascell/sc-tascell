@@ -157,7 +157,9 @@
   (push (list id texp size)
         (task-info-output-vars (get-task task-or-scid))))
 
-;;; Generate the body of "task-body" method
+;;; Generate the body of "task-body" method.
+;;; The generated function is set to task-doers[] and called from
+;;; recv-exec-send() in "worker.sc".
 (defun task-body-function (body &optional (task *current-task*))
   (let ((id (do-task-id task))
 	(struct-id (task-struct-id task))
@@ -168,14 +170,14 @@
 	   (list
 	    ;; Nested function
 	    ~(def (-bk) ,(nestfunc-type)
-	       ;; * When worker is handling an exception, exit this task
-	       ;; with returning an "abrt" message.
-	       (if -thr->exiting
+	       ;; * When worker is propagating an exception or cancelling the task,
+	       ;;   exit the task with returning an abort flag.
+	       (if (or (== -thr->exiting EXITING-EXCEPTION)
+		       (== -thr->exiting EXITING-CANCEL))
 		   (begin
-		     (= -thr->exiting 0)
 		     (goto ,label-id)))
 	       ;; * The terminal of temporary backtracking
-	       (return 0)) ))
+	       (return)) ))
        ,@body
        (label ,label-id (return))
        )
