@@ -35,6 +35,8 @@
 ;; (%defconstant USE-AFFINITY SCHED)    ; for Linux
 ;; (%defconstant USE-AFFINITY PBIND)    ; for SunOS
 
+(c-exp "#include<sys/time.h>")
+
 ;;; 
 
 ;;; Sizes
@@ -64,11 +66,16 @@
 (def (enum command)
     TASK RSLT TREQ NONE RACK DREQ DATA
     BCST BCAK STAT VERB EXIT LEAV LACK ABRT CNCL WRNG)
-;; Strings corresponding to the commands above. Defined in cmd-serial.sc.
-(extern-decl cmd-strings (array (ptr char)))
+;; Strings corresponding to the commands above.
+(static cmd-strings (array (ptr char))
+  (array "task" "rslt" "treq" "none" "rack" "dreq" "data"
+         "bcst" "bcak" "stat" "verb" "exit" "leav" "lack" "abrt" "cncl" "wrng" 0))
 
 ;; How to determine the recipient of "treq any" (random or in-order)
 (def (enum choose) CHS-RANDOM CHS-ORDER)
+;; consistent with (enum choose)
+(static choose-strings (array (ptr char))
+  (array "CHS-RANDOM" "CHS-ORDER"))
 (%defconstant NKIND-CHOOSE 2)           ; # of kinds of (enum choose)
 
 ;; A message transferred among workers.
@@ -143,6 +150,9 @@
   TASK-DONE        ; The task is completed
   TASK-NONE        ; Sent treq for ALLOCATED entry but received none
   TASK-SUSPENDED)  ; The task is suspended (due to waiting the result of a subtask)
+(static task-stat-strings (array (ptr char))
+  (array "TASK-ALLOCATED" "TASK-INITIALIZED" "TASK-STARTED"
+	 "TASK-DONE" "TASK-NONE" "TASK-SUSPENDED"))
 ;; -(send treq)-> ALLOCATED -(receive task)-> INITIALIZED --> STARTED --> DONE -->
 ;;                 ^  |receive none                           ^     |receive the result
 ;;      resend treq|  V                 wait result of subtask|     V
@@ -153,9 +163,76 @@
   TASK-HOME-ALLOCATED    ; Allocated to request queue, or then moved to subtask stack but uninitialized
   TASK-HOME-INITIALIZED  ; Initialized in subtask stack
   TASK-HOME-DONE         ; Completed (received and handled the result)
-  TASK-HOME-ABORTED      ; Aborted (received abrt)
+  TASK-HOME-EXCEPTION    ; Completed with an exception
+  TASK-HOME-ABORTED      ; Aborted by a cancellation message
 )
+(static task-home-stat-strings (array (ptr char))
+  (array "TASK-HOME-ALLOCATED" "TASK-HOME-INITIALIZED" "TASK-HOME-DONE"
+	 "TASK-HOME-EXCEPTION" "TASK-HOME-ABORTED"))
 
+;;;; The reason for the abnormal exit.
+(def (enum exiting-rsn)
+  EXITING-NORMAL         ; normal exit
+  EXITING-EXCEPTION      ; exiting due to an exception
+  EXITING-CANCEL         ; exiting due to a cancellation
+  EXITING-SPAWN          ; temporary exiting to spawning a task
+  )
+(static exiting-rsn-strings (array (ptr char))
+  (array "EXITING-NORMAL" "EXITING-EXCEPTION" "EXITING-CANCEL" "EXITING-SPAWN"))
+
+
+(PROF-CODE
+;;; Kinds of time counter (for profiling)
+(%defconstant NKIND-TCOUNTER 10)
+(def (enum tcounter)
+  TCOUNTER-INIT          ; before execution
+  TCOUNTER-EXEC          ; task execution time
+  TCOUNTER-SPWN          ; task spawning time
+  TCOUNTER-WAIT          ; waiting result (does not include time for stealing back)
+  TCOUNTER-EXCP          ; exiting due to propagating an exception
+  TCOUNTER-EXCP-WAIT     ; waiting result during propagating an exception
+  TCOUNTER-ABRT          ; exiting due to abortion
+  TCOUNTER-ABRT-WAIT     ; waiting result during abortion
+  TCOUNTER-TREQ-BK       ; time for task request for stealing back
+  TCOUNTER-TREQ-ANY      ; time for task request when having no task
+)
+(static tcounter-strings (array (ptr char))
+  (array "TCOUNTER-INIT" "TCOUNTER-EXEC" "TCOUNTER-SPWN"
+	 "TCOUNTER-WAIT" "TCOUNTER-EXCP" "TCOUNTER-EXCP-WAIT"
+	 "TCOUNTER-ABRT" "TCOUNTER-ABRT-WAIT"
+	 "TCOUNTER-TREQ-BK" "TCOUNTER-TREQ-ANY"))
+
+;;; Kinds of events (for profiling)
+(%defconstant NKIND-EV 5)
+(def (enum event)
+  EV-SEND-TASK                          ; task send (aux: recipient)
+  EV-STRT-TASK                          ; task start (aux: task sender)
+  EV-RSLT-TASK                          ; task finished normally (aux: rslt recipient)
+  EV-EXCP-TASK                          ; task finished with an exce[tion (aux: rslt recipient)
+  EV-ABRT-TASK                          ; task aborted (aux: rslt recipient)
+  )
+(static ev-strings (array (ptr char))
+  (array "EV-SEND-TASK" "EV-STRT-TASK" "EV-RSLT-TASK" "EV-EXCP-TASK" "EV-ABRT-TASK"))
+
+;;; Obj types of auxiliary data
+(def (enum obj-type)
+  OBJ-NULL
+  OBJ-INT
+  OBJ-ADDR
+  OBJ-PADDR
+)
+(def (union aux-data-body)
+  (def aux-int long)
+  (def aux-addr (array (enum addr) ARG-SIZE-MAX))
+  (def aux-paddr (ptr (enum addr)))
+  )
+(def (struct aux-data)
+  (def type (enum obj-type))
+  (def body (union aux-data-body))
+  )
+)   ; end of PROF-CODE
+
+
 ;; Entry in the task stack of a worker
 (def (struct task)
   (def stat (enum task-stat))       ; task status
@@ -164,6 +241,7 @@
   (def task-no int)                 ; kind of the task
   (def body (ptr void))             ; task object
   (def ndiv int)                    ; # of task division
+  (def cancellation int)            ; # of partial cancellation flags
   (def rslt-to (enum node))         ; task sender (= result recipient) is INSIDE/OUTSIDE of this node
   (def rslt-head (array (enum addr) ARG-SIZE-MAX)))
 					; address of task sender (= result recipient)
@@ -173,23 +251,30 @@
 (def (struct task-home)
   (def stat (enum task-home-stat))      ; status
   (def id int)                          ; ID (unique in each worker)
+  (def exception-tag int)               ; thrown exception value (when stat is TASK-HOME-EXCEPTION)
+  (def msg-cncl int)                    ; a request flag for a cncl message
+					; 1: a cncl message would be sent for this subtask
+					; 2: the cncl message is already sent
   (def waiting-head (array (enum addr) ARG-SIZE-MAX))
                                         ; for stealing-back treq, the task head of which
                                         ; the requester is waiting for the result
   (def owner (ptr (struct task)))       ; the task that spawned this subtask
+  (def eldest (ptr (struct task-home))) ; the task-home that is first spawned
+					; in a parallel region
   (def task-no int)                     ; task number (corresponds to a task function)
   (def req-from (enum node))            ; where to send this subtask (INSIDE or OUTSIDE)
   (def task-head (array (enum addr) ARG-SIZE-MAX))
                                         ; the address of the worker which this task is sent to
                                         ; (referred when sending stealing back "treq" or "rack")
-  (def next (ptr (struct task-home)))   ; link to the next task-home
+  (def next (ptr (struct task-home)))   ; link to the next (older) task-home
   (def body (ptr void))                 ; task object
   )
 
 (def (struct thread-data)
   (def id int)                          ; worker ID
   (def pthr-id pthread-t)               ; pthread assigned to the worker
-  (def req (ptr (struct task-home)))    ; flag to check whether there are any task requests
+  (def req (ptr (struct task-home)))    ; request to check task request queue and spawn tasks if needed
+  (def req-cncl int)                    ; request to check subtask stack and send cncl messages if needed
   (def w-rack int)                      ; # of rack messages to be received
   (def w-none int)                      ; # of none messages to be received
   (def ndiv int)                        ; # of division of the task being executed by this worker
@@ -211,8 +296,21 @@
   (def cond-r pthread-cond-t)           ; condition variable for notifying rslt messages
   (def wdptr (ptr void))                ; worker local storage object
   (def w-bcak int)                      ; # of bcak messages to be recieved
-  (def exiting int)                     ; non-zero when backtracking to propagate an exception by a throw statement
-  (def exception-tag long)              ; the exception tag to be catched
+  (def exiting (enum exiting-rsn))      ; the reason for abnormal exiting
+  (def exception-tag int)               ; the exception tag to be catched
+  (PROF-CODE
+   ;; time counter (for profiling)
+   (def tcnt-stat (enum tcounter))           ; the last state by tcounter-change-state
+   (def tcnt (array double NKIND-TCOUNTER))  ; total time of each state
+   (def tcnt-tp (array (struct timeval) NKIND-TCOUNTER))
+					; start time of each state
+   (def tc-aux (struct aux-data))       ; auxiliary data for time chart
+   ;; event (for profiling)
+   (def ev-cnt (array int NKIND-EV))    ; number of events
+   ;; time chart / event output
+   (def fp-tc (ptr FILE))               ; file pointer for time chart data output
+   )
+  ;; dummy
   (def dummy (array char DUMMY-SIZE))   ; padding for preventing false sharing
   )
 
@@ -232,8 +330,8 @@
   )
 
 ;;;; Declarations of functions in worker.sc
-(decl (csym::make-and-send-task thr task-no body)
-      (csym::fn void (ptr (struct thread-data)) int (ptr void)))
+(decl (csym::make-and-send-task thr task-no body eldest-p)
+      (csym::fn void (ptr (struct thread-data)) int (ptr void) int))
 (decl (wait-rslt thr stback) (fn (ptr void) (ptr (struct thread-data)) int))
 (decl (csym::broadcast-task thr task-no body)
       (csym::fn void (ptr (struct thread-data)) int (ptr void)))
@@ -266,6 +364,21 @@
 (decl (csym::recv-abrt) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-cncl) (csym::fn void (ptr (struct cmd))))
 
+(PROF-CODE
+ (decl (csym::initialize-tcounter) (fn void (ptr (struct thread-data))))
+ (decl (csym::tcounter-start)
+     (fn void (ptr (struct thread-data)) (enum tcounter)))
+ (decl (csym::tcounter-end)
+     (fn void (ptr (struct thread-data)) (enum tcounter)))
+ (decl (csym::tcounter-change-state)
+     (fn (enum tcounter) (ptr (struct thread-data)) (enum tcounter)
+	 (enum obj-type) (ptr void)))
+ (decl (csym::initialize-evcounter) (fn void (ptr (struct thread-data))))
+ (decl (csym::evcounter-count)
+     (fn int (ptr (struct thread-data)) (enum event) (enum obj-type) (ptr void)))
+ (decl (csym::show-counters) (fn void))
+ )
+
 ;;;; Declarations of functions in cmd-serial.sc
 (decl (csym::serialize-cmdname buf w) (fn int (ptr char) (enum command)))
 (decl (csym::deserialize-cmdname buf str) (fn int (ptr (enum command)) (ptr char)))
@@ -278,11 +391,9 @@
 (decl (csym::address-equal adr1 adr2) (fn int (ptr (enum addr)) (ptr (enum addr))))
 
 ;;;; Command line options
-(%defconstant HOSTNAME-MAXSIZE 256)
 (def (struct runtime-option)
   (def num-thrs int)                    ; # of workers
-  (def sv-hostname (array char HOSTNAME-MAXSIZE))
-                                        ; hostname of connecting Tascell server
+  (def sv-hostname (ptr char))          ; hostname of connecting Tascell server
                                         ; If the string is "", external messages are output to stdout
   (def port unsigned-short)             ; port # used to connect to Tascell server
   (def node-name (ptr char))            ; node name (used for debugging only)
@@ -291,5 +402,7 @@
   (def affinity int)                    ; use sched_setaffinity to assign a physical core/thread to each worker
   (def always-flush-accepted-treq int)  ; flush stealing back (accepted) treq message
   (def verbose int)                     ; verbose level
+  (PROF-CODE                            
+   (def timechart-file (ptr char)))     ; postfix of timechart output file names
   )
 (extern-decl option (struct runtime-option))

@@ -1,19 +1,32 @@
 OS=${shell uname}
+# Command for sc2c compiler
 SC2C=sc2c
+# Options for SC-to-C compiler
 SC2C_OPT=
+# SC2C_OPT+=-m              # don't remove intermediate files
+# SC2C_OPT+=-D DEBUG=0      # invalidate debugging code
+SC2C_OPT+=-D PROFILE=1      # validate profiling 
+# Command for XC Cube (an extended GCC that supports L-Closures and Closures)
 XCC=xcc
+# Command for gcc
 GCC=gcc #$(XCC)
+# Command for Intel C Compiler
 ICC=icc
-OPT=-O3 -g -msse4.2$(MOPT)
+# Optimization options for C Compilers
+OPT=-O3 -g -msse4.2 $(MOPT)
+
+# Keyword for L-Closures and Closures in XC Cube. Don't modify.
 XCCOPT=-DCT=lightweight
 XCCCLOPT=-DCT=closure
 
+# setaffinity options
 ifeq ($(OS),SunOS)
     SC2C_OPT += -D USE_AFFINITY=PBIND
-else
+else ifeq ($(OS),Linux)
     SC2C_OPT += -D USE_AFFINITY=SCHED
 endif
 
+# library options
 ifeq ($(OS),SunOS)
     THROPTS=-lthread
 else
@@ -24,12 +37,17 @@ ifeq ($(OS),SunOS)
     LIBOPTS += -lsocket -lnsl
 endif
 
+# Use vsnprintf() instead of vasprintf().
 ifeq ($(OS),SunOS)
     OPT += -DNO_VASPRINTF
 endif
 
-
-APPS=fib fib-guard fib-excep lu cmp pen pen6x17 pen6x17-guard nq grav matmul spanning bcast copine0 copine1 copine2 copine3 copine4
+# Set targets
+# The set of all targets (ALL_PROGS) is {(apps)-(imp) | (apps) is one of APPS and (imp) is one of c, gcc, lw, clos, xcc, xcccl,
+# icc-c, icc-lw, and icc-clos}
+# By default, this Makefile makes all ALL_PROGS. You can make just one of targets by specifying the target file name,
+# (e.g., "make fib-gcc")
+APPS=fib fib-guard fib-excep lu cmp pen pen-excep pen6x17 pen6x17-guard nq grav matmul spanning bcast copine0 copine1 copine2 copine3 copine4
 
 C_PROGS=$(addsuffix -c,$(APPS))
 GCC_PROGS=$(addsuffix -gcc,$(APPS))
@@ -132,11 +150,9 @@ $(addsuffix .c,$(XCCCL_PROGS)): %-xcccl.c: %.tcell
 $(XCCCL_PROGS): %: $(WORKER_XCCCL) $(LIBS) %.c
 	$(XCC) $(OPT) $+ $(LIBOPTS) -o $@
 
-
-
-# demo
-# pen-demo: $(WORKER_GCC) pen-gcc-gtk.c $(LIBS)
-#	$(GCC) $(OPT)  $(THROPT) $(WORKER_GCC) pen-gcc-gtk.c $(LIBS) -o pen-demo `pkg-config --cflags --libs gtk+-2.0`
-
-# clean:
-# 	rm -f $(PROGS)
+# "make clean" to delete all target files
+clean:
+	rm -f $(ALL_PROGS)
+# "make clean" to delete all target files and intermediate files
+allclean:
+	rm -f $(ALL_PROGS) cinclude_tmp.h cinclude_tmp.se cinclude_tmp.se1 cinclude_tmp.se2 cinclude_tmp.se3 cinclude_tmp.se4 cinclude_tmp.se5 cinclude_tmp.se6 cinclude_tmp.se7

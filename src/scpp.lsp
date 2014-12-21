@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; Copyright (c) 2008-2014 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -69,6 +69,9 @@
 (defvar *rule-modifier* #'identity)     ; sc-main から渡される関数．rule-listを変更する．
 (defvar *sc2c-modifier* #'identity)     ; sc-main から渡される関数．sc2cに使うルールを変更する．
 (defvar *ofile-modifier* #'identity)    ; sc-main から渡される関数．出力ファイル名を変更する．
+
+(defvar *extracting-macro* (list))      ; List of macro symbols currently being extracted.
+					; (Such macros are not extracted more than onece recursively)
 
 (defstruct (macro-entry
             (:constructor create-macro-entry (type value)))
@@ -220,10 +223,9 @@
          (string-begin-with "%%" (symbol-name x) nil))
     '())
    (t
-    (with1 expand-ret (scpp-macroexpand x)
-      (if (atom expand-ret)
-          (list expand-ret)
-        (list (scpp-list expand-ret)))))))
+    ;; Macro expansion and recursive application of scpp-exp1.
+    (scpp-macroexpand x))
+   ))
 
 ;; *cinclude-h-file* を作成
 (defun make-cinclude-h (header-list
@@ -314,33 +316,40 @@
   (fmakunbound macsymbol)
   (remhash macsymbol *macro-entries*))
 
-;; 適用
-;; fref-idの展開や，identifierのnormalizeもここで
+;; Macro expansion and recursive application of scpp-exp1.
+;; Simple annotation for field references (e.g., "obj.a->b") is
+;; also expanded here (to "(fref (mref (fref obj a)) b)").
+;; When there is any expansion applied, scpp-exp1/scpp-list is applied
+;; recursively.
 (defun scpp-macroexpand (x
-                         &key (extracting-macro '()) ; 展開を行わないマクロ
                          &aux macsymbol macentry)
   (cond
    ((symbolp x)                         ; constant macro
     (multiple-value-bind (fref-exp expanded-p) (expand-fref-symbol x)
       (cond
-       (expanded-p (scpp-macroexpand fref-exp))
+       ;; Simple annotation for field references
+       (expanded-p
+	(scpp-1exp fref-exp))
        (t
         (setq macsymbol (entry-and-normalize-id x))
-        (if (and (not (member macsymbol extracting-macro))
+        (if (and (not (member macsymbol *extracting-macro*))
                  (setq macentry (macro-find macsymbol))
                  (eq 'constant (macro-entry-type macentry)))
-            (scpp-macroexpand (macro-entry-value macentry)
-                              :extracting-macro (cons macsymbol extracting-macro))
-          macsymbol)))))
+	    ;; Symbol macro (by %defconstant)
+	    (let ((*extracting-macro* (cons macsymbol *extracting-macro*)))
+	      (scpp-1exp (macro-entry-value macentry)))
+	  ;; Other symbol
+          (list macsymbol))))))
    ((consp x)                           ; (<macroname> ... )
     (if (and (symbolp (car x))
              (setq macsymbol (entry-and-normalize-id (car x)))
-             (not (member macsymbol extracting-macro))
+             (not (member macsymbol *extracting-macro*))
              (setq macentry (macro-find macsymbol))
              (eq 'macro (macro-entry-type macentry)))
-        ;; マクロ
-        (scpp-macroexpand (macroexpand-1 (cons macsymbol (cdr x)))
-                          :extracting-macro (cons macsymbol extracting-macro))
-      x))
-   ;; symbol以外のatom（number, stringなど）
-   (t x)))
+        ;; Macro (by %defmacro)
+	(let ((*extracting-macro* (cons macsymbol *extracting-macro*)))
+	  (scpp-1exp (macroexpand-1 (cons macsymbol (cdr x)))))
+      ;; Cons to which no macro can be applied.
+      (list (scpp-list x))))
+   ;; Atom other than symbol (e.g., number string)
+   (t (list x))))
