@@ -940,24 +940,28 @@
   (when (eq :gnuplot *transfer-log-format*)
     (tcell-server-dprint (get-gnuplot-error-bar rslt-head to "task"))))
 
-(defgeneric send-rslt (to rslt-head rslt-body))
-(defmethod send-rslt (to rslt-head rslt-body)
-  (send to (list "rslt " rslt-head #\Newline rslt-body #\Newline)))
+(defgeneric send-rslt (to rslt-head rslt-rsn rslt-excp rslt-body))
+(defmethod send-rslt (to rslt-head rslt-rsn rslt-excp rslt-body)
+  (send to (list "rslt "
+		 rslt-head #\Space
+		 rslt-rsn  #\Space
+		 rslt-excp #\Space
+		 #\Newline rslt-body #\Newline)))
 
 ;; Reply in place of an invalid child.
 #+PENDING ; rsltだけではrackの返信先がわからない
-(defmethod send-rslt :around (to rslt-head rslt-body)
+(defmethod send-rslt :around (to rslt-head rslt-rsn rslt-excp rslt-body)
   (if (child-valid to)
       (call-next-method)
     (proc-cmd (host-server to) to
               (list "rack")))) 
 
-(defmethod send-rslt :after ((to parent) rslt-head rslt-body)
-  (declare (ignore rslt-head rslt-body))
+(defmethod send-rslt :after ((to parent) rslt-head rslt-rsn rslt-excp rslt-body)
+  (declare (ignore rslt-head rslt-rsn rslt-excp rslt-body))
   (decf (parent-diff-task-rslt to)))
 
-(defmethod send-rslt :after ((to terminal-parent) rslt-head rslt-body)
-  (declare (ignore rslt-body))
+(defmethod send-rslt :after ((to terminal-parent) rslt-head rslt-rsn rslt-excp rslt-body)
+  (declare (ignore rslt-rsn rslt-excp rslt-body))
   ;; log
   (tcell-server-dprint "~&# (~D) rslt sent to terminal parent." (get-internal-real-time))
   ;; rack，task，exit自動送信の設定（task再送信は性能評価用）
@@ -1254,8 +1258,10 @@
 (defmethod proc-rslt ((sv tcell-server) (from host) cmd)
   (destructuring-bind (to s-rslt-head)
       (head-shift sv (second cmd))      ; rslt送信先
-    (let ((rslt-body (cddr cmd)))
-      (send-rslt to s-rslt-head rslt-body))))
+    (let ((rslt-rsn (third cmd))
+	  (rslt-excp (fourth cmd))
+	  (rslt-body (cddddr cmd)))
+      (send-rslt to s-rslt-head rslt-rsn rslt-excp rslt-body))))
 
 (defmethod proc-rslt :before ((sv tcell-server) (from child) cmd)
   (declare (ignore cmd))

@@ -349,7 +349,7 @@ int connect_to (char *hostname, unsigned short port)
         perror ("connection");
         exit (1);
     }
-    fprintf(stderr, "Ok\n", hostname, port);
+    fprintf(stderr, "Ok\n");
     /* test */
     /* send(dstSocket, "Test", strlen("Test")+1, 0); */
     /* close(dstSocket); */

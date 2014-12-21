@@ -23,7 +23,8 @@
 ;;; SUCH DAMAGE.
 
 ;;; An example of aborting tasks by a "throw" statement.
-;;; This is based on fib.tcell but aborts when fib(42) is called.
+;;; This is based on fib.tcell but aborts when the intermediate sum exceeds 
+;;; an arbitrary value.
 
 ;; task 0 0 0 0
 ;; <n>
@@ -107,23 +108,34 @@
     ;;(csym::fprintf stderr "receive fib(%d)=%d~%" this.n this.r)
     )
 
+(def rsn-strings (array (ptr char))
+  (array "EXITING-NORMAL" "EXITING-EXCEPTION" "EXITING-CANCEL" "EXITING-SPAWN"))
+
 (def (fib n) (wfn int int)
-  ;; When non-zero is thrown here, the exception is not caught in task-body
-  ;; and thus execution time is not printed.
-  (if (== n 42)
-      (throw 0))
   (if (<= n 2)
       (return 1)
     (begin
       (def s1 int)
       (def s2 int)
-      (do-two
-          (= s1 (fib (- n 1)))
-	  (= s2 (fib (- n 2)))
-        (handles fib
-         (:put
-          (%ifdef* USE-PROBGUARD
-            (= PROBABILITY (csym::my-probability (- n 2))))
-          (= this.n (- n 2)))
-         (:get (= s2 this.r))))
+      (dynamic-wind
+	(:before)
+	(:body
+	  (do-two
+	      (= s1 (fib (- n 1)))
+	      (= s2 (fib (- n 2)))
+	    (handles fib
+	      (:put
+		(%ifdef* USE-PROBGUARD
+		  (= PROBABILITY (csym::my-probability (- n 2))))
+		(= this.n (- n 2)))
+	      (:get (= s2 this.r)))))
+	(:after
+	  (csym::fprintf stderr "%d exinting fib(%d): %s~%" 
+			 WORKER-ID n (aref rsn-strings EXITING))))
+      ;; Throw an exception if the intermediate sum exceeds an arbitrary value.
+      (if (>= (+ s1 s2) 10000)
+          (begin
+           (csym::fprintf stderr "Worker %d throws an exception %d~%"
+                          WORKER-ID WORKER-ID)
+           (throw WORKER-ID)))
       (return (+ s1 s2)))))

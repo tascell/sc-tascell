@@ -72,9 +72,16 @@
     ))
 
 
+;;;; Worker threads
+(def threads (array (struct thread-data) 128))
+(def num-thrs unsigned-int)
 ;;;; Random number generator
 (def random-seed1 double 0.2403703)
 (def random-seed2 double 3.638732)
+;;;; Start time of the first task execution
+(PROF-CODE
+ (def tp-strt (struct timeval)))
+
 ;; Random integer in [0, max-1]
 (def (csym::my-random max pseed1 pseed2) (fn int int (ptr double) (ptr double))
   (= (mref pseed1) (+ (* (mref pseed1) 3.0) (mref pseed2)))
@@ -121,6 +128,12 @@
   (def now (struct timeval))
   (csym::gettimeofday (ptr now) 0)
   (return (+ (* 1000 1000 now.tv-sec) now.tv-usec)))
+
+;;; Get diff time between two timevals (tp1-tp2) as a double value.
+(def (csym::diff-timevals tp1 tp2)
+    (fn double (ptr (struct timeval)) (ptr (struct timeval)))
+  (return (+ (- tp1->tv-sec tp2->tv-sec)
+	     (* 0.000001 (- tp1->tv-usec tp2->tv-usec)))))
 
 ;;; Output the error message (str) to stderr
 (def (csym::proto-error str pcmd) (csym::fn void (ptr (const char)) (ptr (struct cmd)))
@@ -211,7 +224,19 @@
   (csym::pthread-mutex-unlock (ptr send-mut))
   ;; ---> sender-lock --->
   (if (and (== w RSLT) option.auto-exit)
-      (csym::exit 0))
+      (begin
+	(PROF-CODE
+	 (let ((i int) (thr (ptr (struct thread-data))) (fp (ptr FILE)))
+	   (for ((= i 0) (< i num-thrs) (inc i))
+	     (= thr (+ threads i))
+	     (csym::tcounter-change-state thr TCOUNTER-INIT OBJ-NULL 0)
+	     (if thr->fp-tc
+		 (begin
+		   (= fp thr->fp-tc)
+		   (= thr->fp-tc 0)
+		   (csym::fclose fp)))))
+	 (csym::show-counters))
+	(csym::exit 0)))
   )
 
 ;;; Take cmd and call the function corresponding to its command name.
@@ -255,9 +280,6 @@
       (csym::send-out-command pcmd body task-no) ; Send to external node
       )
     ))
-
-(def threads (array (struct thread-data) 128))
-(def num-thrs unsigned-int)
 
 
 ;;; Flush the once accepted task request pointed by "(mref p-hx)"
@@ -421,8 +443,10 @@
       ;; stop getting a new task and resume the suspended task.
       (if (and (!= tx->stat TASK-INITIALIZED)
 	       thr->sub
-	       (== thr->sub->stat TASK-HOME-DONE))
-	  ;; The worker sent a treq and its response may not have arrived.
+	       (or (== thr->sub->stat TASK-HOME-DONE)
+                   (== thr->sub->stat TASK-HOME-EXCEPTION)
+                   (== thr->sub->stat TASK-HOME-ABORTED)))
+          ;; The worker sent a treq and its response may not have arrived.
 	  ;; However, we can guarantee that the response is "none" because
 	  ;; this treq is a stealing back and the result of the spawned task
 	  ;; that caused the stealing back has been sent (and received).
@@ -465,7 +489,9 @@
 	  ;; If the most recent spawned task has been completed,
 	  ;; stop getting a new task and resume the suspended task.
           (if (and thr->sub
-                   (== thr->sub->stat TASK-HOME-DONE))
+                   (or (== thr->sub->stat TASK-HOME-DONE)
+                       (== thr->sub->stat TASK-HOME-EXCEPTION)
+                       (== thr->sub->stat TASK-HOME-ABORTED)))
               (return 0))))
     )
   (return 1))
@@ -479,6 +505,8 @@
   (def tx (ptr (struct task)))
   (def old-ndiv int)
   (def old-probability double)
+  (def rsn (enum exiting-rsn))
+  (def reason int)
   (def rcmd (struct cmd))               ; for RSLT command
 
   ;; If there is a treq message that was sent by this worker
@@ -489,7 +517,9 @@
     ;; If the result for the most recent suspended task has arrived,
     ;; stop requesting a new task and resume the suspended task.
     (if (and thr->sub
-             (== thr->sub->stat TASK-HOME-DONE))
+             (or (== thr->sub->stat TASK-HOME-DONE)
+		 (== thr->sub->stat TASK-HOME-EXCEPTION)
+		 (== thr->sub->stat TASK-HOME-ABORTED)))
         (return)))
 
   ;; Allocate task to be initialized
@@ -498,23 +528,63 @@
   (if (csym::send-treq-to-initialize-task thr treq-head req-to)
       (begin
 	;; Execute the task
+	(PROF-CODE
+	 (csym::tcounter-change-state thr TCOUNTER-EXEC OBJ-NULL 0)
+         (csym::evcounter-count thr EV-STRT-TASK OBJ-PADDR tx->rslt-head) 
+         )
 	(= tx->stat TASK-STARTED) ; TASK-INITIALIZED => TASK-STARTED
+	(= tx->cancellation 0)    ; initialize # of cancellation flags
 	(= old-ndiv thr->ndiv)
 	(= old-probability thr->probability)
 	(= thr->ndiv tx->ndiv)
 	(= thr->probability 1.0)
 	(csym::pthread-mutex-unlock (ptr thr->mut))
-	(DEBUG-PRINT 1 "(%d): (Thread %d) start %d<%p>.~%"
-		     (csym::get-universal-real-time) thr->id tx->task-no tx->body)
+	(DEBUG-PRINT 1 "(%d): (Thread %d) start %d<%p> (body=%p).~%"
+		     (csym::get-universal-real-time) thr->id tx->task-no tx tx->body)
 	((aref task-doers tx->task-no) thr tx->body) ; Invoke the task body method
-	(DEBUG-PRINT 1 "(%d): (Thread %d) end %d<%p>.~%"
-		     (csym::get-universal-real-time) thr->id tx->task-no tx->body)
+	(= rsn thr->exiting)
+	(= thr->exiting EXITING-NORMAL)
+	;; Set the reason for compliting the task
+	(switch rsn
+	  (case EXITING-NORMAL)
+	  (DEBUG-PRINT 1 "(%d): (Thread %d) end %d<%p> (body=%p).~%" 
+		       (csym::get-universal-real-time)
+		       thr->id tx->task-no tx tx->body)
+          (PROF-CODE
+           (csym::evcounter-count thr EV-RSLT-TASK OBJ-PADDR tx->rslt-head))
+	  (= reason 0)
+	  (break)
+	  (case EXITING-EXCEPTION)
+	  (DEBUG-PRINT 1 "(%d): (Thread %d) end %d<%p> (body=%p) with exception %d.~%" 
+		       (csym::get-universal-real-time)
+		       thr->id tx->task-no tx tx->body thr->exception-tag)
+          (PROF-CODE
+           (csym::evcounter-count thr EV-EXCP-TASK OBJ-PADDR tx->rslt-head))
+	  (= reason 1)
+	  (break)
+	  (case EXITING-CANCEL)
+	  (DEBUG-PRINT 1 "(%d): (Thread %d) aborted %d<%p> (body=%p).~%" 
+		       (csym::get-universal-real-time)
+		       thr->id tx->task-no tx tx->body)
+          (PROF-CODE
+           (csym::evcounter-count thr EV-ABRT-TASK OBJ-PADDR tx->rslt-head))
+	  (= reason 2)
+	  (break)
+	  (default)
+	  (csym::fprintf 
+	   stderr "(%d) Warn: Thread %d ended with unexpected reason.~%"
+	   (csym::get-universal-real-time) thr->id)
+	  (= reason 0))
 	;; Send the result to the task sender (== the recipient of the treq)
 	(= rcmd.w RSLT)
-	(= rcmd.c 1)
+	(= rcmd.c 3)
 	(= rcmd.node tx->rslt-to)        ; internal or external
-	(csym::copy-address (aref rcmd.v 0) tx->rslt-head)
+	(csym::copy-address (aref rcmd.v 0) tx->rslt-head)      ;[0]:recipient
+	(= (aref rcmd.v 1 0) reason) (= (aref rcmd.v 1 1) TERM) ;[1]:reason
+        (= (aref rcmd.v 2 0) thr->exception-tag) (= (aref rcmd.v 2 1) TERM)
+                             ; [2]:exception-tag (meaningful only when [1]==1)
 	(csym::send-command (ptr rcmd) tx->body tx->task-no)
+	(csym::pthread-mutex-lock (ptr thr->rack-mut))
 	(inc thr->w-rack) ; Increase w-rack counter. This is decreased when the worker
 	                  ; receives a rack message as a reply to the rslt. While this
                           ; counter is larger than zero, the worker does not spawn a
@@ -581,9 +651,12 @@
   (%ifdef* USE-AFFINITY
     (if option.affinity
       (csym::worker-setaffinity thr->id)))
-  (csym::worker-init thr)
+  (csym::worker-init thr)  ; initialize app-defined worker local storage
   (csym::pthread-mutex-lock (ptr thr->mut))
   (loop
+    (PROF-CODE
+     (if (!= thr->tcnt-stat TCOUNTER-INIT)
+	 (csym::tcounter-change-state thr TCOUNTER-TREQ-ANY OBJ-NULL 0)))
     (recv-exec-send thr (init (array (enum addr) 2) (array ANY TERM)) INSIDE))
   (csym::pthread-mutex-unlock (ptr thr->mut)))
 
@@ -667,16 +740,42 @@
   (return hx))
 
 
+;;; Set subtasks to be cancelled spawned by "owner" and newer than "eldest"
+;;; If eldest is 0, all the subtasks spawned by "owner" are set to be cancelled.
+;;; The mutex thr->mut must be acquired before calling this function.
+;;; When there is any subtask set to be cancelled, set a cancel request flag to "thr".
+;;; (This flag is detected by polling and cncl messages are sent for flagged subtasks)
+;;; Returns # of subtasks that are set to be cancelled.
+(def (csym::set-cancelled thr owner eldest)
+    (csym::fn int (ptr (struct thread-data)) (ptr (struct task)) (ptr (struct task-home)))
+  (def cur (ptr (struct task-home)))
+  (def count int 0)
+  (for ((= cur thr->sub) cur (= cur cur->next))
+    (if (and (== cur->owner owner)
+	     (== cur->stat TASK-HOME-INITIALIZED) ; currently running?
+	     (== cur->msg-cncl 0))
+	(begin
+	  (= cur->msg-cncl 1)
+	  (inc count)))
+    (if (and eldest (== eldest cur->eldest))
+	(break))
+    )
+  (if count (= thr->req-cncl 1))
+  (return count))
+
+
 ;;; rslt message: a reply to a task message to send the result of the task
-;;; rslt <recipient>
+;;; rslt <recipient> <reason(0:normal,1:exception,2:abort)> <excption-tag>
 (def (csym::recv-rslt pcmd body) (csym::fn void (ptr (struct cmd)) (ptr void))
   (def rcmd (struct cmd))               ; rack command
   (def thr (ptr (struct thread-data)))
   (def hx (ptr (struct task-home)))
   (def tid (enum addr))
   (def sid int)
+  (def reason int)
+  (def exception-tag int)
   ;; Check # of arguments
-  (if (< pcmd->c 1)
+  (if (< pcmd->c 2)
       (csym::proto-error "Wrong rslt" pcmd))
   ;; Extract the recipient worker id and the task-home id from <recipient>
   ;; <recipient> = <worker-id>:<task-home-id>
@@ -687,13 +786,17 @@
   (if (== TERM sid)
       (csym::proto-error "Wrong rslt-head (no task-home-id)" pcmd))
   (= thr (+ threads tid))
-  
+  ;; Get <reason>
+  (= reason (aref pcmd->v 1 0))
+  ;; Get <exception-tag> (ignored when <reason> is not 1)
+  (= exception-tag (aref pcmd->v 2 0))
+
   (csym::pthread-mutex-lock (ptr thr->mut))
   ;; Determine the task-home entry whose id is <task-home-id>
   (if (not (= hx (csym::search-task-home-by-id sid thr->sub)))
       (csym::proto-error "Wrong rslt-head (specified task not exists)" pcmd))
-  ;; For an external rslt message, receive the body of the result by
-  ;; invoking the user-defined receiver method.
+  ;; If the rslt message is from external node and the task is normally exited,
+  ;; receive the body of thea result by invoking the user-defined receiver method.
   ;; (for an internal rslt, the body is passed as the argument)
   (cond
    ((== pcmd->node OUTSIDE)
@@ -711,9 +814,19 @@
 					; Set the recipient address 
                                         ; (same to the recipient of the task message)
 
-  ;; Change the status of the task-home entry and notify that to the worker
-  ;; that is waiting for the result.
-  (= hx->stat TASK-HOME-DONE)
+  ;; Change the status of the task-home entry 
+  (cond
+   ((== reason 0)
+    (= hx->stat TASK-HOME-DONE))
+   ((== reason 1)
+    (= hx->stat TASK-HOME-EXCEPTION)
+    (= hx->exception-tag exception-tag)
+    (inc hx->owner->cancellation)
+    (csym::set-cancelled thr hx->owner hx->eldest)
+    )
+   ((== reason 2)
+    (= hx->stat TASK-HOME-ABORTED)))
+  ;; Notify the worker waiting for the result.
   (if (== hx thr->sub)
       (begin
        (csym::pthread-cond-broadcast (ptr thr->cond-r))
@@ -722,9 +835,11 @@
   (csym::pthread-mutex-unlock (ptr thr->mut))
   (csym::send-command (ptr rcmd) 0 0))  ; Send the rack command
 
-;; The Thread 'thr' has the task specified by [<addr>,...,<ID>]x(INSIDE|OUTSIDE) ?
+
+;; If the worker 'thr' has the task whose return address is [<addr>,...,<ID>]x(INSIDE|OUTSIDE),
+;; return the pointer to the task object. Return 0 otherwise.
 (def (csym::have-task thr task-spec task-from) 
-    (csym::fn int (ptr (struct thread-data)) (ptr (enum addr)) (enum node))
+    (csym::fn (ptr (struct task)) (ptr (struct thread-data)) (ptr (enum addr)) (enum node))
   (def tx (ptr (struct task)))
   (= tx thr->task-top)
   (while tx
@@ -733,12 +848,11 @@
                  (== tx->stat TASK-STARTED))
              (== tx->rslt-to task-from)
              (csym::address-equal tx->rslt-head task-spec))
-        (return 1))
+        (return tx))
     (= tx tx->next))
   (return 0))
 
 
-(decl task-stat-strings (array (ptr char)))
 ;;; Check if the id-th worker can accept the task request 'pcmd'
 ;;; If ok, the worker allocate a task-home.
 (def (csym::try-treq pcmd id)
@@ -773,6 +887,9 @@
     (if (< thr->probability (csym::my-random-probability thr))
       (= fail-reason 5)))
   (= avail (not fail-reason))
+  (csym::pthread-mutex-unlock (ptr thr->rack-mut))
+
+  ;; (Debug) Show the reason for refusing the task request
   (DEBUG-STMTS 2
     (if (not avail)
         (let ((from-str (array char BUFSIZE))
@@ -796,7 +913,6 @@
           (csym::fprintf 
            stderr "(%d): Thread %d refused treq from %s because %s.~%"
            (csym::get-universal-real-time) id from-str rsn-str))))
-  (csym::pthread-mutex-unlock (ptr thr->rack-mut))
 
   ;; If succeeded, push a task-home entry to the requestee's request queue.
   (if avail
@@ -1289,7 +1405,7 @@
     (csym::print-thread-status thr))
   ;; all command check
   (csym::exit 0))
-
+
 ;;; abrt: reply to a task message without the result
 ;;; abrt <recipient("<worker-id>:<task-home-id>")>
 (def (csym::recv-abrt pcmd) (csym::fn void (ptr (struct cmd)))
@@ -1325,9 +1441,33 @@
   (csym::pthread-mutex-unlock (ptr thr->mut))
   (csym::send-command (ptr rcmd) 0 0))  ; Send rack
 
-;;; cncl
+
+;;; cncl: set a cancellation to the recipient task
+;;; cncl <sender> <recipient>
 (def (csym::recv-cncl pcmd) (csym::fn void (ptr (struct cmd)))
-  (csym::exit 0))
+  (def from-addr (ptr (enum addr)))    ; return address of the task to be cancelled (search key)
+  (def dst0 (enum addr))               ; ID of recipient worker
+  (def thr (ptr (struct thread-data))) ; recipient worker thread
+  (def tx (ptr (struct task)))         ; task to be cancelled
+  ;; Check # of arguments
+  (if (< pcmd->c 2)
+      (csym::proto-error "Wrong cncl" pcmd))
+  ;; Get <sender> from the message
+  (= from-addr (aref pcmd->v 0))
+  ;; Extract <recipient> from the message
+  (= dst0 (aref pcmd->v 1 0))
+  (if (not (and (<= 0 dst0) (< dst0 num-thrs)))   ; Range check of <recipient>
+      (csym::proto-error "Wrong cncl-head" pcmd))
+  (= thr (+ threads dst0))
+
+  (csym::pthread-mutex-lock (ptr thr->mut))
+  (if (= tx (csym::have-task thr from-addr pcmd->node))  ; Check whether the recipient task exists
+      (begin 
+	(inc tx->cancellation)
+	(csym::set-cancelled thr tx 0)
+	(DEBUG-PRINT 1 "Task %p of worker %d is cancelled by cncl~%" tx dst0)))
+  (csym::pthread-mutex-unlock (ptr thr->mut))
+)
 
 ;;; bcak: ack message to bcst
 ;;; bcak <recipient>
@@ -1348,8 +1488,6 @@
 
 
 ;;; Print information of a task entry in human-friendly style
-(def task-stat-strings (array (ptr char)) ; consistent with (enum task-stat) definition
-  (array "TASK-ALLOCATED" "TASK-INITIALIZED" "TASK-STARTED" "TASK-DONE" "TASK-NONE" "TASK-SUSPENDED"))
 (def (csym::node-to-string buf node) (csym::fn void (ptr char) (enum node))
   (switch node
     (case INSIDE)   (csym::strcpy buf "INSIDE")      (break)
@@ -1366,38 +1504,40 @@
   (defs (array char BUFSIZE) buf1 buf2)
   (csym::fprintf stderr "%s= {" name)
   (for ((= cur task-top) cur (= cur cur->next))
-    (csym::fprintf stderr "{stat=%s, task-no=%d, body=%p, ndiv=%d, rslt-to=%s, rslt-head=%s}, "
-                   (aref task-stat-strings cur->stat) cur->task-no cur->body cur->ndiv
+    (csym::fprintf stderr "{stat=%s, task-no=%d, body=%p, ndiv=%d, cancellation=%d, rslt-to=%s, rslt-head=%s}, "
+                   (aref task-stat-strings cur->stat) cur->task-no cur->body cur->ndiv cur->cancellation
                    (exps (csym::node-to-string buf1 cur->rslt-to) buf1)
                    (exps (csym::serialize-arg buf2 cur->rslt-head) buf2)))
   (csym::fprintf stderr "}, ")
   (return))
 
 ;;; Print information of a task-home entry in human-friendly style
-(def task-home-stat-strings (array (ptr char)) ; consistent with (enum task-home-stat) definition
-  (array "TASK-HOME-ALLOCATED" "TASK-HOME-INITIALIZED" "TASK-HOME-DONE"))
 (def (csym::print-task-home-list treq-top name) (csym::fn void (ptr (struct task-home)) (ptr char))
   (def cur (ptr (struct task-home)))
   (defs (array char BUFSIZE) buf0 buf1 buf2)
   (csym::fprintf stderr "%s= {" name)
   (for ((= cur treq-top) cur (= cur cur->next))
-    (csym::fprintf stderr "{stat=%s, id=%d, waiting=%s, owner=%p, task-no=%d, body=%p, req-from=%s, task-head=%s}, "
+    (csym::fprintf stderr "{stat=%s, id=%d, exception-tag=%d, msg-cncl=%d, waiting=%s, owner=%p, eldest=%p(%d), task-no=%d, body=%p, req-from=%s, task-head=%s}, "
                    (aref task-home-stat-strings cur->stat) cur->id
+		   cur->exception-tag cur->msg-cncl
                    (exps (csym::serialize-arg buf0 cur->waiting-head) buf0)
-                   cur->owner cur->task-no cur->body
+                   cur->owner
+                   cur->eldest (if-exp cur->eldest cur->eldest->id 0)
+		   cur->task-no cur->body
                    (exps (csym::node-to-string buf1 cur->req-from) buf1)
                    (exps (csym::serialize-arg buf2 cur->task-head) buf2)))
   (csym::fprintf stderr "}, ")
   (return))
 
 ;;; Print the status of a worker in human-friendly style
-(def choose-strings (array (ptr char)) (array "CHS-RANDOM" "CHS-ORDER")) ; consistent with (enum choose)
 (def (csym::print-thread-status thr) (csym::fn void (ptr (struct thread-data)))
-  (csym::fprintf stderr "<Thread %d>~%" thr->id)
+  (csym::fprintf stderr "*** Worker %d ***~%" thr->id)
   (csym::fprintf stderr "req=%p, " thr->req)
   (csym::fprintf stderr "w-rack=%d, " thr->w-rack)
   (csym::fprintf stderr "w-none=%d, " thr->w-none)
   (csym::fprintf stderr "ndiv=%d, " thr->ndiv)
+  (csym::fprintf stderr "exiting=%s, " (aref exiting-rsn-strings thr->exiting))
+  (csym::fprintf stderr "exception-tag=%d, " thr->exception-tag)
   (csym::fprintf stderr "probability=%lf, " thr->probability)
   (csym::fprintf stderr "last-treq=%d, " thr->last-treq)
   (csym::fprintf stderr "last-choose=%s, " (aref choose-strings thr->last-choose))
@@ -1457,23 +1597,87 @@
   (csym::pthread-mutex-lock (ptr -thr->mut))
   (if -thr->req
       (begin
-       (-bk)
-       (= -thr->req -thr->treq-top)))
+	(= -thr->exiting EXITING-SPAWN)
+	(PROF-CODE
+	 (csym::tcounter-change-state -thr TCOUNTER-SPWN OBJ-NULL 0))
+	(-bk)
+	(PROF-CODE
+	 (csym::tcounter-change-state -thr TCOUNTER-EXEC OBJ-NULL 0))
+	(= -thr->exiting EXITING-NORMAL)
+	(= -thr->req -thr->treq-top) ))
   (csym::pthread-mutex-unlock (ptr -thr->mut)))
 
-;; Start propagating an exception
+;; Send a cncl message for each flagged subtask spawned by "thr"
+;; The mutex thr->mut must be acquired before calling.
+;; Returns # of sent cncl messages.
+(def (csym::send-cncl-for-flagged-subtasks thr)
+    (csym::fn int (ptr (struct thread-data)))
+  (def rcmd (struct cmd))               ; for CNCL command
+  (def cur (ptr (struct task-home)))
+  (def count int 0)
+  (= rcmd.w CNCL)
+  (= rcmd.c 2)
+  (= (aref rcmd.v 0 0) thr->id)
+  (= (aref rcmd.v 0 2) TERM)
+  (for ((= cur thr->sub) cur (= cur cur->next))
+    (if (and (== cur->msg-cncl 1)
+	     (== cur->stat TASK-HOME-INITIALIZED))
+	(begin
+	  (= rcmd.node cur->req-from)
+	  (= (aref rcmd.v 0 1) cur->id)                       ; <sender>=<thread-id>:<task-home-id>
+	  (csym::copy-address (aref rcmd.v 1) cur->task-head) ; <recipient>
+	  (csym::send-command (ptr rcmd) 0 0)
+	  (= cur->msg-cncl 2)
+	  (inc count) )))
+  (return count) )
+
+;; Check -thr's subtask queue and send a cncl message for each flagged subtask
+(def (handle-req-cncl -bk -thr)
+    (fn void (ptr (NESTFN int void)) (ptr (struct thread-data)))
+  (csym::pthread-mutex-lock (ptr -thr->mut))
+  (if -thr->req-cncl
+      (begin
+	(DEBUG-PRINT 1 "(%d): (Thread %d) detected cncl message request~%"
+		     (csym::get-universal-real-time) -thr->id)
+	(csym::send-cncl-for-flagged-subtasks -thr)
+	(= -thr->req-cncl 0) ))
+  (csym::pthread-mutex-unlock (ptr -thr->mut)))
+
+;; Start propagating an exception. Invoked by a Tascell throw statement.
 (def (handle-exception -bk -thr excep)
-    (fn void (ptr (NESTFN int void)) (ptr (struct thread-data)) long)
-  (= -thr->exiting 1)
+    (fn void (ptr (NESTFN int void)) (ptr (struct thread-data)) int)
+  (= -thr->exiting EXITING-EXCEPTION)
   (= -thr->exception-tag excep)
+  (PROF-CODE
+   (csym::tcounter-change-state -thr TCOUNTER-EXCP OBJ-INT (cast (ptr void) (cast long excep))))
   (-bk)) ; never returns
+
+;; Check (partial) cancellation flags and abort if needed.
+(def (handle-cancellation -bk -thr)
+    (fn void (ptr (NESTFN int void)) (ptr (struct thread-data)))
+  (csym::pthread-mutex-lock (ptr -thr->mut))
+  (if -thr->task-top->cancellation
+      (begin
+	(DEBUG-PRINT 1 "(%d): (Thread %d) detected cancellation flag (%d)~%" 
+		     (csym::get-universal-real-time) -thr->id -thr->task-top->cancellation)
+	(= -thr->exiting EXITING-CANCEL)
+	(PROF-CODE
+	 (csym::tcounter-change-state -thr TCOUNTER-ABRT
+				      OBJ-INT (cast (ptr void) (cast long -thr->task-top->cancellation))))
+	(csym::pthread-mutex-unlock (ptr -thr->mut))
+	(-bk)))  ; never returns
+  (csym::pthread-mutex-unlock (ptr -thr->mut))
+  )
+
 
 ;; Make a task message and send it.
 ;; (The recipient is determined by the top of the task request stack)
 ;; Called by a worker thread ("thr") after initializing the task object
 ;; in :put section ("body"). The thr->mut should have been acquired.
-(def (csym::make-and-send-task thr task-no body)
-    (csym::fn void (ptr (struct thread-data)) int (ptr void))
+;; If "eldest-p" is non-zero, the task is the first one among tasks
+;; spawned in a parallel region.
+(def (csym::make-and-send-task thr task-no body eldest-p)
+    (csym::fn void (ptr (struct thread-data)) int (ptr void) int)
   (def tcmd (struct cmd))
   (def hx (ptr (struct task-home)) thr->treq-top)
   ;; (csym::fprintf stderr "make-and-send-task(%d)~%" thr->id)
@@ -1487,7 +1691,9 @@
   (= hx->id (if-exp hx->next            ; the subtask ID (= height_of_the_stack + 1)
                     (+  hx->next->id 1)
                     0))
-  (= hx->owner thr->task-top)           ; the parent task (= the top of the task stack)
+  (= hx->owner thr->task-top)           ; the parent task (= current top of the task stack)
+  (= hx->eldest (if-exp eldest-p hx hx->next->eldest))
+  (= hx->msg-cncl 0)                    ; initialize flag to be cancelled
   (= hx->stat TASK-HOME-INITIALIZED)    ; ALLOCATED => INITIALIZED
   ;; Make a task message
   (= tcmd.c 4)                          ; # of arguments
@@ -1501,6 +1707,8 @@
   (csym::copy-address (aref tcmd.v 2) hx->task-head) ; recipient: use the information in the task request
   (= (aref tcmd.v 3 0) task-no)         ; the kind of task
   (= (aref tcmd.v 3 1) TERM)
+  (PROF-CODE
+   (csym::evcounter-count thr EV-SEND-TASK OBJ-PADDR hx->task-head))
   (csym::send-command (ptr tcmd) body task-no))
 
 ;;; Wait for the result of the subtask thr->sub, remove it from the worker's subtask list,
@@ -1509,35 +1717,73 @@
 (def (wait-rslt thr stback) (fn (ptr void) (ptr (struct thread-data)) int)
   (def body (ptr void))
   (def sub (ptr (struct task-home)))
+  (PROF-CODE
+   (def tcnt-stat (enum tcounter))
+   (def tcnt-stat-w (enum tcounter)))
   (csym::pthread-mutex-lock (ptr thr->mut))
+  (PROF-CODE
+   (= tcnt-stat thr->tcnt-stat))
   (= sub thr->sub)                           ; sub: the top of the worker's subtask stack
-  (while (and (!= sub->stat TASK-HOME-DONE)  ; Until the subtask is done or aborted
+  (while (and (!= sub->stat TASK-HOME-DONE)  ; Until the subtask is done/aborted
+	      (!= sub->stat TASK-HOME-EXCEPTION)
 	      (!= sub->stat TASK-HOME-ABORTED))
+    (PROF-CODE
+     (= tcnt-stat-w (if-exp (== tcnt-stat TCOUNTER-EXEC)
+			TCOUNTER-WAIT
+		      (if-exp (== tcnt-stat TCOUNTER-ABRT)
+			  TCOUNTER-ABRT-WAIT
+			TCOUNTER-EXCP-WAIT)))
+     (csym::tcounter-change-state thr tcnt-stat-w OBJ-NULL 0))
     (= thr->task-top->stat TASK-SUSPENDED)   ; STARTED => SUSPENDED (thr->task-top is the task being executed)
-    (if stback
-	;; If stealing back is enabled
+    ;; When propagating exception, send cncl messages for subtasks
+    (if (== thr->exiting EXITING-EXCEPTION)
 	(begin
-	  ;; Wait for a moment if the victim is an external worker.
-	  (if (== OUTSIDE sub->req-from)
-	      (let ((now (struct timeval))
-		    (t-until (struct timespec)))
-		(csym::gettimeofday (ptr now) 0)
-		(csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) 1000)
-		(csym::pthread-cond-timedwait (ptr thr->cond-r) (ptr thr->mut)
-					      (ptr t-until))
-		))
-	  ;; Quit if the subtask is finished or aborted.
-	  (if (or (== sub->stat TASK-HOME-DONE)
-		  (== sub->stat TASK-HOME-ABORTED)) 
-	      (break))  
-	  ;; Steal and execute a task
-	  (recv-exec-send thr sub->task-head sub->req-from))
-      ;; If stealing back is disabled, just wait for the result.
+	  (csym::set-cancelled thr thr->task-top sub->eldest)
+	  (csym::send-cncl-for-flagged-subtasks thr)))
+    ;; Wait for a moment if the victim is an external worker.
+    (if (== OUTSIDE sub->req-from)
+	(let ((now (struct timeval))
+	      (t-until (struct timespec)))
+	  (csym::gettimeofday (ptr now) 0)
+	  (csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) 1000)
+	  (csym::pthread-cond-timedwait (ptr thr->cond-r) (ptr thr->mut)
+					(ptr t-until))
+	  ))
+    ;; Quit if the subtask is finished or aborted.
+    (if (or (== sub->stat TASK-HOME-DONE)
+	    (== sub->stat TASK-HOME-EXCEPTION)
+	    (== sub->stat TASK-HOME-ABORTED)) 
+	(break))
+    (if stback
+        ;; Steal and execute a task
+	(begin
+	  (PROF-CODE
+	   (csym::tcounter-change-state thr TCOUNTER-TREQ-BK
+					OBJ-ADDR sub->task-head))
+	  (recv-exec-send thr sub->task-head sub->req-from)
+	  (PROF-CODE
+	   (csym::tcounter-change-state thr tcnt-stat-w
+					OBJ-NULL 0))
+	  )
+      ;; Just wait for the subtask finishing
       (csym::pthread-cond-wait (ptr thr->cond-r) (ptr thr->mut)))
     )
-  
-  (if (== sub->stat TASK-HOME-ABORTED) 
-      (= body 0)
+  (PROF-CODE
+   (csym::tcounter-change-state thr tcnt-stat OBJ-NULL 0))
+
+  ;; When the subtask has thrown an exception, propagate it
+  (if (== sub->stat TASK-HOME-EXCEPTION)
+      (begin
+	(= thr->exiting EXITING-EXCEPTION)
+	(= thr->exception-tag sub->exception-tag)
+	(dec sub->owner->cancellation)  ; take the partial cancellation flag
+	))
+  ;; When the subtask is abnormally exited, a task object is not returned as the result
+  (if (or (== sub->stat TASK-HOME-EXCEPTION)
+	  (== sub->stat TASK-HOME-ABORTED))
+      (begin
+	(csym::free body)
+	(= body 0))
     (= body sub->body))
   ;; Pop the subtask stack
   (= thr->sub sub->next)                ; stack top <== 2nd entry
@@ -1584,14 +1830,18 @@
 ;;; Handling command-line options
 (def (csym::usage argc argv) (csym::fn void int (ptr (ptr char)))
   (csym::fprintf stderr
-                 "Usage: %s [-s hostname] [-p port-num] [-n n-threads] [-i initial-task-parms] [-a] [-v verbosity]~%"
+                 (%string
+                  "Usage: %s [-s hostname] [-p port-num] [-n n-threads] [-i initial-task-parms] [-a]"
+                  (%if* VERBOSE " [-v verbosity]" %else "")
+                  (%if* PROFILE " [-T timechart-prefix]" %else "")
+                  "~%")
                  (aref argv 0))
   (csym::exit 1))
 
 (def (set-option argc argv) (csym::fn void int (ptr (ptr char)))
   (def i int) (def ch int)
   ;; Default values
-  (= (aref option.sv-hostname 0) #\NULL)
+  (= option.sv-hostname 0)
   (= option.port 9865)
   (= option.num-thrs 1)
   (= option.node-name 0)
@@ -1600,20 +1850,19 @@
   (= option.affinity 0)
   (= option.always-flush-accepted-treq 0)
   (= option.verbose 0)
+  (PROF-CODE
+   (= option.timechart-file 0))
+
   ;; Parse and set options
-  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:N:i:xafP:v:h")))
+  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:N:i:xafP:v:T:h")))
     (switch ch
       (case #\n)                        ; number of threads
       (= option.num-thrs (csym::atoi optarg))
       (break)
 
       (case #\s)                        ; server name
-      (if (csym::strcmp "stdout" optarg)
-          (begin
-            (csym::strncpy option.sv-hostname optarg
-                           HOSTNAME-MAXSIZE)
-            (= (aref option.sv-hostname (- HOSTNAME-MAXSIZE 1)) 0))
-        (= (aref option.sv-hostname 0) #\NULL))
+      (= option.sv-hostname
+	 (if-exp (csym::strcmp "stdout" optarg) optarg 0))
       (break)
 
       (case #\p)                        ; connection port number
@@ -1656,7 +1905,17 @@
       (break)
       
       (case #\v)                        ; verbose level
-      (= option.verbose (csym::atoi optarg))
+      (%if* VERBOSE
+	(= option.verbose (csym::atoi optarg))
+	%else
+	(csym::fprintf stderr "Warning: -v option is invalidated at compile-time.~%"))
+      (break)
+
+      (case #\T)                        ; output time chart
+      (%if* PROFILE
+	(= option.timechart-file optarg)
+	%else
+	(csym::fprintf stderr "Warning: -T option is invalidated at compile-time.~%"))
       (break)
 
       (case #\h)                        ; usage
@@ -1698,6 +1957,161 @@
       (= (fref (aref hlist (- len 1)) next) 0))
   (return))
 
+
+(PROF-CODE
+;;; Initialize (struct aux-data) object pointed by paux by given type and value
+(def (csym::set-aux-data paux aux-type aux-body)
+    (fn void (ptr (struct aux-data)) (enum obj-type) (ptr void))
+  (= paux->type aux-type)
+  (switch aux-type
+    (case OBJ-INT)
+    (= paux->body.aux-int (cast long aux-body))
+    (break)
+    (case OBJ-ADDR)                     ; copy address
+    (csym::copy-address paux->body.aux-addr
+                        (cast (ptr (enum addr)) aux-body))
+    (break)
+    (case OBJ-PADDR)                    ; copy pointer to address
+    (= paux->body.aux-paddr (cast (ptr (enum addr)) aux-body))
+    (break))
+  )
+
+;;; Output (struct aux-data) object pointed by paux to fp.
+(def (csym::print-aux-data fp paux)
+    (fn void (ptr FILE) (ptr (struct aux-data)))
+  (def buf (array char BUFSIZE))
+  (switch paux->type
+    (case OBJ-INT)
+    (csym::fprintf fp " %d" paux->body.aux-int)
+    (break)
+    (case OBJ-ADDR)
+    (csym::serialize-arg buf paux->body.aux-addr)
+    (csym::fputc #\Space fp)
+    (csym::fputs buf fp)
+    (break)
+    (case OBJ-PADDR)
+    (csym::serialize-arg buf paux->body.aux-paddr)
+    (csym::fputc #\Space fp)
+    (csym::fputs buf fp)
+    (break))
+  )
+
+;;; Initialize time counters
+(def (csym::initialize-tcounter thr) (fn void (ptr (struct thread-data)))
+  (def i int)
+  (def tp (struct timeval))
+  (= thr->tcnt-stat TCOUNTER-INIT)
+  (csym::gettimeofday (ptr tp) 0)
+  (for ((= i 0) (< i NKIND-TCOUNTER) (inc i))
+    (= (aref thr->tcnt i) 0)
+    (= (aref thr->tcnt-tp i) tp))
+  (= thr->tc-aux.type OBJ-NULL)
+  )
+
+;;; Set the start a time of tcnt-stat to the current time
+(def (csym::tcounter-start thr tcnt-stat)
+    (fn void (ptr (struct thread-data)) (enum tcounter))
+  (def tp (struct timeval))
+  (csym::gettimeofday (ptr tp) 0)
+  (= (aref thr->tcnt-tp tcnt-stat) tp))
+
+;;; Add time from the last start time of tcnt-stat to the corresponding counter
+;;; Set the start a time of tcnt-stat to the current time
+(def (csym::tcounter-end thr tcnt-stat)
+    (fn void (ptr (struct thread-data)) (enum tcounter))
+  (def tp (struct timeval))
+  (csym::gettimeofday (ptr tp) 0)
+  (+= (aref thr->tcnt tcnt-stat)
+      (csym::diff-timevals (ptr tp) (ptr (aref thr->tcnt-tp tcnt-stat))))
+  (= (aref thr->tcnt-tp tcnt-stat) tp))
+
+;;; (tcounter-end <current state>) and (tcounter-start tcnt-stat)
+;;; at the same time and change the <current state> to tcnt-stat.
+;;; Return the original state.
+;;; aux-type/aux-body is auxiliary data type/body for timechart:
+(def (csym::tcounter-change-state thr tcnt-stat aux-type aux-body)
+    (fn (enum tcounter) (ptr (struct thread-data)) (enum tcounter)
+	(enum obj-type) (ptr void))
+  (def tp (struct timeval))
+  (def tcnt-stat0 (enum tcounter))
+  (defs double tcnt0 tcnt)
+  (= tcnt-stat0 thr->tcnt-stat)               ; old state
+  (if (!= tcnt-stat0 tcnt-stat)
+      (begin
+	(= tcnt0 (aref thr->tcnt tcnt-stat0)) ; total time of old state
+	(csym::gettimeofday (ptr tp) 0)       ; end time of old state
+	(= tcnt (+ tcnt0                      ; increase total time of old state
+		   (csym::diff-timevals (ptr tp)
+					(ptr (aref thr->tcnt-tp tcnt-stat0)))))
+	(= (aref thr->tcnt tcnt-stat0) tcnt)  ; update total time of old state
+	(= (aref thr->tcnt-tp tcnt-stat) tp)  ; set start time of new state
+	(= thr->tcnt-stat tcnt-stat)          ; set the new state of the worker
+	(if thr->fp-tc
+	    ;; Write time chart
+	    (let ((tp0 (ptr (struct timeval))))
+	      (= tp0 (ptr (aref thr->tcnt-tp tcnt-stat0)))
+	      (if (and (== tcnt-stat0 TCOUNTER-INIT)
+		       (== thr->id 0))
+		  (= tp-strt tp))             ; start time of whole execution
+	      ;; Output the previous state name, and the time range of the state.
+	      (csym::fprintf thr->fp-tc "%s %lf %lf"
+			     (aref tcounter-strings tcnt-stat0)
+			     (csym::diff-timevals tp0 (ptr tp-strt))
+			     (csym::diff-timevals (ptr tp) (ptr tp-strt)))
+              ;; Output auxiliary data of the previous state.
+              (csym::fputc #\Space thr->fp-tc)
+              (csym::print-aux-data thr->fp-tc (ptr thr->tc-aux))
+	      (csym::fputc #\Newline thr->fp-tc)
+              ;; Save the given aux data for the next output
+              (csym::set-aux-data (ptr thr->tc-aux) aux-type aux-body)
+	      ))
+	))
+  (return tcnt-stat0))
+
+;;; Initialize event counters
+(def (csym::initialize-evcounter thr) (fn void (ptr (struct thread-data)))
+  (def i int)
+  (for ((= i 0) (< i NKIND-EV) (inc i))
+    (= (aref thr->ev-cnt i) 0))
+  )
+
+;;; Add event counter and output to log file
+(def (csym::evcounter-count thr ev aux-type aux-body)
+    (fn int (ptr (struct thread-data)) (enum event) (enum obj-type) (ptr void))
+  (def tp (struct timeval))
+  (def aux (struct aux-data))
+  (inc (aref thr->ev-cnt ev))
+  (if thr->fp-tc
+      (begin
+        (csym::gettimeofday (ptr tp) 0)
+        (csym::fprintf thr->fp-tc "%s %lf"
+                       (aref ev-strings ev)
+                       (csym::diff-timevals (ptr tp) (ptr tp-strt)))
+        ;; Output auxiliary data of the previous state.
+        (csym::fputc #\Space thr->fp-tc)
+        (csym::set-aux-data (ptr aux) aux-type aux-body)
+        (csym::print-aux-data thr->fp-tc (ptr aux))
+        (csym::fputc #\Newline thr->fp-tc)))
+  (return))
+
+;;; Show time / event counters
+(def (csym::show-counters) (fn void)
+  (defs int i j)
+  (def thr (ptr (struct thread-data)))
+  (for ((= i 0) (< i num-thrs) (inc i))
+    (csym::fprintf stderr "*** Worker %d ***~%" i)
+    (= thr (+ threads i))
+    (for ((= j 0) (< j NKIND-TCOUNTER) (inc j))
+      (csym::fprintf stderr "%s: %lf~%"
+		     (aref tcounter-strings j) (aref thr->tcnt j)))
+    (for ((= j 0) (< j NKIND-EV) (inc j))
+         (csym::fprintf stderr "%s: %ld~%"
+                        (aref ev-strings j) (aref thr->ev-cnt j))))
+  (return))
+
+)                                       ; end PROF-CODE
+
+
 ;; main (entry point)
 ;; Initialize and run all workers and wait for external messages.
 (def (main argc argv) (fn int int (ptr (ptr char)))
@@ -1710,6 +2124,7 @@
   ;; Show compile-time option
   (fprintf stderr (%string "compile-time options: "
                            "VERBOSE=" VERBOSE " "
+                           "PROFILE=" PROFILE " "
                            "NF-TYPE=" NF-TYPE " "
                            "USE-AFFINITY=" USE-AFFINITY
                            "~%"))
@@ -1718,9 +2133,9 @@
   (csym::set-option argc argv)
 
   ;; Connect to a Tascell server
-  (= sv-socket (if-exp (== #\NULL (aref option.sv-hostname 0))
-                       -1
-                       (csym::connect-to option.sv-hostname option.port)))
+  (= sv-socket (if-exp option.sv-hostname
+		   (csym::connect-to option.sv-hostname option.port)
+		 -1))
 
   ;; Initialized mutex attribute
   (def m-attr pthread-mutexattr-t)
@@ -1742,6 +2157,7 @@
           (tx (ptr (struct task)))
           (hx (ptr (struct task-home))))
       (= thr->req 0)
+      (= thr->req-cncl 0)
       (= thr->id i)
       (= thr->w-rack 0)
       (= thr->w-none 0)
@@ -1750,7 +2166,7 @@
       (= thr->probability 1.0)
       (= thr->last-treq i)
       (= thr->last-choose CHS-RANDOM)
-      (= thr->exiting 0)
+      (= thr->exiting EXITING-NORMAL)
       (= thr->exception-tag 0)
       (let ((r double) (q double))
         (= r (csym::sqrt (+ 0.5 i)))
@@ -1777,11 +2193,28 @@
               (csym::malloc (* (sizeof (struct task-home)) TASK-LIST-LENGTH))))
       (csym::initialize-task-home-list hx TASK-LIST-LENGTH
                                        (ptr thr->treq-top) (ptr thr->treq-free))
-      (= thr->sub 0)))
+      (= thr->sub 0)
 
+      ;; open timechart output file
+      (PROF-CODE
+       (if option.timechart-file
+	   (let ((fname (ptr char)) (len int))
+	     (= len (+ (csym::strlen option.timechart-file) 10))
+	     (= fname (csym::malloc (* (sizeof char) len)))
+	     (csym::snprintf fname len "%s-%04d.dat"
+			     option.timechart-file thr->id)
+	     (= thr->fp-tc (csym::fopen fname "w"))
+	     (if (not thr->fp-tc) (csym::perror "Failed to open timechart-file for writing"))
+	     (csym::free fname))
+	 (= thr->fp-tc 0)))
+      ))
+  
   ;; Create and run worker threads
   (for ((= i 0) (< i num-thrs) (inc i))
     (let ((thr (ptr (struct thread-data)) (+ threads i)))
+      (PROF-CODE                       ; initialize time counter
+       (csym::initialize-evcounter thr)
+       (csym::initialize-tcounter thr))
       (systhr-create (ptr thr->pthr-id) worker thr)))
 
   ;; If option.initial-task is given, send a task to the 0-th worker
