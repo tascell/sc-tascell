@@ -704,10 +704,10 @@
   (= tx->task-no task-no)               ; the kind of the task
   (= tx->body body)                     ; task object
   (= tx->stat TASK-INITIALIZED)         ; TASK-ALLOCATED => TASK-INITIALIZED
-  (csym::pthread-mutex-unlock (ptr thr->mut))
 
   ;; Awake the worker thread sleeping to waiting for the task
   (csym::pthread-cond-broadcast (ptr thr->cond))
+  (csym::pthread-mutex-unlock (ptr thr->mut))
   )
 
 
@@ -726,10 +726,10 @@
   (if (> thr->w-none 0)                ; When w-none>0, the recipient has stopped waiting
       (dec thr->w-none)                ; the response to treq
     (= thr->task-top->stat TASK-NONE)) ; TASK-ALLOCATED => TASK-NONE
-  (csym::pthread-mutex-unlock (ptr thr->mut))
 
   ;; Awake the worker thread sleeping to waiting for the task
   (csym::pthread-cond-broadcast (ptr thr->cond))
+  (csym::pthread-mutex-unlock (ptr thr->mut))
   )
 
 
