@@ -387,8 +387,9 @@
         (for ((= k 0) (= m 0) (= commonNum 0) (< k BIT-ITEM) (inc k))
           (= (aref commonItem k) (cast set (bit-and (aref itemSet k) (aref vItem vv k))))
           ;(+= commonNum (csym::countBits32 (aref commonItem k)))
-          (+= commonNum (csym::countBits64 (aref commonItem k)))
-          ;(+= commonNum (csym::_mm_popcnt_u64 (aref commonItem k)))
+          ;(+= commonNum (csym::countBits64 (aref commonItem k)))
+          ;(+= commonNum (csym::_mm_popcnt_u32 (aref commonItem k)))
+          (+= commonNum (csym::_mm_popcnt_u64 (aref commonItem k)))
           (if (== (aref commonItem k) (aref itemSet k))
             (inc m)))
         (if (== m BIT-ITEM)
@@ -618,7 +619,6 @@
   (+= (aref inclusivePruning (fref -thr -> id)) (fref (fref this tsk) numPruning))
   (+= (aref tableReference (fref -thr -> id)) (fref (fref this tsk) numTableReference))
   (%if* DEBUG-TASK (begin
-    ;(csym::fprintf stderr "T-enumCCIG(from %d to %d): %f[sec](%f[sec]), %llu, ID:%d~%" (fref this minVertex) (fref this maxVertex) (csym::elapsedTime tp (+ tp 1)) (csym::elapsedTime (ptr t0) (+ tp 1)) (fref (fref this tsk) numSearch) (fref -thr -> id))
     (csym::fprintf fpTask "%f, %f, %llu~%" (csym::elapsedTime tp (+ tp 1)) (csym::elapsedTime (ptr t0) (+ tp 1)) (fref (fref this tsk) numSearch)))))
 
 ;;; Function: thresholdItem - delete the vertex whose # of items is less than the user-specified threshold
