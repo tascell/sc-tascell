@@ -26,6 +26,7 @@ SUCH DAMAGE.
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include "sock.h"
 #include "sendrecv.h"
@@ -46,6 +47,20 @@ int recv_int(void)
     char buf[16];
     receive_line (buf, 16, sv_socket);
     return atoi(buf);
+}
+
+/**/
+void send_longlong(long long int n)
+{
+  char buf[24];
+  snprintf(buf, 24, "%lld\n", n);
+  send_string(buf, sv_socket);
+}
+long long int recv_longlong(void)
+{
+  char buf[24];
+  receive_line(buf, 24, sv_socket);
+  return atoll(buf);
 }
 
 /**/

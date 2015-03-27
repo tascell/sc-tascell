@@ -11,17 +11,17 @@ extracts all connected subgraphs, each of which shares a common itemset whose
 size is not less than a given threshold, from a given graph in which each 
 vertex is associated to an itemset. For this problem, an efficient sequential 
 backtrack search algorithm called COmmon Pattern Itemset NEtwork mining 
-(COPINE) [Seki et al., BIBE'08] has been already proposed. COPINE reduces the 
-search space of a dynamically growing tree structure by pruning its branches 
-corresponding to the following subgraphs; already visited, having itemsets 
-smaller than a given threshold, and having already-visited supergraphs with 
-identical itemsets. For the third pruning, we use a table associating already-
-visited subgraphs and their itemsets. To avoid excess pruning in a parallel 
-search where a unique set of subtrees (tasks) is assigned to each worker, we 
-should put a certain restriction on a worker when it is referring to a table 
-entry registered by another worker. I designed a parallel algorithm as an 
-extension of COPINE by introducing this restriction, and implemented it using 
-the task-parallel language Tascell [Hiraishi et al., PPoPP'09].
+(COPINE) [J. Sese et al., CIKM'10] has been already proposed. COPINE reduces 
+the search space of a dynamically growing tree structure by pruning its 
+branches corresponding to the following subgraphs; already visited, having 
+itemsets smaller than a given threshold, and having already-visited supergraphs
+with identical itemsets. For the third pruning, we use a table associating 
+already-visited subgraphs and their itemsets. To avoid excess pruning in a 
+parallel search where a unique set of subtrees (tasks) is assigned to each 
+worker, we should put a certain restriction on a worker when it is referring 
+to a table entry registered by another worker. I designed a parallel algorithm
+as an extension of COPINE by introducing this restriction, and implemented it 
+using the task-parallel language Tascell [T. Hiraishi et al., PPoPP'09].
 
 2. Files
 -------------------------
@@ -65,9 +65,9 @@ information about runtime arguments, see each source code.
 
 4. Publication
 -------------------------
-[1] S. Okuno, T. Hiraishi, H. Nakashima, M. Yasugi and J. Sese: Parallelization 
+[1] S. Okuno, T. Hiraishi, H. Nakashima, M. Yasugi and J. Sese: Parallelization
 of Extracting Connected Subgraphs with Common Itemsets, IPSJ Transactions on 
-Programming, Vol. 7, No. 3, pp. 22-39, 2014. (IPSJ Online Transactions, Vol. 7, 
+Programming, Vol. 7, No. 3, pp. 22-39, 2014. (IPSJ Online Transactions, Vol. 7,
 pp. 93-110.).
 
 5. Contact information
