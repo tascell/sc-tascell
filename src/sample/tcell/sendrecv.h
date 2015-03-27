@@ -28,8 +28,14 @@ SUCH DAMAGE.
 #define INT32 int
 #endif
 
+/**/
 void send_int(int n);
 int recv_int(void);
+
+/**/
+void send_longlong(long long int n);
+long long int recv_longlong(void);
+
 /**/
 int send_binary_header (int elmsize, /* size of an element */
                         int nelm )   /* number of elements */;

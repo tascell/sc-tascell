@@ -1840,6 +1840,9 @@
 
 (def (set-option argc argv) (csym::fn void int (ptr (ptr char)))
   (def i int) (def ch int)
+  (decl fp (ptr FILE))
+  (decl buf (array char 256))
+  (decl command (ptr char))
   ;; Default values
   (= option.sv-hostname 0)
   (= option.port 9865)
@@ -1912,8 +1915,18 @@
       (break)
 
       (case #\T)                        ; output time chart
-      (%if* PROFILE
+      (= command "hostname -s")
+      (if (== (= fp (csym::popen command "r")) NULL)
+        (begin
+          (csym::fprintf stderr "popen errer!~%")
+          (exit EXIT-FAILURE)))
+      (csym::fgets buf 256 fp)
+      (csym::strtok buf "~%")
+      (cast void (csym::pclose fp))
+
+      (%if* PROFILE (begin
 	(= option.timechart-file optarg)
+        (csym::strcat option.timechart-file buf))
 	%else
 	(csym::fprintf stderr "Warning: -T option is invalidated at compile-time.~%"))
       (break)
