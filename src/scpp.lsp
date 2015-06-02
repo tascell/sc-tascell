@@ -350,6 +350,7 @@
 	(let ((*extracting-macro* (cons macsymbol *extracting-macro*)))
 	  (scpp-1exp (macroexpand-1 (cons macsymbol (cdr x)))))
       ;; Cons to which no macro can be applied.
-      (list (scpp-list x))))
+      (let ((*extracting-macro* ()))
+	(list (scpp-list x)))))
    ;; Atom other than symbol (e.g., number string)
    (t (list x))))
