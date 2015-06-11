@@ -43,7 +43,7 @@
 (c-exp "#include<math.h>")
 (c-exp "#include<pthread.h>")
 (c-exp "#include<sys/time.h>")
-(c-exp "#include<getopt.h>")
+(c-exp "#include<unistd.h>")
 (%ifdef* USEMPI (c-exp "#include <mpi.h>"))
 (%cinclude "sock.h")
 
