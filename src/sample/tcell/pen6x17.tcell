@@ -37,7 +37,7 @@
 (%defconstant ASIZE 20)
 (%defconstant BSIZE 119)
 
-(%defconstant USE-PROBABILITY 1)
+(%defconstant USE-PROBABILITY 0)
 
 (def (pen-probability j maxp)
      (fn double int int)
@@ -77,7 +77,7 @@
   (def maxp int this.maxp)
   (def maxk int this.maxk)
   (DEBUG-PRINT 1 "start %d %d %d %d %d %d~%" k i0 i1 i2 maxp maxk)
-  (%ifdef* USE-PROBABILITY
+  (%if* USE-PROBABILITY
     (= PROBABILITY (pen-probability i0 maxp)))
   (= this.r (search k i0 i1 i2 maxp maxk (ptr this)))
   (DEBUG-PRINT 1 "end %d~%" this.r))
@@ -120,7 +120,7 @@
   (for ((< kk BSIZE) (inc kk)) (if (== (aref pen.b kk) 0)
                                    (= (aref pen.b kk) #\*)))
   (= pen.maxp maxp)
-  (%ifdef* USE-PROBABILITY
+  (%if* USE-PROBABILITY
     (= PROBABILITY 1.0))
   (csym::gettimeofday tp 0)
   (= this.r (search 0 0 0 maxp maxp pen.maxk (ptr pen)))
@@ -267,7 +267,7 @@
     ;; put/get pentomino task/result
     (handles pentomino
       (:put from i1 to i2
-        (%ifdef* USE-PROBABILITY
+        (%if* USE-PROBABILITY
           (= PROBABILITY (pen-probability j0 maxp)))
         (= this (mref tsk))
         (= this.k k)
