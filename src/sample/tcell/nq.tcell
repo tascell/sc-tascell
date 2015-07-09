@@ -38,7 +38,7 @@
 ;; Use "user defined spawned range"
 (%defconstant USE-SPN-RANGE 0)
 ;; Use "Probability guard"
-(%defconstant USE-PROBGUARD 1)
+(%defconstant USE-PROBGUARD 0)
 
 (def (csym::my-probability n k) (fn double int int)
   (if (>= k 2)
@@ -149,7 +149,7 @@
   (def k int this.k)
   (decl tp (array (struct timeval) 2))
   (if (> option.verbose 0) (csym::fprintf stderr "start %d %d %d %d~%" n k this.i1 this.i2))
-  (%ifdef* USE-PROBGUARD
+  (%if* USE-PROBGUARD
     (= PROBABILITY (csym::my-probability n k)))
   (if (< k 0)
       (begin
