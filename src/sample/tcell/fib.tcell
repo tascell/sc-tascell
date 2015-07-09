@@ -30,9 +30,9 @@
 (c-exp "#include<sys/time.h>")
 
 ;; ワーカごとに処理したタスクの数をカウントして表示
-;; (%defconstant COUNT-NTASK 1)
+(%defconstant COUNT-NTASK 0)
 ;; Probability guardを使う
-(%defconstant USE-PROBGUARD 1)
+(%defconstant USE-PROBGUARD 0)
 
 (%ifndef* NF-TYPE
   (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
@@ -51,16 +51,16 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(%ifdef* COUNT-NTASK
+(%if* COUNT-NTASK
   (def worker-data
-      (def n-task int))
+      (def n-task long))
   (def worker-init
       (= WDATA.n-task 0))
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def N0 int 0)
+(def N0 long 0)
 (def (csym::my-probability n) (fn double int)
   (if (< n 20)
     (return (/ (cast double n) 20.0))
@@ -70,32 +70,32 @@
   ;   (return 0.0)
   ;   (return 1.0)))
   
-(decl (fib n) (wfn int int))
+(decl (fib n) (wfn long long))
   
 (def (task fib)
-  (def n int :in)
-  (def r int :out))
+  (def n long :in)
+  (def r long :out))
 
 (def (task-body fib)
     ;;(csym::fprintf stderr "start fib(%d)~%" (fref this n))
-  (%ifdef* COUNT-NTASK
+  (%if* COUNT-NTASK
     (++ WDATA.n-task)
     (csym::fprintf stderr "%d starts %d-th task.~%" WORKER-ID WDATA.n-task))
-  (%ifdef* USE-PROBGUARD
+  (%if* USE-PROBGUARD
     (= PROBABILITY (csym::my-probability this.n)))
   (= this.r (fib this.n))
   )
 
 (def (task fib-start)
-  (def n int :in)
-  (def r int :out))
+  (def n long :in)
+  (def r long :out))
 
 (def (task-body fib-start)
   (decl tp (array (struct timeval) 2))
-  (csym::fprintf stderr "start fib(%d)~%" this.n)
-  (%ifdef* COUNT-NTASK
+  (csym::fprintf stderr "start fib(%ld)~%" this.n)
+  (%if* COUNT-NTASK
     (++ WDATA.n-task)
-    (csym::fprintf stderr "%d starts %d-th task.~%" WORKER-ID WDATA.n-task))
+    (csym::fprintf stderr "%d starts %ld-th task.~%" WORKER-ID WDATA.n-task))
   (= N0 this.n)
   (csym::gettimeofday tp 0)
   (= this.r (fib this.n))
@@ -118,18 +118,18 @@
     ;;(csym::fprintf stderr "receive fib(%d)=%d~%" this.n this.r)
     )
 
-(def (fib n) (wfn int int)
+(def (fib n) (wfn long long)
   (if (<= n 2)
       (return 1)
     (begin
-      (def s1 int)
-      (def s2 int)
+      (def s1 long)
+      (def s2 long)
       (do-two
           (= s1 (fib (- n 1)))
 	  (= s2 (fib (- n 2)))
         (handles fib
          (:put
-          (%ifdef* USE-PROBGUARD
+          (%if* USE-PROBGUARD
             (= PROBABILITY (csym::my-probability (- n 2))))
           (= this.n (- n 2)))
          (:get (= s2 this.r))))
