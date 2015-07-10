@@ -1918,7 +1918,7 @@
       (= command "hostname -s")
       (if (== (= fp (csym::popen command "r")) NULL)
         (begin
-          (csym::fprintf stderr "popen errer!~%")
+          (csym::fprintf stderr "popen error!~%")
           (exit EXIT-FAILURE)))
       (csym::fgets buf 256 fp)
       (csym::strtok buf "~%")
