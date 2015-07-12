@@ -1628,6 +1628,8 @@
 	  (csym::copy-address (aref rcmd.v 1) cur->task-head) ; <recipient>
 	  (csym::send-command (ptr rcmd) 0 0)
 	  (= cur->msg-cncl 2)
+	  (PROF-CODE
+	   (csym::evcounter-count thr EV-SEND-CNCL OBJ-PADDR cur->task-head))
 	  (inc count) )))
   (return count) )
 
