@@ -94,6 +94,17 @@
   (def threshold long :in)
   (def r long :out))
 
+(def (csym::fib-seq n) (csym::fn long long)
+  (def s int 1)
+  (def n1 int 1)
+  (def n2 int)
+  (def i int)
+  (for ((= i 3) (<= i n) (inc i))
+    (= n2 n1)
+    (= n1 s)
+    (= s (+ n1 n2)))
+  (return s))
+
 (def (task-body fib-start)
   (decl tp (array (struct timeval) 2))
   (csym::fprintf stderr "start fib(%ld)~%" this.n)
@@ -101,8 +112,9 @@
     (++ WDATA.n-task)
     (csym::fprintf stderr "%d starts %ld-th task.~%" WORKER-ID WDATA.n-task))
   (= N0 this.n)
-  (= Threshold (/ (* 20365011074 this.threshold) 100))
-  (csym::fprintf stderr "Threshold: %ld %ld~%" this.threshold Threshold)
+  (= Threshold (/ (* (csym::fib-seq this.n) this.threshold) 100))
+  (csym::fprintf stderr "Threshold: %ld * %ld / 100 = %ld~%"
+		 (csym::fib-seq this.n) this.threshold Threshold)
   (csym::gettimeofday tp 0)
   (= (aref Tp 0) (aref tp 0))
   (catch 1
