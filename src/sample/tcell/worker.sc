@@ -1592,10 +1592,11 @@
 
 
 ;; Start temporary backtracking to spawn tasks
+;; Called from handle-reqs after acquiring -thr->mut
 (def (handle-req -bk -thr)
     (fn void (ptr (NESTFN int void)) (ptr (struct thread-data)))
-  (csym::pthread-mutex-lock (ptr -thr->mut))
-  (if -thr->req
+  (if (and -thr->req
+	   (not -thr->task-top->cancellation))
       (begin
 	(= -thr->exiting EXITING-SPAWN)
 	(PROF-CODE
@@ -1605,7 +1606,7 @@
 	 (csym::tcounter-change-state -thr TCOUNTER-EXEC OBJ-NULL 0))
 	(= -thr->exiting EXITING-NORMAL)
 	(= -thr->req -thr->treq-top) ))
-  (csym::pthread-mutex-unlock (ptr -thr->mut)))
+  )
 
 ;; Send a cncl message for each flagged subtask spawned by "thr"
 ;; The mutex thr->mut must be acquired before calling.
@@ -1634,16 +1635,16 @@
   (return count) )
 
 ;; Check -thr's subtask queue and send a cncl message for each flagged subtask
+;; Called from handle-reqs after acquiring -thr->mut
 (def (handle-req-cncl -bk -thr)
     (fn void (ptr (NESTFN int void)) (ptr (struct thread-data)))
-  (csym::pthread-mutex-lock (ptr -thr->mut))
   (if -thr->req-cncl
       (begin
 	(DEBUG-PRINT 1 "(%d): (Thread %d) detected cncl message request~%"
 		     (csym::get-universal-real-time) -thr->id)
 	(csym::send-cncl-for-flagged-subtasks -thr)
 	(= -thr->req-cncl 0) ))
-  (csym::pthread-mutex-unlock (ptr -thr->mut)))
+  )
 
 ;; Start propagating an exception. Invoked by a Tascell throw statement.
 (def (handle-exception -bk -thr excep)
@@ -1652,12 +1653,14 @@
   (= -thr->exception-tag excep)
   (PROF-CODE
    (csym::tcounter-change-state -thr TCOUNTER-EXCP OBJ-INT (cast (ptr void) (cast long excep))))
-  (-bk)) ; never returns
+  (-bk) ; never returns
+  (csym::perror "Unexpectedly returned from backtracking for an exception.")
+  )
 
-;; Check (partial) cancellation flags and abort if needed.
+;; Check (partial) cancellation lags and abort if needed.
+;; Called from handle-reqs after acquiring -thr->mut
 (def (handle-cancellation -bk -thr)
     (fn void (ptr (NESTFN int void)) (ptr (struct thread-data)))
-  (csym::pthread-mutex-lock (ptr -thr->mut))
   (if -thr->task-top->cancellation
       (begin
 	(DEBUG-PRINT 1 "(%d): (Thread %d) detected cancellation flag (%d)~%" 
@@ -1667,10 +1670,25 @@
 	 (csym::tcounter-change-state -thr TCOUNTER-ABRT
 				      OBJ-INT (cast (ptr void) (cast long -thr->task-top->cancellation))))
 	(csym::pthread-mutex-unlock (ptr -thr->mut))
-	(-bk)))  ; never returns
+	(-bk)  ; never returns
+	(csym::perror "Unexpectedly returned from backtracking for abortion.")
+	)))
+
+;; Called when at least one of the request flags:
+;; * -thr->req
+;; * -thr->req-cncl
+;; * -thr->task-top->cancellation
+;; are found to be raised by checking without acquiring -thr->mut.
+;; Calls these request handlers after aquiring this mutex lock.
+(def (handle-reqs -bk -thr)
+    (fn void (ptr (NESTFN int void)) (ptr (struct thread-data)))
+  (csym::pthread-mutex-lock (ptr -thr->mut))
+  (handle-req -bk -thr)            ; request for spawning tasks
+  (handle-req-cncl -bk -thr)       ; request for sending CNCL messages
+  (handle-cancellation -bk -thr)   ; request for aborting the task being executed
   (csym::pthread-mutex-unlock (ptr -thr->mut))
   )
-
+  
 
 ;; Make a task message and send it.
 ;; (The recipient is determined by the top of the task request stack)
@@ -1770,16 +1788,18 @@
       ;; Just wait for the subtask finishing
       (csym::pthread-cond-wait (ptr thr->cond-r) (ptr thr->mut)))
     )
-  (PROF-CODE
-   (csym::tcounter-change-state thr tcnt-stat OBJ-NULL 0))
-
   ;; When the subtask has thrown an exception, propagate it
   (if (== sub->stat TASK-HOME-EXCEPTION)
       (begin
 	(= thr->exiting EXITING-EXCEPTION)
 	(= thr->exception-tag sub->exception-tag)
 	(dec sub->owner->cancellation)  ; take the partial cancellation flag
+	(PROF-CODE
+	 (= tcnt-stat TCOUNTER-EXCP))
 	))
+  (PROF-CODE
+   (csym::tcounter-change-state thr tcnt-stat OBJ-NULL 0))
+
   ;; When the subtask is abnormally exited, a task object is not returned as the result
   (if (or (== sub->stat TASK-HOME-EXCEPTION)
 	  (== sub->stat TASK-HOME-ABORTED))
