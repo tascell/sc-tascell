@@ -61,10 +61,10 @@
          (static n-waiting-data int 0)) ; # dreq handlers waiting data
 
 ;;; Variables for distributed memory environments
-(%defconstant OUTER_TREQ-ANY_THRESHOLD 1)
+(%defconstant OUTER_TREQ-ANY_THRESHOLD 0)
 (%defconstant OUTER_TREQ-ANY_PROB 0)
 
-(%defconstant THRESHOLD-OUTER-TASK 2)
+(%defconstant THRESHOLD-OUTER-TASK 0)
 (def numTaskFromOutside int 0)
 (%defconstant PROB-TREQ-ANY-IN_OUT 0.00)
 (def doneSrandom (volatile int) 0)
@@ -85,7 +85,7 @@
 
 ;;;; Constatnts for stback
 (%defconstant WAIT-STBACK-INSIDE  (* 0 (* 1 1000)))
-(%defconstant WAIT-STBACK-OUTSIDE (* 1000 (* 1000 1000)))
+(%defconstant WAIT-STBACK-OUTSIDE (* 1 (* 1 1000)))
 
 
 ;;;; Worker threads
