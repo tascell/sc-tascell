@@ -60,6 +60,18 @@
          (static n-sending-data int 0)  ; # dreq handlers sending data
          (static n-waiting-data int 0)) ; # dreq handlers waiting data
 
+;;; Variables for distributed memory environments
+(%defconstant OUTER_TREQ-ANY_THRESHOLD 1)
+(%defconstant OUTER_TREQ-ANY_PROB 0)
+
+(%defconstant THRESHOLD-OUTER-TASK 2)
+(def numTaskFromOutside int 0)
+(%defconstant PROB-TREQ-ANY-IN_OUT 0.00)
+(def doneSrandom (volatile int) 0)
+
+(decl outerTaskMutex pthread_mutex_t)
+(def initedOuterTaskMutex (volatile int) 0)
+
 
 (%defmacro xread (tp exp)
   `(mref (cast (ptr (volatile ,tp)) (ptr ,exp))))
@@ -71,6 +83,10 @@
     (csym::pthread-mutex-lock ,pmut)
     ))
 
+;;;; Constatnts for stback
+(%defconstant WAIT-STBACK-INSIDE  (* 0 (* 1 1000)))
+(%defconstant WAIT-STBACK-OUTSIDE (* 1000 (* 1000 1000)))
+
 
 ;;;; Worker threads
 (def threads (array (struct thread-data) 128))
@@ -80,7 +96,8 @@
 (def random-seed2 double 3.638732)
 ;;;; Start time of the first task execution
 (PROF-CODE
- (def tp-strt (struct timeval)))
+  (def tp-strt (struct timeval))
+  (def tp-strt-inited int 0))
 
 ;; Random integer in [0, max-1]
 (def (csym::my-random max pseed1 pseed2) (fn int int (ptr double) (ptr double))
@@ -415,6 +432,34 @@
   (= rcmd.node req-to) ; internal (INSIDE) or external (OUTSIDE)
   (= rcmd.w TREQ)
   (= (aref rcmd.v 0 0) thr->id)
+
+  (%if* OUTER_TREQ-ANY-THRESHOLD (begin
+    (if (not initedOuterTaskMutex)
+      (begin
+        (= initedOuterTaskMutex 1)
+        (csym::pthread_mutex_init (ptr outerTaskMutex) NULL)))
+    (if (and (< numTaskFromOutside THRESHOLD-OUTER-TASK) (== thr->task-top->next NULL))
+      (begin
+        (= rcmd.node OUTSIDE)
+        (csym::fprintf stderr "send-treq-to-init-task: THRESHOLD-OUTER-TASK!~%")))))
+
+  (%if* OUTER_TREQ-ANY_PROB (begin
+    (if (and (== thr->task-top->next NULL) (== rcmd.node INSIDE))
+      (begin
+        (csym::fprintf stderr "___TREQ ANY___~%")
+        (if (not doneSrandom)
+          (begin
+            (= doneSrandom 1)
+            (csym::srand48 (csym::time NULL))))
+        (if (< (csym::drand48) PROB-TREQ-ANY-IN_OUT)
+          (begin
+            (= rcmd.node OUTSIDE)
+            (csym::fprintf stderr "PROB: INSIDE -> OUTSIDE!~%")))))))
+
+(if (and (== rcmd.node OUTSIDE) (== thr->task-top->next NULL))
+  (csym::fprintf stderr "OUTSIDE: TREQ-ANY~%"))
+(if (and (== rcmd.node OUTSIDE) (!= thr->task-top->next NULL))
+  (csym::fprintf stderr "OUTSIDE: TREQ-BK~%"))
   (if (and (!= req-to ANY) thr->sub)
       (begin
 	;; If the task request is a stealing back, add the id of
@@ -436,6 +481,19 @@
      (csym::pthread-mutex-unlock (ptr thr->mut))
      (csym::send-command (ptr rcmd) 0 0) ; Send treq
      (csym::pthread-mutex-lock (ptr thr->mut)))
+
+     (%if* OUTER_TREQ-ANY_THRESHOLD (begin
+       (if (not initedOuterTaskMutex)
+         (begin
+           (= initedOuterTaskMutex 1)
+           (csym::pthread_mutex_init (ptr outerTaskMutex) NULL)))
+       (if (and (== rcmd.node OUTSIDE) (== thr->task-top->next NULL))
+         (begin
+           (csym::pthread_mutex_lock (ptr outerTaskMutex))
+           (inc numTaskFromOutside)
+           (csym::pthread_mutex_unlock (ptr outerTaskMutex))
+           (csym::fprintf stderr "send_treq_to_outside: %d~%" numTaskFromOutside)))))
+
     ;; Wait for *tx being initialized in recv-task invoked by a sender worker thread
     ;; (internal task message) or the message handler (external task message)
     (loop
@@ -585,6 +643,19 @@
                              ; [2]:exception-tag (meaningful only when [1]==1)
 	(csym::send-command (ptr rcmd) tx->body tx->task-no)
 	(csym::pthread-mutex-lock (ptr thr->rack-mut))
+
+        (%if* OUTER_TREQ-ANY_THRESHOLD (begin
+          (if (not initedOuterTaskMutex)
+            (begin
+              (= initedOuterTaskMutex 1)
+              (csym::pthread_mutex_init (ptr outerTaskMutex) NULL)))
+          (if (and (== tx->rslt-to OUTSIDE) (== thr->task-top->next NULL))
+            (begin
+              (csym::pthread_mutex_lock (ptr outerTaskMutex))
+              (dec numTaskFromOutside)
+              (csym::pthread_mutex_unlock (ptr outerTaskMutex))
+              (csym::fprintf stderr "sent_rslt_to_outside: %d~%" numTaskFromOutside)))))
+
 	(inc thr->w-rack) ; Increase w-rack counter. This is decreased when the worker
 	                  ; receives a rack message as a reply to the rslt. While this
                           ; counter is larger than zero, the worker does not spawn a
@@ -723,9 +794,25 @@
       (csym::proto-error "Wrong task-head" pcmd))
   (= thr (+ threads id))
   (csym::pthread-mutex-lock (ptr thr->mut))
-  (if (> thr->w-none 0)                ; When w-none>0, the recipient has stopped waiting
-      (dec thr->w-none)                ; the response to treq
-    (= thr->task-top->stat TASK-NONE)) ; TASK-ALLOCATED => TASK-NONE
+  ;(if (> thr->w-none 0)                ; When w-none>0, the recipient has stopped waiting
+  ;    (dec thr->w-none)                ; the response to treq
+  ;  (= thr->task-top->stat TASK-NONE)) ; TASK-ALLOCATED => TASK-NONE
+  (if (> thr->w-none 0)                 ; When w-none>0, the recipient has stopped waiting
+    (begin
+      (dec thr->w-none))                ; the response to treq
+    (begin 
+      (= thr->task-top->stat TASK-NONE) ; TASK-ALLOCATED => TASK-NONE
+      (%if* OUTER_TREQ-ANY_THRESHOLD (begin
+        (if (not initedOuterTaskMutex)
+          (begin
+            (= initedOuterTaskMutex 1)
+            (csym::pthread_mutex_init (ptr outerTaskMutex) NULL)))
+        (if (and (== pcmd->node OUTSIDE) (== thr->task-top->next NULL))
+          (begin
+            (csym::pthread_mutex_lock (ptr outerTaskMutex))
+            (dec numTaskFromOutside)
+            (csym::pthread_mutex_unlock (ptr outerTaskMutex))
+            (csym::fprintf stderr "could_not_receive_a_task_from_outside: %d~%" numTaskFromOutside)))))))
 
   ;; Awake the worker thread sleeping to waiting for the task
   (csym::pthread-cond-broadcast (ptr thr->cond))
@@ -980,22 +1067,22 @@
   (cond
    ;; ANY
    ((== dst0 ANY)
-    (let ((myid int) (start-id int) (d int) (id int))
-      (= myid (aref pcmd->v 0 0))           ; extract <sender>
-      (= start-id (csym::choose-treq myid)) ; choose the first candidate worker
-      (for ((= d 0) (< d num-thrs) (inc d))
-        (= id (% (+ d start-id) num-thrs))  ; the candidate worker id
-        (if (and (!= pcmd->node OUTSIDE)
-                 (== id myid))
-            (continue))                     ; skip the treq sender
-        (if (csym::try-treq pcmd id)        ; try and handle request for the id-th worker
-            (begin
+     (let ((myid int) (start-id int) (d int) (id int))
+       (= myid (aref pcmd->v 0 0))           ; extract <sender>
+       (= start-id (csym::choose-treq myid)) ; choose the first candidate worker
+       (for ((= d 0) (< d num-thrs) (inc d))
+         (= id (% (+ d start-id) num-thrs))  ; the candidate worker id
+         (if (and (!= pcmd->node OUTSIDE)
+           (== id myid))
+           (continue))                       ; skip the treq sender
+         (if (csym::try-treq pcmd id)        ; try and handle request for the id-th worker
+           (begin
              (DEBUG-PRINT 2 "(%d): treq(any) %d->%d... accepted.~%"
                           (csym::get-universal-real-time) myid id)
              (break)))
-        (DEBUG-PRINT 4 "(%d): treq(any) %d->%d... refused.~%"
+         (DEBUG-PRINT 4 "(%d): treq(any) %d->%d... refused.~%"
                      (csym::get-universal-real-time) myid id)
-        )
+         )
       (if (< d num-thrs)                    ; Return if the treq is accepted
           (return))))
    ;; An arbitrary worker (= stealing back request)
@@ -1760,20 +1847,29 @@
 	(begin
 	  (csym::set-cancelled thr thr->task-top sub->eldest)
 	  (csym::send-cncl-for-flagged-subtasks thr)))
-    ;; Wait for a moment if the victim is an external worker.
-    (if (== OUTSIDE sub->req-from)
-	(let ((now (struct timeval))
-	      (t-until (struct timespec)))
-	  (csym::gettimeofday (ptr now) 0)
-	  (csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) 1000)
-	  (csym::pthread-cond-timedwait (ptr thr->cond-r) (ptr thr->mut)
-					(ptr t-until))
-	  ))
     ;; Quit if the subtask is finished or aborted.
     (if (or (== sub->stat TASK-HOME-DONE)
 	    (== sub->stat TASK-HOME-EXCEPTION)
 	    (== sub->stat TASK-HOME-ABORTED)) 
 	(break))
+    ;; Wait for a moment if the victim is an internal worker.
+    (if (== INSIDE sub->req-from)
+	(let ((now (struct timeval))
+	      (t-until (struct timespec)))
+	  (csym::gettimeofday (ptr now) 0)
+	  (csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) WAIT-STBACK-INSIDE)
+	  (csym::pthread-cond-timedwait (ptr thr->cond-r) (ptr thr->mut)
+					(ptr t-until))
+	  ))
+    ;; Wait for a moment if the victim is an external worker.
+    (if (== OUTSIDE sub->req-from)
+	(let ((now (struct timeval))
+	      (t-until (struct timespec)))
+	  (csym::gettimeofday (ptr now) 0)
+	  (csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) WAIT-STBACK-OUTSIDE)
+	  (csym::pthread-cond-timedwait (ptr thr->cond-r) (ptr thr->mut)
+					(ptr t-until))
+	  ))
     (if stback
         ;; Steal and execute a task
 	(begin
@@ -2086,8 +2182,10 @@
 	    (let ((tp0 (ptr (struct timeval))))
 	      (= tp0 (ptr (aref thr->tcnt-tp tcnt-stat0)))
 	      (if (and (== tcnt-stat0 TCOUNTER-INIT)
-		       (== thr->id 0))
-		  (= tp-strt tp))             ; start time of whole execution
+		       (== tp-strt-inited 0))  ;(== thr->id 0))
+                (begin
+                  (= tp-strt-inited 1)
+		  (= tp-strt tp)))             ; start time of whole execution
 	      ;; Output the previous state name, and the time range of the state.
 	      (csym::fprintf thr->fp-tc "%s %lf %lf"
 			     (aref tcounter-strings tcnt-stat0)

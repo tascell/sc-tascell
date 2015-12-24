@@ -64,17 +64,31 @@ long recv_long(void)
 }
 
 /**/
-void send_longlong(long long int n)
+void send_uint32(uint32_t n)
 {
-  char buf[24];
-  snprintf(buf, 24, "%lld\n", n);
-  send_string(buf, sv_socket);
+    char buf[16];
+    snprintf (buf, 16, "%lu\n", n);
+    send_string (buf, sv_socket);
 }
-long long int recv_longlong(void)
+uint32_t recv_uint32(void)
 {
-  char buf[24];
-  receive_line(buf, 24, sv_socket);
-  return atoll(buf);
+    char buf[16];
+    receive_line (buf, 16, sv_socket);
+    return strtoul(buf, (char **)NULL, 10);
+}
+
+/**/
+void send_uint64(uint64_t n)
+{
+    char buf[24];
+    snprintf (buf, 24, "%llu\n", n);
+    send_string (buf, sv_socket);
+}
+uint64_t recv_uint64(void)
+{
+    char buf[24];
+    receive_line (buf, 24, sv_socket);
+    return strtoull(buf, (char **)NULL, 10);
 }
 
 /**/

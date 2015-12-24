@@ -24,6 +24,8 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGE.
 */
 
+#include <stdint.h>
+
 #ifndef INT32
 #define INT32 int
 #endif
@@ -33,8 +35,12 @@ void send_int(int n);
 int recv_int(void);
 
 /**/
-void send_longlong(long long int n);
-long long int recv_longlong(void);
+void send_uint32(uint32_t n);
+uint32_t recv_uint32(void);
+
+/**/
+void send_uint64(uint64_t n);
+uint64_t recv_uint64(void);
 
 /**/
 int send_binary_header (int elmsize, /* size of an element */

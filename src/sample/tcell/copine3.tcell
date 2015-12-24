@@ -71,8 +71,8 @@
 ;;; Constants
 (%defconstant E-SIZE 500000)               ; # of edges
 (%defconstant V-SIZE 15500)                ; # of vertices
-(%defconstant BIT-LEN 64)                  ; bit length of bitset
-(%defconstant BIT-ITEM 3)                  ; # of items = BIT-ITEM * BIT-LEN
+(%defconstant BIT-LEN 32)                  ; bit length of bitset
+(%defconstant BIT-ITEM 5)                  ; # of items = BIT-ITEM * BIT-LEN
 (%defconstant BIT-EDGE 8125)               ; # of edges = BIT-EDGE * BIT-LEN
 (%defconstant BIT-VERTEX 625)              ; # of vertices = BIT-VERTEX * BIT-LEN
 (%defconstant I-SIZE (* BIT-LEN BIT-ITEM)) ; 
@@ -87,7 +87,7 @@
 (%defconstant DEBUG-COPY 0) ; flag to output copy file
 
 ;;; Typedef
-(deftype set uint64_t)        ; bitset
+(deftype set uint32_t)        ; bitset
 (deftype vtx uint32_t)        ; vertex
 (deftype task-id __uint128_t) ; task ID
 
@@ -437,7 +437,8 @@
         (for ((= k 0) (= m 0) (= commonNum 0) (< k BIT-ITEM) (inc k))
           (= (aref commonItem k) (cast set (bit-and (aref itemSet k) (aref vItem vv k))))
           ;(+= commonNum (csym::countBits32 (aref commonItem k)))
-          (+= commonNum (csym::countBits64 (aref commonItem k)))
+          ;(+= commonNum (csym::countBits64 (aref commonItem k)))
+          (+= commonNum (csym::_mm_popcnt_u32 (aref commonItem k)))
           ;(+= commonNum (csym::_mm_popcnt_u64 (aref commonItem k)))
           (if (== (aref commonItem k) (aref itemSet k))
             (inc m)))
@@ -605,7 +606,8 @@
         (for ((= k 0) (= m 0) (= commonNum 0) (< k BIT-ITEM) (inc k))
           (= (aref commonItem k) (cast set (bit-and (aref itemSet k) (aref vItem vv k))))
           ;(+= commonNum (csym::countBits32 (aref commonItem k)))
-          (+= commonNum (csym::countBits64 (aref commonItem k)))
+          ;(+= commonNum (csym::countBits64 (aref commonItem k)))
+          (+= commonNum (csym::_mm_popcnt_u32 (aref commonItem k)))
           ;(+= commonNum (csym::_mm_popcnt_u64 (aref commonItem k)))
           (if (== (aref commonItem k) (aref itemSet k))
             (inc m)))
@@ -1543,7 +1545,7 @@
   (for ((< (+ i loopRange) maxVertex) (+= i loopRange))
     (enumCCIG i (+ i loopRange) (ptr tsk))
 
-    (for ((= k minVertex) (< k (+ maxVertex 1)) (inc k))
+    (for ((= k i) (< k (+ loopRange i)) (inc k))
       (= ITptr (fref (fref (aref vItemTable k) head) -> next))
       (while (!= ITptr (fref (aref vItemTable k) head))
         (= (fref ITptr -> minID) (cast task-id 0))
