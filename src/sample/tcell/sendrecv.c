@@ -50,6 +50,20 @@ int recv_int(void)
 }
 
 /**/
+void send_long(long n)
+{
+    char buf[16];
+    snprintf (buf, 16, "%ld\n", n);
+    send_string (buf, sv_socket);
+}
+long recv_long(void)
+{
+    char buf[16];
+    receive_line (buf, 16, sv_socket);
+    return atol(buf);
+}
+
+/**/
 void send_longlong(long long int n)
 {
   char buf[24];

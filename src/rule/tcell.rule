@@ -39,19 +39,13 @@
        (let ((pg (mapcar #'external-declaration decl-list)))
          (append
           (list ~(%include "rule/tcell.sh")
-                ~(decl (handle-req) (fn void
-                                        (ptr ,(tcell:nestfunc-type))
-                                        (ptr (struct thread-data))))
-                ~(decl (handle-req-cncl) (fn void
-					     (ptr ,(tcell:nestfunc-type))
-					     (ptr (struct thread-data))))
-                ~(decl (handle-exception) (fn void
+                ~(decl (handle-reqs) (fn void
+					 (ptr ,(tcell:nestfunc-type))
+					 (ptr (struct thread-data))))
+		~(decl (handle-exception) (fn void
 					      (ptr ,(tcell:nestfunc-type))
 					      (ptr (struct thread-data))
 					      long))
-                ~(decl (handle-cancellation) (fn void
-						 (ptr ,(tcell:nestfunc-type))
-						 (ptr (struct thread-data))))
 		)
           pg
           ;; データ系の関数が定義されてなければ空定義の関数を追加する
@@ -258,18 +252,13 @@
 		(return 1)))
             (return 0))
 	    ;; --- Nestfunc End -->
-	    ;; Polling for cancel message requests
-	    (if -thr->req-cncl
+	    ;; Polling for cancel message requests, cancellation flags,
+	    ;; and task requests.
+	    (if (or -thr->req-cncl
+		    -thr->task-top->cancellation
+		    -thr->req)
 		,(tcell:with-new-bk bk-id
-		   (wfn-add-argids ~(handle-req-cncl))))
-	    ;; Polling for cancellation flags
-	    (if -thr->task-top->cancellation
-		,(tcell:with-new-bk bk-id
-		   (wfn-add-argids ~(handle-cancellation))))
-	    ;; Polling for task requests
-	    (if -thr->req
-		,(tcell:with-new-bk bk-id
-	           (wfn-add-argids ~(handle-req))))
+		   (wfn-add-argids ~(handle-reqs))))
 	    ,b-stat1)
 	  (if ,spn-id
 	      ;; If a subtask is spawned, wait for the result.
@@ -359,18 +348,13 @@
              (csym::make-and-send-task -thr ,(tcell:task-no) pthis (== ,spn-id 1)))
            (return 0))
 	 ;; --- Nestfunc End -->
-	 ;; Polling for cancel message requests
-         (if -thr->req-cncl
-             ,(tcell:with-new-bk bk-id
-                (wfn-add-argids ~(handle-req-cncl))))
-	 ;; Polling for cancellation flags
-         (if -thr->task-top->cancellation
-             ,(tcell:with-new-bk bk-id
-                (wfn-add-argids ~(handle-cancellation))))
-	 ;; Polling for task requests
-         (if -thr->req
-             ,(tcell:with-new-bk bk-id
-                (wfn-add-argids ~(handle-req))))
+	 ;; Polling for cancel message requests, cancellation flags,
+	 ;; and task requests.
+	 (if (or -thr->req-cncl
+		 -thr->task-top->cancellation
+		 -thr->req)
+	     ,(tcell:with-new-bk bk-id
+	        (wfn-add-argids ~(handle-reqs))))
 	 ;; Loop body
          (for ((< ,var ,var2) (inc ,var))
            ,@(tcell:with-new-bk bk-id (function-body body)))
