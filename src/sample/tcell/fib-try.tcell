@@ -119,7 +119,8 @@
     )
 
 (def (fib n) (wfn long long)
-  (if (<= n 2)
+  (catch 1 ; meaningless catch for performance evaluation
+   (if (<= n 2)
       (return 1)
     (begin
       (def s1 long)
@@ -133,4 +134,4 @@
             (= PROBABILITY (csym::my-probability (- n 2))))
           (= this.n (- n 2)))
          (:get (= s2 this.r))))
-      (return (+ s1 s2)))))
+      (return (+ s1 s2))))) )
