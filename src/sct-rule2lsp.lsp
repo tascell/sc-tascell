@@ -413,6 +413,8 @@
         `(let ((,cur-var ,focus-var) ,head-var
                ,.(when in-bracket (list rtmp-var `(,maxvals-var 0))))
            ,.(when in-bracket (list `(declare (fixnum ,maxvals-var))))
+           (setq ,pv nil)
+           (setq ,pv-ret nil)
            (tagbody
              (go ,skip-tag)
              ,retry-tag
