@@ -211,7 +211,8 @@
 ;; j1--j2: 試すビースの種類
 (def (search k j0 j1 j2 maxp maxk tsk) (wfn int int int int int int int (ptr (struct pentomino)))
   (def s int 0)
-  (do-many for p from j1 to j2
+  (catch 1 ; meaningless catch for performance evaluation
+   (do-many for p from j1 to j2
     (def ap int (aref (fref (mref tsk) a) p))
     (def i int)
     (for ((= i (aref pos ap)) (< i (aref pos (+ ap 1))) (inc i))     
@@ -276,4 +277,5 @@
         (= this.i2 i2))
       (:get
         (+= s this.r))))
+  )
   (return s))
