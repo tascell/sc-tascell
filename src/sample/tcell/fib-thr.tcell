@@ -24,8 +24,9 @@
 
 ;;; Fibonacci
 
-;; task 0 0 0 0
+;; task 0 0 0 1
 ;; <n>
+;; <threshold>
 
 (c-exp "#include<sys/time.h>")
 
@@ -86,9 +87,23 @@
   (= this.r (fib this.n))
   )
 
+(def Threshold long)
+(def Tp (array (struct timeval) 2))
 (def (task fib-start)
   (def n long :in)
+  (def threshold long :in)
   (def r long :out))
+
+(def (csym::fib-seq n) (csym::fn long long)
+  (def s int 1)
+  (def n1 int 1)
+  (def n2 int)
+  (def i int)
+  (for ((= i 3) (<= i n) (inc i))
+    (= n2 n1)
+    (= n1 s)
+    (= s (+ n1 n2)))
+  (return s))
 
 (def (task-body fib-start)
   (decl tp (array (struct timeval) 2))
@@ -97,8 +112,15 @@
     (++ WDATA.n-task)
     (csym::fprintf stderr "%d starts %ld-th task.~%" WORKER-ID WDATA.n-task))
   (= N0 this.n)
+  (= Threshold (/ (* (csym::fib-seq this.n) this.threshold) 100))
+  (csym::fprintf stderr "Threshold: %ld * %ld / 100 = %ld~%"
+		 (csym::fib-seq this.n) this.threshold Threshold)
   (csym::gettimeofday tp 0)
-  (= this.r (fib this.n))
+  (= (aref Tp 0) (aref tp 0))
+  (catch 1
+    (= this.r 1)
+    (fib this.n)
+    (= this.r 0))
   (csym::gettimeofday (+ tp 1) 0)
   (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp)))
 
@@ -133,4 +155,9 @@
             (= PROBABILITY (csym::my-probability (- n 2))))
           (= this.n (- n 2)))
          (:get (= s2 this.r))))
+      (if (> (+ s1 s2) Threshold)
+          (begin
+           (csym::gettimeofday (+ Tp 1) 0)
+           (csym::fprintf stderr "etime: %lf~%s=%ld~%"  (csym::elapsed-time Tp) (+ s1 s2))
+           (throw 1)))
       (return (+ s1 s2)))))

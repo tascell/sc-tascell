@@ -26,7 +26,7 @@
 
 ;; task 0 0 0 0
 ;; <n>
-;; -1
+;; -<threshold>
 
 (c-exp "#include<sys/time.h>")
 
@@ -53,11 +53,21 @@
   ;   (return 0.0)
   ;   (return 1.0)))
 
+(def (csym::elapsed-time tp) 
+    (fn double (array (struct timeval) 2))
+  (return (+ (- (fref (aref tp 1) tv-sec)
+                (fref (aref tp 0) tv-sec))
+             (* 0.000001
+                (- (fref (aref tp 1) tv-usec)
+                   (fref (aref tp 0) tv-usec))))))
+
 ;;; thread local strogae
+(def Threshold int)
+(def Tp (array (struct timeval) 2))
 (def (task nqueens)
   (def r int :out)  ; （部分）解の数
   (def n int :in)   ;  問題サイズ
-  (def k int :in)   ;  初期化->探索開始(-1) or 部分探索開始かのフラグ(>=0)
+  (def k int :in)   ;  初期化->探索開始(k<0) or 部分探索開始かのフラグ(>=0)
   (def i1 int)  ;  探索範囲 start
   (def i2 int)  ;  探索範囲 end
   (def a (array int 20)) ; 使用済み行の管理
@@ -132,16 +142,12 @@
            (= this.i1 i1)
            (= this.i2 i2))
      (:get (+= s this.r))))
+  (if (> s Threshold) 
+      (begin
+       (csym::gettimeofday (+ Tp 1) 0)
+       (csym::fprintf stderr "etime: %lf~%s=%ld~%"  (csym::elapsed-time Tp) s)
+       (throw 1)))
   (return s))
-
-
-(def (csym::elapsed-time tp) 
-    (fn double (array (struct timeval) 2))
-  (return (+ (- (fref (aref tp 1) tv-sec)
-                (fref (aref tp 0) tv-sec))
-             (* 0.000001
-                (- (fref (aref tp 1) tv-usec)
-                   (fref (aref tp 0) tv-usec))))))
 
 (def (task-body nqueens)
   (def i int)
@@ -153,14 +159,19 @@
     (= PROBABILITY (csym::my-probability n k)))
   (if (< k 0)
       (begin
+       (= Threshold (/ (* (cast long 95815104) (- this.k)) 100))  ; 95815104 = Nq(17)
+       (csym::fprintf stderr "Threshold: %ld %ld~%" (- this.k) Threshold)
        (for ((= i 0) (< i n) (inc i))
             (= (aref this.a i) i))
        (for ((= i 0) (< i (- (* 2 n) 1)) (inc i))
             (= (aref this.lb i) 0)
             (= (aref this.rb i) 0))
        (csym::gettimeofday tp 0)
-       (= this.r
-          (nqueens n 0 0 n (ptr this)))
+       (= (aref Tp 0) (aref tp 0))
+       (catch 1
+         (= this.r 1)
+         (nqueens n 0 0 n (ptr this))
+         (= this.r 0))
        (csym::gettimeofday (+ tp 1) 0)
        (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp)))
       (= this.r
