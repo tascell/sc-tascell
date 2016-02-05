@@ -60,7 +60,12 @@
                   (setq output-file parm))
                  ((#\s)                 ; sc2c-rule
                   (with1 elm (read-from-string (car rest))
-                    (setq sc2c-rule (if (symbolp elm) (eval (car rest)) elm))))
+                    (setq sc2c-rule elm)
+                    (unless (or (symbolp elm)
+                                (listp elm))
+                      (format *error-output* "~&Illegal parameter value for -s: ~S~%" (car rest))
+                      (bye exit-status))
+                    ))
                  ((#\m)                 ; intermediate
                   (with1 elm (read-from-string parm)
                     (setq intermediate (and elm (not (eql 0 elm))))))
