@@ -58,17 +58,17 @@
 (defconstant *scpp-macro-package* (find-package "SCPP-MACRO"))
 (defconstant *scpp-package* (find-package "SCPP"))
 
-(defparameter *cinclude-h-file* "cinclude_tmp") ; C¤Î¥Ø¥Ã¥À¤òinclude¤¹¤ë°ì»þ¥Ø¥Ã¥À
-(defparameter *delete-c2sc-intermediate* nil) ; cinclude_tmp.h, *.se, *.se? ¤òºï½ü¤¹¤ë¤«
-(defparameter *input-file-path* "./")   ; ÆþÎÏ¥Õ¥¡¥¤¥ë¤Î¾ì½ê
-                                        ; cinclude_tmp.h ¤ÎÀ¸À®¾ì½ê¤Ç¤¢¤ê¡¤
-                                        ; #include "..." ¤Î¥Õ¥¡¥¤¥ë¤ÎÃµº÷¾ì½ê¤Ë±Æ¶Á¤¹¤ë
-(defparameter *include-path-list* '("./")) ; %include¤Î¥Ø¥Ã¥À¥Õ¥¡¥¤¥ë¤òÃµ¤¹¾ì½ê
+(defparameter *cinclude-h-file* "cinclude_tmp") ; Cã®ãƒ˜ãƒƒãƒ€ã‚’includeã™ã‚‹ä¸€æ™‚ãƒ˜ãƒƒãƒ€
+(defparameter *delete-c2sc-intermediate* nil) ; cinclude_tmp.h, *.se, *.se? ã‚’å‰Šé™¤ã™ã‚‹ã‹
+(defparameter *input-file-path* "./")   ; å…¥åŠ›ãƒ•ã‚¡ã‚¤ãƒ«ã®å ´æ‰€
+                                        ; cinclude_tmp.h ã®ç”Ÿæˆå ´æ‰€ã§ã‚ã‚Šï¼Œ
+                                        ; #include "..." ã®ãƒ•ã‚¡ã‚¤ãƒ«ã®æŽ¢ç´¢å ´æ‰€ã«å½±éŸ¿ã™ã‚‹
+(defparameter *include-path-list* '("./")) ; %includeã®ãƒ˜ãƒƒãƒ€ãƒ•ã‚¡ã‚¤ãƒ«ã‚’æŽ¢ã™å ´æ‰€
 
 (defvar *macro-entries* (make-hash-table :test #'eq)) ; macro-entries
-(defvar *rule-modifier* #'identity)     ; sc-main ¤«¤éÅÏ¤µ¤ì¤ë´Ø¿ô¡¥rule-list¤òÊÑ¹¹¤¹¤ë¡¥
-(defvar *sc2c-modifier* #'identity)     ; sc-main ¤«¤éÅÏ¤µ¤ì¤ë´Ø¿ô¡¥sc2c¤Ë»È¤¦¥ë¡¼¥ë¤òÊÑ¹¹¤¹¤ë¡¥
-(defvar *ofile-modifier* #'identity)    ; sc-main ¤«¤éÅÏ¤µ¤ì¤ë´Ø¿ô¡¥½ÐÎÏ¥Õ¥¡¥¤¥ëÌ¾¤òÊÑ¹¹¤¹¤ë¡¥
+(defvar *rule-modifier* #'identity)     ; sc-main ã‹ã‚‰æ¸¡ã•ã‚Œã‚‹é–¢æ•°ï¼Žrule-listã‚’å¤‰æ›´ã™ã‚‹ï¼Ž
+(defvar *sc2c-modifier* #'identity)     ; sc-main ã‹ã‚‰æ¸¡ã•ã‚Œã‚‹é–¢æ•°ï¼Žsc2cã«ä½¿ã†ãƒ«ãƒ¼ãƒ«ã‚’å¤‰æ›´ã™ã‚‹ï¼Ž
+(defvar *ofile-modifier* #'identity)    ; sc-main ã‹ã‚‰æ¸¡ã•ã‚Œã‚‹é–¢æ•°ï¼Žå‡ºåŠ›ãƒ•ã‚¡ã‚¤ãƒ«åã‚’å¤‰æ›´ã™ã‚‹ï¼Ž
 
 (defvar *extracting-macro* (list))      ; List of macro symbols currently being extracted.
 					; (Such macros are not extracted more than onece recursively)
@@ -103,11 +103,11 @@
     (setq x (sc-file:read-sc-file x)))
   (scpp-list x))
 
-;; * C¤ËÊÑ´¹¤·¤¿¤È¤­¤ËÆ±¤¸identifier¤Ç¡¤
-;; * Æ±¤¸package¤ËÅÐÏ¿¤µ¤ì¤Æ¤¤¤ë
-;; symbol¤É¤¦¤·¤Ïeq¤Ç¤¢¤ë¤³¤È¤òÊÝ¾Ú¤Ç¤­¤ë¤è¤¦¤Ë¤¹¤ë¤¿¤á¡¤
-;; ¤½¤ì¤È¡¤*used-identifier* ¤Ë»ÈÍÑ¤·¤¿¼±ÊÌ»Ò¤¬ÅÐÏ¿¤¹¤ë¤¿¤á¡¤
-;; make-id ¤Ç¼±ÊÌ»Ò¤òºî¤ê¤Ê¤ª¤¹¡¥
+;; * Cã«å¤‰æ›ã—ãŸã¨ãã«åŒã˜identifierã§ï¼Œ
+;; * åŒã˜packageã«ç™»éŒ²ã•ã‚Œã¦ã„ã‚‹
+;; symbolã©ã†ã—ã¯eqã§ã‚ã‚‹ã“ã¨ã‚’ä¿è¨¼ã§ãã‚‹ã‚ˆã†ã«ã™ã‚‹ãŸã‚ï¼Œ
+;; ãã‚Œã¨ï¼Œ*used-identifier* ã«ä½¿ç”¨ã—ãŸè­˜åˆ¥å­ãŒç™»éŒ²ã™ã‚‹ãŸã‚ï¼Œ
+;; make-id ã§è­˜åˆ¥å­ã‚’ä½œã‚ŠãªãŠã™ï¼Ž
 (defun entry-and-normalize-id (sym)
   (aif (rule:identifier0? sym :sc2c)
       (rule:make-id it (symbol-package sym))
@@ -121,7 +121,7 @@
    ((and (consp x)
          (symbolp (car x))
          (with1 sname (symbol-name (car x))
-           (and (> (length sname) 1)         ; `%' ±é»»»Ò¤Ï¤À¤á¤Ê¤Î¤Ç >=2
+           (and (> (length sname) 1)         ; `%' æ¼”ç®—å­ã¯ã ã‚ãªã®ã§ >=2
                 (char= #\% (aref sname 0)))))
     (case (car x)
       ((sc::%splice)
@@ -227,7 +227,7 @@
     (scpp-macroexpand x))
    ))
 
-;; *cinclude-h-file* ¤òºîÀ®
+;; *cinclude-h-file* ã‚’ä½œæˆ
 (defun make-cinclude-h (header-list
                         &optional (output-filename *cinclude-h-file*))
   (let ((output-file (make-pathname :name output-filename
@@ -244,7 +244,7 @@
                 :overwrite t :write-string t)
     output-file))
 
-;;;; ¥Þ¥¯¥í½èÍý
+;;;; ãƒžã‚¯ãƒ­å‡¦ç†
 
 ;; symbol -> macrosymbol
 #+obsolete                              ; replaced by entry-and-normalize-id
@@ -253,7 +253,7 @@
     (when macname
       (intern macname *scpp-macro-package*))))
 
-;; ¥Õ¥£¡¼¥ë¥É¥¢¥¯¥»¥¹¤òCÉ÷¤Ë½ñ¤±¤ë¤è¤¦¤Ë¤¹¤ë
+;; ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚¢ã‚¯ã‚»ã‚¹ã‚’Cé¢¨ã«æ›¸ã‘ã‚‹ã‚ˆã†ã«ã™ã‚‹
 ;; ~sc::f->x ==> ~(fref f -> x)
 (defun invert-case-if-mixed (str)
   (if (case-mixed-p str)
@@ -283,11 +283,11 @@
         (values (cons ~fref (nreverse symbol-list)) t)
       (values sym nil))))
 
-;; ¸¡º÷: symbol-> {'macro, 'constant, nil}
+;; æ¤œç´¢: symbol-> {'macro, 'constant, nil}
 (defun macro-find (macsymbol)
   (gethash macsymbol *macro-entries*))
 
-;; ÅÐÏ¿
+;; ç™»éŒ²
 ;; dm: a %defmacro/%defconstant form
 (defun entry-macro (dm &key (redefine-warn t) &aux entry-type entry-value)
   (let ((macsymbol (entry-and-normalize-id (second dm))))
@@ -310,7 +310,7 @@
     (setf (gethash macsymbol *macro-entries*) 
       (create-macro-entry entry-type entry-value))))
 
-;; ºï½ü
+;; å‰Šé™¤
 (defun delete-macro (macsymbol)
   ;; (makunbound macsymbol)
   (fmakunbound macsymbol)

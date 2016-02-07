@@ -56,7 +56,7 @@
     `(let* ((*current-block* (make-c-block :add-here-p ,add-here-p
                                            :parent *current-block*))
             (,ret-var (progn ,@body)))
-       (nconc (flush-add-decls)         ; tmp¤ÎÄêµÁÎó¤òÊÖ¤¹ or ³°¥Ö¥í¥Ã¥¯¤Ë²ó¤·¤Ænil¤òÊÖ¤¹
+       (nconc (flush-add-decls)         ; tmpã®å®šç¾©åˆ—ã‚’è¿”ã™ or å¤–ãƒ–ãƒ­ãƒƒã‚¯ã«å›ã—ã¦nilã‚’è¿”ã™
               ,ret-var))))
 
 (defmacro with-new-block-item (initial-subexpression-depth &body body)
@@ -94,8 +94,8 @@
   (prog1 (nreverse *precedents*)
     (setq *precedents* nil)))
 
-;; Àë¸À¤ÎÊÑ´¹¤ÇÀè¹Ô¤ÎÊ¸¤¬É¬Í×¤Ë¤Ê¤Ã¤¿¾ì¹ç¡¤
-;; <decl> ... --> ,@precds (begin <decl> ...) ¤È¤¹¤ë
+;; å®£è¨€ã®å¤‰æ›ã§å…ˆè¡Œã®æ–‡ãŒå¿…è¦ã«ãªã£ãŸå ´åˆï¼Œ
+;; <decl> ... --> ,@precds (begin <decl> ...) ã¨ã™ã‚‹
 (defun flush-precedents-decl (decl-exp orig-exp)
   (let ((precds (flush-precedents)))
     (if precds

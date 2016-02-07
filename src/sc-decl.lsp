@@ -64,7 +64,7 @@
 (defvar *auto-compile* t)
 (defconstant *lisp-file-type* "lsp")
 (defconstant *fasl-file-type* (pathname-type (compile-file-pathname "dummy")))
-(defconstant *fasl-path-base*           ; ¥³¥ó¥Ñ¥¤¥ëºÑLisp¥Õ¥¡¥¤¥ë¤ÎÃÖ¤­¾ì½ê
+(defconstant *fasl-path-base*           ; ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«æ¸ˆLispãƒ•ã‚¡ã‚¤ãƒ«ã®ç½®ãå ´æ‰€
     (merge-pathnames (format nil (concatenate 'string #-(and allegro mswindows)"." "sc-fasl"
                                               "/~A/~A/~A/")
                              (gethostname) *cl-implementation* *cl-version*)
@@ -81,7 +81,7 @@
                        *fasl-path-base*)
     (throw :sc-decl-exception nil)))
 
-;; dir¤¬dir-base¤Î¥µ¥Ö¥Ç¥£¥ì¥¯¥È¥ê¤«¡©
+;; dirãŒdir-baseã®ã‚µãƒ–ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‹ï¼Ÿ
 (defun subdirectory-p (dir dir-base)
   (and (>= (length dir) (length dir-base))
        (loop
@@ -89,14 +89,14 @@
            as y in dir-base
            always (equal x y))))
 
-;; (or lsp fasl)¤ÎÊİÂ¸¾ì½ê->fasl¤ÎÊİÂ¸¾ì½ê
+;; (or lsp fasl)ã®ä¿å­˜å ´æ‰€->faslã®ä¿å­˜å ´æ‰€
 (defun lspdir2fasldir (dir)
   (assert (eq :absolute (car dir)))
   (if (subdirectory-p dir *fasl-dir-base*)
       dir
     (append *fasl-dir-base* (cdr dir))))
    
-;; (or lsp fasl)¤ÎÊİÂ¸¾ì½ê->lsp¤ÎÊİÂ¸¾ì½ê
+;; (or lsp fasl)ã®ä¿å­˜å ´æ‰€->lspã®ä¿å­˜å ´æ‰€
 (defun fasldir2lspdir (dir)
   (assert (eq :absolute (car dir)))
   (if (subdirectory-p dir *fasl-dir-base*)
@@ -104,9 +104,9 @@
     dir))
 
 ;;; require for SC system
-;;; module-name ¤ò string-downcase ¤·¤¿¤â¤Î¤Ë .lsp ³ÈÄ¥»Ò¤ò¤Ä¤±¤¿¥Õ¥¡¥¤¥ë¤ò
-;;; path-list ¤ÎÀèÆ¬¤«¤é½ç¤ËÁÜ¤·¤ÆÆÉ¤ß¤Ë¹Ô¤¯¡¥
-;;; compile-file ºÑ¤ß¤Ç¡¤.lsp ¤è¤ê¿·¤·¤¤¾ì¹ç¤Ï¥³¥ó¥Ñ¥¤¥ëÈÇ¤òÆÉ¤ß¤Ë¤¤¤¯
+;;; module-name ã‚’ string-downcase ã—ãŸã‚‚ã®ã« .lsp æ‹¡å¼µå­ã‚’ã¤ã‘ãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’
+;;; path-list ã®å…ˆé ­ã‹ã‚‰é †ã«æœã—ã¦èª­ã¿ã«è¡Œãï¼
+;;; compile-file æ¸ˆã¿ã§ï¼Œ.lsp ã‚ˆã‚Šæ–°ã—ã„å ´åˆã¯ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ç‰ˆã‚’èª­ã¿ã«ã„ã
 (defmacro require (&rest args)
   `(eval-when (:compile-toplevel :load-toplevel :execute)
      (do-require ,@args)))
@@ -205,7 +205,7 @@
 
 (defpackage "SC"
   (:use)
-  (:import-from "CL"  ; defmacro¤Ç»È¤¨¤Ê¤¤¤Î¤ÏÉÔÊØ¤Ê¤Î¤Ç
+  (:import-from "CL"  ; defmacroã§ä½¿ãˆãªã„ã®ã¯ä¸ä¾¿ãªã®ã§
                 "&ALLOW-OTHER-KEYS" "&AUX" "&KEY" "&OPTIONAL"
                 "&REST" "&BODY" "NIL"))
 
@@ -228,9 +228,9 @@
            "*CODE-PACKAGE*" "*CODE-READTABLE*"))
 
 (in-package "SC-FILE")
-;;;; SC¥½¡¼¥¹¤òÆÉ¤à¤È¤­¤Îpackage
+;;;; SCã‚½ãƒ¼ã‚¹ã‚’èª­ã‚€ã¨ãã®package
 (defconstant *code-package* (find-package "SC"))
-;;;; SC¥½¡¼¥¹¤òÆÉ¤à¤È¤­¤Îreadtable
+;;;; SCã‚½ãƒ¼ã‚¹ã‚’èª­ã‚€ã¨ãã®readtable
 (defconstant *code-readtable*
   #+readtable-case
   (let ((temp (copy-readtable nil)))
@@ -309,7 +309,7 @@
    ;; c2sc-parser.lsp
    "C2SC" "PIECE-C2SC" "*CLANG-PACKAGE*" "PCSC"))
 
-;; C¤«¤éÊÑ´¹¤µ¤ì¤¿ identifier¤ò intern¤¹¤ë package
+;; Cã‹ã‚‰å¤‰æ›ã•ã‚ŒãŸ identifierã‚’ internã™ã‚‹ package
 (defpackage "CSYM" (:use))
 
 (in-package "C2SC")

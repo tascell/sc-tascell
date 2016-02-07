@@ -38,8 +38,8 @@
 (scr:require "SC-MISC")
 
 
-;;; <-- Êä½õ´Ø¿ô
-;; ¥Ñ¥¿¥óÆâ¤Î¥Ñ¥¿¥óÊÑ¿ôÌ¾¤Î¥ê¥¹¥È¤òÆÀ¤ë
+;;; <-- è£œåŠ©é–¢æ•°
+;; ãƒ‘ã‚¿ãƒ³å†…ã®ãƒ‘ã‚¿ãƒ³å¤‰æ•°åã®ãƒªã‚¹ãƒˆã‚’å¾—ã‚‹
 (defun get-pattern-variables (pat)
   (declare (type :pattern pat))
   (assert (pattern-p pat))
@@ -58,36 +58,36 @@
   (declare (type :pattern pat))
   (length (get-pattern-variables pat)))
 
-;; ¥Ñ¥¿¡¼¥ó¤«¤é,@¤Î¾ì½ê¤òÁÜ¤¹
+;; ãƒ‘ã‚¿ãƒ¼ãƒ³ã‹ã‚‰,@ã®å ´æ‰€ã‚’æœã™
 (defun search-commaat (pbody)
   (member-if #'pat-commaat-p pbody))
 
-;; pattern¤¬nil¤Ë¥Ş¥Ã¥Á¤¹¤ë¤«
+;; patternãŒnilã«ãƒãƒƒãƒã™ã‚‹ã‹
 (defun matches-to-nil-p (pbody)
   (and (consp pbody)
        (every #'pat-commaat-p pbody)))
 
-;; ¥Ñ¥¿¡¼¥ó¤ò,@¤è¤êÁ°¤È¤½¤ì°Ê¹ß¤ÇÊ¬³ä
+;; ãƒ‘ã‚¿ãƒ¼ãƒ³ã‚’,@ã‚ˆã‚Šå‰ã¨ãã‚Œä»¥é™ã§åˆ†å‰²
 (defun split-at-commaat (pattern)
   (list-until pattern (search-commaat pattern)))
 
-;; ,pv[]¤ä,@pv[]¤Ë¤ª¤±¤ë[]¤ÎÃæ¿È==>¥Ş¥Ã¥ÁÀ®Î©¤òÈ½Äê¤¹¤ë¥Õ¥©¡¼¥à
-;; ¥Ş¥Ã¥Á¥ó¥°À®Î©¤Ê¤ésave-place¤Ëget-retval¤Ç³ÍÆÀ¤¹¤ë¤¿¤á¤Î multiple-value-list
-;; ¤ò¥»¥Ã¥È¤¹¤ë¡ÊÉÔÀ®Î©¤Ê¤ésave-place¤ÎÃÍ¤ÏÊİ¾Ú¤·¤Ê¤¯¤Æ¤è¤¤¡Ë
-;; ÊÖ¤¹ÃÍ¤Ï¥Ş¥Ã¥Á¤ÎÀ®Èİ¤òÉ½¤·¤Æ¤µ¤¨¤¤¤ì¤ĞÆÃ¤Ëretval¤Ç¤Ê¤¯¤Æ¤è¤¤
+;; ,pv[]ã‚„,@pv[]ã«ãŠã‘ã‚‹[]ã®ä¸­èº«==>ãƒãƒƒãƒæˆç«‹ã‚’åˆ¤å®šã™ã‚‹ãƒ•ã‚©ãƒ¼ãƒ 
+;; ãƒãƒƒãƒãƒ³ã‚°æˆç«‹ãªã‚‰save-placeã«get-retvalã§ç²å¾—ã™ã‚‹ãŸã‚ã® multiple-value-list
+;; ã‚’ã‚»ãƒƒãƒˆã™ã‚‹ï¼ˆä¸æˆç«‹ãªã‚‰save-placeã®å€¤ã¯ä¿è¨¼ã—ãªãã¦ã‚ˆã„ï¼‰
+;; è¿”ã™å€¤ã¯ãƒãƒƒãƒã®æˆå¦ã‚’è¡¨ã—ã¦ã•ãˆã„ã‚Œã°ç‰¹ã«retvalã§ãªãã¦ã‚ˆã„
 (defun bracket-to-testform (in-bracket argform saveplace)
   (cond
    ((cdr in-bracket)
-    (case (car in-bracket)              ; :eval¤ËÂ³¤¯¥Õ¥©¡¼¥à¤ÎÃÍ¤¬Èónil¤Ê¤é¥Ş¥Ã¥Á
+    (case (car in-bracket)              ; :evalã«ç¶šããƒ•ã‚©ãƒ¼ãƒ ã®å€¤ãŒénilãªã‚‰ãƒãƒƒãƒ
       ((:eval)
        `(car (setf ,saveplace
                (multiple-value-list (progn ,@(cdr in-bracket))))) )
-      ((:member)                        ; :member¤ËÂ³¤¯ÃÍ¡Ê¥ê¥¹¥È¡Ë¤Ë´Ş¤Ş¤ì¤Æ¤¤¤ì¤Ğ¥Ş¥Ã¥Á
+      ((:member)                        ; :memberã«ç¶šãå€¤ï¼ˆãƒªã‚¹ãƒˆï¼‰ã«å«ã¾ã‚Œã¦ã„ã‚Œã°ãƒãƒƒãƒ
        `(car (setf ,saveplace
                (list (member ,argform ,(second in-bracket) :test #'equal)))) )
       (otherwise
        (error "Unexpected form: [~{~S~^ ~}]" in-bracket))))
-   ((null in-bracket)                   ; ,var[] == ,var¡Ê¾ï¤Ë¥Ş¥Ã¥Á¡Ë
+   ((null in-bracket)                   ; ,var[] == ,varï¼ˆå¸¸ã«ãƒãƒƒãƒï¼‰
     `(setf ,saveplace '(t)))
    ((symbolp (car in-bracket))          ; ,var[symbol] --> (funcall #'var symbol)
     (unless (eq (symbol-package (car in-bracket))
@@ -104,10 +104,10 @@
    ((eq 'function (caar in-bracket))    ; ,var[#'<form>] --> (funcall #'<form> symbol)
     `(car (setf ,saveplace              ; test if non-nil
             (multiple-value-list (funcall ,(car in-bracket) ,argform)))) )
-   (t                                   ; atom¤Ç¤â´Ø¿ô¥Õ¥©¡¼¥à¤Ç¤â¤Ê¤¤ --> :member
+   (t                                   ; atomã§ã‚‚é–¢æ•°ãƒ•ã‚©ãƒ¼ãƒ ã§ã‚‚ãªã„ --> :member
     (bracket-to-testform `(:member ,(car in-bracket)) argform saveplace))))
 
-;;; optional ¤ò´Ş¤à¥Ñ¥¿¥ó¤òÅ¸³«
+;;; optional ã‚’å«ã‚€ãƒ‘ã‚¿ãƒ³ã‚’å±•é–‹
 (defun extract-optional (pat)
   (assert (pattern-p pat))
   (mapcar #'(lambda (xx) (make-pattern :body xx))
@@ -140,16 +140,16 @@
   (cond ((= n 0) form)
         ((= n 1) `(butlast ,form))
         (t `(butlast ,form ,n))))
-;;; Êä½õ´Ø¿ô -->
+;;; è£œåŠ©é–¢æ•° -->
 
 
-;; (<pattern> . <action>) ¤Î¥ê¥¹¥È¤Èform-var¤ò¼õ¤±¤È¤Ã¤Æ
-;; form-var¤ÎÃÍ¤¬<pattern>¤Ë¥Ş¥Ã¥Á¤¹¤ì¤Ğ
-;; <action>¤ò¼Â¹Ô¤¹¤ë¤è¤¦¤Ê¥Õ¥©¡¼¥à¤òÀ¸À®
-;; ÀèÆ¬¤Î¶¦ÄÌ¤¹¤ëÉôÊ¬¤Î½èÍı¤ò°ì²ó¤Ç¤¹¤Ş¤»¤ë¤è¤¦¤Ë¤·¤Æ¤¤¤ë
-;; :action ¤Î¤È¤³¤í¤Î gensym ¤ÏÁ´¤Æ¤Î:action¤¬ equal¤Ë¤Ê¤é¤Ê¤¤¤è¤¦¤Ë¤·¤Æ¡¤
-;; Æ±¤¸action¤Ç¤âÅı¹ç¤µ¤ì¤Ê¤¤¤è¤¦¤Ë¤¹¤ë¤¿¤á¤Î¥À¥ß¡¼¡¥
-;; ¡ÊÆ±°ì¥Ñ¥¿¡¼¥ó¡¦¥¢¥¯¥·¥ç¥ó¤Ç¤ânext-pattern ¥Ş¥¯¥í¤ÎÆ°ºî¤òÊİ¾Ú¤¹¤ë¤¿¤á¡Ë
+;; (<pattern> . <action>) ã®ãƒªã‚¹ãƒˆã¨form-varã‚’å—ã‘ã¨ã£ã¦
+;; form-varã®å€¤ãŒ<pattern>ã«ãƒãƒƒãƒã™ã‚Œã°
+;; <action>ã‚’å®Ÿè¡Œã™ã‚‹ã‚ˆã†ãªãƒ•ã‚©ãƒ¼ãƒ ã‚’ç”Ÿæˆ
+;; å…ˆé ­ã®å…±é€šã™ã‚‹éƒ¨åˆ†ã®å‡¦ç†ã‚’ä¸€å›ã§ã™ã¾ã›ã‚‹ã‚ˆã†ã«ã—ã¦ã„ã‚‹
+;; :action ã®ã¨ã“ã‚ã® gensym ã¯å…¨ã¦ã®:actionãŒ equalã«ãªã‚‰ãªã„ã‚ˆã†ã«ã—ã¦ï¼Œ
+;; åŒã˜actionã§ã‚‚çµ±åˆã•ã‚Œãªã„ã‚ˆã†ã«ã™ã‚‹ãŸã‚ã®ãƒ€ãƒŸãƒ¼ï¼
+;; ï¼ˆåŒä¸€ãƒ‘ã‚¿ãƒ¼ãƒ³ãƒ»ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã§ã‚‚next-pattern ãƒã‚¯ãƒ­ã®å‹•ä½œã‚’ä¿è¨¼ã™ã‚‹ãŸã‚ï¼‰
 (defun match-action-form (pats-act-list form-var &optional otherwise-action)
   (match-check-to-form
    (integrate-ml-actions
@@ -168,10 +168,10 @@
 
 ;;;;;;;;;;;;
 
-;; match-check-to-form¤ÎÊÑ´¹´Ø¿ô¤ÇÍøÍÑ¤¹¤ë
-;; (<pattern-variable> . <return-value-varialble>) ¤Î¥ê¥¹¥È
+;; match-check-to-formã®å¤‰æ›é–¢æ•°ã§åˆ©ç”¨ã™ã‚‹
+;; (<pattern-variable> . <return-value-varialble>) ã®ãƒªã‚¹ãƒˆ
 (defvar *pv-list*)
-;; ¥Ş¥Ã¥Á¥ó¥°½èÍıÁ´ÂÎ¤òÊñ¤à¥Ö¥í¥Ã¥¯Ì¾¡¥action½ªÎ»¸åÃ¦½Ğ¤¹¤ë¤¿¤á¤Ë»È¤¦
+;; ãƒãƒƒãƒãƒ³ã‚°å‡¦ç†å…¨ä½“ã‚’åŒ…ã‚€ãƒ–ãƒ­ãƒƒã‚¯åï¼actionçµ‚äº†å¾Œè„±å‡ºã™ã‚‹ãŸã‚ã«ä½¿ã†
 (defvar *match-block*)
 
 (defun get-pv-ret (pv &optional (pv-list *pv-list*))
@@ -205,8 +205,8 @@
     `(block ,*match-block*
        (tagbody
          ,@(flatten-block (match-check-list-to-form (list mc) focus-stk (list tag-otherwise) ()))
-         ;;¤É¤ì¤«¤Ë¥Ş¥Ã¥Á¤·¤¿¤Ê¤é¤³¤³¤Ş¤Ç¤Ëreturn-from¤·¤Æ¤¤¤ë¤Î¤Ç
-         ;;go°Ê³°¤Ç¤Ï¤³¤³¤Ë¤Ï¤³¤Ê¤¤
+         ;;ã©ã‚Œã‹ã«ãƒãƒƒãƒã—ãŸãªã‚‰ã“ã“ã¾ã§ã«return-fromã—ã¦ã„ã‚‹ã®ã§
+         ;;goä»¥å¤–ã§ã¯ã“ã“ã«ã¯ã“ãªã„
          ,tag-otherwise
          ,@(when otherwise-action
              (list `(return-from ,*match-block* ,otherwise-action)))))
@@ -455,23 +455,23 @@
 ;;;;;;;;;;;;
 
 
-;; (,@<match-check-list> (:action ,<dummy> ,<action>)) ¤Î¥ê¥¹¥È¤ò¼õ¤±¤È¤ê
-;; <match-check-list> ¤Î ÀèÆ¬¶¦ÄÌÉôÊ¬¤òÅı¹ç¤¹¤ë¤³¤È¤ÇÊ¬´ô¹½Â¤¤Ë¤¹¤ë¡¥
+;; (,@<match-check-list> (:action ,<dummy> ,<action>)) ã®ãƒªã‚¹ãƒˆã‚’å—ã‘ã¨ã‚Š
+;; <match-check-list> ã® å…ˆé ­å…±é€šéƒ¨åˆ†ã‚’çµ±åˆã™ã‚‹ã“ã¨ã§åˆ†å²æ§‹é€ ã«ã™ã‚‹ï¼
 ;; (:br <path1> <path2>)
-;; path<n>¤Ï :car, (:new-pv ..)¡¤(:br ...)¡¤(:action ..) ¤Ê¤É¤«¤é¤Ê¤ë¥ê¥¹¥È
-;; path1¤ÎÅÓÃæ¤Ç¼ºÇÔ¤·¤¿¤éºÇ¿·¤Î:br¤Ş¤Ç°ú¤­ÊÖ¤·¤Æpath2¤Ë°Ü¤ë
+;; path<n>ã¯ :car, (:new-pv ..)ï¼Œ(:br ...)ï¼Œ(:action ..) ãªã©ã‹ã‚‰ãªã‚‹ãƒªã‚¹ãƒˆ
+;; path1ã®é€”ä¸­ã§å¤±æ•—ã—ãŸã‚‰æœ€æ–°ã®:brã¾ã§å¼•ãè¿”ã—ã¦path2ã«ç§»ã‚‹
 (defun integrate-ml-actions (ml-action-list)
   (cond
    ((endp ml-action-list) ())
    ((endp (car ml-action-list)) (integrate-ml-actions (cdr ml-action-list)))
    (t
-    ;; ÀèÆ¬¶¦ÄÌÉôÊ¬¤¬1¤Ä¤Ç¤â¤¢¤ëÉôÊ¬(succ)¤È¡¤¤½¤ì°Ê¹ß(rest)¤òÊ¬¤±¤ë
+    ;; å…ˆé ­å…±é€šéƒ¨åˆ†ãŒ1ã¤ã§ã‚‚ã‚ã‚‹éƒ¨åˆ†(succ)ã¨ï¼Œãã‚Œä»¥é™(rest)ã‚’åˆ†ã‘ã‚‹
     (multiple-value-bind (succ rest)
         (let ((ml0-head (caar ml-action-list)))
           (list-until-if #'(lambda (rem) (not (equal (caar rem) ml0-head)))
                          ml-action-list))
-      ;; succ¤Îmatching-list¤ÎºÇÄ¹¤ÎÀèÆ¬¶¦ÄÌÉôÊ¬head¤òÈ´¤­½Ğ¤·¤Æ¡¤
-      ;; »Ä¤Ã¤¿ÉôÊ¬¤òrest2¤Ë
+      ;; succã®matching-listã®æœ€é•·ã®å…ˆé ­å…±é€šéƒ¨åˆ†headã‚’æŠœãå‡ºã—ã¦ï¼Œ
+      ;; æ®‹ã£ãŸéƒ¨åˆ†ã‚’rest2ã«
       (multiple-value-bind (head rest2)
           (apply #'head-intersection #'equal succ)
         `(:br (,.head ,@(flatten-branch (integrate-ml-actions rest2)))
@@ -487,13 +487,13 @@
      (second br))
     (t (list br))))
 
-;; pattern¤Ë¥Ş¥Ã¥Á¤¹¤ë¤¿¤á¤ËÉ¬Í×¤Ê¾ò·ï¤Î¥ê¥¹¥È¤òÊÖ¤¹
+;; patternã«ãƒãƒƒãƒã™ã‚‹ãŸã‚ã«å¿…è¦ãªæ¡ä»¶ã®ãƒªã‚¹ãƒˆã‚’è¿”ã™
 (defun match-check-list (pat)
   (declare (type :pattern pat))
   (match-check-list-for-exp (pattern-body pat)))
 
 (defun match-check-list-for-exp (pbody) 
-  ;; ¥ê¥¹¥È¤ÎÍ×ÁÇ¤ËÂĞ¤·¤Æ
+  ;; ãƒªã‚¹ãƒˆã®è¦ç´ ã«å¯¾ã—ã¦
   (cond
    ((symbolp pbody) (list `(:type ,(type-of pbody)) `(:eq ,pbody)))
    ((atom pbody)    (list `(:type ,(type-of pbody)) `(:equal ,pbody)))
@@ -510,19 +510,19 @@
     (match-check-list-for-list pbody))))
 
 (defun match-check-list-for-list (pbody)
-  ;; ¥ê¥¹¥È¤ËÂĞ¤·¤Æ
-  (multiple-value-bind (until-commaat from-commaat) ; ¥Ñ¥¿¡¼¥ó¤ò,@Á°¸å¤ÇÊ¬³ä
+  ;; ãƒªã‚¹ãƒˆã«å¯¾ã—ã¦
+  (multiple-value-bind (until-commaat from-commaat) ; ãƒ‘ã‚¿ãƒ¼ãƒ³ã‚’,@å‰å¾Œã§åˆ†å‰²
       (split-at-commaat pbody)
     (declare (list until-commaat from-commaat))
     (list*
      :listp
      (nconc
-      ;; ,@°ÊÁ°¤Î³ÆÍ×ÁÇ¤ò¥Á¥§¥Ã¥¯
+      ;; ,@ä»¥å‰ã®å„è¦ç´ ã‚’ãƒã‚§ãƒƒã‚¯
       (loop :for x :in until-commaat
         :nconc (nconc (list :non-nil :push-focus :car)
                       (match-check-list-for-exp x)
                       (list :pop-focus :cdr)))
-      ;; ,@°Ê¹ß¤ò¥Á¥§¥Ã¥¯
+      ;; ,@ä»¥é™ã‚’ãƒã‚§ãƒƒã‚¯
       (if from-commaat
           (match-check-list-for-commaat from-commaat)
         (list :nil))))
@@ -530,20 +530,20 @@
 
 (defun match-check-list-for-commaat (pbody)
   (assert (pat-commaat-p (car pbody)))
-  ;; ,@¤«¤é»Ï¤Ş¤ë¥ê¥¹¥È¤ËÂĞ¤·¤Æ
+  ;; ,@ã‹ã‚‰å§‹ã¾ã‚‹ãƒªã‚¹ãƒˆã«å¯¾ã—ã¦
   (cond
-   ((not (search-commaat (cdr pbody)))  ;,@¤¬¤â¤¦¤Ê¤¤¤È¤­¤Ï¹âÂ®²½
-    (let ((rest-len (length (cdr pbody))) ; ,@¤ò½ü¤¤¤¿¥Ñ¥¿¡¼¥ó¤ÎÄ¹¤µ
+   ((not (search-commaat (cdr pbody)))  ;,@ãŒã‚‚ã†ãªã„ã¨ãã¯é«˜é€ŸåŒ–
+    (let ((rest-len (length (cdr pbody))) ; ,@ã‚’é™¤ã„ãŸãƒ‘ã‚¿ãƒ¼ãƒ³ã®é•·ã•
           (pv (second (car pbody)))
           (in-bracket (cddr (car pbody))))
       (list*
-       ;; ,@ÉôÊ¬¤ò¥Á¥§¥Ã¥¯¡ÊÍ×ÁÇ¿ô³ÎÄê¡Ë
+       ;; ,@éƒ¨åˆ†ã‚’ãƒã‚§ãƒƒã‚¯ï¼ˆè¦ç´ æ•°ç¢ºå®šï¼‰
        `(:new-pv ,pv)
        `(:pv-rest ,pv ,rest-len ,in-bracket)
-       ;; ,@¤è¤ê¸å¤Î¥Ñ¥¿¡¼¥ó¤ò¥Á¥§¥Ã¥¯
+       ;; ,@ã‚ˆã‚Šå¾Œã®ãƒ‘ã‚¿ãƒ¼ãƒ³ã‚’ãƒã‚§ãƒƒã‚¯
        (match-check-list-for-list (cdr pbody)) )
       ))
-   (t                                   ; ,@¤¬¤Ş¤À¤¢¤ë¾ì¹ç=>¤·¤é¤ß¤Ä¤Ö¤·
+   (t                                   ; ,@ãŒã¾ã ã‚ã‚‹å ´åˆ=>ã—ã‚‰ã¿ã¤ã¶ã—
     (let ((pv (second (car pbody)))
           (in-bracket (cddr (car pbody))))
       (list
@@ -552,9 +552,9 @@
                ,(match-check-list-for-list (cdr pbody))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; ¥Ñ¥¿¡¼¥ó¥Ş¥Ã¥Á¤òÍøÍÑ¤¹¤ë¥æ¡¼¥¶ÍÑ¥Ş¥¯¥í
+;;;; ãƒ‘ã‚¿ãƒ¼ãƒ³ãƒãƒƒãƒã‚’åˆ©ç”¨ã™ã‚‹ãƒ¦ãƒ¼ã‚¶ç”¨ãƒã‚¯ãƒ­
 
-;;; ¥æ¡¼¥¶ÍÑ¥Ş¥¯¥í if-match
+;;; ãƒ¦ãƒ¼ã‚¶ç”¨ãƒã‚¯ãƒ­ if-match
 (defmacro sct-user:if-match (pattern form then-form &optional else-form)
   (with-fresh-variables form-var
     `(let ((,form-var ,form))
@@ -563,15 +563,15 @@
          form-var
          else-form))))
 
-;;; ¥æ¡¼¥¶ÍÑ¥Ş¥¯¥í when-match
+;;; ãƒ¦ãƒ¼ã‚¶ç”¨ãƒã‚¯ãƒ­ when-match
 (defmacro sct-user:when-match (pattern form &body body)
   `(if-match ,pattern ,form (progn ,@body)))
 
-;;; ¥æ¡¼¥¶ÍÑ¥Ş¥¯¥í unless-match
+;;; ãƒ¦ãƒ¼ã‚¶ç”¨ãƒã‚¯ãƒ­ unless-match
 (defmacro sct-user:unless-match (pattern form &body body)
   `(if-match ,pattern ,form nil (progn ,@body)))
 
-;;; ¥æ¡¼¥¶ÍÑ¥Ş¥¯¥í cond-match
+;;; ãƒ¦ãƒ¼ã‚¶ç”¨ãƒã‚¯ãƒ­ cond-match
 (defun mklist-pattern (pattern-list-or-a-pattern)
   (if (pattern-p pattern-list-or-a-pattern)
       (list pattern-list-or-a-pattern)

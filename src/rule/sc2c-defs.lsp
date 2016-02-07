@@ -59,7 +59,7 @@
    (t
     ~(if ,(caar clauses) (begin ,@(cdar clauses)) ,(cond->if (cdr clauses))))))
 
-;; identifier¤Î½èÍı
+;; identifierã®å‡¦ç†
 (defun get-idstring (symstr)
   #+readtable-case
   (funcall
@@ -121,8 +121,8 @@
         (otherwise
          (format nil "\\x~x" (char-code ch)))))))
 
-;;; string-sc2cÍÑ¤Î³ÈÄ¥format´Ø¿ô¡£
-;;; ~|xxx| (xxx=¤Ï8¿Ê¤ÎÀ°¿ô) ¤Ç¡¢¤½¤Î¿ô»ú¥³¡¼¥É¤ÎÊ¸»ú¤¬Ëä¤á¹ş¤Ş¤ì¤ë 
+;;; string-sc2cç”¨ã®æ‹¡å¼µformaté–¢æ•°ã€‚
+;;; ~|xxx| (xxx=ã¯8é€²ã®æ•´æ•°) ã§ã€ãã®æ•°å­—ã‚³ãƒ¼ãƒ‰ã®æ–‡å­—ãŒåŸ‹ã‚è¾¼ã¾ã‚Œã‚‹ 
 (defun sc-format (format-string &rest args)
   (labels ((sc-format-list (str-list)
              (multiple-value-bind (before-tilde after-tilde)
@@ -145,7 +145,7 @@
                     (sc-format-list (concatenate 'list format-string)))
       (apply #'format nil retstr args) )))
 
-;;; SCÊ¸»úÎó->CÊ¸»úÎó( princ ¤ÇC¤Îstring-literal¤¬½ĞÎÏ¤µ¤ì¤ë)
+;;; SCæ–‡å­—åˆ—->Cæ–‡å­—åˆ—( princ ã§Cã®string-literalãŒå‡ºåŠ›ã•ã‚Œã‚‹)
 (defun string-sc2c (str &rest args)
   (when (stringp str)
     (let ((f-str (apply #'sc-format str args)))

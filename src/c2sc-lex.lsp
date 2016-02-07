@@ -288,7 +288,7 @@
 (defun lex-prev-token ()  *prev-token*)
 (defun lex-colon-follows () *colon-follows*)
 
-;; »ú¶ç²òÀÏ¤Î¿ÆÊ¬
+;; å­—å¥è§£æã®è¦ªåˆ†
 (defun lex-get-token (&aux (le *lex-env*) (line nil))
   (the lex-env *lex-env*)
   (unless (setq line (skip-whitespace le (lex-env-lptr le)))

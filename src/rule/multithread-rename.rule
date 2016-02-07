@@ -24,7 +24,7 @@
 
 (define-ruleset multithread-rename (rename))
 
-;; ¥Ş¥ë¥Á¥¹¥ì¥Ã¥ÉÍÑ¥×¥ê¥ß¥Æ¥£¥Ö
+;; ãƒãƒ«ãƒã‚¹ãƒ¬ãƒƒãƒ‰ç”¨ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–
 (extendrule block-item multithread-rename
   ((#?(thread-create ,@body) )
    (ren:inc-block-level

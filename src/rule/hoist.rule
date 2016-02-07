@@ -63,7 +63,7 @@
     (return-from remove-const (remove-const (car x))))
   (mapcar #'remove-const x))
 
-;; declaration, block-item ¤ÎÊÖ¤êÃÍ¤òÀë¸ÀÉô¤ÈbodyÉô¤ËÊ¬¤±¤ë
+;; declaration, block-item ã®è¿”ã‚Šå€¤ã‚’å®£è¨€éƒ¨ã¨bodyéƒ¨ã«åˆ†ã‘ã‚‹
 (defun split-decl-and-body (x)
   (list (apply #'append (mapcar #'first x))
         (remove nil (mapcar #'second x))))
@@ -80,9 +80,9 @@
    (hst:with-hoist-env (call-next-rule) ))
   )
 
-;;; °Ê²¼, declaration, block-item ¤ÎÊÖ¤êÃÍ¤Ï¡¢
-;;; (<´Ø¿ôËÜÂÎ¤ÎÀèÆ¬¤Ë½Ğ¤¹S¼°¤Î¥ê¥¹¥È>
-;;;  <¸µ¤Î¾ì½ê¤Ë»Ä¤¹S¼°>)
+;;; ä»¥ä¸‹, declaration, block-item ã®è¿”ã‚Šå€¤ã¯ã€
+;;; (<é–¢æ•°æœ¬ä½“ã®å…ˆé ­ã«å‡ºã™Så¼ã®ãƒªã‚¹ãƒˆ>
+;;;  <å…ƒã®å ´æ‰€ã«æ®‹ã™Så¼>)
 
 ;;; declaration
 (defrule inlined-declaration hoist
@@ -153,12 +153,12 @@
 
 (defrule struct-declaration hoist
   (otherwise
-   (hst:with-new-func                   ; ¥À¥ß¡¼¤Î´Ø¿ô¤òÃÖ¤¤¤Æ¡¤add-decl¤µ¤ì¤¿Àë¸À¤òÊá¤Ş¤¨¤ë
+   (hst:with-new-func                   ; ãƒ€ãƒŸãƒ¼ã®é–¢æ•°ã‚’ç½®ã„ã¦ï¼Œadd-declã•ã‚ŒãŸå®£è¨€ã‚’æ•ã¾ãˆã‚‹
        (with1 ret (call-next-rule)
          ~(%splice ,.(hst:finfo-flush-decls) ,ret) )))
   )
 
-;;; ÇÛÎó½é´ü²½»Ò¤Ç»²¾È¤µ¤ì¤ëºÇÂç¤Îindex¿ô
+;;; é…åˆ—åˆæœŸåŒ–å­ã§å‚ç…§ã•ã‚Œã‚‹æœ€å¤§ã®indexæ•°
 (defrule max-referred-index hoist
   (#?(array ,@inits)
    (with1 cnt 0
@@ -170,7 +170,7 @@
 (defrule referred-index hoist
   ;; initializer with designator
   (#?((aref-this ,@exp-list) ,init)
-   (eval (car exp-list)) )              ; Åº»ú¤¬Lisp¤ÇÉ¾²Á¤Ç¤­¤ë¼°¤Ç¤¢¤ë¤³¤È¤ò²¾Äê
+   (eval (car exp-list)) )              ; æ·»å­—ãŒLispã§è©•ä¾¡ã§ãã‚‹å¼ã§ã‚ã‚‹ã“ã¨ã‚’ä»®å®š
   (#?((aref ,desig ,@exp-list) ,init)
    (referred-index ~(,desig ,init)))
   ;; initializer without designator

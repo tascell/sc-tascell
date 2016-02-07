@@ -51,8 +51,8 @@
 ;;; function information
 (defstruct finfo
   variables                             ; list of (<id> . <type>)
-  tmp-variables                         ; ÄÉ²Ã¤µ¤ì¤¿°ì»şÊÑ¿ô list of (<id> . <type>)
-  (function-head t)                     ; ´Ø¿ô¤ÎÀèÆ¬¤Î¥Ö¥í¥Ã¥¯ÄÌ²á»ş¤Ënil¤Ë¤¹¤ë
+  tmp-variables                         ; è¿½åŠ ã•ã‚ŒãŸä¸€æ™‚å¤‰æ•° list of (<id> . <type>)
+  (function-head t)                     ; é–¢æ•°ã®å…ˆé ­ã®ãƒ–ãƒ­ãƒƒã‚¯é€šéæ™‚ã«nilã«ã™ã‚‹
   main-p
   )
 
@@ -100,12 +100,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; struct information
 (defstruct sinfo
-  id                                    ; ¸µ¤Î¹½Â¤ÂÎÌ¾
+  id                                    ; å…ƒã®æ§‹é€ ä½“å
   members                               ; list of (<id> . <type>) 
-  hsc-sid                               ; ÊÑ´¹¸å¤Î¹½Â¤ÂÎÌ¾
-  data-sid                              ; ¥Ç¡¼¥¿Éô¤Î¹½Â¤ÂÎÌ¾¡Êº£¤Î¼ÂÁõ¤Ç¤Ïid¤ÈÆ±°ì¡Ë
-  smap-id                               ; ¥Ş¥Ã¥×ÇÛÎó¤ÎÊÑ¿ôÌ¾
-  sdesc-id                              ; ¹½Â¤ÂÎ¤´¤È¤Îdesc¾ğÊó¤òÊİ»ı¤¹¤ëÊÑ¿ôÌ¾
+  hsc-sid                               ; å¤‰æ›å¾Œã®æ§‹é€ ä½“å
+  data-sid                              ; ãƒ‡ãƒ¼ã‚¿éƒ¨ã®æ§‹é€ ä½“åï¼ˆä»Šã®å®Ÿè£…ã§ã¯idã¨åŒä¸€ï¼‰
+  smap-id                               ; ãƒãƒƒãƒ—é…åˆ—ã®å¤‰æ•°å
+  sdesc-id                              ; æ§‹é€ ä½“ã”ã¨ã®descæƒ…å ±ã‚’ä¿æŒã™ã‚‹å¤‰æ•°å
   )
 
 (defun sinfo-asize (&optional (sinfo *sinfo*))
@@ -121,18 +121,18 @@
 
 ;; make expression for aligned size
 
-;; sinfoÄÉ²Ã
+;; sinfoè¿½åŠ 
 (defun add-sinfo (&optional (sinfo *sinfo*))
   (push sinfo *sinfo-list*))
 
-;; sinfo¤òid¤Ç¸¡º÷
+;; sinfoã‚’idã§æ¤œç´¢
 (defun find-sinfo (id)
   (find id *sinfo-list* :key #'sinfo-id))
 
 (defun add-member (id type &optional (sinfo *sinfo*))
   (push (cons id type) (sinfo-members sinfo)))
 
-;; ¥ª¥Ö¥¸¥§¥¯¥ÈÆâ¤Î»²¾È¤Î°ÌÃÖ¤ò¼¨¤¹ÇÛÎó¼°
+;; ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆå†…ã®å‚ç…§ã®ä½ç½®ã‚’ç¤ºã™é…åˆ—å¼
 (defun make-struct-map (&optional (sinfo *sinfo*))
   (let ((vars (sinfo-members sinfo))
         (hsc-sid (sinfo-hsc-sid sinfo))
@@ -152,7 +152,7 @@
                 ,member-id)))
   )
 
-;; ¥ª¥Ö¥¸¥§¥¯¥È¾ğÊó¹½Â¤ÂÎ¼°¤òºî¤ë
+;; ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆæƒ…å ±æ§‹é€ ä½“å¼ã‚’ä½œã‚‹
 (defun make-descriptor (&optional (sinfo *sinfo*))
   (let ((hsc-sid (sinfo-hsc-sid sinfo))
         (smap-id (sinfo-smap-id sinfo)))

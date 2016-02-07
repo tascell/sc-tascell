@@ -32,28 +32,28 @@
 
 (decl (struct _thstelm))
 
-;; ·ÑÂ³ÍÑÆş¤ì»Ò´Ø¿ô¤Î¸Æ¤Ó½Ğ¤·ÍıÍ³
+;; ç¶™ç¶šç”¨å…¥ã‚Œå­é–¢æ•°ã®å‘¼ã³å‡ºã—ç†ç”±
 (deftype reason enum rsn-cont rsn-retval)
 
-;; ·ÑÂ³ÍÑÆş¤ì»Ò´Ø¿ô¤Î¥İ¥¤¥ó¥¿
+;; ç¶™ç¶šç”¨å…¥ã‚Œå­é–¢æ•°ã®ãƒã‚¤ãƒ³ã‚¿
 (deftype
     cont-f 
     (ptr (NESTFUNC-TAG (ptr void) (ptr (struct _thstelm)) reason)))
 
-;; ¥¹¥ì¥Ã¥É¤Î¾õÂÖ
+;; ã‚¹ãƒ¬ãƒƒãƒ‰ã®çŠ¶æ…‹
 (def (enum _stat)
-     ;; Ää»ßÃæ¤Ç¡¤°ÅÌÛÅª·ÑÂ³¤âÍ­¸ú
+     ;; åœæ­¢ä¸­ã§ï¼Œæš—é»™çš„ç¶™ç¶šã‚‚æœ‰åŠ¹
      thr-new-suspended
-     ;; ¼Â¹Ô²ÄÇ½¤Ç¡¢°ÅÌÛÅª·ÑÂ³¤âÍ­¸ú
+     ;; å®Ÿè¡Œå¯èƒ½ã§ã€æš—é»™çš„ç¶™ç¶šã‚‚æœ‰åŠ¹
      thr-new-runnable
-     ;; Ää»ßÃæ¤Ç¡¢ÌÀ¼¨Åª·ÑÂ³¤Î¤ßÍ­¸ú
+     ;; åœæ­¢ä¸­ã§ã€æ˜ç¤ºçš„ç¶™ç¶šã®ã¿æœ‰åŠ¹
      thr-suspended
-     ;; ¼Â¹Ô²ÄÇ½¤Ç¡¢ÌÀ¼¨Åª·ÑÂ³¤Î¤ßÍ­¸ú
+     ;; å®Ÿè¡Œå¯èƒ½ã§ã€æ˜ç¤ºçš„ç¶™ç¶šã®ã¿æœ‰åŠ¹
      thr-runnable
-     ;; ÌÀ¼¨Åª·ÑÂ³(cont-f c)¤ÏÌµ¸ú
+     ;; æ˜ç¤ºçš„ç¶™ç¶š(cont-f c)ã¯ç„¡åŠ¹
      thr-scheduled)
 
-;; ¥¹¥ì¥Ã¥É´ÉÍıÍÑ¥¹¥¿¥Ã¥¯¤ÎÍ×ÁÇ
+;; ã‚¹ãƒ¬ãƒƒãƒ‰ç®¡ç†ç”¨ã‚¹ã‚¿ãƒƒã‚¯ã®è¦ç´ 
 (def (struct _thstelm)
      (def c cont-f)
      (def stat (enum _stat)))
@@ -63,24 +63,24 @@
 (deftype thst-ptr (ptr (struct _thstelm)))
 (deftype cont thst-ptr)
 
-;; ¥¹¥ì¥Ã¥É´ÉÍıÍÑ¥¹¥¿¥Ã¥¯
+;; ã‚¹ãƒ¬ãƒƒãƒ‰ç®¡ç†ç”¨ã‚¹ã‚¿ãƒƒã‚¯
 (def thst (array thstelm 65536))
 
-;; ¥¹¥ì¥Ã¥É´ÉÍıÍÑ¥¹¥¿¥Ã¥¯¤Î¥È¥Ã¥×
+;; ã‚¹ãƒ¬ãƒƒãƒ‰ç®¡ç†ç”¨ã‚¹ã‚¿ãƒƒã‚¯ã®ãƒˆãƒƒãƒ—
 (def thst-top thst-ptr thst)
 
 (deftype schdexit (ptr (NESTFUNC-TAG void)))
 
-;; ¥¹¥±¥¸¥å¡¼¥é¤ÎÈó¶É½êÃ¦½ĞÀè
+;; ã‚¹ã‚±ã‚¸ãƒ¥ãƒ¼ãƒ©ã®éå±€æ‰€è„±å‡ºå…ˆ
 (def cur-schd-exit schdexit 0)
 (def cur-schd-thst-top thst-ptr thst)
 
 (def scheduling (fn void)
      (def L0 --label--)
-     ;;¸µ¤Î¥¹¥±¥¸¥å¡¼¥é¤Î¾ğÊó
+     ;;å…ƒã®ã‚¹ã‚±ã‚¸ãƒ¥ãƒ¼ãƒ©ã®æƒ…å ±
      (def prev-exit schdexit cur-schd-exit)
      (def prev-thst-top thst-ptr cur-schd-thst-top)
-     ;;¤³¤Î¥¹¥±¥¸¥å¥é¤Î¾ğÊó
+     ;;ã“ã®ã‚¹ã‚±ã‚¸ãƒ¥ãƒ©ã®æƒ…å ±
      (def mythst-top thst-ptr thst-top)
      (def nonlocalexit (NESTFUNC-TAG void) (goto L0))
 
@@ -89,15 +89,15 @@
      (= cur-schd-thst-top (= thst-top mythst-top))
      (while 1
        (let ((cp thst-ptr))
-	 ;;¤³¤³¤Ç¸µ¤Î¥¹¥±¥¸¥å¡¼¥é¤Ø¤ÎÈó¶É½êÃ¦½Ğ¤ò»î¤ß¤ë
+	 ;;ã“ã“ã§å…ƒã®ã‚¹ã‚±ã‚¸ãƒ¥ãƒ¼ãƒ©ã¸ã®éå±€æ‰€è„±å‡ºã‚’è©¦ã¿ã‚‹
 	 (for ((= cp prev-thst-top)
 	       (< cp mythst-top)
 	       (inc cp))
 	    (if (!= (fref cp -> stat) thr-scheduled) (break))
-	    ;; ´Ö¤¬Á´¤Æ thr-scheduled ¤Ê¤é
+	    ;; é–“ãŒå…¨ã¦ thr-scheduled ãªã‚‰
 	    (if (== cp mythst-top) (if prev-exit (prev-exit)))))
 
-       ;; runnable¤Ê¥¹¥ì¥Ã¥É¤òÃµ¤¹
+       ;; runnableãªã‚¹ãƒ¬ãƒƒãƒ‰ã‚’æ¢ã™
        (let ((cp thst-ptr)
 	     (cc cont-f))
 	 (for ((= cp (- thst-top 1))
@@ -108,8 +108,8 @@
 		  (break)))
 	 (if (< cp thst)
 	     (begin
-	      ;; ¸«¤Ä¤«¤é¤Ê¤«¤Ã¤¿¤È¤­¤ÏÂ¾¤Î¥×¥í¥»¥Ã¥µ¤«¤é¤ÎÍ×µá¤ò½èÍı¤¹¤Ù¤·
-	      ;; º£²ó¤Ï²¿¤â¤·¤Ê¤¤
+	      ;; è¦‹ã¤ã‹ã‚‰ãªã‹ã£ãŸã¨ãã¯ä»–ã®ãƒ—ãƒ­ã‚»ãƒƒã‚µã‹ã‚‰ã®è¦æ±‚ã‚’å‡¦ç†ã™ã¹ã—
+	      ;; ä»Šå›ã¯ä½•ã‚‚ã—ãªã„
 	      (c-exp "fprintf(stderr, ~A)" "No Active thread!~%")
 	      (c-exp "exit(1)")
 	      ))
@@ -118,12 +118,12 @@
 	   (= (fref cp -> c) 0)
            (= (fref cp -> stat) thr-scheduled)
 	   (cc cp rsn-cont)))
-       ;;Ä¾²¼¤¬new-runnable¤Ê¤épop¤·¡¢¤½¤Á¤é¤ËÀ©¸æ¤ò°Ü¤¹
+       ;;ç›´ä¸‹ãŒnew-runnableãªã‚‰popã—ã€ãã¡ã‚‰ã«åˆ¶å¾¡ã‚’ç§»ã™
        (if (and (> thst-top thst)
 		(== (fref (- thst-top 1) -> stat) thr-new-runnable))
 	   (begin (dec thst-top) (break))))
 
-     ;; ¸µ¤Î¥¹¥±¥¸¥å¡¼¥é¤Î¾ğÊó¤òÌá¤¹
+     ;; å…ƒã®ã‚¹ã‚±ã‚¸ãƒ¥ãƒ¼ãƒ©ã®æƒ…å ±ã‚’æˆ»ã™
      (= cur-schd-exit prev-exit)
      (= cur-schd-thst-top prev-thst-top))
 

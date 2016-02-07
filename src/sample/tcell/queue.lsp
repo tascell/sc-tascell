@@ -3,11 +3,11 @@
   (:export "QUEUE" "SHARED-QUEUE" "ADD-QUEUE" "EMPTY-QUEUE-P"
            "DELETE-QUEUE" "FIND-DELETE-QUEUE"
            "QUEUE-BODY" "SQ-LOCK" "SQ-GATE")
-  ;; sc-misc.lsp ¤Î¥­¥å¡¼´ØÏ¢¤Î´Ø¿ô¤È¤Î¾×ÆÍ¤òËÉ¤°
+  ;; sc-misc.lsp ã®ã‚­ãƒ¥ãƒ¼é–¢é€£ã®é–¢æ•°ã¨ã®è¡çªã‚’é˜²ã
   (:shadow #:empty-queue-p #:delete-queue #:find-delete-queue))
 (in-package "QUEUE")
 
-;;;; queue¥¯¥é¥¹¤ÎÄêµÁ
+;;;; queueã‚¯ãƒ©ã‚¹ã®å®šç¾©
 (defclass queue ()
   ((body :accessor queue-body :type list :initform (misc:make-queue))))
 
@@ -18,7 +18,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; queue¤Ø¤ÎÄÉ²Ã
+;; queueã¸ã®è¿½åŠ 
 (defgeneric add-queue (elm q))
 (defmethod add-queue (elm (q queue))
   (misc:insert-queue elm (queue-body q)))
@@ -29,12 +29,12 @@
     (prog1 (call-next-method)
       (mp:open-gate (sq-gate sq)))))
 
-;; ¶õqueue
+;; ç©ºqueue
 (defgeneric empty-queue-p (q))
 (defmethod empty-queue-p ((q queue))
   (misc:empty-queue-p (queue-body q)))
 
-;; queue¤«¤é¼è¤ê½Ğ¤·
+;; queueã‹ã‚‰å–ã‚Šå‡ºã—
 (defgeneric delete-queue (q))
 (defmethod delete-queue ((q queue))
   (misc:delete-queue (queue-body q)))
@@ -45,7 +45,7 @@
       (when (empty-queue-p sq)
         (mp:close-gate (sq-gate sq))))))
 
-;; queue¤«¤é¸¡º÷¤·¤Æ¼è¤ê½Ğ¤·
+;; queueã‹ã‚‰æ¤œç´¢ã—ã¦å–ã‚Šå‡ºã—
 (defgeneric find-delete-queue (q test &key key))
 (defmethod find-delete-queue ((q queue) test &key (key #'identity))
   (misc:find-delete-queue (queue-body q) test :key key))

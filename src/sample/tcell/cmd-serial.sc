@@ -22,7 +22,7 @@
 ;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 ;;; SUCH DAMAGE.
 
-;;;; ¥³¥Ş¥ó¥É¤Î¥·¥ê¥¢¥é¥¤¥º¡¦¥Ç¥·¥ê¥¢¥é¥¤¥º´Ø¿ô
+;;;; ã‚³ãƒãƒ³ãƒ‰ã®ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚ºãƒ»ãƒ‡ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚ºé–¢æ•°
 (c-exp "#include <pthread.h>")
 (%include "rule/nestfunc-setrule.sh")
 
@@ -32,7 +32,7 @@
 (%include "worker.sh")
 
 
-;; Ê¸»úÎó¤ÎºÇ½é¤Î¶õÇò°Ê³°¤Î°ÌÃÖ¤òÊÖ¤¹
+;; æ–‡å­—åˆ—ã®æœ€åˆã®ç©ºç™½ä»¥å¤–ã®ä½ç½®ã‚’è¿”ã™
 (def (csym::skip-whitespace str) (fn (ptr char) (ptr char))
   (def ch char)
   (= ch (mref str))
@@ -40,7 +40,7 @@
         (= ch (mref (++ str)))))
   (return str))
 
-;; Ê¸»úÎó¤ÎºÇ½é¤Î¶õÇò¤Î°ÌÃÖ¤òÊÖ¤¹
+;; æ–‡å­—åˆ—ã®æœ€åˆã®ç©ºç™½ã®ä½ç½®ã‚’è¿”ã™
 (def (csym::skip-notwhitespace str) (fn (ptr char) (ptr char))
   (def ch char)
   (= ch (mref str))
@@ -49,7 +49,7 @@
   (return str))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; (struct cmd)¹½Â¤ÂÎÉ½¼¨
+;; (struct cmd)æ§‹é€ ä½“è¡¨ç¤º
 (def (csym::print-cmd pcmd) (fn void (ptr (struct cmd)))
   (defs int i j)
   (csym::fprintf stderr "cmd.w: %d~%" pcmd->w)
@@ -65,7 +65,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;
 
-;; ¥³¥Ş¥ó¥É->Ê¸»úÎó (returns ½ñ¤¤¤¿Ê¸»ú¿ô)
+;; ã‚³ãƒãƒ³ãƒ‰->æ–‡å­—åˆ— (returns æ›¸ã„ãŸæ–‡å­—æ•°)
 (def (csym::serialize-cmdname buf w) (fn int (ptr char) (enum command))
   (def p (ptr char) buf)
   (if (and (>= w 0) (< w WRNG))
@@ -77,13 +77,13 @@
      (= (mref p) #\NULL)
      (return 0))))
 
-;; Ê¸»úÎó->¥³¥Ş¥ó¥É (returns ÆÉ¤ó¤ÀÊ¸»ú¿ô)
+;; æ–‡å­—åˆ—->ã‚³ãƒãƒ³ãƒ‰ (returns èª­ã‚“ã æ–‡å­—æ•°)
 (def (csym::deserialize-cmdname buf str) (fn int (ptr (enum command)) (ptr char))
   (def i int)
   (def p (ptr char))
   (def cmdstr (ptr char))
   (= p str)
-  ;; ¤æ¤ë¤¤Ê¸»úÎóÈæ³Óver.
+  ;; ã‚†ã‚‹ã„æ–‡å­—åˆ—æ¯”è¼ƒver.
   (begin
    (switch (mref (inc p))
      (case #\t)
@@ -136,12 +136,12 @@
    (= p (csym::skip-notwhitespace p))
    (= p (csym::skip-whitespace p))
    (return (- p str)))
-  #+comment                             ; ¸·Ì©¤ËÊ¸»úÎóÈæ³Óver.
+  #+comment                             ; å³å¯†ã«æ–‡å­—åˆ—æ¯”è¼ƒver.
   (begin
    (for ((= i 0) (= cmdstr (aref cmd-strings i)) (inc i))
      (if (== 0 (csym::strncmp p cmdstr 4))
          (begin
-          (= (mref buf) i)              ; ¥³¥Ş¥ó¥É¤ò¥»¥Ã¥È
+          (= (mref buf) i)              ; ã‚³ãƒãƒ³ãƒ‰ã‚’ã‚»ãƒƒãƒˆ
           (+= p 4)
           (= p (csym::skip-whitespace p))
           (return (- p str))
@@ -151,7 +151,7 @@
   )
 
 ;;;;;;;;;;
-;; [À°¿ô|¥Î¡¼¥É]Îó->Ê¸»úÎó (returns ½ñ¤¤¤¿Ê¸»ú¿ô)
+;; [æ•´æ•°|ãƒãƒ¼ãƒ‰]åˆ—->æ–‡å­—åˆ— (returns æ›¸ã„ãŸæ–‡å­—æ•°)
 (def (csym::serialize-arg buf arg) (fn int (ptr char) (ptr (enum addr)))
   (def p (ptr char) buf)
   (def addr (enum addr))
@@ -172,7 +172,7 @@
   (= (mref (-- p)) #\NULL)
   (return (- p buf)))
 
-;; Ê¸»úÎó->¥Î¡¼¥É
+;; æ–‡å­—åˆ—->ãƒãƒ¼ãƒ‰
 (def (csym::deserialize-addr str) (fn (enum addr) (ptr char))
   (cond
    ((== #\p (aref str 0))
@@ -184,7 +184,7 @@
    (else
     (return (csym::atoi str)))))
 
-;; Ê¸»úÎó->[À°¿ô|¥Î¡¼¥É]Îó (returns ÆÉ¤ó¤ÀÊ¸»ú¿ô)
+;; æ–‡å­—åˆ—->[æ•´æ•°|ãƒãƒ¼ãƒ‰]åˆ— (returns èª­ã‚“ã æ–‡å­—æ•°)
 (def (csym::deserialize-arg buf str) (fn int (ptr (enum addr)) (ptr char))
   (defs (ptr char) p0 p1)
   (def ch int)
@@ -196,30 +196,30 @@
     (cond 
      ((or (== ch #\:) (== ch #\Space) (== ch #\Newline) (== ch #\NULL))
       (= (mref p1) #\NULL)
-      (= (mref (inc paddr)) (csym::deserialize-addr p0)) ; p0--p1¤Ş¤Çdeserialize
+      (= (mref (inc paddr)) (csym::deserialize-addr p0)) ; p0--p1ã¾ã§deserialize
       (= (mref p1) ch)
       (if (!= ch #\:)                   ; NULL, Space, Newline
           (break))
       (= p0 (+ 1 p1)))))
-  (= (mref paddr) TERM)  ; ÈÖÊ¼
+  (= (mref paddr) TERM)  ; ç•ªå…µ
   (= p1 (csym::skip-whitespace p1))
   (return (- p1 str)))
 
 ;;;;;;;;;;
-;; ¥³¥Ş¥ó¥É->Ê¸»úÎó (return ½ñ¤¤¤¿Ê¸»ú¿ô)
+;; ã‚³ãƒãƒ³ãƒ‰->æ–‡å­—åˆ— (return æ›¸ã„ãŸæ–‡å­—æ•°)
 (def (csym::serialize-cmd buf pcmd) (fn int (ptr char) (ptr (struct cmd)))
   (def p (ptr char))
   (def ret int)
   (def i int)
   (= p buf)
-  ;; ¥³¥Ş¥ó¥ÉÌ¾
+  ;; ã‚³ãƒãƒ³ãƒ‰å
   (if (not (= ret (csym::serialize-cmdname p pcmd->w)))
       (begin
        (csym::fprintf stderr "Serialize-cmd failed.~%")
        (csym::print-cmd pcmd)
        (csym::exit 1)))
   (+= p ret) (= (mref (inc p)) #\Space)
-  ;; °ú¿ô
+  ;; å¼•æ•°
   (for ((= i 0) (< i pcmd->c) (inc i))
     (+= p (csym::serialize-arg p (aref pcmd->v i)))
     (= (mref (inc p)) #\Space))
@@ -227,23 +227,23 @@
   (= (mref (-- p)) #\NULL)
   (return (- p buf)))
 
-;; Ê¸»úÎó->¥³¥Ş¥ó¥É (return ÆÉ¤ó¤ÀÊ¸»ú¿ô)
+;; æ–‡å­—åˆ—->ã‚³ãƒãƒ³ãƒ‰ (return èª­ã‚“ã æ–‡å­—æ•°)
 (def (csym::deserialize-cmd pcmd str) (fn int (ptr (struct cmd)) (ptr char))
   (def p (ptr char))
   (def i int)
   (= p str)
-  ;; ¥³¥Ş¥ó¥ÉÌ¾
+  ;; ã‚³ãƒãƒ³ãƒ‰å
   (+= p (csym::deserialize-cmdname (ptr pcmd->w) p))
   (if (== pcmd->w WRNG) (return (- p str)))
-  ;; °ú¿ô
+  ;; å¼•æ•°
   (for ((= i 0) (and (mref p) (< i MAXCMDC)) (inc i))
        (+= p (csym::deserialize-arg (aref pcmd->v i) p)))
-  ;; °ú¿ô¤Î¿ô
+  ;; å¼•æ•°ã®æ•°
   (= pcmd->c i)
   (return (- p str)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; ¥Î¡¼¥ÉÎó¥³¥Ô¡¼ (returns TERM¤ò½ü¤¯¥Î¡¼¥É¿ô)
+;; ãƒãƒ¼ãƒ‰åˆ—ã‚³ãƒ”ãƒ¼ (returns TERMã‚’é™¤ããƒãƒ¼ãƒ‰æ•°)
 (def (csym::copy-address dst src) (fn int (ptr (enum addr)) (ptr (enum addr)))
   (def i int)
   (for ((= i 0) (!= TERM (aref src i)) (inc i))
@@ -251,7 +251,7 @@
   (= (aref dst i) TERM)
   (return i))
 
-;; ¥Î¡¼¥ÉÎóÈæ³Ó (Æ±°ì¤Ê¤éÈó0)
+;; ãƒãƒ¼ãƒ‰åˆ—æ¯”è¼ƒ (åŒä¸€ãªã‚‰é0)
 (def (csym::address-equal adr1 adr2) (fn int (ptr (enum addr)) (ptr (enum addr)))
   (def i int)
   (for ((= i 0) (< i MAXCMDC) (inc i))

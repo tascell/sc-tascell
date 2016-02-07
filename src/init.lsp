@@ -33,11 +33,11 @@
 
 ;;; Implementation-dependent settings
 #+cmu (setq ext:*gc-verbose* nil)
-#+clisp (progn (setq custom:*default-file-encoding* charset:euc-jp)
+#+clisp (progn (setq custom:*default-file-encoding* charset:utf-8)
                (unuse-package :ext))
 #+allegro (progn (setq comp:*cltl1-compile-file-toplevel-compatibility-p* t)
                  (require :osi))
-#+(and allegro mswindows) (setq *locale* (find-locale "japan.EUC"))
+#+(and allegro mswindows) (setq *locale* (find-locale "ja_JP.utf8"))
 ;; #+(and composer allegro) (wt:start-composer)
 
 ;;; Printer settings

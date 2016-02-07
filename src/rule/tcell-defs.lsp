@@ -45,7 +45,7 @@
 (in-package "TCELL")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; task ¤Î´ÉÍı
+;;; task ã®ç®¡ç†
 (defvar *tasks* (list))
 (defvar *current-task* nil)
 (defstruct (task-info
@@ -61,7 +61,7 @@
                               (rslt-recv (make-rslt-recv-id cid)) )))
   (id nil :type symbol)
   (cid "" :type string)
-  (no -1 :type fixnum)                     ; task ¤ÎÄÌ¤·ÈÖ¹æ
+  (no -1 :type fixnum)                     ; task ã®é€šã—ç•ªå·
   (struct-id nil :type symbol)
   (do-task   nil :type symbol)
   (task-send nil :type symbol)  (task-send-body nil)
@@ -69,8 +69,8 @@
   (rslt-send nil :type symbol)  (rslt-send-body nil)
   (rslt-recv nil :type symbol)  (rslt-recv-body nil)
   (fields (list))                       ; list of (<id> <texp>)
-  ;; fields ¤Î¤¦¤Á :in, :out»ØÄê¤µ¤ì¤¿¤â¤Î
-  ;; <tsize>: Å¾Á÷¤¹¤ëÇÛÎó¤ÎÍ×ÁÇ¿ô¡¥À°¿ô or task¥á¥ó¥ĞÊÑ¿ô¡¥
+  ;; fields ã®ã†ã¡ :in, :outæŒ‡å®šã•ã‚ŒãŸã‚‚ã®
+  ;; <tsize>: è»¢é€ã™ã‚‹é…åˆ—ã®è¦ç´ æ•°ï¼æ•´æ•° or taskãƒ¡ãƒ³ãƒå¤‰æ•°ï¼
   (input-vars (list))                   ; list of (<id> <texp> <size>)
   (output-vars (list))                  ; list of (<id> <texp> <size>)
   )
@@ -83,10 +83,10 @@
       (find task-or-scid *tasks* :key #'task-info-id :test #'eq)
       (error "Task ~S is undefined." task-or-scid)))
  
-;; taskÈÖ¹æ¤È½èÍı´Ø¿ô¤Ø¤ÎÂĞ±şÉ½¡ÊÇÛÎó¡Ë¤òÄêµÁ¤¹¤ë¥³¡¼¥É
+;; taskç•ªå·ã¨å‡¦ç†é–¢æ•°ã¸ã®å¯¾å¿œè¡¨ï¼ˆé…åˆ—ï¼‰ã‚’å®šç¾©ã™ã‚‹ã‚³ãƒ¼ãƒ‰
 (defun task-maps ()
   (let ((rev-tasks (reverse *tasks*))
-        (len ~TASK-MAX)                 ; worker.sh ¤Ç %defconstant
+        (len ~TASK-MAX)                 ; worker.sh ã§ %defconstant
         (doer-type      ~(ptr ,(task-body-type ~void)))
         (tsender-type   ~(ptr ,(task-sender-type ~void)))
         (treceiver-type ~(ptr ,(task-receiver-type ~void)))
@@ -183,7 +183,7 @@
        )
     ))
 
-;;; task/rslt sender/receiver ¡ÊÊÑ·ÁºÑ¤ß¡ËËÜÂÎ¤Îset
+;;; task/rslt sender/receiver ï¼ˆå¤‰å½¢æ¸ˆã¿ï¼‰æœ¬ä½“ã®set
 (defun set-task-send (body &optional (task *current-task*))
   (setf (task-info-task-send-body task) body))
 (defun set-task-recv (body &optional (task *current-task*))
@@ -193,7 +193,7 @@
 (defun set-rslt-recv (body &optional (task *current-task*))
   (setf (task-info-rslt-recv-body task) body))
 
-;;; task/rslt sender/receiver ¤òºî¤ë¡¥
+;;; task/rslt sender/receiver ã‚’ä½œã‚‹ï¼
 (defun sender-and-receiver-functions-all ()
   (mapcan #'sender-and-receiver-functions *tasks*))
 
@@ -240,7 +240,7 @@
     ))
 
 
-;; !!! º£¤Î¤È¤³¤íÅ¬Åö
+;; !!! ä»Šã®ã¨ã“ã‚é©å½“
 (defvar *var-sender*
     ~((int . csym::send-int) (long . csym::send-long) (double . csym::send-double)))
 (defvar *var-receiver*
@@ -255,7 +255,7 @@
   (destructuring-bind (id texp tsize) i-t-s
     (make-sendrecv-var-array id texp tsize () #'make-recv-var-unit)))
 
-;; ÇÛÎó¤òÁ÷¼õ¿®¤¹¤ëfor¥ë¡¼¥×¤òºî¤ë¡¥sr-unit¤ÇÁ÷¿®or¼õ¿®¤ò»ØÄê
+;; é…åˆ—ã‚’é€å—ä¿¡ã™ã‚‹forãƒ«ãƒ¼ãƒ—ã‚’ä½œã‚‹ï¼sr-unitã§é€ä¿¡orå—ä¿¡ã‚’æŒ‡å®š
 (defun make-sendrecv-var-array (id texp tsize subsc sr-unit)
   (if (and (consp texp) (eq ~array (car texp)))
       (let ((tsize-exp (or (car tsize) (third texp)))
@@ -287,7 +287,7 @@
     (warn "Default receiver for ~S is not prepeared." texp)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; worker-data´ÉÍı
+;; worker-dataç®¡ç†
 (defvar *defined-worker-data* nil)
 (defvar *defined-worker-init* nil)
 (defvar *wdata-accessible* nil)
@@ -316,11 +316,11 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Æş¤ì»Ò´Ø¿ô¤Î·¿
+;; å…¥ã‚Œå­é–¢æ•°ã®å‹
 (defun nestfunc-type (&optional (fn-tag (ruleset-param 'rule::nestfunc-tag)))
   ~(,fn-tag int void))
 
-;; ¥¿¥¹¥¯¼ø¼õ¡¤¼Â¹Ô´Ø¿ô¤Î·¿
+;; ã‚¿ã‚¹ã‚¯æˆå—ï¼Œå®Ÿè¡Œé–¢æ•°ã®å‹
 (defun task-body-type (data-type)
   ~(fn void (ptr (struct thread-data)) (ptr ,data-type)) )
 (defun task-sender-type (data-type)
@@ -333,7 +333,7 @@
   ~(csym::fn void (ptr ,data-type)) )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Ä¾¶á¤ÎÆş¤ì»Ò´Ø¿ô
+;; ç›´è¿‘ã®å…¥ã‚Œå­é–¢æ•°
 (defvar *latest-bk* nil)
 
 (defun latest-bk ()
@@ -348,7 +348,7 @@
      ,@body))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; ÄêµÁ¤µ¤ì¤¿´Ø¿ôÌ¾¥ê¥¹¥È
+;; å®šç¾©ã•ã‚ŒãŸé–¢æ•°åãƒªã‚¹ãƒˆ
 (defvar *defined-func-names* ())
 
 (defun add-defined-func-name (id)

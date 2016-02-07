@@ -59,6 +59,6 @@ void swap_doubles (double *a, int n);
 int send_double_seq (double *a, int nelm);
 int recv_double_seq (double *a, int nelm);
 
-/* ¥Ø¥Ã¥À¤ÎÁ÷¼õ¿®¤â´Ş¤à */
+/* ãƒ˜ãƒƒãƒ€ã®é€å—ä¿¡ã‚‚å«ã‚€ */
 int send_doubles (double *a, int nelm);
 int recv_doubles (double *a, int nelm);
