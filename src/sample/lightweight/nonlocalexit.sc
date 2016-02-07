@@ -30,10 +30,10 @@
 (decl (csym::printf) (fn int (ptr (const char)) va-arg))
 (deftype size-t unsigned-int)
 
-;;;; 1^2 + 2^2 + ... + n^2 ¤Î·×»»
-;;;; ·ë²Ì¤¬limit¤òÄ¶¤¨¤¿¤é -1 ¤òÊÖ¤¹¡£
+;;;; 1^2 + 2^2 + ... + n^2 ã®è¨ˆç®—
+;;;; çµæœãŒlimitã‚’è¶…ãˆãŸã‚‰ -1 ã‚’è¿”ã™ã€‚
 (def (square-sum n pflag) (fn int int (ptr int))
-  (def O-FLOW __label__)  ; ¤³¤ÎÀë¸À¤Ïgcc¤Ç¤âÉ¬¿Ü¡¢2¥Ñ¥¹²òÀÏ¤¹¤ì¤Ğ¤Ï¤º¤»¤ë?
+  (def O-FLOW __label__)  ; ã“ã®å®£è¨€ã¯gccã§ã‚‚å¿…é ˆã€2ãƒ‘ã‚¹è§£æã™ã‚Œã°ã¯ãšã›ã‚‹?
   (def limit int 8192)
 
   (def (square-sum-t n acc) (lightweight int int int)

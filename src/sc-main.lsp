@@ -70,13 +70,13 @@
           ~(%defconstant RULE ,rule-list)
           )))
 
-;;; Ãæ´Ö¥Õ¥¡¥¤¥ë½ÐÎÏ¡Ü¥á¥Ã¥»¡¼¥¸
+;;; ä¸­é–“ãƒ•ã‚¡ã‚¤ãƒ«å‡ºåŠ›ï¼‹ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸
 (defun write-intermediate-file (pathname x)
   (format *error-output*
       "~&Writing an intermeidate file ~S...~%" (namestring pathname))
   (sc-file:write-sc-file pathname x))
 
-;;; ½ÐÎÏ¥Õ¥¡¥¤¥ëÌ¾
+;;; å‡ºåŠ›ãƒ•ã‚¡ã‚¤ãƒ«å
 (defun make-output-filename (output-file input-file
                              &optional (default-type "c"))
   (if (not input-file) (make-pathname :directory '(:relative)
@@ -95,15 +95,15 @@
 
 (defun sc2c (x
              &key
-             ((:rule rule-list) *rule-list-default* rulelist-specified) ;rule-set¤Î¥ê¥¹¥È
-                                        ; »ØÄê¤¹¤ë¤È %rule ¤ÇÊÑ¹¹ÉÔ²Ä
-             (output-file nil outputfile-specified) ; »ØÄê¤Ê¤·¤À¤È¼«Æ°À¸À®
-                                        ; »ØÄê¤¹¤ë¤È %output-file ¤ÇÊÑ¹¹ÉÔ²Ä
-             (sc2c-rule :sc2c sc2c-specified) ; É¬Í×¤Ë±þ¤¸¤ÆÊÑ¹¹¡¥nil¤À¤ÈC¤òÀ¸À®¤·¤Ê¤¤
-                                        ; »ØÄê¤¹¤ë¤È %sc2c ¤ÇÊÑ¹¹ÉÔ²Ä
-             (intermediate nil)         ; Ãæ´Ö¥Õ¥¡¥¤¥ë¤ò½ÐÎÏ¤¹¤ë¤«¡©
-             (predefinitions '())       ; ¥×¥í¥°¥é¥à¤ÎÀèÆ¬¤ËÄÉ²Ã¤¹¤ë¥³¡¼¥É
-             (indent *indent-command*)  ; C¥³¡¼¥É¤Î¥¤¥ó¥Ç¥ó¥È¤òÂ·¤¨¤ë³°Éô¥³¥Þ¥ó¥É
+             ((:rule rule-list) *rule-list-default* rulelist-specified) ;rule-setã®ãƒªã‚¹ãƒˆ
+                                        ; æŒ‡å®šã™ã‚‹ã¨ %rule ã§å¤‰æ›´ä¸å¯
+             (output-file nil outputfile-specified) ; æŒ‡å®šãªã—ã ã¨è‡ªå‹•ç”Ÿæˆ
+                                        ; æŒ‡å®šã™ã‚‹ã¨ %output-file ã§å¤‰æ›´ä¸å¯
+             (sc2c-rule :sc2c sc2c-specified) ; å¿…è¦ã«å¿œã˜ã¦å¤‰æ›´ï¼Žnilã ã¨Cã‚’ç”Ÿæˆã—ãªã„
+                                        ; æŒ‡å®šã™ã‚‹ã¨ %sc2c ã§å¤‰æ›´ä¸å¯
+             (intermediate nil)         ; ä¸­é–“ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‡ºåŠ›ã™ã‚‹ã‹ï¼Ÿ
+             (predefinitions '())       ; ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã®å…ˆé ­ã«è¿½åŠ ã™ã‚‹ã‚³ãƒ¼ãƒ‰
+             (indent *indent-command*)  ; Cã‚³ãƒ¼ãƒ‰ã®ã‚¤ãƒ³ãƒ‡ãƒ³ãƒˆã‚’æƒãˆã‚‹å¤–éƒ¨ã‚³ãƒžãƒ³ãƒ‰
              &aux
              (input-file nil)
              (input-file-path "./"))
@@ -113,8 +113,8 @@
                  (indent *indent-command*) ...)
 Compiles SC-program specified by X into C-program.
 X is an S-expression or a filespec."
-  ;;;;; ÆþÎÏS¼° => x
-  ;; ÆþÎÏ¥Õ¥¡¥¤¥ëÃæ¤Î¥·¥ó¥Ü¥ëÃæ¤Ï¡¢*code-package*¤ËÅÐÏ¿¤µ¤ì¤ë¡£
+  ;;;;; å…¥åŠ›Så¼ => x
+  ;; å…¥åŠ›ãƒ•ã‚¡ã‚¤ãƒ«ä¸­ã®ã‚·ãƒ³ãƒœãƒ«ä¸­ã¯ã€*code-package*ã«ç™»éŒ²ã•ã‚Œã‚‹ã€‚
   (when (or (pathnamep x) (stringp x))
     (unless (setq input-file (or (and (probe-file x) x)
                                  (let ((sc-file (change-extension x "sc")))
@@ -123,7 +123,7 @@ X is an S-expression or a filespec."
     (setq input-file-path
       (make-pathname :directory (pathname-directory input-file)))
     (setq x (sc-file:read-sc-file input-file)))
-  ;; ½ÐÎÏ¥Õ¥¡¥¤¥ëÌ¾
+  ;; å‡ºåŠ›ãƒ•ã‚¡ã‚¤ãƒ«å
   (setq output-file (make-output-filename output-file input-file))
 
   ;; append user's predefinitions
@@ -131,18 +131,18 @@ X is an S-expression or a filespec."
                    :input-file input-file :rule-list rule-list)
                   predefinitions x))
 
-  ;; ÊÑ´¹¼Â¹Ô
+  ;; å¤‰æ›å®Ÿè¡Œ
   (rule:with-setup-generate-id          ; prepare a table of used variables
       ;; sc2c
       (let* ((include-path (list input-file-path scr:*sc-system-path*))
-             (rule-modifier (if rulelist-specified ; ¥³¥Þ¥ó¥É¥é¥¤¥ó¤Ç»ØÄê¤µ¤ì¤Æ¤¤¤¿¤é
-                                #'identity ; ÊÑ¹¹¤òÇ§¤á¤Ê¤¤
+             (rule-modifier (if rulelist-specified ; ã‚³ãƒžãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã§æŒ‡å®šã•ã‚Œã¦ã„ãŸã‚‰
+                                #'identity ; å¤‰æ›´ã‚’èªã‚ãªã„
                               #'(lambda (rlist) (setq rule-list rlist))) )
-             (sc2c-modifier (if sc2c-specified ; ¥³¥Þ¥ó¥É¥é¥¤¥ó¤Ç»ØÄê¤µ¤ì¤Æ¤¤¤¿¤é
-                                #'identity ; ÊÑ¹¹¤òÇ§¤á¤Ê¤¤
+             (sc2c-modifier (if sc2c-specified ; ã‚³ãƒžãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã§æŒ‡å®šã•ã‚Œã¦ã„ãŸã‚‰
+                                #'identity ; å¤‰æ›´ã‚’èªã‚ãªã„
                               #'(lambda (new-sc2c) (setq sc2c-rule new-sc2c))))
-             (ofile-modifier (if outputfile-specified ; ¥³¥Þ¥ó¥É¥é¥¤¥ó¤Ç»ØÄê¤µ¤ì¤Æ¤¤¤¿¤é
-                                 #'identity ; ÊÑ¹¹¤òÇ§¤á¤Ê¤¤
+             (ofile-modifier (if outputfile-specified ; ã‚³ãƒžãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã§æŒ‡å®šã•ã‚Œã¦ã„ãŸã‚‰
+                                 #'identity ; å¤‰æ›´ã‚’èªã‚ãªã„
                                #'(lambda (newo)
                                    (setq output-file
                                      (make-output-filename newo input-file)))))
@@ -150,7 +150,7 @@ X is an S-expression or a filespec."
                                      :include-path include-path
                                      :sc2c-modifier sc2c-modifier
                                      :ofile-modifier ofile-modifier)))
-        ;; apply scpp (%rule ¤ÎÅ¬ÍÑ¤òµö¤¹)
+        ;; apply scpp (%rule ã®é©ç”¨ã‚’è¨±ã™)
         ;;(format *error-output* "~&>>> Applying SCPP...~%")
         ;;(force-output *error-output*)
         (setq x (apply #'scpp:scpp x :rule-modifier rule-modifier

@@ -29,9 +29,9 @@
 
 (c-exp "#include<sys/time.h>")
 
-;; ¥ï¡¼¥«¤´¤È¤Ë½èÍı¤·¤¿¥¿¥¹¥¯¤Î¿ô¤ò¥«¥¦¥ó¥È¤·¤ÆÉ½¼¨
+;; ãƒ¯ãƒ¼ã‚«ã”ã¨ã«å‡¦ç†ã—ãŸã‚¿ã‚¹ã‚¯ã®æ•°ã‚’ã‚«ã‚¦ãƒ³ãƒˆã—ã¦è¡¨ç¤º
 (%defconstant COUNT-NTASK 0)
-;; Probability guard¤ò»È¤¦
+;; Probability guardã‚’ä½¿ã†
 (%defconstant USE-PROBGUARD 0)
 
 (%ifndef* NF-TYPE

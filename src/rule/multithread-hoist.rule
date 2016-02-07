@@ -24,7 +24,7 @@
 
 (define-ruleset multithread-hoist (hoist))
 
-;; ╔ч╔К╔а╔╧╔Л╔ц╔имя╔в╔Й╔ъ╔ф╔ё╔ж
+;; Ц┐·Ц┐╚Ц┐│Ц┌╧Ц┐╛Ц┐┐Ц┐┴Г■╗Ц┐≈Ц┐╙Ц┐÷Ц┐├Ц┌ёЦ┐√
 (extendrule block-item multithread-hoist
   ((#?(thread-create ,@body) )
    (let ((body-ret (function-body body)))

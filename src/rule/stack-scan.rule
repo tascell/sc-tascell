@@ -23,8 +23,8 @@
 ;;; SUCH DAMAGE.
 
 ;;; stack-scan 
-;;; n ²ó¤´¤È¤Ë¥¹¥¿¥Ã¥¯¾ğÊó¤ò½ĞÎÏ¤¹¤ë¡¥
-;;; Í× type.rule
+;;; n å›ã”ã¨ã«ã‚¹ã‚¿ãƒƒã‚¯æƒ…å ±ã‚’å‡ºåŠ›ã™ã‚‹ï¼
+;;; è¦ type.rule
 
 (defpackage "STACK-SCAN"
   (:nicknames "STSC")
@@ -60,7 +60,7 @@
 	   (return))
 	 ~(,(ruleset-param 'scan0)))) )
 
-;;; ´Ø¿ô·¿¤Ë°ú¿ô¤òÄÉ²Ã
+;;; é–¢æ•°å‹ã«å¼•æ•°ã‚’è¿½åŠ 
 (defun push-nestfunc-type (texp)
   (if (and (consp texp)
 	   (or (eq 'fn (car texp))
@@ -68,7 +68,7 @@
       ~(,(car texp) ,(scan-type) ,@(cdr texp))
       texp))
 
-;; scan ¤Î·¿
+;; scan ã®å‹
 (defun scan-type (&optional (nf-tag (ruleset-param 'nestfunc-tag)))
   ~(ptr (,nf-tag void void)))
 (defun scan-ftype (&optional (nf-tag (ruleset-param 'nestfunc-tag)))
@@ -78,10 +78,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define-ruleset stack-scan (sc2c)
   (entry 'sc-program)
-  (scan0-name ~scan0)  ; ¸Æ¤Ó½Ğ¤·¸µ¤Î¥¹¥­¥ã¥ó
-  (scan1-name ~scan1)  ; ¼«Ê¬¼«¿È¤Î¥¹¥­¥ã¥ó
+  (scan0-name ~scan0)  ; å‘¼ã³å‡ºã—å…ƒã®ã‚¹ã‚­ãƒ£ãƒ³
+  (scan1-name ~scan1)  ; è‡ªåˆ†è‡ªèº«ã®ã‚¹ã‚­ãƒ£ãƒ³
   (nestfunc-tag ~fn)
-  (scan-start ~10)     ; ²¿²ó¤Î´Ø¿ô¸Æ¤Ó½Ğ¤·¤´¤È¤Ëscan?
+  (scan-start ~10)     ; ä½•å›ã®é–¢æ•°å‘¼ã³å‡ºã—ã”ã¨ã«scan?
   (scan-increment ~3)
   (default-handler #'no-match-error))
 
@@ -164,10 +164,10 @@
    (if-pattern-variable stat2
        ~(if ,(the-expression the-exp) ,(statement stat1) ,(statement stat2))
      ~(if ,(the-expression the-exp) ,(statement stat1))) )
-  ;; switch (exp ¤«¤é³°¤Ë¤Ç¤ë¤â¤Î¤Ï¤Ê¤¤¤Ï¤º)
+  ;; switch (exp ã‹ã‚‰å¤–ã«ã§ã‚‹ã‚‚ã®ã¯ãªã„ã¯ãš)
   ((#?(switch ,the-exp ,@body) )
    ~(switch ,(the-expression the-exp) ,@(function-body body)) )
-  ;; do-while (exp ¤«¤é³°¤Ë¤Ç¤ë¤â¤Î¤Ï¤Ê¤¤¤Ï¤º)
+  ;; do-while (exp ã‹ã‚‰å¤–ã«ã§ã‚‹ã‚‚ã®ã¯ãªã„ã¯ãš)
   ((#?(do-while ,the-exp ,@body) )
    ~(do-while ,(the-expression the-exp) ,@(function-body body)) )
   ;; goto, continue, break
@@ -175,7 +175,7 @@
     #?(continue) 
     #?(break) )
    x)
-  ;; ÊÖ¤êÃÍ¤Ê¤·return
+  ;; è¿”ã‚Šå€¤ãªã—return
   ((#?(return) )
    x)
   ;; return 

@@ -23,8 +23,8 @@
 ;;; SUCH DAMAGE.
 
 ;;; sc1=>sc0 
-;;; multithread ÍÑ¥×¥ê¥ß¥Æ¥£¥Ö¤Ë¤âÂĞ±ş(2003/12/26)
-;;; lightweight Æş¤ì»Ò´Ø¿ô¤ËÂĞ±ş(2003/12/28)
+;;; multithread ç”¨ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–ã«ã‚‚å¯¾å¿œ(2003/12/26)
+;;; lightweight å…¥ã‚Œå­é–¢æ•°ã«å¯¾å¿œ(2003/12/28)
 (defpackage "SC1"
   (:nicknames "BASIC")
   (:use "RULE" "CL" "SC-MISC")

@@ -26,8 +26,8 @@
 ;;; (A-normalization)
 
 (define-ruleset temp (sc0t-to-sc0t)
-  (ignore-cfn t)                        ; csym¤Î´Ø¿ô¸Æ½Ğ¤·¡¤csym¤Î´Ø¿ôÄêµÁ¤ÏÊÑ·Á¤·¤Ê¤¤
-  (decl-each-block nil)                 ; tmp¤ÎÀë¸À¤ò¡¤t: ´Ø¿ô¤ÎÀèÆ¬ nil: ³Æ¥Ö¥í¥Ã¥¯¤ÎÀèÆ¬
+  (ignore-cfn t)                        ; csymã®é–¢æ•°å‘¼å‡ºã—ï¼Œcsymã®é–¢æ•°å®šç¾©ã¯å¤‰å½¢ã—ãªã„
+  (decl-each-block nil)                 ; tmpã®å®£è¨€ã‚’ï¼Œt: é–¢æ•°ã®å…ˆé ­ nil: å„ãƒ–ãƒ­ãƒƒã‚¯ã®å…ˆé ­
   )
 
 (scr:require "TEMP-DEFS")
@@ -141,7 +141,7 @@
        (let ((the-fexp ~(the ,ftexp ,fexp)))
          (cond
           ((or (not (temp:subexpression-p))
-               (and (ruleset-param 'ignore-cfn) ; ¡Öcsym::fn¤ÏÌµ»ë¡×¥ª¥×¥·¥ç¥ó
+               (and (ruleset-param 'ignore-cfn) ; ã€Œcsym::fnã¯ç„¡è¦–ã€ã‚ªãƒ—ã‚·ãƒ§ãƒ³
                     (or (cid-p fexp)
                         (and (tagged-p ~ptr ftexp)
                              (tagged-p ~csym::fn (second ftexp))))))
@@ -160,10 +160,10 @@
                  (temp:add-precedent ~(the ,texp (= ,tmp-exp ,call-exp)))
                  tmp-exp)) ))))) )
   ;; operators
-  ;; ¤â¤È¤â¤È (= a (f x)) ¤Î·Á¤Î¤â¤Î¤ÏÊÑ·Á¤·¤Ê¤¤¤è¤¦¤Ë¤¹¤ë¤¿¤á
-  ;; with-deeper-subexpression¤ÇÈï¤»¤Ê¤¤
+  ;; ã‚‚ã¨ã‚‚ã¨ (= a (f x)) ã®å½¢ã®ã‚‚ã®ã¯å¤‰å½¢ã—ãªã„ã‚ˆã†ã«ã™ã‚‹ãŸã‚
+  ;; with-deeper-subexpressionã§è¢«ã›ãªã„
   (#?(the ,texp (= (the ,idtexp ,id[identifier]) ,exp2))
-   (let ((exp2-ret (expression! exp2))) ; sub-expression ¤Ç¤Ê¤¯¤Æ¤è¤¤
+   (let ((exp2-ret (expression! exp2))) ; sub-expression ã§ãªãã¦ã‚ˆã„
      ~(the ,texp (= (the ,idtexp ,id) ,exp2-ret))))
   (otherwise
    (temp:with-deeper-subexpression

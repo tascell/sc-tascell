@@ -105,7 +105,7 @@
                        (sc2c:parenthesize-t (list cid " "
                                                   (ruleset-param 'closure-keyword) ; addition
                                                   " ( "
-                                                  ;; °ú¿ô¥ê¥¹¥È
+                                                  ;; å¼•æ•°ãƒªã‚¹ãƒˆ
                                                   (separate-list (mapcar #'(lambda (xx)
                                                                              (funcall xx ""))
                                                                          (get-retval texp-list))

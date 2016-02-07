@@ -27,7 +27,7 @@
 (define-ruleset tcell (sc0t-to-sc0t)
   (ignore-cfunc t)
   (nestfunc-tag ~fn)
-  (no-nestfunc nil)                     ; Æş¤ì»Ò´Ø¿ô¤ò»ı¤¿¤Ê¤¤¥³¡¼¥É¤òÀ¸À®¡ÊÈæ³ÓÉ¾²ÁÍÑ¡Ë
+  (no-nestfunc nil)                     ; å…¥ã‚Œå­é–¢æ•°ã‚’æŒãŸãªã„ã‚³ãƒ¼ãƒ‰ã‚’ç”Ÿæˆï¼ˆæ¯”è¼ƒè©•ä¾¡ç”¨ï¼‰
   (padding-size 1000)
   )
 
@@ -48,14 +48,14 @@
 					      long))
 		)
           pg
-          ;; ¥Ç¡¼¥¿·Ï¤Î´Ø¿ô¤¬ÄêµÁ¤µ¤ì¤Æ¤Ê¤±¤ì¤Ğ¶õÄêµÁ¤Î´Ø¿ô¤òÄÉ²Ã¤¹¤ë
+          ;; ãƒ‡ãƒ¼ã‚¿ç³»ã®é–¢æ•°ãŒå®šç¾©ã•ã‚Œã¦ãªã‘ã‚Œã°ç©ºå®šç¾©ã®é–¢æ•°ã‚’è¿½åŠ ã™ã‚‹
           (unless (tcell:func-name-exists-p ~csym::data-allocate)
             (list ~(def (csym::data-allocate n1) (csym::fn void int))))
           (unless (tcell:func-name-exists-p ~csym::data-send)
             (list ~(def (csym::data-send n1 n2) (csym::fn void int int))))
           (unless (tcell:func-name-exists-p ~csym::data-receive)
             (list ~(def (csym::data-receive n1 n2) (csym::fn void int int))))
-          ;; sender/receiver´Ø¿ô¤ª¤è¤Ó¤½¤ÎÇÛÎó
+          ;; sender/receiveré–¢æ•°ãŠã‚ˆã³ãã®é…åˆ—
           (tcell:sender-and-receiver-functions-all)
           (tcell:task-maps)
           ;; worker local storage
@@ -64,7 +64,7 @@
   )
 
 (extendrule inlined-declaration tcell
-  ;; ÄêµÁ¡¦Àë¸À¤µ¤ì¤¿´Ø¿ôÌ¾¤òµ­²±¡ÊÈ½Äê¤ÏÅ¬Åö¤À¤¬¡Ë
+  ;; å®šç¾©ãƒ»å®£è¨€ã•ã‚ŒãŸé–¢æ•°åã‚’è¨˜æ†¶ï¼ˆåˆ¤å®šã¯é©å½“ã ãŒï¼‰
   (#?(,scs[storage-class-specifier] (,id[identifier] ,@id-list) ,@rest)
    (tcell:add-defined-func-name id)
    (next-pattern))
@@ -84,7 +84,7 @@
    (tcell:with-task id
      (tcell:task-body-function
       (tcell:with-new-bk ~-bk (function-body! body))) ))
-  ;;; °Ê²¼¤Ïtask¤ËÅĞÏ¿¤·¤Æ¤ª¤¯¤À¤±¡¥ºÇ¸å¤Ë¤Ş¤È¤á¤Æ¥³¡¼¥É¤òºî¤ë
+  ;;; ä»¥ä¸‹ã¯taskã«ç™»éŒ²ã—ã¦ãŠãã ã‘ï¼æœ€å¾Œã«ã¾ã¨ã‚ã¦ã‚³ãƒ¼ãƒ‰ã‚’ä½œã‚‹
   ;; * send_task_body
   (#?(def (task-sender ,id) ,@body)
    (tcell:with-task id
@@ -119,14 +119,14 @@
        ~(def (csym::worker-init ,@tcell:*worker-init-args*) ,tcell:*worker-init-type*
           ,@(function-body! body))))
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;; task-workÍÑ¤Î´Ø¿ôÄêµÁ/Àë¸À
+  ;; task-workç”¨ã®é–¢æ•°å®šç¾©/å®£è¨€
   (#?(,scs[storage-class-specifier] (,@id-list[identifier])
           (wfn ,@texp-list) ,@body)
    (tcell:with-worker-data
        ~(,scs ,(wfn-add-argids-decl id-list)
               ,(type-expression! ~(wfn ,@texp-list))
               ,@(tcell:with-new-bk ~-bk (function-body! body))) ))
-  ;; ÄÌ¾ï¤Î´Ø¿ôÄêµÁ/Àë¸À
+  ;; é€šå¸¸ã®é–¢æ•°å®šç¾©/å®£è¨€
   (#?(,scs[storage-class-specifier] (,fid[identifier] ,@id-list[identifier])
           (,fn-tag[function-tag] ,@texp-list) ,@body)
    (if (and (ruleset-param 'ignore-cfunc)
@@ -160,7 +160,7 @@
   (#?() (values))
   )
 
-;; Á÷¼õ¿®¥µ¥¤¥º¤Î»ØÄê¡¥Äê¿ô¤Ş¤¿¤Ï¤½¤ì¤Ş¤Ç¤ËÄêµÁ¤µ¤ì¤Æ¤¤¤ë¥á¥ó¥ĞÌ¾¤ò»ØÄê²ÄÇ½
+;; é€å—ä¿¡ã‚µã‚¤ã‚ºã®æŒ‡å®šï¼å®šæ•°ã¾ãŸã¯ãã‚Œã¾ã§ã«å®šç¾©ã•ã‚Œã¦ã„ã‚‹ãƒ¡ãƒ³ãƒåã‚’æŒ‡å®šå¯èƒ½
 (defrule transfer-size-specifier tcell
   (#?,num[sc-number]
    x)
@@ -169,20 +169,20 @@
      (ierror "~S is not defined as a field of task ~A" id (tcell:task-id)))
    ~(fref (mref pthis) ,id) ))
 
-;;; ´Ø¿ôÄêµÁ¤Î²¾°ú¿ôÄÉ²Ã
+;;; é–¢æ•°å®šç¾©ã®ä»®å¼•æ•°è¿½åŠ 
 (defrule wfn-add-argids-decl tcell
-  (#?(,@id-list)                        ; id-list¤Ë¤Ï´Ø¿ôÌ¾¤â´Ş¤à
+  (#?(,@id-list)                        ; id-listã«ã¯é–¢æ•°åã‚‚å«ã‚€
    (if (ruleset-param 'no-nestfunc) id-list
      (insert (list ~-bk ~-thr) id-list 1) ))
   )
-;;; ´Ø¿ô¸Æ½Ğ¤Î¼Â°ú¿ôÄÉ²Ã
+;;; é–¢æ•°å‘¼å‡ºã®å®Ÿå¼•æ•°è¿½åŠ 
 (defrule wfn-add-argids tcell
-  (#?(,@id-list)                        ; id-list¤Ë¤Ï´Ø¿ôÌ¾¤â´Ş¤à
+  (#?(,@id-list)                        ; id-listã«ã¯é–¢æ•°åã‚‚å«ã‚€
    (if (ruleset-param 'no-nestfunc) id-list
      (insert (list (tcell:latest-bk) ~-thr) id-list 1) ))
   )
 
-;;; wfn´Ø¿ô·¿¤Î²¾°ú¿ô¤Î·¿ÄÉ²Ã
+;;; wfné–¢æ•°å‹ã®ä»®å¼•æ•°ã®å‹è¿½åŠ 
 (extendrule type-expression tcell
   (#?(wfn ,@texp-list)
    (let ((texp-rets (mapcar #'type-expression! texp-list)))
@@ -195,9 +195,9 @@
 (extendrule statement tcell
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; do-two
-  ;; * stat1->stat2 ¤Î½ç¤Ë¼Â¹Ô
-  ;; * stat2 ¼Â¹ÔÃæ¤Ë»Å»ö¤ÎÍ×µá¤¬¤­¤¿¤é¡¤:put°Ê²¼¤ò¼Â¹Ô¤·¤Æsend¤¹¤ë¡¥
-  ;;   <stat1>¤¬½ª¤ï¤ê¡¤send¤·¤¿»Å»ö¤Î·ë²Ì¤¬ÊÖ¤Ã¤Æ¤­¤¿¤é¡¤:get °Ê²¼¤ò¼Â¹Ô¡¥
+  ;; * stat1->stat2 ã®é †ã«å®Ÿè¡Œ
+  ;; * stat2 å®Ÿè¡Œä¸­ã«ä»•äº‹ã®è¦æ±‚ãŒããŸã‚‰ï¼Œ:putä»¥ä¸‹ã‚’å®Ÿè¡Œã—ã¦sendã™ã‚‹ï¼
+  ;;   <stat1>ãŒçµ‚ã‚ã‚Šï¼Œsendã—ãŸä»•äº‹ã®çµæœãŒè¿”ã£ã¦ããŸã‚‰ï¼Œ:get ä»¥ä¸‹ã‚’å®Ÿè¡Œï¼
   (#?(do-two ,stat1 ,stat2 ({handles} ,id 
                             {(:guard ,@guard-body ,guard-exp)}
                             (:put ,@put-body) (:get ,@get-body)))
@@ -214,10 +214,10 @@
             (b-get-body (function-body get-body)))
        ~(begin
 	  #+comment 
-	  (def ,tdat-id (struct ,(tcell:task-struct-id))) ; Á÷¿®ÍÑ task-body
+	  (def ,tdat-id (struct ,(tcell:task-struct-id))) ; é€ä¿¡ç”¨ task-body
 	  (def pthis (ptr (struct ,(tcell:task-struct-id)))
 	    #+comment (ptr ,tdat-id))
-	  (def ,spn-id int 0)            ; ¤¹¤Ç¤Ë»Å»ö¤òsend¤·¤Æ¤¤¤¿¤é '1'
+	  (def ,spn-id int 0)            ; ã™ã§ã«ä»•äº‹ã‚’sendã—ã¦ã„ãŸã‚‰ '1'
 	  (begin
 	    ;; <-- Nestfunc start ---
 	    ;; Called for backtracking to handle a task request or an exception
@@ -234,8 +234,8 @@
 	      ;; If this do-two has spawned a task:
             (if ,spn-id  (return 0))
 	    ;; Try further backtracking
-            (,(tcell:latest-bk))        ; ¤è¤êº¬¸µ¤Ç¤ÎÊ¬³ä¤ò»î¤ß¤ë
-            (while -thr->treq-top       ; ¥¿¥¹¥¯ºîÀ®ÂÔ¤Á¥¹¥¿¥Ã¥¯¤ËÍ×ÁÇ¤¬¤¢¤ì¤Ğ
+            (,(tcell:latest-bk))        ; ã‚ˆã‚Šæ ¹å…ƒã§ã®åˆ†å‰²ã‚’è©¦ã¿ã‚‹
+            (while -thr->treq-top       ; ã‚¿ã‚¹ã‚¯ä½œæˆå¾…ã¡ã‚¹ã‚¿ãƒƒã‚¯ã«è¦ç´ ãŒã‚ã‚Œã°
 	      (begin
 		,@(if-pattern-variable guard-exp
 		    (list
@@ -273,11 +273,11 @@
 	  ) )))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; do-many
-  ;; * ,var ¤òÀ©¸æÊÑ¿ô¤È¤·¤Æ¡¤,from¤«¤é ,to¤Ş¤Ç¤Ë¤Ä¤¤¤Æ ,@body¤ò¼Â¹Ô
-  ;; * body¼Â¹ÔÃæ¤Ë»Å»ö¤ÎÍ×µá¤¬¤­¤¿¤é¡¤»Ä¤êÈÏ°Ï¤ÎÈ¾Ê¬¤òÅÏ¤¹
-  ;; * ÅÏ¤·Êı¤Ï :put Ãæ¤Ç»ØÄê¡¤ÅÏ¤¹»Å»ö¤ÎÈÏ°Ï¤ÎÀèÆ¬¤Ï ,put-from¡¤,put-to
-  ;;   ¤ËÅÏ¤µ¤ì¡¤:put Ãæ¤ÎÊ¸¤Ç»ÈÍÑ¤¹¤ë¤³¤È¤¬¤Ç¤­¤ë¡¥
-  ;; * ¼õ¤±¼è¤Ã¤¿task¤Î·ë²Ì¤Î·ë¹ç¤Ï:get¤Ç»ØÄê
+  ;; * ,var ã‚’åˆ¶å¾¡å¤‰æ•°ã¨ã—ã¦ï¼Œ,fromã‹ã‚‰ ,toã¾ã§ã«ã¤ã„ã¦ ,@bodyã‚’å®Ÿè¡Œ
+  ;; * bodyå®Ÿè¡Œä¸­ã«ä»•äº‹ã®è¦æ±‚ãŒããŸã‚‰ï¼Œæ®‹ã‚Šç¯„å›²ã®åŠåˆ†ã‚’æ¸¡ã™
+  ;; * æ¸¡ã—æ–¹ã¯ :put ä¸­ã§æŒ‡å®šï¼Œæ¸¡ã™ä»•äº‹ã®ç¯„å›²ã®å…ˆé ­ã¯ ,put-fromï¼Œ,put-to
+  ;;   ã«æ¸¡ã•ã‚Œï¼Œ:put ä¸­ã®æ–‡ã§ä½¿ç”¨ã™ã‚‹ã“ã¨ãŒã§ãã‚‹ï¼
+  ;; * å—ã‘å–ã£ãŸtaskã®çµæœã®çµåˆã¯:getã§æŒ‡å®š
   (#?(do-many for ,var[identifier] from ,from to ,to
               ,@body
               ({handles} ,id
@@ -300,9 +300,9 @@
      (tcell:with-task id
        ~(begin
          (def ,var  int ,(expression from))
-         (def ,var2 int ,(expression to)) ; ,var <= i < ,var2 ¤¬Ì¤½èÍı
-         (def pthis (ptr (struct ,(tcell:task-struct-id)))) ; Á÷¿®ÍÑ task-body
-         (def ,spn-id int 0)            ; »Å»ö¤òÂ¾½ê¤Ësend¤·¤Æ¤¤¤ë¿ô
+         (def ,var2 int ,(expression to)) ; ,var <= i < ,var2 ãŒæœªå‡¦ç†
+         (def pthis (ptr (struct ,(tcell:task-struct-id)))) ; é€ä¿¡ç”¨ task-body
+         (def ,spn-id int 0)            ; ä»•äº‹ã‚’ä»–æ‰€ã«sendã—ã¦ã„ã‚‹æ•°
 	 ;; <-- Nestfunc start ---
 	 ;; Called for backtracking to handle a task request or an exception
          (def (,bk-id) ,(tcell:nestfunc-type)
@@ -371,9 +371,9 @@
 	 ) )))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; do-many*
-  ;; * Space StealingÍÑ¤Îdo-many
-  ;; * ÄÌ¾ï¤ÎforÊ¸¤ÈÆ±ÍÍ¤Ëµ­½Ò¤¹¤ë¤³¤È¤¬¤Ç¤­¤ë
-  ;; * ¥İ¡¼¥ê¥ó¥°¤Ï¥¤¥Æ¥ì¡¼¥·¥ç¥óËè¤Ë¹Ô¤¦
+  ;; * Space Stealingç”¨ã®do-many
+  ;; * é€šå¸¸ã®foræ–‡ã¨åŒæ§˜ã«è¨˜è¿°ã™ã‚‹ã“ã¨ãŒã§ãã‚‹
+  ;; * ãƒãƒ¼ãƒªãƒ³ã‚°ã¯ã‚¤ãƒ†ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³æ¯ã«è¡Œã†
   ;; !!! does not support non-local exit by "throw" yet
   (#?(do-many* (,init-exp ,cond-exp ,loop-exp)
                ,@body
@@ -384,13 +384,13 @@
           (bk-id (generate-id "do_many_bk")))
       (tcell:with-task id
        ~(begin
-          (def pthis (ptr (struct ,(tcell:task-struct-id)))) ; Á÷¿®ÍÑ task-body
-          (def ,spn-id int 0)            ; »Å»ö¤òÂ¾½ê¤Ësend¤·¤Æ¤¤¤ë¿ô
+          (def pthis (ptr (struct ,(tcell:task-struct-id)))) ; é€ä¿¡ç”¨ task-body
+          (def ,spn-id int 0)            ; ä»•äº‹ã‚’ä»–æ‰€ã«sendã—ã¦ã„ã‚‹æ•°
 	  ;; <-- Nestfunc start ---
-          ;; ¥¿¥¹¥¯Í×µá¤¬¤­¤¿¤é¸Æ¤Ğ¤ì¤ë
+          ;; ã‚¿ã‚¹ã‚¯è¦æ±‚ãŒããŸã‚‰å‘¼ã°ã‚Œã‚‹
           (def (,bk-id) ,(tcell:nestfunc-type)
             (if (not ,spn-id) (,(tcell:latest-bk)))
-            (if -thr->treq-top           ; ¥¿¥¹¥¯ºîÀ®ÂÔ¤Á¥¹¥¿¥Ã¥¯¤ËÍ×ÁÇ¤¬¤¢¤ì¤Ğ
+            (if -thr->treq-top           ; ã‚¿ã‚¹ã‚¯ä½œæˆå¾…ã¡ã‚¹ã‚¿ãƒƒã‚¯ã«è¦ç´ ãŒã‚ã‚Œã°
               (begin
                 (= pthis (cast (ptr (struct ,(tcell:task-struct-id)))
                          (csym::malloc (sizeof (struct ,(tcell:task-struct-id))))))
@@ -400,8 +400,8 @@
             (return 0))
 	  ;; --- Nestfunc end -->
           (for (,(expression! init-exp) ,(expression! cond-exp) ,(expression! loop-exp))
-            (if -thr->req                   ; ¡Ê¥İ¡¼¥ê¥ó¥°¡Ë¥¿¥¹¥¯Í×µá¤¬¤­¤Æ¤¤¤¿¤é
-             ,(tcell:with-new-bk bk-id  ; Ê¬³ä¤ò»î¤ß¤ë
+            (if -thr->req                   ; ï¼ˆãƒãƒ¼ãƒªãƒ³ã‚°ï¼‰ã‚¿ã‚¹ã‚¯è¦æ±‚ãŒãã¦ã„ãŸã‚‰
+             ,(tcell:with-new-bk bk-id  ; åˆ†å‰²ã‚’è©¦ã¿ã‚‹
                 (wfn-add-argids ~(handle-req))))
             ,@(function-body body))
           (while (> (dec ,spn-id) 0)
@@ -417,9 +417,9 @@
 	  ) )))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; tcell-broadcast
-  ;; * ¥¿¥¹¥¯¤òÁ´¥Î¡¼¥É¤ËÁ÷¤ê¤Ä¤±¤ë
-  ;; * Á´¥Î¡¼¥É¤«¤é¤Îack¤òÂÔ¤Á¹ç¤ï¤»¤ë
-  ;; * ¥¿¥¹¥¯¥ª¥Ö¥¸¥§¥¯¥È¤Î½é´ü²½ÊıË¡¤Ï:put¤Ç»ØÄê
+  ;; * ã‚¿ã‚¹ã‚¯ã‚’å…¨ãƒãƒ¼ãƒ‰ã«é€ã‚Šã¤ã‘ã‚‹
+  ;; * å…¨ãƒãƒ¼ãƒ‰ã‹ã‚‰ã®ackã‚’å¾…ã¡åˆã‚ã›ã‚‹
+  ;; * ã‚¿ã‚¹ã‚¯ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®åˆæœŸåŒ–æ–¹æ³•ã¯:putã§æŒ‡å®š
   (#?(tcell-broadcast ,id (:put ,@put-body))
    (tcell:with-task id
      ~(begin
@@ -431,11 +431,11 @@
        (csym::broadcast-task -thr ,(tcell:task-no) pthis))))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; dynamic-wind
-  ;; * do-two, do-many ¤Î¡ÊÆ°Åª¡Ë¥¹¥³¡¼¥×Æâ¤Ç»ÈÍÑ
-  ;; * bef-body, body, aft-body ¤Î½ç¤Ç¼Â¹Ô
-  ;; * body¼Â¹ÔÃæ¤Ë»Å»ö¤ÎÍ×µá¤¬¤­¤¿¤é¡¤aft-body¤ò¼Â¹Ô¤·¤Æ¤«¤é
-  ;;   do-two, do-many ¤Î»Å»öÊ¬³ä¤ò¼Â¹Ô¤¹¤ë¡¥
-  ;;   Ê¬³äºî¶È¤¬½ª¤ï¤Ã¤¿¤é¡¤ºÆ¤Ó bef-body¤ò¼Â¹Ô¤·¤Æ¤«¤é¼«Ê¬¤Î»Å»ö¤ËÌá¤ë¡¥
+  ;; * do-two, do-many ã®ï¼ˆå‹•çš„ï¼‰ã‚¹ã‚³ãƒ¼ãƒ—å†…ã§ä½¿ç”¨
+  ;; * bef-body, body, aft-body ã®é †ã§å®Ÿè¡Œ
+  ;; * bodyå®Ÿè¡Œä¸­ã«ä»•äº‹ã®è¦æ±‚ãŒããŸã‚‰ï¼Œaft-bodyã‚’å®Ÿè¡Œã—ã¦ã‹ã‚‰
+  ;;   do-two, do-many ã®ä»•äº‹åˆ†å‰²ã‚’å®Ÿè¡Œã™ã‚‹ï¼
+  ;;   åˆ†å‰²ä½œæ¥­ãŒçµ‚ã‚ã£ãŸã‚‰ï¼Œå†ã³ bef-bodyã‚’å®Ÿè¡Œã—ã¦ã‹ã‚‰è‡ªåˆ†ã®ä»•äº‹ã«æˆ»ã‚‹ï¼
   (#?(dynamic-wind
       (:before ,@bef-body)
       (:body ,@body)
@@ -506,7 +506,7 @@
   )
 
 (extendrule expression tcell
-  ;; dreq, data´ØÏ¢
+  ;; dreq, dataé–¢é€£
   (#?(the ,texp (call (the ,ftexp setup-data) ,@exp-list))
    ~(the ,texp (call (the ,ftexp csym::-setup-data) ,@(mapcar #'expression exp-list))) )
   (#?(the ,texp (call (the ,ftexp request-data) ,@exp-list))
@@ -515,8 +515,8 @@
    ~(the ,texp (call (the ,ftexp csym::-wait-data) ,@(mapcar #'expression exp-list))) )
   (#?(the ,texp (call (the ,ftexp set-exist-flag) ,@exp-list))
    ~(the ,texp (call (the ,ftexp csym::-set-exist-flag) ,@(mapcar #'expression exp-list))) )
-  ;; wfn´Ø¿ô¸Æ¤Ó½Ğ¤·
-  ;; * °ú¿ô¤ÎÄÉ²Ã 
+  ;; wfné–¢æ•°å‘¼ã³å‡ºã—
+  ;; * å¼•æ•°ã®è¿½åŠ  
   (#?(the ,texp (call (the (ptr (wfn ,@texp-list)) ,exp-f) ,@exp-list))
    ~(the ,texp (call ,@(wfn-add-argids ~((the (ptr ,(type-expression! ~(wfn ,@texp-list))) ,exp-f)
                                          ,@(mapcar #'expression! exp-list))))) )

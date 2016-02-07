@@ -39,7 +39,7 @@
 (%include "rule/nestfunc-setrule.sh")
 (%include "hsc.sh")
 
-;;; gc-init¤ÇÌµ»ØÄê(=0)¤Î¾ì¹ç¤ËºÎÍÑ¤µ¤ì¤ëÃÍ
+;;; gc-initã§ç„¡æŒ‡å®š(=0)ã®å ´åˆã«æ¡ç”¨ã•ã‚Œã‚‹å€¤
 (%ifndef TOSIZE
     ((%defconstant TOSIZE (* 5 1024 1024))) )
 ;; (%ifndef ROOTSIZEMAX
@@ -51,7 +51,7 @@
 (%ifndef GC-LIMITED-STACK-MAX
     ((%defconstant GC-LIMITED-STACK-MAX 32)) )
 
-;;; ¥İ¥¤¥ó¥¿È½Äê
+;;; ãƒã‚¤ãƒ³ã‚¿åˆ¤å®š
 (%defmacro MREF-AS (tp p)
   `(mref (cast (ptr ,tp) ,p)))
 
@@ -111,7 +111,7 @@
 (static-def new-memory-end (ptr char))
 
 ;; Referred in move & gc-breadth-first
-(static-def b (ptr char))               ; move¤Î¼¡¤Î°ÜÆ°Àè
+(static-def b (ptr char))               ; moveã®æ¬¡ã®ç§»å‹•å…ˆ
 
 ;; *link = move(*link);
 (def (csym::move vp) (csym::fn (ptr void) (ptr void))
@@ -128,7 +128,7 @@
   ;; Object not located in From Space
   (if (not (IN-FROM p))
       (return vp))
-  ;; ¥ª¥Ö¥¸¥§¥¯¥È¤ÎÀèÆ¬ (sizeof size-t)[byte] ¤Ï
+  ;; ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®å…ˆé ­ (sizeof size-t)[byte] ã¯
   ;; fowarding pointer OR (bit-or least2bit-tag pointer-to-descriptor)
   (= tag (bit-and #b11 (MREF-AS size-t p)))
   (= fwp (cast (ptr void)
@@ -137,7 +137,7 @@
   (if (IN-TOSP fwp)
       (return fwp))
   
-  ;; ¥ª¥Ö¥¸¥§¥¯¥È¤ÎÀèÆ¬ sizeof(int) bytes --- (fref ,obj type)
+  ;; ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®å…ˆé ­ sizeof(int) bytes --- (fref ,obj type)
   ;; LSB==1: type-id
   ;; LSB==0: forwarding pointer
   (switch tag
@@ -155,13 +155,13 @@
     (default)
     (error "Illegal type ID!"))
   
-  (= np b)                              ; °ÜÆ°Àè
-  (= nb (+ np asize))                   ; ¼¡¤Î°ÜÆ°Àè
+  (= np b)                              ; ç§»å‹•å…ˆ
+  (= nb (+ np asize))                   ; æ¬¡ã®ç§»å‹•å…ˆ
   (if (>= nb new-memory-end)
       (error "buffer overrun."))
   (MEMCPY np p size)
-  (= b nb)                              ; °ÜÆ°Àè¤ò¹¹¿·
-  (= (FWPTR p) np)                      ; À×ÃÏ¤Ëfowarding pointer
+  (= b nb)                              ; ç§»å‹•å…ˆã‚’æ›´æ–°
+  (= (FWPTR p) np)                      ; è·¡åœ°ã«fowarding pointer
   (return np))
 
 ;; BREADTH-FIRST-GC
@@ -180,7 +180,7 @@
   (if (fref params gcv)
       (csym::printf "BREADTH-FIRST-GC start~%"))
   (= b new-memory) (= s b)
-  (scan)                                ; stack¤«¤éÄ¾ÀÜ»Ø¤µ¤ì¤Æ¤¤¤ëobj¤òcopy
+  (scan)                                ; stackã‹ã‚‰ç›´æ¥æŒ‡ã•ã‚Œã¦ã„ã‚‹objã‚’copy
   (while (< s b)                        ; for each copied object
     (= tag (bit-and #b11 (MREF-AS size-t s)))
     (switch tag
@@ -222,12 +222,12 @@
       (csym::printf "GC complete (%d)~%" allocated-size))
   )
 
-;; À­Ç½Â¬ÄêÍÑ
+;; æ€§èƒ½æ¸¬å®šç”¨
 (def gc-ttime double)
 (def tp1 (struct timeval))
 (def tp2 (struct timeval))
 
-;; GC³«»Ï
+;; GCé–‹å§‹
 (def (gc scan) (fn void sht)
   (csym::gettimeofday (ptr tp1) 0)
   (switch (fref params gctype)
@@ -252,7 +252,7 @@
   (if (== (fref params tosize) 0) (= (fref params tosize) TOSIZE))
   (+= (fref params tosize) 3)
   (-= (fref params tosize) (bit-and (fref params tosize) 3))
-                                        ; ²¼°Ì2bit¤¬00¤Ë¤Ê¤ë¤è¤¦¤Ë·«¤ê¾å¤²
+                                        ; ä¸‹ä½2bitãŒ00ã«ãªã‚‹ã‚ˆã†ã«ç¹°ã‚Šä¸Šã’
   (if (== (fref params stack-size) 0) 
       (= (fref params stack-size) GC-STACK-SIZE))
   (if (== (fref params limited-stack-max) 0)
@@ -262,7 +262,7 @@
                 (fref params tosize)
                 (fref params stack-size)
                 (fref params limited-stack-max) )
-  ;; heapÎÎ°è¤Î³ÎÊİ
+  ;; heapé ˜åŸŸã®ç¢ºä¿
   (= old-memory (csym::myalloc (fref params tosize)))
   (= old-memory-end (+ old-memory (fref params tosize)))
   (= new-memory (csym::myalloc (fref params tosize)))

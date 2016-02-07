@@ -62,12 +62,12 @@
 (defvar *float-type-list*
   ~(long-double double float))
 
-;;; C ¥½¡¼¥¹¥³¡¼¥ÉÃæ¤Î¼±ÊÌ»Ò¤«¡©
+;;; C ã‚½ãƒ¼ã‚¹ã‚³ãƒ¼ãƒ‰ä¸­ã®è­˜åˆ¥å­ã‹ï¼Ÿ
 (defun cid-p (id)
   (and (symbolp id)
        (eq c2sc:*clang-package* (symbol-package id)) ))
 
-;;; C¤Î¼±ÊÌ»Ò¤òÉ½¤¹Ê¸»úÎó->sc¤Î¼±ÊÌ»Ò¤Îsymbol-name
+;;; Cã®è­˜åˆ¥å­ã‚’è¡¨ã™æ–‡å­—åˆ—->scã®è­˜åˆ¥å­ã®symbol-name
 #-readtable-case
 (defun cid-to-scidname (cid)
   (let ((symstr "") (mode *print-case*))
@@ -95,34 +95,34 @@
             cid)))
 
 
-;;;; ¼±ÊÌ»ÒÀ¸À®
-;;; with-setup-generate-id ¤ÏºÇ½é¤Ë sc2c (in "SC-MAIN") ¤Ç¤ä¤ë¡¥
-;;; ºÇ½é¤Î´û»ÈÍÑ¼±ÊÌ»ÒÅÐÏ¿¤Ïscpp¤Ç¤ä¤ë¡¥
+;;;; è­˜åˆ¥å­ç”Ÿæˆ
+;;; with-setup-generate-id ã¯æœ€åˆã« sc2c (in "SC-MAIN") ã§ã‚„ã‚‹ï¼Ž
+;;; æœ€åˆã®æ—¢ä½¿ç”¨è­˜åˆ¥å­ç™»éŒ²ã¯scppã§ã‚„ã‚‹ï¼Ž
 
 (defvar *used-identifier* :undefined)
 
-;; generate-id¤Ç»È¤Ã¤Æ¤Ï¤¤¤±¤Ê¤¤Ì¾Á°¤òÅÐÏ¿¤¹¤ë¡¥
+;; generate-idã§ä½¿ã£ã¦ã¯ã„ã‘ãªã„åå‰ã‚’ç™»éŒ²ã™ã‚‹ï¼Ž
 (defmacro with-setup-generate-id (&body body)
   `(let ((*used-identifier* (make-hash-table :test #'equal)))
      ,@body))
 
-;; Ê¸»úÎó¡Ê»ÈÍÑ¤·¤¿C¤Î¼±ÊÌ»Ò¡Ë¤ò *used-identifier* ¤ËÅÐÏ¿¤¹¤ë¡¥
+;; æ–‡å­—åˆ—ï¼ˆä½¿ç”¨ã—ãŸCã®è­˜åˆ¥å­ï¼‰ã‚’ *used-identifier* ã«ç™»éŒ²ã™ã‚‹ï¼Ž
 (defun entry-used-identifier (cid)
   (assert (stringp cid))
   (assert (hash-table-p *used-identifier*))
   (setf (gethash cid *used-identifier*) cid)
   *used-identifier*)
 
-;; ½ÅÊ£¤òµ¤¤Ë¤»¤ºsc¤Îidentifier¤òÀ¸À®¡¥ÅÐÏ¿¤Ï¤¹¤ë¡¥
+;; é‡è¤‡ã‚’æ°—ã«ã›ãšscã®identifierã‚’ç”Ÿæˆï¼Žç™»éŒ²ã¯ã™ã‚‹ï¼Ž
 (defun make-id (&optional (basename "SCID") (package sc-file:*code-package*))
   (when (hash-table-p *used-identifier*)
     (entry-used-identifier basename))
   (intern (cid-to-scidname basename) package))
 
-;; ½ÅÊ£¤·¤Ê¤¤sc¤Îidentifier¤òÀ¸À®
+;; é‡è¤‡ã—ãªã„scã®identifierã‚’ç”Ÿæˆ
 (defun generate-id (&optional (basename "SCID") (package sc-file:*code-package*))
   (if (hash-table-p *used-identifier*)
-      ;; *used-identifier* ¤È¤«¤Ö¤é¤Ê¤¤¤è¤¦¤Ë
+      ;; *used-identifier* ã¨ã‹ã¶ã‚‰ãªã„ã‚ˆã†ã«
       (let ((gen-cid
              (if (gethash basename *used-identifier*)
                  (loop for i from 2
@@ -131,13 +131,13 @@
                      finally (return cand))
                basename)))
         (make-id gen-cid package))
-    ;; *used-identifier* Èó»ÈÍÑ ¡Ü ·Ù¹ð
+    ;; *used-identifier* éžä½¿ç”¨ ï¼‹ è­¦å‘Š
     (progn
       (warn "Generate-id should be used in with-setup-generate-id environment.")
       (gentemp (cid-to-scidname basename) package))))
 
-;;;; ·¿´ØÏ¢
-;;; !!!³ÈÄ¥À­¤Î¤¿¤á¤Ë¤Ïdefrule¤Ë½ñ¤­¤«¤¨¤ë¤Ù¤­
+;;;; åž‹é–¢é€£
+;;; !!!æ‹¡å¼µæ€§ã®ãŸã‚ã«ã¯defruleã«æ›¸ãã‹ãˆã‚‹ã¹ã
 
 ;;; remove type-qualifier from type-expression
 (defun remove-type-qualifier (x &optional (recursive t))
@@ -175,7 +175,7 @@
     'void)
    (t 'other)))
 
-;;; °ìÈÖ³°Â¦¤Î array ¤ò ptr ¤ËÊÑ´¹
+;;; ä¸€ç•ªå¤–å´ã® array ã‚’ ptr ã«å¤‰æ›
 (defun array2ptr (texp)
   (if (and (consp texp)
            (eq ~array (car texp)))
@@ -183,54 +183,54 @@
     texp))
 
 ;;; implicit type conversion
-;;; lightweightÆþ¤ì»Ò´Ø¿ô¤ËÂÐ±þ(2003/12/28)
+;;; lightweightå…¥ã‚Œå­é–¢æ•°ã«å¯¾å¿œ(2003/12/28)
 (defun type-conversion (texp1 texp2)
   (let* ((class1 (classify-type texp1))
          (class2 (classify-type texp2)))
     (cond
-     ;; Æ±¤¸·¿¤Î¤È¤­
+     ;; åŒã˜åž‹ã®ã¨ã
      ((equal texp1 texp2)
       texp1)
-     ;; ¤É¤Á¤é¤«¤¬ void¤Î¤È¤­
+     ;; ã©ã¡ã‚‰ã‹ãŒ voidã®ã¨ã
      ((eq 'void  class1) texp1)
      ((eq 'void  class2) texp2)
-     ;; ¤É¤Á¤é¤«¤¬»»½Ñ·¿¤Ç¤Ê¤¤¤È¤­
+     ;; ã©ã¡ã‚‰ã‹ãŒç®—è¡“åž‹ã§ãªã„ã¨ã
      ((eq 'other class1) (array2ptr texp1))
      ((eq 'other class2) (array2ptr texp2))
-     ;; ¤É¤Á¤é¤«¤¬ÉâÆ°¾®¿ôÅÀ·¿¤Î¤È¤­
+     ;; ã©ã¡ã‚‰ã‹ãŒæµ®å‹•å°æ•°ç‚¹åž‹ã®ã¨ã
      ((eq 'float class1) texp1)
      ((eq 'float class2) texp2)
-     ;; Î¾ÊýÀ°¿ô·¿
+     ;; ä¸¡æ–¹æ•´æ•°åž‹
      (t
       ;; enum=>int
       (when (eq 'enum class1)
         (setq texp1 ~int class1 'signed))
       (when (eq 'enum class2)
         (setq texp2 ~int class2 'signed))
-      ;; (¾¯¤Ê¤¯¤È¤â°ìÊý¤¬unsigned¤Î¾ì¹ç¡¢texp1¤¬unsigned¤Ë¤Ê¤ë¤è¤¦¤ËÆþ¤ìÂØ¤¨)
+      ;; (å°‘ãªãã¨ã‚‚ä¸€æ–¹ãŒunsignedã®å ´åˆã€texp1ãŒunsignedã«ãªã‚‹ã‚ˆã†ã«å…¥ã‚Œæ›¿ãˆ)
       (unless (eq 'unsigned class1)
         (swap texp1 texp2)
         (swap texp1 texp2)
         (swap class1 class2))
       (cond
-       ;; ¤É¤Á¤é¤âsigned, ¤É¤Á¤é¤âunsigned
+       ;; ã©ã¡ã‚‰ã‚‚signed, ã©ã¡ã‚‰ã‚‚unsigned
        ((eq (eq 'unsigned class1) (eq 'unsigned class2))
         (if (> (cdr (assoc texp1 *type-rank-alist*))
                (cdr (assoc texp2 *type-rank-alist*)))
             texp1 texp2))
-       ;; unsignedÂ¦¤Î¥é¥ó¥¯¤¬Äã¤¯¤Ê¤¤¾ì¹ç
+       ;; unsignedå´ã®ãƒ©ãƒ³ã‚¯ãŒä½Žããªã„å ´åˆ
        ((>= (cdr (assoc texp1 *type-rank-alist*))
             (cdr (assoc texp2 *type-rank-alist*)))
         texp1)
-       ;; signedÂ¦¤Î·¿¤¬¤â¤¦°ìÊý¤Î·¿¤ÎÃÍ¤òÁ´¤ÆÉ½¸½¤Ç¤­¤ë¾ì¹ç
+       ;; signedå´ã®åž‹ãŒã‚‚ã†ä¸€æ–¹ã®åž‹ã®å€¤ã‚’å…¨ã¦è¡¨ç¾ã§ãã‚‹å ´åˆ
        ((> (cdr (assoc texp2 *type-size-alist*))
            (cdr (assoc texp1 *type-size-alist*)))
         texp2)
-       ;; ¤½¤ì°Ê³°(signedÂ¦¤Î·¿¤Îunsigned¤ËÊÑ´¹)
+       ;; ãã‚Œä»¥å¤–(signedå´ã®åž‹ã®unsignedã«å¤‰æ›)
        (t
         (cdr (assoc texp2 *signed-to-unsigned-alist*)) ))))))
 
-;;;; Ê¸»úÎó´ØÏ¢
+;;;; æ–‡å­—åˆ—é–¢é€£
 
 ;;; (a b (rule::splice c d) e f) -> (a b c d e f)
 (defun splice (x)

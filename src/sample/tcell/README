@@ -1,42 +1,42 @@
-* worker.{c,sc}, worker.{h,sh}:  Tascell�Υ���ѥץ������
-* Messages.txt: worker �ˤ������å������ե����ޥåȤδʰ�����
-* xxx.tcell: T-CELL�ץ������
-* �嵭���б����� *-{c,gcc,lw,clos,xcc,xccl,icc-c,icc-lw,icc-clos}.c:
-   T-CELL�ץ������򤽤줾�������Ҵؿ��ΥС�������C���Ѵ��������
-* server.lsp: Lisp�Ǽ�������Tascell server
+* worker.{c,sc}, worker.{h,sh}:  Tascellのワーカ用プログラム
+* Messages.txt: worker におけるメッセージフォーマットの簡易説明
+* xxx.tcell: T-CELLプログラム
+* 上記に対応する *-{c,gcc,lw,clos,xcc,xccl,icc-c,icc-lw,icc-clos}.c:
+   T-CELLプログラムをそれぞれの入れ子関数のバージョンのCに変換したもの
+* server.lsp: Lispで実装したTascell server
 * Makefile
 
-�ʼ¹����
-(1)������¦����Allegro Common Lisp)
+（実行例）
+(1)サーバ側（要Allegro Common Lisp)
 ===
 % alisp
 > :cl server.lsp
 > (make-and-start-server :local-host "gero00")
 ===
 
-(2)�׻��Ρ���¦
+(2)計算ノード側
 ===
 % ./fib-gcc 2 -s gero
 ===
-�� �����ФΥݡ����ֹ�ϡ�make-and-start-server�Υ�����ɰ������ѹ���
-�� �׻��Ρ��ɤΥݡ����ֹ�� -p ���ץ������ѹ���
-�� �ݡ����ֹ�Υǥե���Ȥϡ������Ȥ�9865
-�� 2�ϥΡ�����worker��
+※ サーバのポート番号は，make-and-start-serverのキーワード引数で変更可
+※ 計算ノードのポート番号は -p オプションで変更可
+※ ポート番号のデフォルトは，双方とも9865
+※ 2はノード内worker数
 
-(3)�����Ф˷׻��׵��ή������
-alisp��ɸ�������Ԥ����֤ˤʤäƤ���Τǡ�
+(3)サーバに計算要求を流しこむ
+alispが標準入力待ち状態になっているので，
 ===
 task 0 0 0:0 0
 30
-<����>
+<空行>
 ===
-�Ȥ���Ф褤��fib�ξ��ˡ�
+とすればよい（fibの場合）．
 
-�ʤ���1�Ĥη׻��Ρ��ɤ�Ȥꤢ����ư�����������ʥ����Ф�桼����������Ϥ����ѡˤϡ�ñ��
+なお，1つの計算ノードをとりあえず動かしたい場合（サーバをユーザからの入力で代用）は，単に
 ===
 % ./fib-gcc -n 2
 task 0 0 0 0
 20
-<����>
+<空行>
 ===
-�ʤɤȤ���Ф褤��
+などとすればよい．

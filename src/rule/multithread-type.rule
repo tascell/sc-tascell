@@ -24,7 +24,7 @@
 
 (define-ruleset multithread-type (type-info))
 
-;;; ¥Ş¥ë¥Á¥¹¥ì¥Ã¥ÉÍÑ¥×¥ê¥ß¥Æ¥£¥Ö
+;;; ãƒãƒ«ãƒã‚¹ãƒ¬ãƒƒãƒ‰ç”¨ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–
 (extendrule statement multithread-type
   (#?(thread-create ,@body)
    (type:with-new-environment

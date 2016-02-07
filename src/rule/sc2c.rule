@@ -375,7 +375,7 @@
            (first retval-texp1)
            (sc2c:parenthesize-t (list cid
                                       "( "
-                                      ;; °ú¿ô¥ê¥¹¥È
+                                      ;; å¼•æ•°ãƒªã‚¹ãƒˆ
                                       (separate-list (mapcar #'(lambda (xx)
                                                                  (funcall xx ""))
                                                              (get-retval texp-list))
@@ -527,14 +527,14 @@
   )
 
 (defrule selection-statement sc2c
-  ;; [trick] Í¾Ê¬¤Êbegin¤ò¤È¤ë¡Ê¢­¤Îtrick¤¬»È¤¨¤ë¥Ñ¥¿¡¼¥ó¤òÁı¤ä¤¹¤¿¤á¡Ë
+  ;; [trick] ä½™åˆ†ãªbeginã‚’ã¨ã‚‹ï¼ˆâ†“ã®trickãŒä½¿ãˆã‚‹ãƒ‘ã‚¿ãƒ¼ãƒ³ã‚’å¢—ã‚„ã™ãŸã‚ï¼‰
   (#?(if ,exp (begin (,stag[statement-tag] ,@rem)))
    (statement ~(if ,exp (,stag ,@rem))))
   ;;
   (#?(cond ,@clauses)
    (statement (sc2c:cond->if clauses)))
   (#?(if ,exp[expression] ,stat1[statement] {,stat2[statement]})
-   ;; [trick] sc1.rule¤Ç¤Ç¤­¤¿ if + do-while ¤ò while, for¤Ë¤Ç¤­¤ì¤Ğ¤¹¤ë
+   ;; [trick] sc1.ruleã§ã§ããŸ if + do-while ã‚’ while, forã«ã§ãã‚Œã°ã™ã‚‹
    (when (and (not (pattern-variable-p stat2))
               (consp stat1)
               (eq ~do-while (car stat1)))
@@ -558,14 +558,14 @@
   )
 
 (defrule iteration-statement sc2c
-  ;; [trick] Í¾Ê¬¤Êbegin¤ò¤È¤ë
+  ;; [trick] ä½™åˆ†ãªbeginã‚’ã¨ã‚‹
   ((#?(,tag[~(while do-while for)] ,exp (begin ,@body)))
    (iteration-statement ~(,tag ,exp ,@body)))
   ;;
   ((#?(while ,exp[expression] ,@bi-list[block-item])
     #?(do-while ,exp[expression] ,@bi-list[block-item]))
    (let ((prev nil) (post nil))
-     (case (if (eql 1 exp) ~while (car x)) ; (do-while 1 ...) ¤Ê¤é (while 1 ...) ¤Ë¤¹¤ë
+     (case (if (eql 1 exp) ~while (car x)) ; (do-while 1 ...) ãªã‚‰ (while 1 ...) ã«ã™ã‚‹
        ((sc::while) (setq prev (list "while( " (get-retval exp) " )")
                           post ""))
        ((sc::do-while) (setq prev "do "
@@ -644,7 +644,7 @@
   ((#?switch)       "switch")
   )
 
-;;; ÊÖ¤êÃÍ¤Ïº£¤Î¤È¤³¤í°ÕÌ£¤Ê¤·
+;;; è¿”ã‚Šå€¤ã¯ä»Šã®ã¨ã“ã‚æ„å‘³ãªã—
 (defrule iteration-statement-tag sc2c
   ((#?while)        "while")            ; sc1
   ((#?do-while)     (cons "do" "while"))
@@ -854,7 +854,7 @@
    (list #\" (get-retval str) #\") ))
 
 ;;; operator
-;;; ÊÖ¤êÃÍ¤Ï (<C¤Ç¤ÎÉ½¸½> <Í¥ÀèÅÙ> {<Ã±°Ì¸µ>})
+;;; è¿”ã‚Šå€¤ã¯ (<Cã§ã®è¡¨ç¾> <å„ªå…ˆåº¦> {<å˜ä½å…ƒ>})
 (defrule operator sc2c
   ((#?,op[postfix-operator]
     #?,op[unary-operator]
@@ -997,7 +997,7 @@
                    (not (c-keyword? x))))])
    (identifier0 id)) )
 
-;; keyword¤Ç¤Ê¤¤¥Á¥§¥Ã¥¯¤ò¾Ê¤­¤¿¤¤¤È¤­¤Ï¤³¤Á¤é
+;; keywordã§ãªã„ãƒã‚§ãƒƒã‚¯ã‚’çœããŸã„ã¨ãã¯ã“ã¡ã‚‰
 (defrule identifier0 sc2c
   ((#?,id[#'sc2c:identifier-sc2c])
    (get-retval id)))

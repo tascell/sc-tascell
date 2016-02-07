@@ -77,7 +77,7 @@
   (return d))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Í×µá»ş¼èÆÀ¥Ç¡¼¥¿
+;; è¦æ±‚æ™‚å–å¾—ãƒ‡ãƒ¼ã‚¿
 (defs (ptr double) A B C)               ; C = A B
 (def N int)                             ; size of matrices
 (def NX int)                            ; distance between a(i,j) and a(i+1,j)
@@ -188,7 +188,7 @@
 (def (task-sender tmatmul)
     )
 
-;;; C¤Î¤¦¤Á¡¤·×»»¤·¤¿ÈÏ°Ï¤òÁ÷¼õ¿®¤¹¤ë
+;;; Cã®ã†ã¡ï¼Œè¨ˆç®—ã—ãŸç¯„å›²ã‚’é€å—ä¿¡ã™ã‚‹
 (def (rslt-sender tmatmul)
   (defs int i j)
   (defs int idiff jdiff)
@@ -277,7 +277,7 @@
   (request-data i0 i1)
   (request-data j0 j1)
 
-  ;; ¥­¥å¡¼¤Ë¥¿¥¹¥¯¤¬¤¢¤ì¤Ğ¼Â¹Ô
+  ;; ã‚­ãƒ¥ãƒ¼ã«ã‚¿ã‚¹ã‚¯ãŒã‚ã‚Œã°å®Ÿè¡Œ
   (if (fref (aref sq head) fl)
       (begin
         (= h-i0 (fref (aref sq head) i0))
@@ -289,7 +289,7 @@
         (wait-data h-j0 h-j1)
         (csym::matmul-m h-i0 h-i1 h-j0 h-j1 0 n a b c nx)))
 
-  ;; ¥­¥å¡¼¤Ë¥¿¥¹¥¯¤ò½ñ¤­¹ş¤à
+  ;; ã‚­ãƒ¥ãƒ¼ã«ã‚¿ã‚¹ã‚¯ã‚’æ›¸ãè¾¼ã‚€
   (= (fref (aref sq head) i0) i0)
   (= (fref (aref sq head) i1) i1)
   (= (fref (aref sq head) j0) j0)
@@ -339,7 +339,7 @@
       (handles tmatmul
        (:put (= this.n n)
              (= this.i0 half) (= this.i1 i1) (= this.j0 j0) (= this.j1 j1))
-       (:get ;; C¤Ë½ñ¤­¹ş¤à½èÍı¤Ïreceive¤Ë¤Æ
+       (:get ;; Cã«æ›¸ãè¾¼ã‚€å‡¦ç†ã¯receiveã«ã¦
         ))) )
    (else
     (= half (/ (+ j0 j1) 2))
@@ -349,7 +349,7 @@
       (handles tmatmul
        (:put (= this.n n)
              (= this.i0 i0) (= this.i1 i1) (= this.j0 half) (= this.j1 j1))
-       (:get ;; C¤Ë½ñ¤­¹ş¤à½èÍı¤Ïreceive¤Ë¤Æ
+       (:get ;; Cã«æ›¸ãè¾¼ã‚€å‡¦ç†ã¯receiveã«ã¦
         ))) )
    )
   (return))

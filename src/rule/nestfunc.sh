@@ -26,7 +26,7 @@
 
 ;; (c-exp "#include<stdio.h>")
 
-;;; ÄÉ²Ã¤¹¤ë·¿¡¢¥Þ¥¯¥íÄêµÁ
+;;; è¿½åŠ ã™ã‚‹åž‹ã€ãƒžã‚¯ãƒ­å®šç¾©
 (deftype nestfn-t (ptr (fn (ptr char) (ptr char) (ptr void))))
 
 (deftype closure-t struct
@@ -71,18 +71,18 @@
 
 (decl (lw-call esp) (fn (ptr char) (ptr char)))
 
-;;; nonlocalexit-goto ¤ËÂÐ±þ¤µ¤»¤Æ¤ß¤ë¡¥
+;;; nonlocalexit-goto ã«å¯¾å¿œã•ã›ã¦ã¿ã‚‹ï¼Ž
 #+obsolete                              ; moved to nestfunc.sc
 (def (lw-call esp) (fn (ptr char) (ptr char))
   (def clos (ptr closure-t) (mref-t (ptr closure-t) esp))
-  ;; Æþ¤ì»Ò´Ø¿ô¤ò¸Æ¤Ó½Ð¤¹¡£
-  ;; goto ¤ÇÃ¦½Ð¤·¤Æ¤­¤¿¾ì¹ç¤Ï¡¢Ã¦½ÐÀè¤Îefp,
-  ;; ¤½¤¦¤Ç¤Ê¤¤¾ì¹ç¤Ï¡¢0 ¤¬ÊÖ¤êÃÍ¤È¤Ê¤ë¡£ 
+  ;; å…¥ã‚Œå­é–¢æ•°ã‚’å‘¼ã³å‡ºã™ã€‚
+  ;; goto ã§è„±å‡ºã—ã¦ããŸå ´åˆã¯ã€è„±å‡ºå…ˆã®efp,
+  ;; ãã†ã§ãªã„å ´åˆã¯ã€0 ãŒè¿”ã‚Šå€¤ã¨ãªã‚‹ã€‚ 
   (return ((fref clos -> fun) esp (fref clos -> fr))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; pthread-create ÂÐ±þÍÑ
+;; pthread-create å¯¾å¿œç”¨
 (def (struct func-arg)
     (def func (ptr (fn (ptr void) (ptr char) (ptr void))))
   (def arg (ptr void)))

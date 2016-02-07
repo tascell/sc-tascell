@@ -39,10 +39,10 @@
   (defconstant *rule-class-package* (find-package "RULE"))
   (defconstant *base-ruleset-class-name* (intern "RULESET" *rule-class-package*)))
 
-;; .rule ¥Õ¥¡¥¤¥ë¤¬ÃÖ¤¤¤Æ¤¢¤ë¥Ç¥£¥ì¥¯¥È¥ê
+;; .rule ãƒ•ã‚¡ã‚¤ãƒ«ãŒç½®ã„ã¦ã‚ã‚‹ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
 (defvar *rule-path* (make-pathname :directory (directory+ scr:*sc-system-path* "rule/")))
 
-;;; default-handler»ØÄêÍÑ´Ø¿ô
+;;; default-handleræŒ‡å®šç”¨é–¢æ•°
 (defun rule:return-no-match (x)
   (declare (ignore x))
   'rule::no-match)
@@ -56,17 +56,17 @@
     (apply rule-func args))
   )
 
-;; Ruleset ¤Î¥Ù¡¼¥¹¥¯¥é¥¹
+;; Ruleset ã®ãƒ™ãƒ¼ã‚¹ã‚¯ãƒ©ã‚¹
 (defclass #.*base-ruleset-class-name* ()
-  ((rule:entry :initform 'error-no-entry :type symbol) ; ºÇ½é¤Ë¸Æ¤Ó½Ğ¤¹µ¬Â§Ì¾
+  ((rule:entry :initform 'error-no-entry :type symbol) ; æœ€åˆã«å‘¼ã³å‡ºã™è¦å‰‡å
    (rule:default-handler :initform #'rule:return-no-match :type function)))
 
-;; ¸½ºßÅ¬ÍÑÃæ¤Îruleset-class ¤Î¥¤¥ó¥¹¥¿¥ó¥¹
+;; ç¾åœ¨é©ç”¨ä¸­ã®ruleset-class ã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹
 (defvar *current-ruleset* (make-instance *base-ruleset-class-name*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; rule ¥Õ¥¡¥¤¥ë¤ÎÆÉ¤ß¹ş¤ß
+;;; rule ãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
 (defun get-ruleset-modulename (ruleset)
   (string-downcase (string ruleset)))
 (defmacro rule:require-ruleset (ruleset)
@@ -93,29 +93,29 @@
       (warn "Initargs ~S are ignored." initargs))
     ruleset-name-or-instance)))
 
-;; Å¬ÍÑÃæ¤Îruleset¤òÊÑ¹¹
+;; é©ç”¨ä¸­ã®rulesetã‚’å¤‰æ›´
 (defmacro with-ruleset (ruleset-instance &body body)
   `(let ((*current-ruleset* ,ruleset-instance))
      ,@body))
 
-;; ¥Ç¥Õ¥©¥ë¥È¤Îentry: entry¤¬Ìµ¤¤»İ¤Î¥¨¥é¡¼¤ò½Ğ¤¹
+;; ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®entry: entryãŒç„¡ã„æ—¨ã®ã‚¨ãƒ©ãƒ¼ã‚’å‡ºã™
 (defun error-no-entry (dummy)
   (declare (ignore dummy))
   (error "~S has no entry point specified." *current-ruleset*))
 
-;; default-handler¤ò¸Æ¤Ó½Ğ¤¹
+;; default-handlerã‚’å‘¼ã³å‡ºã™
 (defun do-otherwise (x &optional (ruleset *current-ruleset*))
   (funcall (slot-value (the #.*base-ruleset-class-name* (ensure-ruleset-instance ruleset))
                        'rule:default-handler)
            x))
 
-;; rulesetÌ¾ -> classÌ¾
+;; rulesetå -> classå
 (defun ruleset-class-symbol (sym)
   (declare (symbol sym))
   (immigrate-package sym *rule-class-package*))
 
-;; (ruleset-class-symbolÅ¬ÍÑºÑ)rulesetÌ¾ -> ¥Ç¥Õ¥©¥ë¥È¤Îruleset object
-;; memoize¤Ë¤è¤ê¡¤Æ°Åª¥í¡¼¥É¤Î¥Á¥§¥Ã¥¯¤Èmake-instance¤ÎÊ£¿ô²ó¼Â¹Ô¤ò²óÈò
+;; (ruleset-class-symbolé©ç”¨æ¸ˆ)rulesetå -> ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®ruleset object
+;; memoizeã«ã‚ˆã‚Šï¼Œå‹•çš„ãƒ­ãƒ¼ãƒ‰ã®ãƒã‚§ãƒƒã‚¯ã¨make-instanceã®è¤‡æ•°å›å®Ÿè¡Œã‚’å›é¿
 (defun ruleset-default-object (class-sym)
   (declare (symbol class-sym))
   (rule:require-ruleset class-sym)
@@ -123,29 +123,29 @@
 (setf (symbol-function 'ruleset-default-object) 
   (memoize #'ruleset-default-object :test #'eq :size 50 :rehash-size 2))
 
-;; ruleÌ¾ -> methodÌ¾
+;; ruleå -> methodå
 (defun rule-method-symbol (sym)
   (intern (string+ "<" (symbol-name sym) ">")
 	  *rule-class-package*))
 
-;; ruleÌ¾ -> defunÌ¾
+;; ruleå -> defunå
 (defun rule-function-symbol (sym) sym)
 (defun rule-probe-function-symbol (sym)
   (symbol+ sym :?))
 (defun rule-warning-function-symbol (sym)
   (symbol+ sym :!))
 
-;; method¤Î°ú¿ô¡Êdefrule¤ÎËÜÂÎ¤«¤é¤³¤ÎÌ¾Á°¤Ç»²¾È¡Ë
+;; methodã®å¼•æ•°ï¼ˆdefruleã®æœ¬ä½“ã‹ã‚‰ã“ã®åå‰ã§å‚ç…§ï¼‰
 (defun x-var ()
   (intern "X" *package*))
 
-;;;; ruleset, rule ¤ÎÄêµÁ¡¦³ÈÄ¥ÍÑ¥Ş¥¯¥í
+;;;; ruleset, rule ã®å®šç¾©ãƒ»æ‹¡å¼µç”¨ãƒã‚¯ãƒ­
 
 ;; define-ruleset
 (defmacro rule:define-ruleset (name parents &body parameters)
   `(progn
      (eval-when (:compile-toplevel :load-toplevel :execute)
-       ,@(loop    ; ¿Æ¥ë¡¼¥ë¤ÎÄêµÁ¥Õ¥¡¥¤¥ë¤ò¥í¡¼¥É
+       ,@(loop    ; è¦ªãƒ«ãƒ¼ãƒ«ã®å®šç¾©ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒ­ãƒ¼ãƒ‰
              for rs in (mapcar #'ruleset-class-symbol parents)
              collect `(rule:require-ruleset ',rs)))
      (provide ,(get-ruleset-modulename name))
@@ -172,8 +172,8 @@
     `(progn
        (unless (fboundp ',(rule-function-symbol name))
          ;; <rule-name>
-         ;; ¥æ¡¼¥¶¤Ï¢­¤Î´Ø¿ô¤ò»È¤Ã¤Æ´ÖÀÜÅª¤Ëmethod ¤ò¸Æ¤Ö¡¥
-         ;; method ¤òÄ¾ÀÜ¤À¤È¤¤¤Á¤¤¤ÁÂèÆó°ú¿ô¤Ë¥¯¥é¥¹¥ª¥Ö¥¸¥§¥¯¥È¤ò»ØÄê¤·¤Ê¤¤¤È¤¤¤±¤Ê¤¤¡¥
+         ;; ãƒ¦ãƒ¼ã‚¶ã¯â†“ã®é–¢æ•°ã‚’ä½¿ã£ã¦é–“æ¥çš„ã«method ã‚’å‘¼ã¶ï¼
+         ;; method ã‚’ç›´æ¥ã ã¨ã„ã¡ã„ã¡ç¬¬äºŒå¼•æ•°ã«ã‚¯ãƒ©ã‚¹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’æŒ‡å®šã—ãªã„ã¨ã„ã‘ãªã„ï¼
          (defun ,(rule-function-symbol name)
              (x &optional (ruleset-name-or-instance *current-ruleset* r) &rest initargs)
            (if r
@@ -188,14 +188,14 @@
                form
              (list ',(rule-method-symbol name) x '*current-ruleset*)))
          (export ',(rule-function-symbol name))
-         ;; <rule-name>? rule::no-match ¤Î¤«¤ï¤ê¤Ënil¤òÊÖ¤¹
+         ;; <rule-name>? rule::no-match ã®ã‹ã‚ã‚Šã«nilã‚’è¿”ã™
          (defun ,(rule-probe-function-symbol name) (&rest args)
            (let ((ret-list (multiple-value-list (apply #',(rule-function-symbol name) args))))
              (when (eq 'rule::no-match (car ret-list))
                (rplaca ret-list nil))
              (values-list ret-list)))
          (export ',(rule-probe-function-symbol name))
-         ;; <rule-name>! rule::no-match ¤Ê¤éwarning¤ò½Ğ¤¹
+         ;; <rule-name>! rule::no-match ãªã‚‰warningã‚’å‡ºã™
          (defun ,(rule-warning-function-symbol name) (&rest args)
            (let ((ret-list (multiple-value-list (apply #',(rule-function-symbol name) args))))
              (when (eq 'rule::no-match (car ret-list))
@@ -203,7 +203,7 @@
              (values-list ret-list)))
          (export ',(rule-warning-function-symbol name))
          )
-       ;; methodËÜÂÎ
+       ;; methodæœ¬ä½“
        (,(if memoize-p 'defmethod-memo 'defmethod) ,(rule-method-symbol name) ,(rulemethod-args ruleset)
          ,.(when memoize-p (list (x-var)))
          (block ,name
@@ -230,11 +230,11 @@
            (block ,name
              (rule:cond-match ,(x-var)
                               ,@pats-act-list
-                              (otherwise (call-next-method))))))) ; ¤³¤³¤¬defrule¤È°ã¤¦
+                              (otherwise (call-next-method))))))) ; ã“ã“ãŒdefruleã¨é•ã†
     ))
 
-;; ¼¡¤Î¥ë¡¼¥ë¤ò¥æ¡¼¥¶¤¬°Õ¿ŞÅª¤Ë¸Æ¤Ó½Ğ¤¹¤¿¤á¤Î¶É½ê´Ø¿ô
-;; ¤Îflet¤ÎÂèÆóÍ×ÁÇ¤òºîÀ®
+;; æ¬¡ã®ãƒ«ãƒ¼ãƒ«ã‚’ãƒ¦ãƒ¼ã‚¶ãŒæ„å›³çš„ã«å‘¼ã³å‡ºã™ãŸã‚ã®å±€æ‰€é–¢æ•°
+;; ã®fletã®ç¬¬äºŒè¦ç´ ã‚’ä½œæˆ
 (defun make-call-next-rule ()
   (let ((x-var (gensym "X"))
         (xp-var (gensym "XP")))
@@ -244,12 +244,12 @@
           (call-next-method))))
     ))
 
-;; ÊÑ·Áµ¬Â§¤Î¥Ñ¥é¥á¡¼¥¿¤Ø¤Î¥¢¥¯¥»¥¹
-;; ¡Ê¼Âºİ¤Ï¥¯¥é¥¹¥¤¥ó¥¹¥¿¥ó¥¹¤Î¥á¥ó¥Ğ¤Ø¤Î¥¢¥¯¥»¥¹¡Ë
+;; å¤‰å½¢è¦å‰‡ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã¸ã®ã‚¢ã‚¯ã‚»ã‚¹
+;; ï¼ˆå®Ÿéš›ã¯ã‚¯ãƒ©ã‚¹ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã®ãƒ¡ãƒ³ãƒã¸ã®ã‚¢ã‚¯ã‚»ã‚¹ï¼‰
 (defmacro rule:ruleset-param (slot-name)
   `(slot-value *current-ruleset* ,slot-name))
 
-;; entry¤ò¸Æ¤Ó½Ğ¤¹
+;; entryã‚’å‘¼ã³å‡ºã™
 (defun rule:apply-rule (sc-code-or-filename ruleset-name-or-instance &rest initargs)
   (with-ruleset (apply #'ensure-ruleset-instance
                        ruleset-name-or-instance initargs)

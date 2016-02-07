@@ -36,8 +36,8 @@
   
 (defvar *id-alist* nil)      ; list of (<id> . <block-level>)
 (defvar *replace-alist* nil) ; list of (<oldid> . <newid>)
-(defvar *block-id* 0)        ; ¸½ºß¤Î¥Ö¥í¥Ã¥¯ID
-(defvar *next-block-id* 0)   ; ¼¡¤Ë»ÈÍÑ¤¹¤ë¥Ö¥í¥Ã¥¯ID-1
+(defvar *block-id* 0)        ; ç¾åœ¨ã®ãƒ–ãƒ­ãƒƒã‚¯ID
+(defvar *next-block-id* 0)   ; æ¬¡ã«ä½¿ç”¨ã™ã‚‹ãƒ–ãƒ­ãƒƒã‚¯ID-1
 
 (defmacro with-rename-environment (&body body)
   `(let ((*id-alist* *id-alist*)
@@ -56,19 +56,19 @@
       id))
 
 ; entry identifier
-; ÊÖ¤êÃÍ¤Ï¹¹¿·Àè¤Î (values *id-alist* *replace-alist*) 
+; è¿”ã‚Šå€¤ã¯æ›´æ–°å…ˆã® (values *id-alist* *replace-alist*) 
 (defun entry-identifier (id)
   (let ((lev (assoc-id-level id)))
     (if lev 
 	(if (= *block-id* lev)     
-	    ;Æ±°ì¥¹¥³¡¼¥×¤ÇÀë¸ÀºÑ ->¤½¤Î¤Ş¤Ş
+	    ;åŒä¸€ã‚¹ã‚³ãƒ¼ãƒ—ã§å®£è¨€æ¸ˆ ->ãã®ã¾ã¾
 	    (values *id-alist* *replace-alist*)
-	    ;ÊÌ¤Î¥¹¥³¡¼¥×¤ÇÀë¸ÀºÑ
+	    ;åˆ¥ã®ã‚¹ã‚³ãƒ¼ãƒ—ã§å®£è¨€æ¸ˆ
 	    (let* ((new-id (generate-id (identifier0 id :sc2c))))
 	      (values
 	       (cons (cons id *block-id*) *id-alist*)
 	       (cons (cons id new-id) *replace-alist*))))
-      ; Ì¤Àë¸À
+      ; æœªå®£è¨€
       (values 
        (cons (cons id *block-id*) *id-alist*)
        (cons (cons id id) *replace-alist*)))))

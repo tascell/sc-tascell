@@ -24,8 +24,8 @@
 
 ;;;; sc0 with-type-information => sc0
 
-;;; (the <type-expression> <expression>) ค๒ <expression> คหฬแคนกฃ
-;;; call ค๒พรคนกฃ
+;;; (the <type-expression> <expression>) ใ’ <expression> ใซๆปใใ€
+;;; call ใ’ๆถใใ€
 
 (defpackage "UNTYPE"
   (:export :begin-with-$ :remove-$)

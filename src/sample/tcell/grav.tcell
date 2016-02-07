@@ -57,14 +57,14 @@
 
 (def (task gravity)
   (def f (array double 3))   ; result
-  (def rf (array double 3))  ; ¾®¤µ¤¤ÃÍ¤òÃßÀÑ¤·¤Æ¤¯¾ì½ê
+  (def rf (array double 3))  ; å°ã•ã„å€¤ã‚’è“„ç©ã—ã¦ãå ´æ‰€
   (def minx int :in)
   (def miny int :in)
   (def minz int :in)
   (def maxx int :in)
   (def maxy int :in)
   (def maxz int :in)
-  (def cur (array double 3))  ; ÆşÎÏºÂÉ¸¡§¤³¤³¤Ø¤Î½ÅÎÏ¥Ù¥¯¥È¥ë¤ò·×»»
+  (def cur (array double 3))  ; å…¥åŠ›åº§æ¨™ï¼šã“ã“ã¸ã®é‡åŠ›ãƒ™ã‚¯ãƒˆãƒ«ã‚’è¨ˆç®—
   ;;(def dummy (array char 4000))
   )
   
