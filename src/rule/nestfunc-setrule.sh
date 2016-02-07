@@ -22,8 +22,8 @@
 ;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 ;;; SUCH DAMAGE.
 
-;; NF-TYPE¤ò%defconstant¤ÇÄêµÁ¤·¤¿¤¦¤¨¤Ç¤³¤ì¤ò%include¤¹¤ë¤È
-;; rule¤ò¼«Æ°ÀßÄê¡¤½ÐÎÏ¥Õ¥¡¥¤¥ëÌ¾ÊÑ¹¹
+;; NF-TYPEã‚’%defconstantã§å®šç¾©ã—ãŸã†ãˆã§ã“ã‚Œã‚’%includeã™ã‚‹ã¨
+;; ruleã‚’è‡ªå‹•è¨­å®šï¼Œå‡ºåŠ›ãƒ•ã‚¡ã‚¤ãƒ«åå¤‰æ›´
 
 (%ifndef* NF-TYPE
   (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL RAWC)

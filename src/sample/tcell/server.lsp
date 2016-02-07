@@ -23,9 +23,9 @@
 ;;; SUCH DAMAGE.
 
 ;;;; Tascell server
-;;; µ¯Æ°¤Ï (make-and-start-server) É¬Í×¤Ë±ş¤¸¤Ækeyword parameter¤ò»²¾È
-;;; À­Ç½É¾²Á¤Îºİ¤Ï¡¤  (push :tcell-no-transfer-log *features*)
-;;; ¤ò¤·¤Æ¡¤¥í¥°´Ø·¸¤Î¥³¡¼¥É¤òÌµ»ë¤·¤Æ¥³¥ó¥Ñ¥¤¥ë¤¹¤ë¡¥
+;;; èµ·å‹•ã¯ (make-and-start-server) å¿…è¦ã«å¿œã˜ã¦keyword parameterã‚’å‚ç…§
+;;; æ€§èƒ½è©•ä¾¡ã®éš›ã¯ï¼Œ  (push :tcell-no-transfer-log *features*)
+;;; ã‚’ã—ã¦ï¼Œãƒ­ã‚°é–¢ä¿‚ã®ã‚³ãƒ¼ãƒ‰ã‚’ç„¡è¦–ã—ã¦ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ã™ã‚‹ï¼
 
 (defpackage "TCELL-SERVER"
   (:nicknames "TSV")
@@ -49,39 +49,39 @@
 
 
 
-;;; ¶¯À©Åª¤ËÂÔ¤Á¼õ¤±¥İ¡¼¥ÈºÆÍøÍÑ
+;;; å¼·åˆ¶çš„ã«å¾…ã¡å—ã‘ãƒãƒ¼ãƒˆå†åˆ©ç”¨
 (defparameter *reuse-address* t)
 
-;;; ¿Æ¤Ø¤ÎÀÜÂ³¥¢¥É¥ì¥¹:¥İ¡¼¥È
+;;; è¦ªã¸ã®æ¥ç¶šã‚¢ãƒ‰ãƒ¬ã‚¹:ãƒãƒ¼ãƒˆ
 (defparameter *parent-host* nil)
 (defparameter *parent-port* 9865)
 
-;;; »Ò¤«¤é¤ÎÀÜÂ³¥Û¥¹¥È/¥İ¡¼¥È
+;;; å­ã‹ã‚‰ã®æ¥ç¶šãƒ›ã‚¹ãƒˆ/ãƒãƒ¼ãƒˆ
 (defparameter *server-host* "localhost")
 (defparameter *children-port* 9865)
 
-;;; ¥½¥±¥Ã¥È¤Î¥Õ¥©¡¼¥Ş¥Ã¥È¡Ê¥Ğ¥¤¥Ê¥ê¤¬ÉÔÍ×¤Ê¤é:text¤Ë¤¹¤ë¤ÈÂ®ÅÙ¸ş¾å¡Ë
+;;; ã‚½ã‚±ãƒƒãƒˆã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆï¼ˆãƒã‚¤ãƒŠãƒªãŒä¸è¦ãªã‚‰:textã«ã™ã‚‹ã¨é€Ÿåº¦å‘ä¸Šï¼‰
 (defparameter *socket-format* :bivalent)
 
-;;; any¤Ç¤Ê¤¤treq¤ò¾ï¤ËÅ¾Á÷
+;;; anyã§ãªã„treqã‚’å¸¸ã«è»¢é€
 (defparameter *transfer-treq-always-if-notany* t)
 
-;;; log½ĞÎÏ¤ÎÍ­Ìµ¡¤½ĞÎÏÀè
-(defparameter *transfer-log* t)         ; (featurep :tcell-no-transfer-log) ¤Î¾ì¹ç¤Ï¾ï¤ËÌµ¸ú
-(defparameter *transfer-log-output* *error-output*) ; (featurep :tcell-no-transfer-log) ¤Î¾ì¹ç¤Ï¾ï¤ËÌµ¸ú
+;;; logå‡ºåŠ›ã®æœ‰ç„¡ï¼Œå‡ºåŠ›å…ˆ
+(defparameter *transfer-log* t)         ; (featurep :tcell-no-transfer-log) ã®å ´åˆã¯å¸¸ã«ç„¡åŠ¹
+(defparameter *transfer-log-output* *error-output*) ; (featurep :tcell-no-transfer-log) ã®å ´åˆã¯å¸¸ã«ç„¡åŠ¹
 (defparameter *transfer-log-format* :normal) ; :normal or :gnuplot
 (defparameter *connection-log* t)
 
-;;; send/recv¤Î¥í¥°¤ò½ĞÎÏ¤¹¤ëÄ¹¤µ
+;;; send/recvã®ãƒ­ã‚°ã‚’å‡ºåŠ›ã™ã‚‹é•·ã•
 (defparameter *transfer-log-length* 70)
 
-;;; read-line¤ÇÆÉ¤ß¹ş¤á¤ëÄ¹¤µ¡Êµö¤µ¤ì¤ë¥³¥Ş¥ó¥É¹Ô¤ÎÄ¹¤µ¡Ë¤ÎºÇÂç
+;;; read-lineã§èª­ã¿è¾¼ã‚ã‚‹é•·ã•ï¼ˆè¨±ã•ã‚Œã‚‹ã‚³ãƒãƒ³ãƒ‰è¡Œã®é•·ã•ï¼‰ã®æœ€å¤§
 (defconstant +max-line-length+ 128)
-;;; task, rslt, data¤Î¥Ğ¥Ã¥Õ¥¡¤òÅ¾Á÷¤¹¤ë¤È¤­¤Î¥Ğ¥Ã¥Õ¥¡¤Î¥µ¥¤¥º
-;;; ½½Ê¬Âç¤­¤¯¤·¤Ê¤¤¤È¥Ç¥Ã¥É¥í¥Ã¥¯¤Î¸¶°ø
+;;; task, rslt, dataã®ãƒãƒƒãƒ•ã‚¡ã‚’è»¢é€ã™ã‚‹ã¨ãã®ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚º
+;;; ååˆ†å¤§ããã—ãªã„ã¨ãƒ‡ãƒƒãƒ‰ãƒ­ãƒƒã‚¯ã®åŸå› 
 (defconstant +body-buffer-size+ 4096)
 
-;;; ¥³¥Ş¥ó¥É¤ËÂ³¤¤¤Æ¥Ç¡¼¥¿¤ò¤È¤â¤Ê¤¦¥³¥Ş¥ó¥É
+;;; ã‚³ãƒãƒ³ãƒ‰ã«ç¶šã„ã¦ãƒ‡ãƒ¼ã‚¿ã‚’ã¨ã‚‚ãªã†ã‚³ãƒãƒ³ãƒ‰
 ;;; These constants are referred to in compile time with #. reader macros.
 (eval-when (:execute :load-toplevel :compile-toplevel)
   (defparameter *commands* '("treq" "task" "none" "rslt" "rack" "bcst" "bcak" "dreq" "data"
@@ -105,42 +105,42 @@
    (sender :accessor host-sender :type (or null sender) :initform nil)
    (receiver :accessor host-receiver :type (or null receiver) :initform nil)
    (last-none-time :accessor host-none-time :type fixnum :initform -1)
-                                        ; ºÇ¸å¤Ënone¤ò¼õ¤±¼è¤Ã¤¿»ş¹ï¡Êget-internal-real-time¤Ç³ÍÆÀ¡Ë
-                                        ; task¤òÁ÷¤Ã¤¿Áê¼ê¤ËÂĞ¤·¤Æ¤Ï¥ê¥»¥Ã¥È¤¹¤ë
+                                        ; æœ€å¾Œã«noneã‚’å—ã‘å–ã£ãŸæ™‚åˆ»ï¼ˆget-internal-real-timeã§ç²å¾—ï¼‰
+                                        ; taskã‚’é€ã£ãŸç›¸æ‰‹ã«å¯¾ã—ã¦ã¯ãƒªã‚»ãƒƒãƒˆã™ã‚‹
    (unreplied-treqs :accessor host-unreplied-treqs :type fixnum :initform 0)
-					; <treq¤òÁ÷¤Ã¤¿²ó¿ô>-<task¤Ş¤¿¤Ïnone¤ò¤â¤é¤Ã¤¿²ó¿ô>
+					; <treqã‚’é€ã£ãŸå›æ•°>-<taskã¾ãŸã¯noneã‚’ã‚‚ã‚‰ã£ãŸå›æ•°>
    ))
 
 (defclass parent (host)
   ((host :initform *parent-host*)
    (port :initform *parent-port*)
-   (n-treq-sent :accessor parent-n-treq-sent :type fixnum :initform 0) ; Ì¤»ÈÍÑ
+   (n-treq-sent :accessor parent-n-treq-sent :type fixnum :initform 0) ; æœªä½¿ç”¨
    (diff-task-rslt :accessor parent-diff-task-rslt :type fixnum :initform 0)
-                                        ; <task¤ò¤â¤é¤Ã¤¿²ó¿ô>-<rslt¤òÁ÷¤Ã¤¿²ó¿ô> (child¤È¤Ï°ã¤¦¤Î¤ÇÃí°Õ)
+                                        ; <taskã‚’ã‚‚ã‚‰ã£ãŸå›æ•°>-<rsltã‚’é€ã£ãŸå›æ•°> (childã¨ã¯é•ã†ã®ã§æ³¨æ„)
    ))
 
-;; terminal-parent¤Îauto-rack, auto-resend-task¤ò¼Â¸½¤¹¤ë¤¿¤á¤Ë
-;; ³Ğ¤¨¤Æ¤ª¤¯task¥³¥Ş¥ó¥É¤Î¾ğÊó
+;; terminal-parentã®auto-rack, auto-resend-taskã‚’å®Ÿç¾ã™ã‚‹ãŸã‚ã«
+;; è¦šãˆã¦ãŠãtaskã‚³ãƒãƒ³ãƒ‰ã®æƒ…å ±
 (defstruct task-home
-  task-cmd                              ; task¥³¥Ş¥ó¥É¤½¤Î¤â¤Î
-  rack-to                               ; rackÁ÷¿®Àè
-  rack-task-head                        ; rack¤Îtask-head
-  start-time)                           ; ³«»Ï»ş¹ï (get-internal-real-time)
+  task-cmd                              ; taskã‚³ãƒãƒ³ãƒ‰ãã®ã‚‚ã®
+  rack-to                               ; racké€ä¿¡å…ˆ
+  rack-task-head                        ; rackã®task-head
+  start-time)                           ; é–‹å§‹æ™‚åˆ» (get-internal-real-time)
 
 (defclass terminal-parent (parent)
   ((host :initform "Terminal")
    (port :initform -1)
    (sock :initform (make-two-way-stream *standard-input* *standard-output*))
    (auto-rack :accessor parent-auto-rack :type boolean :initarg :auto-rack :initform nil)
-                                        ; ¼«Æ°Åª¤Ërack¤òÊÖ¤¹
+                                        ; è‡ªå‹•çš„ã«rackã‚’è¿”ã™
    (auto-resend-task :accessor parent-auto-resend-task :type fixnum :initarg :auto-resend-task :initform 0)
-                                        ; auto-rack¸å¡¤¼«Æ°Åª¤ËÆ±¤¸task¤òºÆÁ÷¿®¤¹¤ë²ó¿ô
+                                        ; auto-rackå¾Œï¼Œè‡ªå‹•çš„ã«åŒã˜taskã‚’å†é€ä¿¡ã™ã‚‹å›æ•°
    (auto-exit :accessor parent-auto-exit :type boolean :initarg :auto-exit :initform nil)
-                                        ; auto-rack¸å¡¤¤«¤Äauto-resend-task¤¬¿Ô¤­¤Æ¤¤¤¿¤é¼«Æ°¤Çexit¤òÁ÷¤ë
+                                        ; auto-rackå¾Œï¼Œã‹ã¤auto-resend-taskãŒå°½ãã¦ã„ãŸã‚‰è‡ªå‹•ã§exitã‚’é€ã‚‹
    (auto-treq-response-func :accessor parent-auto-treq-response-func :type (or null function) :initform nil)
-                                        ; treq¤òÁ÷¤Ã¤¿¤é¼«Æ°Åª¤Ë¼Â¹Ô¤µ¤ì¤ë´Ø¿ô
+                                        ; treqã‚’é€ã£ãŸã‚‰è‡ªå‹•çš„ã«å®Ÿè¡Œã•ã‚Œã‚‹é–¢æ•°
    (task-home :accessor parent-task-home :type list :initform ())
-                                        ; ¢¬¤ò¼Â¸½¤¹¤ë¤¿¤á¤Ë¿Æ¤«¤éÁ÷¤é¤ì¤¿task¤ò³Ğ¤¨¤Æ¤ª¤¯¥ê¥¹¥È
+                                        ; â†‘ã‚’å®Ÿç¾ã™ã‚‹ãŸã‚ã«è¦ªã‹ã‚‰é€ã‚‰ã‚ŒãŸtaskã‚’è¦šãˆã¦ãŠããƒªã‚¹ãƒˆ
    ))
 
 (defclass child (host)
@@ -148,10 +148,10 @@
    (valid :accessor child-valid :type boolean :initform t)
                                         ; invalidated when received "leav"
    (diff-task-rslt :accessor child-diff-task-rslt :type fixnum :initform 0)
-                                        ; <task¤òÁ÷¤Ã¤¿²ó¿ô>-<rslt¤¬ÊÖ¤Ã¤Æ¤­¤¿²ó¿ô>
+                                        ; <taskã‚’é€ã£ãŸå›æ•°>-<rsltãŒè¿”ã£ã¦ããŸå›æ•°>
    (work-size :accessor child-wsize :type fixnum :initform 0)
-                                        ; »Å»ö¤ÎÂç¤­¤µ¤ÎÌÜ°Â¡¥
-                                        ; task¤¬¤­¤¿¤é/Á÷¤Ã¤¿¤é(- <ndiv>)¤Ë¹¹¿·
+                                        ; ä»•äº‹ã®å¤§ãã•ã®ç›®å®‰ï¼
+                                        ; taskãŒããŸã‚‰/é€ã£ãŸã‚‰(- <ndiv>)ã«æ›´æ–°
    ;; (in-treq :accessor child-in-treq :type boolean :initform nil)
    ))
 
@@ -185,18 +185,18 @@
    (read-cmd-process :accessor ts-read-cmd-process :type (or null mp:process) :initform nil)
    (parent :accessor ts-parent :type parent)
    (children-port :accessor ts-chport :type fixnum :initform *children-port* :initarg :children-port)
-   (children-sock0 :accessor ts-chsock0 :type tsv-stream) ; ÂÔ¤Á¼õ¤±
+   (children-sock0 :accessor ts-chsock0 :type tsv-stream) ; å¾…ã¡å—ã‘
    (children :accessor ts-children :type list :initform '())
    (eldest-child :accessor ts-eldest-child :type (or null child) :initform nil)
    (n-children :accessor ts-n-children :type fixnum :initform 0)
    (n-wait-children :accessor ts-n-wait-children :type fixnum :initform 0 :initarg :n-wait-children)
-                                        ; ¤³¤Î¿ô¤Îchild¤¬ÀÜÂ³¤¹¤ë¤Ş¤Ç¥á¥Ã¥»¡¼¥¸½èÍı¤ò¹Ô¤ï¤Ê¤¤
+                                        ; ã“ã®æ•°ã®childãŒæ¥ç¶šã™ã‚‹ã¾ã§ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å‡¦ç†ã‚’è¡Œã‚ãªã„
    (child-next-id :accessor ts-child-next-id :type fixnum :initform 0)
    (socket-format :accessor ts-socket-format :type symbol :initform *socket-format* :initarg :socket-format)
    (bcst-receipants :accessor ts-bcst-receipants :type list :initform ())
-					; (<bcakÊÖ¿®Àè> . <bcst¤òforward¤·¤¿host¤Î¥ê¥¹¥È>)¤Î¥ê¥¹¥È
+					; (<bcakè¿”ä¿¡å…ˆ> . <bcstã‚’forwardã—ãŸhostã®ãƒªã‚¹ãƒˆ>)ã®ãƒªã‚¹ãƒˆ
    (exit-gate :accessor ts-exit-gate :initform (mp:make-gate nil))
-   (treq-any-list :accessor ts-talist :type list :initform '()) ;; treq-any¤ò½Ğ¤»¤Æ¤¤¤Ê¤¤¥ê¥¹¥È
+   (treq-any-list :accessor ts-talist :type list :initform '()) ;; treq-anyã‚’å‡ºã›ã¦ã„ãªã„ãƒªã‚¹ãƒˆ
    (accept-connection-process :accessor ts-accept-connection-process
                               :type (or null mp:process) :initform nil)
    (retry :accessor ts-retry :type fixnum :initform *retry* :initarg :retry)
@@ -306,29 +306,29 @@
 (defmethod start-server ((sv tcell-server) (prnt parent))
   (unwind-protect
       (progn
-        ;; ¿Æ¤ØÀÜÂ³
+        ;; è¦ªã¸æ¥ç¶š
         ;; sv.parent = connect_to (prnt):
         (setf (ts-parent sv) (connect-to prnt (ts-socket-format sv)))
-        ;; »Ò¤«¤é¤ÎÂÔ¤Á¼õ¤±¥İ¡¼¥È¤ò³«¤¯
+        ;; å­ã‹ã‚‰ã®å¾…ã¡å—ã‘ãƒãƒ¼ãƒˆã‚’é–‹ã
         (setf (ts-chsock0 sv)
           (socket:make-socket :connect :passive
                               :format (ts-socket-format sv)
                               :reuse-address *reuse-address*
                               :local-host (ts-hostname sv)
                               :local-port (ts-chport sv)))
-        ;; ºÇ½é¤Î»Ò¤¬ÀÜÂ³¤·¤Æ¤¯¤ë¤Î¤òÂÔ¤Ä
+        ;; æœ€åˆã®å­ãŒæ¥ç¶šã—ã¦ãã‚‹ã®ã‚’å¾…ã¤
         (format *error-output* "~&Waiting for connection to ~A:~D...~%"
           (ts-hostname sv) (ts-chport sv))
         (wait-and-add-child sv)
-        ;; »Ò¤«¤é¤ÎÀÜÂ³¼õ¤±ÉÕ¤±ÍÑ¥×¥í¥»¥¹µ¯Æ°
+        ;; å­ã‹ã‚‰ã®æ¥ç¶šå—ã‘ä»˜ã‘ç”¨ãƒ—ãƒ­ã‚»ã‚¹èµ·å‹•
         (activate-accept-connection-process sv)
-        ;; É¬Í×¿ô¤Î»Ò¤¬ÀÜÂ³¤·¤Æ¤¯¤ë¤Î¤òÂÔ¤Ä¡Ên-wait-children¥ª¥×¥·¥ç¥ó¡Ë
+        ;; å¿…è¦æ•°ã®å­ãŒæ¥ç¶šã—ã¦ãã‚‹ã®ã‚’å¾…ã¤ï¼ˆn-wait-childrenã‚ªãƒ—ã‚·ãƒ§ãƒ³ï¼‰
         (wait-children-connections sv)
-        ;; ¥á¥Ã¥»¡¼¥¸½èÍıÍÑ¥×¥í¥»¥¹µ¯Æ°
+        ;; ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å‡¦ç†ç”¨ãƒ—ãƒ­ã‚»ã‚¹èµ·å‹•
         (activate-proc-cmd-process sv)
-        ;; ¿Æ¤ÎÆşÎÏ¥¹¥È¥ê¡¼¥à¤«¤é¤ÎÆşÎÏÂÔ¤Á¥×¥í¥»¥¹µ¯Æ°
+        ;; è¦ªã®å…¥åŠ›ã‚¹ãƒˆãƒªãƒ¼ãƒ ã‹ã‚‰ã®å…¥åŠ›å¾…ã¡ãƒ—ãƒ­ã‚»ã‚¹èµ·å‹•
         (activate-read-cmd-process sv prnt)
-        ;; exit¥³¥Ş¥ó¥É¤Ë¤è¤Ã¤Æexit-gate¤¬open¤Ë¤Ê¤ë¤Ş¤Ç¤³¤³¤ÇÄä»ß
+        ;; exitã‚³ãƒãƒ³ãƒ‰ã«ã‚ˆã£ã¦exit-gateãŒopenã«ãªã‚‹ã¾ã§ã“ã“ã§åœæ­¢
         (with1 gate (ts-exit-gate sv)
           (mp:process-wait "Wait for exit command" #'mp:gate-open-p gate))
         )
@@ -380,24 +380,24 @@
     (mp:process-run-function "ACCEPT-CHILD-CONNECTION"
       #'(lambda () (loop (wait-and-add-child sv))))))
 
-;;; ¥µ¡¼¥Ğ¤Î¥á¥Ã¥»¡¼¥¸½èÍı¥×¥í¥»¥¹¤òµ¯Æ°
+;;; ã‚µãƒ¼ãƒã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å‡¦ç†ãƒ—ãƒ­ã‚»ã‚¹ã‚’èµ·å‹•
 (defgeneric activate-proc-cmd-process (sv))
 (defmethod activate-proc-cmd-process ((sv tcell-server))
   (setf (ts-proc-cmd-process sv)
     (mp:process-run-function "PROC-CMD"
       #'(lambda (msg-q &aux (msg-gate (sq-gate msg-q)))
           (loop
-            ;; ¿Æ¤Ş¤¿¤Ï»Ò¤«¤é¤ÎÆşÎÏÂÔ¤Á
+            ;; è¦ªã¾ãŸã¯å­ã‹ã‚‰ã®å…¥åŠ›å¾…ã¡
             (mp:process-wait "Waiting for a message to Tascell server."
                              #'mp:gate-open-p msg-gate)
-            ;; ¥á¥Ã¥»¡¼¥¸½èÍı
+            ;; ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å‡¦ç†
             (while (mp:gate-open-p msg-gate)
               (destructuring-bind (host . message) (delete-queue msg-q)
                 (proc-cmd sv host message))
               (retry-treq sv))))
       (ts-queue sv))))
 
-;;; ¥µ¡¼¥Ğ¤Î¥á¥Ã¥»¡¼¥¸ÆÉ¤ß¹ş¤ß¥×¥í¥»¥¹µ¯Æ°
+;;; ã‚µãƒ¼ãƒã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸èª­ã¿è¾¼ã¿ãƒ—ãƒ­ã‚»ã‚¹èµ·å‹•
 (defgeneric activate-read-cmd-process (sv prnt))
 (defmethod activate-read-cmd-process ((sv tcell-server) (prnt parent))
   (setf (ts-read-cmd-process sv)
@@ -480,8 +480,8 @@
   (initialize-sender hst)
   hst)
 
-;; make-instance -> initialize-connection -> initialize-sender/receiver¤Ê¤Î¤Ç
-;; initialize-instance¤Ç¤Ç¤­¤Ê¤¤
+;; make-instance -> initialize-connection -> initialize-sender/receiverãªã®ã§
+;; initialize-instanceã§ã§ããªã„
 (defgeneric initialize-sender (hst))
 (defmethod initialize-sender ((hst host) &aux (sock (host-socket hst)))
   (setf (host-sender hst)
@@ -493,7 +493,7 @@
   (setf (host-receiver hst)
     (make-instance 'receiver
       :src sock :reader (make-receiver-reader hst)
-      :queue (ts-queue (host-server hst)))) ; read¤·¤¿¤â¤Î¤Ï¶¦Í­¤Î¥Ğ¥Ã¥Õ¥¡¤ËÆş¤ì¤ë
+      :queue (ts-queue (host-server hst)))) ; readã—ãŸã‚‚ã®ã¯å…±æœ‰ã®ãƒãƒƒãƒ•ã‚¡ã«å…¥ã‚Œã‚‹
   hst)
 
 ;;;
@@ -532,7 +532,7 @@
          (make-array +max-line-length+
                      :element-type 'standard-char :fill-pointer +max-line-length+))
         (body-buffer (make-array +body-buffer-size+ :element-type '(unsigned-byte 8) :adjustable t))
-        (gate (mp:make-gate t)))        ; body-buffer ¤Î»ÈÍÑµö²Ä
+        (gate (mp:make-gate t)))        ; body-buffer ã®ä½¿ç”¨è¨±å¯
     (declare (ignorable body-buffer gate))
     #'(lambda (stream)
         #+allegro (setf (fill-pointer line-buffer) +max-line-length+)
@@ -573,8 +573,8 @@
           (values (cons hst msg) eof-p))
         )))
 
-;;; "task", "rslt", "bcst", "data" ¤ÎbodyÉô¤òÆÉ¤ß¹ş¤ß¡¤¥ê¥¹¥È¤Ë¤·¤ÆÊÖ¤¹
-;;; ¥Ğ¥¤¥Ê¥êÉôÊ¬¤Ïbuffer¤Ë½ñ¤­¹ş¤ß¡¤ÆÉ¤ß½Ğ¤¹¤¿¤á¤Î´Ø¿ô¤òÍÑ°Õ¤¹¤ë
+;;; "task", "rslt", "bcst", "data" ã®bodyéƒ¨ã‚’èª­ã¿è¾¼ã¿ï¼Œãƒªã‚¹ãƒˆã«ã—ã¦è¿”ã™
+;;; ãƒã‚¤ãƒŠãƒªéƒ¨åˆ†ã¯bufferã«æ›¸ãè¾¼ã¿ï¼Œèª­ã¿å‡ºã™ãŸã‚ã®é–¢æ•°ã‚’ç”¨æ„ã™ã‚‹
 (defun read-body-into-buffer (stream buffer)
   (let ((ret '())
         (buf-used 0))
@@ -582,13 +582,13 @@
     (loop
       (let* ((pre (read-line stream t))
              (len (length pre)))
-        ;; ¶õ¹Ô¤Ç½ªÎ»
+        ;; ç©ºè¡Œã§çµ‚äº†
         (when (= len 0) (return))
         (pushs pre #\Newline ret)
         ;; (tcell-server-dprint "~A~%" pre)
-        ;; #\(¤Ç¤ª¤ï¤Ã¤Æ¤¤¤¿¤é¼¡¤Î¹Ô¤Ïbyte-header¡¤¼¡¤¤¤Çbyte-data
+        ;; #\(ã§ãŠã‚ã£ã¦ã„ãŸã‚‰æ¬¡ã®è¡Œã¯byte-headerï¼Œæ¬¡ã„ã§byte-data
         (when (char= #\( (aref pre (- len 1)))
-          ;; ¥Ø¥Ã¥À: <whole-size> <elm-size> <endian(0|1)>
+          ;; ãƒ˜ãƒƒãƒ€: <whole-size> <elm-size> <endian(0|1)>
           (let* ((byte-header (read-line stream t))
                  (whole-size (parse-integer byte-header :junk-allowed t)))
             (declare (fixnum whole-size))
@@ -609,24 +609,24 @@
                         (write-sequence buffer ostream :start start :end end))
                     ret))
             (tcell-server-dprint "#<byte-data size=~D>~%" whole-size)
-            ;; ¤³¤Î¸å¡¤terminator ")\n" ¤¬¤¯¤ë¤¬¡¤
-            ;; ¼¡¤Îiteration¤Ç¡¤Ã±¤ËÂ¾¤ÎÊ¸»úÎó¥Ç¡¼¥¿¤ÈÆ±ÍÍ¤Ë½èÍı
+            ;; ã“ã®å¾Œï¼Œterminator ")\n" ãŒãã‚‹ãŒï¼Œ
+            ;; æ¬¡ã®iterationã§ï¼Œå˜ã«ä»–ã®æ–‡å­—åˆ—ãƒ‡ãƒ¼ã‚¿ã¨åŒæ§˜ã«å‡¦ç†
             ))))
     (nreverse ret)))
 
-;;; "task", "rslt", "bcst" "data" ¤ÎbodyÉô¤òÆÉ¤ß¹ş¤ß¡¤¥ê¥¹¥È¤Ë¤·¤ÆÊÖ¤¹
+;;; "task", "rslt", "bcst" "data" ã®bodyéƒ¨ã‚’èª­ã¿è¾¼ã¿ï¼Œãƒªã‚¹ãƒˆã«ã—ã¦è¿”ã™
 (defun read-body (stream)
   (let ((ret '()))
     (loop
       (let* ((pre (read-line stream t))
              (len (length pre)))
-        ;; ¶õ¹Ô¤Ç½ªÎ»
+        ;; ç©ºè¡Œã§çµ‚äº†
         (when (= len 0) (return))
         (pushs pre #\Newline ret)
         ;; (tcell-server-dprint "~A~%" pre)
-        ;; #\(¤Ç¤ª¤ï¤Ã¤Æ¤¤¤¿¤é¼¡¤Î¹Ô¤Ïbyte-header¡¤¼¡¤¤¤Çbyte-data
+        ;; #\(ã§ãŠã‚ã£ã¦ã„ãŸã‚‰æ¬¡ã®è¡Œã¯byte-headerï¼Œæ¬¡ã„ã§byte-data
         (when (char= #\( (aref pre (- len 1)))
-          ;; ¥Ø¥Ã¥À: <whole-size> <elm-size> <endian(0|1)>
+          ;; ãƒ˜ãƒƒãƒ€: <whole-size> <elm-size> <endian(0|1)>
           (let* ((byte-header (read-line stream t))
                  (whole-size (parse-integer byte-header :junk-allowed t)))
             (pushs byte-header #\Newline ret)
@@ -640,7 +640,7 @@
     (nreverse ret)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; ¥Ğ¥Ã¥Õ¥¡´Æ»ë->Á÷¿®
+;; ãƒãƒƒãƒ•ã‚¡ç›£è¦–->é€ä¿¡
 (defgeneric monitor-and-send-queue (sq dest &optional writer))
 (defmethod monitor-and-send-queue ((sq shared-queue) dest
                                    &optional (writer #'write-string))
@@ -652,7 +652,7 @@
         (funcall writer (delete-queue sq) dest))
       (force-output dest))))
 
-;; ¼õ¿®->¥Ğ¥Ã¥Õ¥¡¤ËÄÉ²Ã
+;; å—ä¿¡->ãƒãƒƒãƒ•ã‚¡ã«è¿½åŠ 
 (defgeneric receive-and-add-to-queue (sq src &optional reader))
 (defmethod receive-and-add-to-queue ((sq shared-queue) src
                                      &optional (reader #'read-line))
@@ -662,16 +662,16 @@
       (when eof-p (return)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Í×ÁÇ¤Ø¤Îaccessor
+;;; è¦ç´ ã¸ã®accessor
 
-;;; »Ò¤ÎÄÉ²Ã¡¦ºï½ü
+;;; å­ã®è¿½åŠ ãƒ»å‰Šé™¤
 (defgeneric add-child (sv chld))
 (defmethod add-child ((sv tcell-server) (chld child))
-  ;; »Ò¤Î¾ğÊó¤Î½é´ü²½¡¥sender¤Èreceiver¤Îµ¯Æ°¡¥
+  ;; å­ã®æƒ…å ±ã®åˆæœŸåŒ–ï¼senderã¨receiverã®èµ·å‹•ï¼
   (setf (child-id chld)	(ts-child-next-id sv))
   (initialize-sender chld)
   (initialize-receiver chld)
-  ;; server¾õÂÖ¤Î¹¹¿·
+  ;; serverçŠ¶æ…‹ã®æ›´æ–°
   (incf (ts-child-next-id sv))
   (incf (ts-n-children sv))
   (push chld (ts-children sv))
@@ -695,14 +695,14 @@
 (defmethod invalidate-child ((chld child))
   (setf (child-valid chld) nil))
 
-;;; (= id n) ¤Î»Ò¤Ø¤Î¥¢¥¯¥»¥¹
+;;; (= id n) ã®å­ã¸ã®ã‚¢ã‚¯ã‚»ã‚¹
 (defgeneric nth-child (sv n))
 (defmethod nth-child ((sv tcell-server) n)
   (find n (ts-children sv)
         :key #'(lambda (chld) (child-id chld))
         :test #'=))
 
-;;; °ìÈÖ»Å»ö¤¬»Ä¤Ã¤Æ¤½¤¦¤Ê»Ò
+;;; ä¸€ç•ªä»•äº‹ãŒæ®‹ã£ã¦ãã†ãªå­
 (defgeneric most-divisible-child (sv from))
 (defmethod most-divisible-child ((sv tcell-server) (from host))
   (with* (cur-time (get-internal-real-time)
@@ -717,7 +717,7 @@
       (dolist (c (ts-children sv))
         (print `((from ,(hostid from)) (c ,(hostid c)) (diff-task-rslt ,(child-diff-task-rslt c))
                                        ,(>= (- cur-time (host-none-time c)) limit)))))
-    ;; Strategy1: ¡ÊÁ÷¤Ã¤¿task¤Î¿ô-¼õ¤±¼è¤Ã¤¿rslt¤Î¿ô¡Ë>0 ¤«¤Ä ºÇ¸å¤ËÁ÷¤Ã¤¿task¤Îndiv¤¬ºÇ¾®
+    ;; Strategy1: ï¼ˆé€ã£ãŸtaskã®æ•°-å—ã‘å–ã£ãŸrsltã®æ•°ï¼‰>0 ã‹ã¤ æœ€å¾Œã«é€ã£ãŸtaskã®ndivãŒæœ€å°
     #+comment
     (let ((max nil) (maxchld nil))
       (loop for chld in candidates
@@ -730,7 +730,7 @@
         (tcell-server-dprint "~&Most-divisible-child selected ~S: (child-diff-task-rslt ~D), (child-wsize ~D)~%"
                              (hostinfo maxchld) (child-diff-task-rslt maxchld) (child-wsize maxchld)))
       maxchld)
-    ;; Strategy2: ¡ÊÁ÷¤Ã¤¿task¤Î¿ô-¼õ¤±¼è¤Ã¤¿rslt¤Î¿ô¡Ë>0 ¤Î¤â¤Î¤«¤é¥é¥ó¥À¥à
+    ;; Strategy2: ï¼ˆé€ã£ãŸtaskã®æ•°-å—ã‘å–ã£ãŸrsltã®æ•°ï¼‰>0 ã®ã‚‚ã®ã‹ã‚‰ãƒ©ãƒ³ãƒ€ãƒ 
     #-swopp10
     (if candidates (list-random-select candidates) nil)
     ;; Strategy3: SWoPP10 random
@@ -738,8 +738,8 @@
     (when candidates
       (if (not (typep (ts-parent sv) 'terminal-parent))
           (list-random-select candidates)
-        ;; 3/4¤Î³ÎÎ¨¤Ç»Ò¥µ¡¼¥Ğ¡¤1/4¤Î³ÎÎ¨¤Ç»Ò¥µ¡¼¥Ğ°Ê³°¤Î¤ß¤«¤éÁªÂò
-        ;; ¡Êchild ID 0,1,2 ¤¬»Ò¥µ¡¼¥Ğ¤Î¾ì¹ç¡Ë
+        ;; 3/4ã®ç¢ºç‡ã§å­ã‚µãƒ¼ãƒï¼Œ1/4ã®ç¢ºç‡ã§å­ã‚µãƒ¼ãƒä»¥å¤–ã®ã¿ã‹ã‚‰é¸æŠ
+        ;; ï¼ˆchild ID 0,1,2 ãŒå­ã‚µãƒ¼ãƒã®å ´åˆï¼‰
         (let ((cand (if (< 0.75 (random 1.0))
                         (remove-if-not #'(lambda (c) (<= 2 (child-id c)))
                                        candidates)
@@ -750,13 +750,13 @@
             (list-random-select candidates)))))
     ))
 
-;;; »Ò¤Îwork-size ¤ò¹¹¿·
+;;; å­ã®work-size ã‚’æ›´æ–°
 (defgeneric renew-work-size (chld wsize))
 (defmethod renew-work-size ((chld child) wsize)
   (setf (child-wsize chld) wsize))
 
-;;; treq-any-list ¤Ø¤ÎÍ×ÁÇÄÉ²Ã
-;;; p-task-head ¤Ï¡¤"<treq¤Îfrom¤Îid>" ":" "<treq¤Îtask-head>" 
+;;; treq-any-list ã¸ã®è¦ç´ è¿½åŠ 
+;;; p-task-head ã¯ï¼Œ"<treqã®fromã®id>" ":" "<treqã®task-head>" 
 (defgeneric push-treq-any0 (sv tae))
 (defmethod push-treq-any0 ((sv tcell-server) (tae ta-entry))
   (push tae (ts-talist sv)))
@@ -766,19 +766,19 @@
 (defgeneric push-treq-any (sv from p-task-head))
 (defmethod push-treq-any ((sv tcell-server) (from host) (p-task-head string))
   (let ((entry (make-instance 'ta-entry :from from :head p-task-head)))
-    (if (or (eq from (ts-eldest-child sv)) ; eldest-child¤«¤é¤Îtreq¤ÏÍ¥ÀèÅª¤ËÀèÆ¬
-            (null (ts-talist sv)))      ;  ; ¡Êretry»ş¤ËÀèÆ¬¤¬¤À¤á¤À¤Ã¤¿¤é°Ê¹ß¤ò¤¢¤­¤é
-        (push-treq-any0 sv entry)       ;  ;   ¤á¤ë¤è¤¦¤Ë¤·¤Æ¤¤¤ë¤¬¡¤¤½¤Î»ş¤Ë¿Æ¤â»î¤¹
-      (push-treq-any1 sv entry))))      ;  ;   ¤è¤¦¤Ë¤¹¤ë¤¿¤á¡Ë
+    (if (or (eq from (ts-eldest-child sv)) ; eldest-childã‹ã‚‰ã®treqã¯å„ªå…ˆçš„ã«å…ˆé ­
+            (null (ts-talist sv)))      ;  ; ï¼ˆretryæ™‚ã«å…ˆé ­ãŒã ã‚ã ã£ãŸã‚‰ä»¥é™ã‚’ã‚ãã‚‰
+        (push-treq-any0 sv entry)       ;  ;   ã‚ã‚‹ã‚ˆã†ã«ã—ã¦ã„ã‚‹ãŒï¼Œãã®æ™‚ã«è¦ªã‚‚è©¦ã™
+      (push-treq-any1 sv entry))))      ;  ;   ã‚ˆã†ã«ã™ã‚‹ãŸã‚ï¼‰
 
-;;; treq-any-list ¤Îpop
+;;; treq-any-list ã®pop
 (defgeneric pop-treq-any (sv))
 (defmethod pop-treq-any ((sv tcell-server))
   (aand (pop (ts-talist sv))
         (list (tae-from it) (tae-head it))))
 
 
-;;; treq-any-list ¤«¤é»ØÄêÍ×ÁÇºï½ü
+;;; treq-any-list ã‹ã‚‰æŒ‡å®šè¦ç´ å‰Šé™¤
 (defgeneric delete-treq-any (sv from p-task-head))
 (defmethod delete-treq-any ((sv tcell-server) (from host) (p-task-head string))
   (setf (ts-talist sv)
@@ -786,14 +786,14 @@
             (ts-talist sv)
             :test #'ta-entry-match)))
 
-;;; treq-any-list ¤Îmember¤«
+;;; treq-any-list ã®memberã‹
 (defgeneric member-treq-any (sv from p-task-head))
 (defmethod member-treq-any ((sv tcell-server) (from host) (p-task-head string))
   (member (make-instance 'ta-entry :from from :head p-task-head)
           (ts-talist sv)
           :test #'ta-entry-match))
 
-;;; ta-entry ¤ÎÆ±°ìÀ­
+;;; ta-entry ã®åŒä¸€æ€§
 (defgeneric ta-entry-match (x y))
 (defmethod ta-entry-match ((x ta-entry) (y ta-entry))
   (and (eq (tae-from x) (tae-from y))
@@ -801,14 +801,14 @@
            (string= "*" (tae-head y))
            (string= (tae-head x) (tae-head y)))))
 
-;; ta-entry ¤Î¾ğÊó
+;; ta-entry ã®æƒ…å ±
 (defgeneric ta-entry-info (tae))
 (defmethod ta-entry-info ((tae ta-entry))
   `((from ,(hostinfo (tae-from tae)))
     (head ,(tae-head tae))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; ÁêÂĞ¥¢¥É¥ì¥¹Ê¸»úÎó¤ÎÁàºî
+;;; ç›¸å¯¾ã‚¢ãƒ‰ãƒ¬ã‚¹æ–‡å­—åˆ—ã®æ“ä½œ
 (defgeneric hostid (host))
 (defmethod hostid ((chld child))
   (format nil "~D" (child-id chld)))
@@ -824,8 +824,8 @@
    (t
     (nth-child sv (parse-integer hostid)))))
 
-;;; ¥¢¥É¥ì¥¹¤ÎÀèÆ¬¤òÀÚ¤ê¼è¤Ã¤Æ¡¤»Ä¤ê¤ÈÀÚ¤ê¼è¤Ã¤¿ÀèÆ¬¥¢¥É¥ì¥¹
-;;; ¤ËÁêÅö¤¹¤ë¥Û¥¹¥È¤òÊÖ¤¹
+;;; ã‚¢ãƒ‰ãƒ¬ã‚¹ã®å…ˆé ­ã‚’åˆ‡ã‚Šå–ã£ã¦ï¼Œæ®‹ã‚Šã¨åˆ‡ã‚Šå–ã£ãŸå…ˆé ­ã‚¢ãƒ‰ãƒ¬ã‚¹
+;;; ã«ç›¸å½“ã™ã‚‹ãƒ›ã‚¹ãƒˆã‚’è¿”ã™
 (defgeneric head-shift (sv head-string))
 (defmethod head-shift ((sv tcell-server) head-string)
   (let* ((sp-head (split-string-1 head-string #\:))
@@ -834,16 +834,16 @@
       (warn "Connection from/to ~S does not exist." (first sp-head)))
     (list host (second sp-head))))
 
-;;; ¥¢¥É¥ì¥¹head-string¤ÎÀèÆ¬¤Ëhst¤Îid¤òÄÉ²Ã¤·¤¿¤â¤Î¤òÊÖ¤¹
+;;; ã‚¢ãƒ‰ãƒ¬ã‚¹head-stringã®å…ˆé ­ã«hstã®idã‚’è¿½åŠ ã—ãŸã‚‚ã®ã‚’è¿”ã™
 (defgeneric head-push (hst head-string))
 (defmethod head-push ((hst host) head-string)
   (let ((sp-head (split-string-1 head-string #\:)))
-    (if (string= "f" (first sp-head))   ; forward => ÄÉ²Ã¤»¤º¡¤f°Ê¹ß¤Î¥¢¥É¥ì¥¹¤òÊÖ¤¹
+    (if (string= "f" (first sp-head))   ; forward => è¿½åŠ ã›ãšï¼Œfä»¥é™ã®ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’è¿”ã™
         (second sp-head)
       (string+ (hostid hst) ":" head-string))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; ¥á¥Ã¥»¡¼¥¸Á÷¿®
+;;; ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸é€ä¿¡
 (defgeneric send (to obj))
 (defmethod send ((to host) obj)
   (add-queue obj (send-queue (host-sender to))))
@@ -888,7 +888,7 @@
     (tcell-server-dprint (get-gnuplot-error-bar task-head to "treq")))
   (incf (host-unreplied-treqs to)))
   
-;; treq¤Ø¤Î±şÅú¤È¤·¤Æ¡¤task¡¤¤Ş¤¿¤Ïexit¤ò¼«Æ°ºÆÁ÷¿®¡Ê¥Ğ¥Ã¥Á¼Â¹ÔÍÑ¡Ë
+;; treqã¸ã®å¿œç­”ã¨ã—ã¦ï¼Œtaskï¼Œã¾ãŸã¯exitã‚’è‡ªå‹•å†é€ä¿¡ï¼ˆãƒãƒƒãƒå®Ÿè¡Œç”¨ï¼‰
 (defmethod send-treq :after ((to terminal-parent) task-head treq-head)
   (awhen (parent-auto-treq-response-func to)
     (funcall it to task-head treq-head)
@@ -949,7 +949,7 @@
 		 #\Newline rslt-body #\Newline)))
 
 ;; Reply in place of an invalid child.
-#+PENDING ; rslt¤À¤±¤Ç¤Ïrack¤ÎÊÖ¿®Àè¤¬¤ï¤«¤é¤Ê¤¤
+#+PENDING ; rsltã ã‘ã§ã¯rackã®è¿”ä¿¡å…ˆãŒã‚ã‹ã‚‰ãªã„
 (defmethod send-rslt :around (to rslt-head rslt-rsn rslt-excp rslt-body)
   (if (child-valid to)
       (call-next-method)
@@ -964,7 +964,7 @@
   (declare (ignore rslt-rsn rslt-excp rslt-body))
   ;; log
   (tcell-server-dprint "~&# (~D) rslt sent to terminal parent." (get-internal-real-time))
-  ;; rack¡¤task¡¤exit¼«Æ°Á÷¿®¤ÎÀßÄê¡ÊtaskºÆÁ÷¿®¤ÏÀ­Ç½É¾²ÁÍÑ¡Ë
+  ;; rackï¼Œtaskï¼Œexitè‡ªå‹•é€ä¿¡ã®è¨­å®šï¼ˆtaskå†é€ä¿¡ã¯æ€§èƒ½è©•ä¾¡ç”¨ï¼‰
   (when (parent-auto-rack to)
     (let ((end-time (get-internal-real-time)))
       (aif (find rslt-head (parent-task-home to) :test #'string=
@@ -975,7 +975,7 @@
                  (rack-to (task-home-rack-to it))
                  (rack-task-head (task-home-rack-task-head it))
                  (start-time (task-home-start-time it)))
-            ;; rackÊÖ¿®
+            ;; rackè¿”ä¿¡
             (format *error-output*
                 "~&Time: ~S~%~
                 Auto-send \"rack ~A\" to ~S~%"
@@ -983,12 +983,12 @@
                  internal-time-units-per-second 1.0)
               rack-task-head (hostinfo rack-to))
             (send-rack rack-to rack-task-head)
-            ;; n-resend¥Á¥§¥Ã¥¯¢ªtask¼«Æ°ºÆÁ÷¿®´Ø¿ô¤ò¥»¥Ã¥È
-            ;; rslt-no¡Êrslt-head¤ÎºÇ¸å¤Î¿ô»ú¡Ë¤¬Á÷¤Ã¤¿²ó¿ô¤Î¥«¥¦¥ó¥È¤ÎÌò³ä
+            ;; n-resendãƒã‚§ãƒƒã‚¯â†’taskè‡ªå‹•å†é€ä¿¡é–¢æ•°ã‚’ã‚»ãƒƒãƒˆ
+            ;; rslt-noï¼ˆrslt-headã®æœ€å¾Œã®æ•°å­—ï¼‰ãŒé€ã£ãŸå›æ•°ã®ã‚«ã‚¦ãƒ³ãƒˆã®å½¹å‰²
             (if (< rslt-no (parent-auto-resend-task to))
                 (let ((new-rslt-head (format nil "~D" (1+ rslt-no))))
                   (setf (caddr cmd) new-rslt-head)
-                  ;; treq¤¬¤­¤¿¤é¼«Æ°Åª¤Ëtask¤òºÆÁ÷¿®¤¹¤ë¤è¤¦¤Ë´Ø¿ô¤ò¥»¥Ã¥È
+                  ;; treqãŒããŸã‚‰è‡ªå‹•çš„ã«taskã‚’å†é€ä¿¡ã™ã‚‹ã‚ˆã†ã«é–¢æ•°ã‚’ã‚»ãƒƒãƒˆ
                   (setf (parent-auto-treq-response-func to)
                     #'(lambda (&rest args)
                         (declare (ignore args))
@@ -997,13 +997,13 @@
                         (format *error-output* "~&auto-resend-task~%")
                         (setf (task-home-start-time it) (get-internal-real-time))
                         (incf (parent-diff-task-rslt to))
-                        (send-task rack-to ; rack¤ÎÁ÷¤êÀè¤ÈÆ±¤¸¤Ç¤è¤¤¤³¤È¤ò²¾Äê
+                        (send-task rack-to ; rackã®é€ã‚Šå…ˆã¨åŒã˜ã§ã‚ˆã„ã“ã¨ã‚’ä»®å®š
                                    (second cmd) (head-push to new-rslt-head)
                                    rack-task-head (fifth cmd) (nthcdr 5 cmd)))))
               (progn
-                ;; task-home¤Î¥¨¥ó¥È¥êºï½ü
+                ;; task-homeã®ã‚¨ãƒ³ãƒˆãƒªå‰Šé™¤
                 (delete it (parent-task-home to) :count 1)
-                ;; exit¤ò¼«Æ°Á÷¿®¤¹¤ë¤è¤¦¤Ë´Ø¿ô¤ò¥»¥Ã¥È
+                ;; exitã‚’è‡ªå‹•é€ä¿¡ã™ã‚‹ã‚ˆã†ã«é–¢æ•°ã‚’ã‚»ãƒƒãƒˆ
                 (when (parent-auto-exit to)
                   (setf (parent-auto-treq-response-func to)
                     #'(lambda (&rest args)
@@ -1100,8 +1100,8 @@
 ;;; treq
 (defgeneric proc-treq (sv from cmd))
 (defmethod proc-treq ((sv tcell-server) (from host) cmd)
-  (let ((p-task-head (head-push from (second cmd))) ; ¥¿¥¹¥¯Í×µá¼Ô
-        (treq-head (third cmd)))        ; Í×µáÀè
+  (let ((p-task-head (head-push from (second cmd))) ; ã‚¿ã‚¹ã‚¯è¦æ±‚è€…
+        (treq-head (third cmd)))        ; è¦æ±‚å…ˆ
     (unless
         (if (string= "any" treq-head)
             (try-send-treq-any sv from p-task-head)
@@ -1110,22 +1110,22 @@
             (if *transfer-treq-always-if-notany*
                 (send-treq hst0 p-task-head s-treq-head)
               (try-send-treq sv hst0 p-task-head s-treq-head))))
-      ;; treq¤òÁ÷¤ì¤Ê¤«¤Ã¤¿¾ì¹ç
+      ;; treqã‚’é€ã‚Œãªã‹ã£ãŸå ´åˆ
       (refuse-treq sv from p-task-head))))
 
 (defgeneric try-send-treq-any (sv from p-task-head))
 (defmethod try-send-treq-any ((sv tcell-server) (from host) p-task-head)
   (or
-   ;; »ş¡¹Í¥Àè¤·¤Æ¿Æ¤Ë¤âÊ¹¤­¤Ë¤¤¤¯¡Êterminal-parent¤ò½ü¤¯¡Ë
+   ;; æ™‚ã€…å„ªå…ˆã—ã¦è¦ªã«ã‚‚èãã«ã„ãï¼ˆterminal-parentã‚’é™¤ãï¼‰
    (and (not (typep (ts-parent sv) 'terminal-parent))
         (not (eq (ts-parent sv) from))
-        #-swopp10 (= 0 (random (ts-n-children sv))) ; ¿Æ»ÒÊ¿Åù
-        #+swopp10 (< 0.75 (random 1.0))             ; 3/4¤Î³ÎÎ¨
+        #-swopp10 (= 0 (random (ts-n-children sv))) ; è¦ªå­å¹³ç­‰
+        #+swopp10 (< 0.75 (random 1.0))             ; 3/4ã®ç¢ºç‡
         (try-send-treq sv (ts-parent sv) p-task-head "any"))
-   ;; »Ò¶¡¤ËÊ¹¤­¤Ë¤¤¤¯
+   ;; å­ä¾›ã«èãã«ã„ã
    (awhen (most-divisible-child sv from)
      (try-send-treq sv it p-task-head "any"))
-   ;; ¼«Ê¬¤Î¤È¤³¤í¤Ë»Å»ö¤¬¤Ê¤±¤ì¤Ğ¡¤eldest¤Ê»Ò¤¬ÂåÉ½¤·¤Æ¿Æ¤ËÊ¹¤­¤Ë¤¤¤¯
+   ;; è‡ªåˆ†ã®ã¨ã“ã‚ã«ä»•äº‹ãŒãªã‘ã‚Œã°ï¼Œeldestãªå­ãŒä»£è¡¨ã—ã¦è¦ªã«èãã«ã„ã
    (and (eq (ts-eldest-child sv) from)
         (try-send-treq sv (ts-parent sv)
                        p-task-head "any"))))
@@ -1135,8 +1135,8 @@
   (send-treq to p-task-head s-treq-head)
   t)
 
-;; terminal-parent¤Ë¤Ä¤¤¤Æ¤Ï¡¤
-;; ¤â¤é¤Ã¤¿»Å»ö¤ò¾Ã²½¤·¤Æ¤¤¤ë¡¤¤«¤Ä¡¤°ìÅÙ¤Ë1¤Ä¤Ş¤Ç¤·¤«treq¤·¤Ê¤¤
+;; terminal-parentã«ã¤ã„ã¦ã¯ï¼Œ
+;; ã‚‚ã‚‰ã£ãŸä»•äº‹ã‚’æ¶ˆåŒ–ã—ã¦ã„ã‚‹ï¼Œã‹ã¤ï¼Œä¸€åº¦ã«1ã¤ã¾ã§ã—ã‹treqã—ãªã„
 (defmethod try-send-treq :around ((sv tcell-server) (to terminal-parent) p-task-head s-treq-head)
   (declare (ignore p-task-head s-treq-head))
   ;; (print `((host-unreplied-treqs to) ,(host-unreplied-treqs to)))
@@ -1145,7 +1145,7 @@
       (call-next-method)
     nil))
 
-;; child¤Ë¤Ä¤¤¤Æ¤Ï¡¤ÅÏ¤·¤¿task¤ÈÊÖ¤Ã¤Æ¤­¤¿rslt¤¬Æ±¿ô¤Ê¤étreq¤·¤Ê¤¤
+;; childã«ã¤ã„ã¦ã¯ï¼Œæ¸¡ã—ãŸtaskã¨è¿”ã£ã¦ããŸrsltãŒåŒæ•°ãªã‚‰treqã—ãªã„
 (defmethod try-send-treq :around ((sv tcell-server) (to child) p-task-head s-treq-head)
   (declare (ignore p-task-head s-treq-head))
   (if (> (child-diff-task-rslt to) 0)
@@ -1158,10 +1158,10 @@
       (send-none from (second (head-shift sv p-task-head)))
     (push-treq-any sv from p-task-head)))
 
-;; treq-any-list¤Ë¤¢¤ëÍ×ÁÇ¤ò try¤·¤Ê¤ª¤¹
+;; treq-any-listã«ã‚ã‚‹è¦ç´ ã‚’ tryã—ãªãŠã™
 (defgeneric retry-treq (sv))
 (defmethod retry-treq ((sv tcell-server))
-  #+obsoleted ; ºÇ½é¤Îentry¤¬¼ºÇÔ¤·¤¿¤«¤é¤È¤¤¤Ã¤ÆÂ¾¤Îentry¤â¼ºÇÔ¤¹¤ë¤È¤Ï¸Â¤é¤Ê¤¤
+  #+obsoleted ; æœ€åˆã®entryãŒå¤±æ•—ã—ãŸã‹ã‚‰ã¨ã„ã£ã¦ä»–ã®entryã‚‚å¤±æ•—ã™ã‚‹ã¨ã¯é™ã‚‰ãªã„
   (loop
       for n-sent upfrom 0
       do (aif (pop-treq-any sv)
@@ -1185,10 +1185,10 @@
 (defgeneric proc-task (sv from cmd))
 (defmethod proc-task ((sv tcell-server) (from host) cmd)
   (destructuring-bind (to s-task-head)
-      (head-shift sv (fourth cmd))      ; ¥¿¥¹¥¯Á÷¿®Àè
-    (let ((wsize-str (second cmd))      ; »Å»ö¤ÎÂç¤­¤µ
-          (p-rslt-head (head-push from (third cmd))) ; ·ë²ÌÊÖ¿®Àè
-          (task-no (fifth cmd))         ; ¥¿¥¹¥¯ÈÖ¹æ ¡Êfib, lu, ...¡Ë
+      (head-shift sv (fourth cmd))      ; ã‚¿ã‚¹ã‚¯é€ä¿¡å…ˆ
+    (let ((wsize-str (second cmd))      ; ä»•äº‹ã®å¤§ãã•
+          (p-rslt-head (head-push from (third cmd))) ; çµæœè¿”ä¿¡å…ˆ
+          (task-no (fifth cmd))         ; ã‚¿ã‚¹ã‚¯ç•ªå· ï¼ˆfib, lu, ...ï¼‰
           (task-body (nthcdr 5 cmd)))
       (send-task to wsize-str p-rslt-head s-task-head task-no
                  task-body)
@@ -1220,16 +1220,16 @@
   (incf (parent-diff-task-rslt from))
   )
 
-;; rack¼«Æ°Á÷¿®¤Î¤¿¤á¤Ë¼õ¤±¼è¤Ã¤¿task¤ò³Ğ¤¨¤Æ¤ª¤¯
+;; rackè‡ªå‹•é€ä¿¡ã®ãŸã‚ã«å—ã‘å–ã£ãŸtaskã‚’è¦šãˆã¦ãŠã
 (defmethod proc-task :after ((sv tcell-server) (from terminal-parent) cmd)
   (when (parent-auto-rack from)
     (destructuring-bind (to s-task-head)
         (head-shift sv (fourth cmd))
       (let ((th-entry (make-task-home
                        :task-cmd cmd
-                       :rack-to   to    ; rackÁ÷¿®Àè
-                       :rack-task-head s-task-head ; rack¤Îtask-head
-                       :start-time 0))) ; ³«»Ï»ş¹ï¡Ê¤¢¤È¤Ç¡Ë
+                       :rack-to   to    ; racké€ä¿¡å…ˆ
+                       :rack-task-head s-task-head ; rackã®task-head
+                       :start-time 0))) ; é–‹å§‹æ™‚åˆ»ï¼ˆã‚ã¨ã§ï¼‰
         (push th-entry (parent-task-home from))
         (setf (task-home-start-time th-entry) (get-internal-real-time))))))
 
@@ -1237,7 +1237,7 @@
 (defgeneric proc-none (sv from cmd))
 (defmethod proc-none ((sv tcell-server) (from host) cmd)
   (destructuring-bind (to s-task-head)
-      (head-shift sv (second cmd))      ; noneÁ÷¿®Àè
+      (head-shift sv (second cmd))      ; noneé€ä¿¡å…ˆ
     (send-none to s-task-head)))
 
 (defmethod proc-none :before ((sv tcell-server) (from host) cmd)
@@ -1249,7 +1249,7 @@
 
 
 (defmethod proc-none :after ((sv tcell-server) (from host) cmd)
-  ;; none¤ò¼õ¤±¼è¤Ã¤¿»ş¹ï¤òµ­²±
+  ;; noneã‚’å—ã‘å–ã£ãŸæ™‚åˆ»ã‚’è¨˜æ†¶
   (declare (ignorable sv cmd))
   (setf (host-none-time from) (get-internal-real-time)))
 
@@ -1257,7 +1257,7 @@
 (defgeneric proc-rslt (sv from cmd))
 (defmethod proc-rslt ((sv tcell-server) (from host) cmd)
   (destructuring-bind (to s-rslt-head)
-      (head-shift sv (second cmd))      ; rsltÁ÷¿®Àè
+      (head-shift sv (second cmd))      ; rslté€ä¿¡å…ˆ
     (let ((rslt-rsn (third cmd))
 	  (rslt-excp (fourth cmd))
 	  (rslt-body (cddddr cmd)))
@@ -1272,30 +1272,30 @@
 (defgeneric proc-rack (sv from cmd))
 (defmethod proc-rack ((sv tcell-server) (from host) cmd)
   (destructuring-bind (to s-task-head)
-      (head-shift sv (second cmd))      ; rackÁ÷¿®Àè
+      (head-shift sv (second cmd))      ; racké€ä¿¡å…ˆ
     (send-rack to s-task-head)))
 
 ;; bcst
 (defgeneric proc-bcst (sv from cmd))
 (defmethod proc-bcst ((sv tcell-server) (from host) cmd)
-  (let ((p-bcak-head (head-push from (second cmd))) ; bcakÊÖ¿®Àè
-	(task-no (third cmd))		; ¥¿¥¹¥¯ÈÖ¹æ ¡Êbtsk_a, btsk_b, ...)
-	(bcst-body (nthcdr 3 cmd)))	; dataÉô
+  (let ((p-bcak-head (head-push from (second cmd))) ; bcakè¿”ä¿¡å…ˆ
+	(task-no (third cmd))		; ã‚¿ã‚¹ã‚¯ç•ªå· ï¼ˆbtsk_a, btsk_b, ...)
+	(bcst-body (nthcdr 3 cmd)))	; dataéƒ¨
     (let ((recipients ()))
-      ;; bcst¤ÎÁ÷¤ê¸µ¤Èterminal-parent°Ê³°¤Ëforward¤¹¤ë
+      ;; bcstã®é€ã‚Šå…ƒã¨terminal-parentä»¥å¤–ã«forwardã™ã‚‹
       (dolist (to (cons (ts-parent sv) (ts-children sv)))
 	(unless (or (eq from to)
 		    (typep to 'terminal-parent))
 	  (send-bcst to p-bcak-head task-no bcst-body)
 	  (push to recipients)))
-      ;; (<bcakÊÖ¿®Àè> . <forwardÀè¤Î¥ê¥¹¥È>)¤òµ­²±¤¹¤ë
+      ;; (<bcakè¿”ä¿¡å…ˆ> . <forwardå…ˆã®ãƒªã‚¹ãƒˆ>)ã‚’è¨˜æ†¶ã™ã‚‹
       (when (member p-bcak-head (ts-bcst-receipants sv)
 		    :key #'car :test #'string=)
 	(warn "Server received the same broadcast twice: ~S"
 	      p-bcak-head))
       (if recipients
           (push (cons p-bcak-head recipients) (ts-bcst-receipants sv))
-        ;; broadcastÀè¤¬¤¤¤Ê¤±¤ì¤ĞÂ¨ºÂ¤Ëbcak¤òÊÖ¤¹
+        ;; broadcastå…ˆãŒã„ãªã‘ã‚Œã°å³åº§ã«bcakã‚’è¿”ã™
         (send-bcak from (second cmd)))
       )))
 
@@ -1303,22 +1303,22 @@
 (defgeneric proc-bcak (sv from cmd))
 (defmethod proc-bcak ((sv tcell-server) (from host) cmd)
   (let ((bcak-head (second cmd)))
-    (destructuring-bind (to s-bcak-head) ; bcakÁ÷¿®Àè
+    (destructuring-bind (to s-bcak-head) ; bcaké€ä¿¡å…ˆ
 	(head-shift sv bcak-head)
       (let ((receipants-entry		
 	     (car (member bcak-head (ts-bcst-receipants sv)
 			  :key #'car :test #'string=))))
-	(if (null receipants-entry)	; bcak-head¤«¤é¤Îbcst¤¬¤¢¤Ã¤¿¤«¥Á¥§¥Ã¥¯
+	(if (null receipants-entry)	; bcak-headã‹ã‚‰ã®bcstãŒã‚ã£ãŸã‹ãƒã‚§ãƒƒã‚¯
 	    (warn "No bcst from ~S is remenbered." bcak-head)
 	  (if (not (member from (cdr receipants-entry) :test #'eq))
-					; from¤¬bcakÂÔ¤Á¥ê¥¹¥È¤Ë¤¢¤ë¤«¥Á¥§¥Ã¥¯
+					; fromãŒbcakå¾…ã¡ãƒªã‚¹ãƒˆã«ã‚ã‚‹ã‹ãƒã‚§ãƒƒã‚¯
 	      (warn "No bcst from ~S to ~S is remembered."
 		    bcak-head (hostinfo from))
 	    (progn
-	      ;; bcakÂÔ¤Á¤«¤éfrom¤òºï½ü
+	      ;; bcakå¾…ã¡ã‹ã‚‰fromã‚’å‰Šé™¤
 	      (rplacd receipants-entry
 		      (delete from (cdr receipants-entry) :test #'eq))
-	      ;; ÂÔ¤Á¥ê¥¹¥È¤¬¶õ¤Ë¤Ê¤Ã¤Æ¤¤¤¿¤ébcak¤òÊÖ¤¹
+	      ;; å¾…ã¡ãƒªã‚¹ãƒˆãŒç©ºã«ãªã£ã¦ã„ãŸã‚‰bcakã‚’è¿”ã™
 	      (when (null (cdr receipants-entry))
 		(send-bcak to s-bcak-head)
                 (setf (ts-bcst-receipants sv)
@@ -1328,24 +1328,24 @@
 ;;; dreq
 (defgeneric proc-dreq (sv from cmd))
 (defmethod proc-dreq ((sv tcell-server) (from host) cmd)
-  (let ((p-data-head (head-push from (second cmd))) ; ¥Ç¡¼¥¿Í×µá¼Ô
-        (range (fourth cmd)))           ; ¥Ç¡¼¥¿Í×µáÈÏ°Ï
-    (destructuring-bind (hst0 s-dreq-head) ; ¥Ç¡¼¥¿Í×µáÀè
+  (let ((p-data-head (head-push from (second cmd))) ; ãƒ‡ãƒ¼ã‚¿è¦æ±‚è€…
+        (range (fourth cmd)))           ; ãƒ‡ãƒ¼ã‚¿è¦æ±‚ç¯„å›²
+    (destructuring-bind (hst0 s-dreq-head) ; ãƒ‡ãƒ¼ã‚¿è¦æ±‚å…ˆ
         (head-shift sv (third cmd))
       (send-dreq hst0 p-data-head s-dreq-head range))))
 
 ;;; data
 (defgeneric proc-data (sv from cmd))
 (defmethod proc-data ((sv tcell-server) (from host) cmd)
-  (destructuring-bind (to s-data-head)  ; dataÁ÷¿®Àè
+  (destructuring-bind (to s-data-head)  ; dataé€ä¿¡å…ˆ
       (head-shift sv (second cmd))
-    (let ((range (third cmd))           ; ¥Ç¡¼¥¿Í×µáÈÏ°Ï
-          (data-body (cdddr cmd)))      ; ¥Ç¡¼¥¿ËÜÂÎ
+    (let ((range (third cmd))           ; ãƒ‡ãƒ¼ã‚¿è¦æ±‚ç¯„å›²
+          (data-body (cdddr cmd)))      ; ãƒ‡ãƒ¼ã‚¿æœ¬ä½“
       (send-data to s-data-head range data-body))))
 
 ;;; leav: the computation node want to drop out
-;; »Ò¤«¤é->lack¤òÊÖ¤¹¡Êinvalidate¤Ïsend-lack¤Ë¤Æ¡Ë
-;; ¿Æ¤«¤é->Ìµ»ë
+;; å­ã‹ã‚‰->lackã‚’è¿”ã™ï¼ˆinvalidateã¯send-lackã«ã¦ï¼‰
+;; è¦ªã‹ã‚‰->ç„¡è¦–
 (defgeneric proc-leav (sv from cmd))
 (defmethod proc-leav ((sv tcell-server) (from child) cmd)
   (declare (ignore cmd))
@@ -1357,14 +1357,14 @@
   (warn "Leav message from parent is unexpected."))
 
 ;;; lack: tell that the computation node is marked as invalidated
-;; »Ò¤«¤é->Ìµ»ë¡¥¿Æ¤«¤é->Å¾Á÷
+;; å­ã‹ã‚‰->ç„¡è¦–ï¼è¦ªã‹ã‚‰->è»¢é€
 (defgeneric proc-lack (sv from cmd))
 (defmethod proc-lack ((sv tcell-server) (from child) cmd)
   (declare (ignore cmd))
   (warn "Lack message from child is unexpected."))
 (defmethod proc-lack ((sv tcell-server) (from parent) cmd)
   (destructuring-bind (to s-lack-head)
-      (head-shift sv (second cmd))      ; lackÁ÷¿®Àè
+      (head-shift sv (second cmd))      ; lacké€ä¿¡å…ˆ
     (send-lack to s-lack-head)))
 
 ;;; abrt: tell that the result to the task is no longer returned.
@@ -1372,27 +1372,27 @@
 (defgeneric proc-abrt (sv from cmd))
 (defmethod proc-abrt ((sv tcell-server) (from host) cmd)
   (destructuring-bind (to s-rslt-head)
-      (head-shift sv (second cmd))      ; abrtÁ÷¿®Àè
+      (head-shift sv (second cmd))      ; abrté€ä¿¡å…ˆ
     (send-abrt to s-rslt-head)))
 
 ;;; cncl: tell that the result to the task is no longer accepted.
 ;; The message is just forwarded.
 (defgeneric proc-cncl (sv from cmd))
 (defmethod proc-cncl ((sv tcell-server) (from host) cmd)
-  (let ((p-task-head (head-push from (second cmd))) ; ¿Æ¥¿¥¹¥¯ID
-        (cncl-head (third cmd)))        ; ¥­¥ã¥ó¥»¥ë¤¹¤ë¥¿¥¹¥¯¤ÎID
+  (let ((p-task-head (head-push from (second cmd))) ; è¦ªã‚¿ã‚¹ã‚¯ID
+        (cncl-head (third cmd)))        ; ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã™ã‚‹ã‚¿ã‚¹ã‚¯ã®ID
     (destructuring-bind (hst0 s-cncl-head)
         (head-shift sv cncl-head)
       (send-cncl hst0 p-task-head s-cncl-head))))
 
 ;; 
 
-;;; stat: ¥µ¡¼¥Ğ¡¿¥ï¡¼¥«¤Î¾õÂÖ¤ò½ĞÎÏ
+;;; stat: ã‚µãƒ¼ãƒï¼ãƒ¯ãƒ¼ã‚«ã®çŠ¶æ…‹ã‚’å‡ºåŠ›
 (defgeneric proc-stat (sv from cmd))
 (defmethod proc-stat ((sv tcell-server) (from host) cmd)
   (if (cdr cmd)
       (cond
-       ;; any¤òÍ¿¤¨¤¿¾ì¹ç¤Ï¼«Ê¬¤Î¾õÂÖ¤òÉ½¼¨¸å¡¤Á´¤Æ¤Î»Ò¶¡¤Ëstat any¤òÅ¾Á÷
+       ;; anyã‚’ä¸ãˆãŸå ´åˆã¯è‡ªåˆ†ã®çŠ¶æ…‹ã‚’è¡¨ç¤ºå¾Œï¼Œå…¨ã¦ã®å­ä¾›ã«stat anyã‚’è»¢é€
        ((string= "any" (second cmd))
         (mp:process-run-function "Send Status Any"
           #'(lambda ()
@@ -1401,23 +1401,23 @@
                 (format *error-output* "~&Host: ~A~%" (hostid chld))
                 (send-stat chld "any")
                 (sleep 0.3)))))
-       ;; ¥¢¥É¥ì¥¹¤òÍ¿¤¨¤¿¾ì¹ç¤Ï¤½¤³¤Ëstat¥³¥Ş¥ó¥É¤òÅ¾Á÷
+       ;; ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’ä¸ãˆãŸå ´åˆã¯ãã“ã«statã‚³ãƒãƒ³ãƒ‰ã‚’è»¢é€
        (t
         (destructuring-bind (to s-task-head)
-            (head-shift sv (second cmd)) ; statÁ÷¿®Àè
+            (head-shift sv (second cmd)) ; staté€ä¿¡å…ˆ
           (send-stat to s-task-head))))
-    ;; Ìµ°ú¿ô¤Î¾ì¹ç¤Ï¥µ¡¼¥Ğ¤Î¾õÂÖ¤òÉ½¼¨
+    ;; ç„¡å¼•æ•°ã®å ´åˆã¯ã‚µãƒ¼ãƒã®çŠ¶æ…‹ã‚’è¡¨ç¤º
     (print-server-status sv)))
 
-;;; verb: ¥ï¡¼¥«¤Îverbose-level¤òÊÑ¹¹
-;;; "verb <Á÷¿®Àè>:<level>" ¤Ç¡¥
+;;; verb: ãƒ¯ãƒ¼ã‚«ã®verbose-levelã‚’å¤‰æ›´
+;;; "verb <é€ä¿¡å…ˆ>:<level>" ã§ï¼
 (defgeneric proc-verb (sv from cmd))
 (defmethod proc-verb ((sv tcell-server) (from host) cmd)
   (destructuring-bind (to s-task-head)
-      (head-shift sv (second cmd))      ; verbÁ÷¿®Àè
+      (head-shift sv (second cmd))      ; verbé€ä¿¡å…ˆ
     (send-verb to s-task-head)))
 
-;;; log: ¥µ¡¼¥Ğ¤Îverbose-level¤òÀßÄê
+;;; log: ã‚µãƒ¼ãƒã®verbose-levelã‚’è¨­å®š
 (defgeneric proc-log (sv from cmd))
 (defmethod proc-log ((sv tcell-server) (from host) cmd)
   (loop
@@ -1427,7 +1427,7 @@
       do (funcall setter mode))
   (show-log-mode))
 
-;;; exit: ¥µ¡¼¥Ğ¤ò½ªÎ»
+;;; exit: ã‚µãƒ¼ãƒã‚’çµ‚äº†
 (defgeneric proc-exit (sv from cmd))
 (defmethod proc-exit ((sv tcell-server) (from host) cmd)
   (declare (ignore cmd))
@@ -1458,9 +1458,9 @@
                               (terminal-parent t)
                               (auto-rack t) ; for terminal parent
                               (auto-initial-task nil)
-                                        ; ºÇ½é¤Ë¼«Æ°Åª¤ËÁ÷¿®¤¹¤ëtask
-                                        ; "<task-no> <param1> <param2> ..." ¤ÎÊ¸»úÎó¤Ç»ØÄê
-                                        ; ¡Êparam´Ö¤Î²ş¹Ô¤äºÇ¸å¤Î²ş¹Ô¤ª¤è¤Ó¶õ¹ÔÉÔÍ×¡Ë
+                                        ; æœ€åˆã«è‡ªå‹•çš„ã«é€ä¿¡ã™ã‚‹task
+                                        ; "<task-no> <param1> <param2> ..." ã®æ–‡å­—åˆ—ã§æŒ‡å®š
+                                        ; ï¼ˆparamé–“ã®æ”¹è¡Œã‚„æœ€å¾Œã®æ”¹è¡ŒãŠã‚ˆã³ç©ºè¡Œä¸è¦ï¼‰
                               (auto-resend-task 0) ; for terminal-parent
                               (auto-exit nil) ; for terminal parent
                               (parent-host *parent-host*)
@@ -1482,7 +1482,7 @@
                  (make-instance 'parent :server sv
                                 :host parent-host
                                 :port parent-port))))
-    ;; auto-initial-task ¤Î¥»¥Ã¥È
+    ;; auto-initial-task ã®ã‚»ãƒƒãƒˆ
     (when (and terminal-parent auto-initial-task)
       (when (stringp auto-initial-task)
         (setq auto-initial-task (split-string auto-initial-task)))
@@ -1512,5 +1512,5 @@
                 (sleep 0.3))
               ))
         sv))
-    ;; ¥µ¡¼¥Ğµ¯Æ°
+    ;; ã‚µãƒ¼ãƒèµ·å‹•
     (start-server sv prnt)))

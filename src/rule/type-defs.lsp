@@ -48,13 +48,13 @@
 ;;; (struct $str) (enum $en) etc.
 (defvar *str-alist* (list))
 (defvar *var-alist* (list))
-(defvar *interim-str-alist* (list (cons '$dummy nil))) ; Ì¤ÄêµÁ»ş¤Î²¾ÄêµÁ¡ÊÌ¤»ÈÍÑ¡Ë
-(defvar *interim-var-alist* (list (cons '$dummy nil))) ; Ì¤ÄêµÁ»ş¤Î²¾ÄêµÁ
+(defvar *interim-str-alist* (list (cons '$dummy nil))) ; æœªå®šç¾©æ™‚ã®ä»®å®šç¾©ï¼ˆæœªä½¿ç”¨ï¼‰
+(defvar *interim-var-alist* (list (cons '$dummy nil))) ; æœªå®šç¾©æ™‚ã®ä»®å®šç¾©
 
 (defvar *flow-printed* '())
 
 ;;;;;;;;;;;;;;;;;;;;
-;;; ´Ä¶­ÀßÄê
+;;; ç’°å¢ƒè¨­å®š
 
 (defmacro with-typerule-environment (&body body)
   `(let ((*interim-str-alist* (list (cons '$dummy nil)))
@@ -65,7 +65,7 @@
 
 (defmacro with-function (id &body body)
   `(error-indent (format nil "In function ~S:" ,id)
-                 (let ((*flow-printed* '())) ; print-flowÍÑ
+                 (let ((*flow-printed* '())) ; print-flowç”¨
                    ,@body)))
 
 (defmacro with-new-environment (&body body)
@@ -82,7 +82,7 @@
                        ,@body))) ))
 
 ;;;;;;;;;;;;;;;;;;;;
-;;; ÊÑ¿ôÅĞÏ¿
+;;; å¤‰æ•°ç™»éŒ²
 
 ;;; Add variable declaration
 (defun add-variable (id type &optional (remove-type-qualifier t))
@@ -107,12 +107,12 @@
   (assume-variable id (list '$type type) remove-type-qualifier))
 
 ;;; Get struct member definition
-;;; ¥á¥ó¥ĞÄêµÁ¤Îalist¤Èstruct-declaration ¤Ë¤è¤ëÊÑ·Á·ë²Ì¤òÊÖ¤¹
+;;; ãƒ¡ãƒ³ãƒå®šç¾©ã®alistã¨struct-declaration ã«ã‚ˆã‚‹å¤‰å½¢çµæœã‚’è¿”ã™
 (defun get-struct-member-info (sdeclist)
   (let* ((orig-var-alist *var-alist*)
          (*var-alist* *var-alist*)
          (sdecl-with-type (mapcar #'rule:struct-declaration! sdeclist))
-                                        ; ¤³¤³¤Ç*var-alist*¤ËÅĞÏ¿¤µ¤ì¤ë
+                                        ; ã“ã“ã§*var-alist*ã«ç™»éŒ²ã•ã‚Œã‚‹
          (member-alist (ldiff *var-alist* orig-var-alist)))
     (values member-alist sdecl-with-type)))
 
@@ -129,7 +129,7 @@
   (push (cons id member-alist) (cdr *interim-str-alist*)))
 
 ;;;;;;;;;;;;;;;;;;;;
-;;; ÊÑ¿ô¥ê¥¹¥È¤Î¥Õ¥£¥ë¥¿¥ê¥ó¥°
+;;; å¤‰æ•°ãƒªã‚¹ãƒˆã®ãƒ•ã‚£ãƒ«ã‚¿ãƒªãƒ³ã‚°
 
 ;;; leave only type-entry from *var-alist*
 (defun leave-typename (&optional (alist *var-alist*))
@@ -139,10 +139,10 @@
    alist))
 
 ;;;;;;;;;;;;;;;;;;;;
-;;; ÊÑ¿ô¸¡º÷
+;;; å¤‰æ•°æ¤œç´¢
 
 ;;; get type of variable
-;;; expect: id¤ÏÊÑ¿ô¡¤·¿Ì¾¤Î¤É¤Á¤é¤Ç¤¢¤ë¤Ï¤º¤«¡Ê´üÂÔ¤È°ìÃ×¤·¤Ê¤±¤ì¤Ğerror¡Ë
+;;; expect: idã¯å¤‰æ•°ï¼Œå‹åã®ã©ã¡ã‚‰ã§ã‚ã‚‹ã¯ãšã‹ï¼ˆæœŸå¾…ã¨ä¸€è‡´ã—ãªã‘ã‚Œã°errorï¼‰
 (defun assoc-vartype (id &optional (expect nil))
   ;; (format t "(assoc-vartype ~s)~%" id)
   (acond
@@ -157,7 +157,7 @@
           (when (and expect (not (eq :variable expect)))
             (ierror "~S is declared as variable." id))
           (values datum :variable)))))
-   ;; ¸«¤Ä¤«¤é¤Ê¤«¤Ã¤¿¾ì¹ç
+   ;; è¦‹ã¤ã‹ã‚‰ãªã‹ã£ãŸå ´åˆ
    ((eq :typename expect)
     (iwarn "The type ~S is undefined." id)
     (assume-typename id id)
@@ -196,16 +196,16 @@
 ;;           (expand-typedef-name asc))))))
 
 ;;; * operator
-;;; * °ú¿ô¤Î·¿¥ê¥¹¥È->¼°Á´ÂÎ¤Î·¿ ¤Î´Ø¿ô
-;;; * operator¤Î°ú¿ô¥ê¥¹¥È (expression¤Î¤ß)
-;;; ¤ò¼õ¤±¤È¤Ã¤Æ¡¤¼°¤ÎÊÑ´¹·ë²Ì¤òÊÖ¤¹
+;;; * å¼•æ•°ã®å‹ãƒªã‚¹ãƒˆ->å¼å…¨ä½“ã®å‹ ã®é–¢æ•°
+;;; * operatorã®å¼•æ•°ãƒªã‚¹ãƒˆ (expressionã®ã¿)
+;;; ã‚’å—ã‘ã¨ã£ã¦ï¼Œå¼ã®å¤‰æ›çµæœã‚’è¿”ã™
 (defun handle-exp-args (op fun exp-list)
   (let* ((exp-rets (mapcar #'rule:expression! exp-list))
          (exp-types (mapcar #'second exp-rets))
          (ret-type (funcall fun exp-types)))
     ~(the ,ret-type (,op ,@exp-rets))))
 
-;; arg¤¬1¸Ä¤Î¤È¤­ÍÑ
+;; argãŒ1å€‹ã®ã¨ãç”¨
 (defun handle-exp-1arg (op fun exp)
   (let* ((exp-ret (rule:expression! exp))
          (exp-type (second exp-ret))
@@ -213,7 +213,7 @@
     ~(the ,ret-type (,op ,exp-ret))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; print-flow ÍÑ
+;;; print-flow ç”¨
 (defun add-flow-printed (fexp)
   (push fexp *flow-printed*))
 

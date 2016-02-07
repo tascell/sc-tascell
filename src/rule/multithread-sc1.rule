@@ -24,7 +24,7 @@
 
 (define-ruleset multithread-sc1 (sc1-to-sc0))
 
-;; ¥Ş¥ë¥Á¥¹¥ì¥Ã¥ÉÍÑ¥×¥ê¥ß¥Æ¥£¥Ö
+;; ãƒãƒ«ãƒã‚¹ãƒ¬ãƒƒãƒ‰ç”¨ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–
 (extendrule statement multithread-sc1
   (#?(thread-create ,@body)
    ~(thread-create ,@(function-body body)) )

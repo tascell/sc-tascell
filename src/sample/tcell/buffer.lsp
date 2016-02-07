@@ -1,7 +1,7 @@
-;;; Ì¤´°À®
+;;; æœªå®Œæˆ
 
-;;; ¥µ¥¤¥º²ÄÊÑ¥Ğ¥Ã¥Õ¥¡
-;;; reader ¤È writer ¤¬¤½¤ì¤¾¤ìºÇÂç1¥¹¥ì¥Ã¥ÉÆ±»ş¤ËÆ°¤¤¤Æ¤âÂç¾æÉ×¤Ê¤³¤È¤òÊİ¾Ú
+;;; ã‚µã‚¤ã‚ºå¯å¤‰ãƒãƒƒãƒ•ã‚¡
+;;; reader ã¨ writer ãŒãã‚Œãã‚Œæœ€å¤§1ã‚¹ãƒ¬ãƒƒãƒ‰åŒæ™‚ã«å‹•ã„ã¦ã‚‚å¤§ä¸ˆå¤«ãªã“ã¨ã‚’ä¿è¨¼
 
 (defconstant *buffer-init-size* 4096)
 (defconstant *init-buffer-unit-length* 1)
@@ -12,7 +12,7 @@
 ;;    (wp :accessor buf-wp :type fixnum :initform 0)
 ;;    (rp :accessor buf-rp :type fixnum :initform 0)
 ;;    (lock :accessor buf-lock :type mp:process-lock :initform (mp:make-process-lock))
-;;    ¶õ¤Ç¤Ê¤¯¤Ê¤Ã¤¿¤³¤È¤òÄÌÃÎ
+;;    ç©ºã§ãªããªã£ãŸã“ã¨ã‚’é€šçŸ¥
 ;;    (gate :accessor buf-gate :type gate :initform (mp:make-gate nil)))
 ;;   )
 
@@ -27,22 +27,22 @@
 (defclass buffer-unit ()
   ((size :accessor buf-u-size :type fixnum :initform *buffer-unit-size*)
    (body :accessor buf-u-body :type (array unsigned-byte))
-   ;; ÇÛÎó¤ÎÀèÆ¬¤«¤é¤Î°ìÉô¤ò°ìÃ¶ÆÉ¤ó¤Ç¡¤¼¡¤ËÂ³¤­¤òÆÉ¤à¤È¤¤¤¦¤³¤È¤Ï²ÄÇ½
-   ;; ¥æ¥Ë¥Ã¥È¤Î¤¦¤Á¡¤°ìÉôÆÉ¤Ş¤ì¤¿ÀèÆ¬ÉôÊ¬¤Ë½ñ¤­¹ş¤à¤³¤È¤ÏÉÔ²ÄÇ½¡Ê¥Ğ¥Ã¥Õ¥¡¤ò³ÈÄ¥¤¹¤ë¡Ë
+   ;; é…åˆ—ã®å…ˆé ­ã‹ã‚‰ã®ä¸€éƒ¨ã‚’ä¸€æ—¦èª­ã‚“ã§ï¼Œæ¬¡ã«ç¶šãã‚’èª­ã‚€ã¨ã„ã†ã“ã¨ã¯å¯èƒ½
+   ;; ãƒ¦ãƒ‹ãƒƒãƒˆã®ã†ã¡ï¼Œä¸€éƒ¨èª­ã¾ã‚ŒãŸå…ˆé ­éƒ¨åˆ†ã«æ›¸ãè¾¼ã‚€ã“ã¨ã¯ä¸å¯èƒ½ï¼ˆãƒãƒƒãƒ•ã‚¡ã‚’æ‹¡å¼µã™ã‚‹ï¼‰
    (written-to :accessor buf-u-written :type fixnum :initform 0)
-                                        ; ¥Ç¡¼¥¿¤¬½ñ¤­¹ş¤Ş¤ì¤¿ÈÏ°Ï¤¬ 0¢·(1- <written-to>)
+                                        ; ãƒ‡ãƒ¼ã‚¿ãŒæ›¸ãè¾¼ã¾ã‚ŒãŸç¯„å›²ãŒ 0ï½(1- <written-to>)
    (read-to :accessor buf-u-read :type fixnum :initform 0)
-                                        ; ¥Ç¡¼¥¿¤òÆÉ¤ó¤ÀÈÏ°Ï¤¬ 0¢·(1- <read-to>)
+                                        ; ãƒ‡ãƒ¼ã‚¿ã‚’èª­ã‚“ã ç¯„å›²ãŒ 0ï½(1- <read-to>)
    (lock :accessor buf-u-lock :type mp:process-lock :initform (mp:make-process-lock)))
   )
 
 (defclass buffer ()
-  ((body :accessor buf-body :type list) ; body¤Î½Û´Ä¥ê¥¹¥È
-   (read-pointer :accessor buf-p-rd)     ; ¼¡¤ËÆÉ¤ß¹ş¤à¤È¤³¤í
-   (write-pointer :accessor buf-p-wr)    ; ºÇ¸å¤Ë½ñ¤­¹ş¤ó¤À¤È¤³¤í
-   ;; buffer-unit¥ê¥¹¥È¤Î¹½Â¤¤òÊÑ²½¤µ¤»¤ë¤È¤­¡¤¥ê¥¹¥È¤òÃ©¤ë¤È¤­¤Ë³ÍÆÀ
+  ((body :accessor buf-body :type list) ; bodyã®å¾ªç’°ãƒªã‚¹ãƒˆ
+   (read-pointer :accessor buf-p-rd)     ; æ¬¡ã«èª­ã¿è¾¼ã‚€ã¨ã“ã‚
+   (write-pointer :accessor buf-p-wr)    ; æœ€å¾Œã«æ›¸ãè¾¼ã‚“ã ã¨ã“ã‚
+   ;; buffer-unitãƒªã‚¹ãƒˆã®æ§‹é€ ã‚’å¤‰åŒ–ã•ã›ã‚‹ã¨ãï¼Œãƒªã‚¹ãƒˆã‚’è¾¿ã‚‹ã¨ãã«ç²å¾—
    (lock :accessor buf-lock :type mp:process-lock :initform (mp:make-proces-lock))
-   ;; ¶õ¤Ç¤Ê¤¯¤Ê¤Ã¤¿¤³¤È¤òÄÌÃÎ
+   ;; ç©ºã§ãªããªã£ãŸã“ã¨ã‚’é€šçŸ¥
    (gate :accessor buf-gate :type gate :initform (mp:make-gate nil)))
   )
 
@@ -70,17 +70,17 @@
 
 ;;;
 
-;;; size ¤Ï ÆÉ¤ß½ñ¤­¤¹¤ëºÇÂç¤Î¥µ¥¤¥º
-;;; ¼ÂºİÆÉ¤ß½ñ¤­¤·¤¿¥µ¥¤¥º & unit¤ÎºÇ¸å¤Ş¤ÇÆÉ¤ß½ñ¤­¤·¤¿¤«(t/nil)  ¤òÊÖ¤êÃÍ¤È¤¹¤ë
+;;; size ã¯ èª­ã¿æ›¸ãã™ã‚‹æœ€å¤§ã®ã‚µã‚¤ã‚º
+;;; å®Ÿéš›èª­ã¿æ›¸ãã—ãŸã‚µã‚¤ã‚º & unitã®æœ€å¾Œã¾ã§èª­ã¿æ›¸ãã—ãŸã‹(t/nil)  ã‚’è¿”ã‚Šå€¤ã¨ã™ã‚‹
 
-;; stream¤«¤éÆÉ¤ó¤Çbuffer-unit ¤Ë½ñ¤­¹ş¤à
+;; streamã‹ã‚‰èª­ã‚“ã§buffer-unit ã«æ›¸ãè¾¼ã‚€
 (defmethod read-into-buffer-unit ((bu buffer-unit) (s input-stream) size)
   (mp:with-process-lock ((buf-u-lock bu))
     (setf (buf-u-read bu) 0)
     (read-sequence (buf-u-body bu) :end size)
     (setf (buf-u-written bu) size)))
 
-;;; buffer-unit¤«¤éÆÉ¤ó¤Ç stream¤ËÎ®¤¹
+;;; buffer-unitã‹ã‚‰èª­ã‚“ã§ streamã«æµã™
 (defmethod write-from-buffer-unit ((bu buffer-unit) (s output-stream) size)
   )
 

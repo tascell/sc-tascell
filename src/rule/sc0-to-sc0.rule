@@ -394,7 +394,7 @@
    x)
   )
 
-;;; ÊÖ¤êÃÍ¤Ïº£¤Î¤È¤³¤í°ÕÌ£¤Ê¤·
+;;; è¿”ã‚Šå€¤ã¯ä»Šã®ã¨ã“ã‚æ„å‘³ãªã—
 (defrule iteration-statement-tag sc0-to-sc0
   ((#?do-while)     x)
   )
@@ -588,7 +588,7 @@
                    (not (sc-keyword? x))))])
    (identifier0 id)) )
 
-;; keyword¤Ç¤Ê¤¤¥Á¥§¥Ã¥¯¤ò¾Ê¤­¤¿¤¤¤È¤­¤Ï¤³¤Á¤é
+;; keywordã§ãªã„ãƒã‚§ãƒƒã‚¯ã‚’çœããŸã„ã¨ãã¯ã“ã¡ã‚‰
 (defrule identifier0 sc0-to-sc0
   ((#?,id[#'sc2c:identifier-sc2c])
    id)

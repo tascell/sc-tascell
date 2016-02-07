@@ -1,4 +1,4 @@
-;; ÀèÆ¬¤Î#include ¤Ï¼êÆ°¤Ç¤Ï¤º¤·¤Æ
+;; å…ˆé ­ã®#include ã¯æ‰‹å‹•ã§ã¯ãšã—ã¦
 ;(%rule (:basic :type :tmp (:nestfunc) :untype))
 
 (c-exp "#include<sys/time.h>")
@@ -7,7 +7,7 @@
 (c-exp "#include<string.h>")
 (%include "rule/hsc-setrule.sh")
 
-;;; ¹½Â¤ÂÎÄêµÁ
+;;; æ§‹é€ ä½“å®šç¾©
 (def (struct _Bintree)
   (def key int)
   (def val int)
@@ -25,7 +25,7 @@
   (def cdr (ptr (struct _Alist))) )
 (deftype Alist (struct _Alist))
 
-;;; ·×Â¬¥Ñ¥é¥á¡¼¥¿
+;;; è¨ˆæ¸¬ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 (static-def maxins int)
 (static-def maxsearch int)
 
@@ -34,7 +34,7 @@
   (= p (new (init Bintree (struct k v 0 0))))
   (return p))
 
-;;; x ¤¬¤¹¤Ç¤ËÂ¸ºß¤¹¤ë¾ì¹ç
+;;; x ãŒã™ã§ã«å­˜åœ¨ã™ã‚‹å ´åˆ
 (def (insert x k v) (fn void (ptr Bintree) int int)
   (def y (ptr Bintree) 0)
 

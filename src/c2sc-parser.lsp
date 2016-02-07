@@ -67,14 +67,14 @@
 ;;; whether c2sc::piece-c2sc is being processed
 (defvar *parsing-piece* nil)
 
-;;; c2sc-getline Ãæ¤Ë preprocessing directive ¤¬¸½¤ì¤¿¤é¤³¤³¤ËÎ¯¤á¤Æ¤ª¤¯¡£
+;;; c2sc-getline ä¸­ã« preprocessing directive ãŒç¾ã‚ŒãŸã‚‰ã“ã“ã«æºœã‚ã¦ãŠãã€‚
 ;;; %defmacro, %defconstant, %undef
 ;;;  --> *scpp-macro-buffer* 
-;;;  --> translation-unit ¤ÎËöÈø¤Ë¤Ä¤Ê¤²¤ë
-;;; ¤½¤ì°Ê³° 
+;;;  --> translation-unit ã®æœ«å°¾ã«ã¤ãªã’ã‚‹
+;;; ãã‚Œä»¥å¤– 
 ;;;  --> *scpp-directive-buffer* 
-;;;  --> *directive-emit-functions* ¤Ë»ØÄê¤µ¤ì¤Æ¤¤¤ë´Ø¿ô¤ÎÊÖ¤êÃÍ¤ÎÆ¬¤Ë
-;;;      ¤Ä¤Ê¤²¤Æ°ì½ï¤ËÅÇ¤­½Ğ¤¹
+;;;  --> *directive-emit-functions* ã«æŒ‡å®šã•ã‚Œã¦ã„ã‚‹é–¢æ•°ã®è¿”ã‚Šå€¤ã®é ­ã«
+;;;      ã¤ãªã’ã¦ä¸€ç·’ã«åãå‡ºã™
 (defvar *scpp-directive-buffer* nil)
 (defvar *scpp-macro-buffer* nil)
 (defparameter *directive-emit-functions* '(declaration statement))
@@ -298,7 +298,7 @@
 
 ;;;; 
 
-;; get-gensymid ¤Ç mark ¤ò¤Ä¤±¤¿¤È¤³¤í¤Î identifier ¤ò·èÄê¤¹¤ë
+;; get-gensymid ã§ mark ã‚’ã¤ã‘ãŸã¨ã“ã‚ã® identifier ã‚’æ±ºå®šã™ã‚‹
 (defun decide-unidentified (sc-program)
   (let ((dec-id (memoize
                  #'(lambda (usym)
@@ -319,7 +319,7 @@
                                       (ragrs *required-aggregates*))
   (if (and (eq t rvars) (eq t ragrs)) sc-program
     (loop for df in sc-program
-        when (or (atom df) (not (defsymbol-p (car df))) ; Àë¸À¡¦ÄêµÁ°Ê³°
+        when (or (atom df) (not (defsymbol-p (car df))) ; å®£è¨€ãƒ»å®šç¾©ä»¥å¤–
                  (if (consp (second df))
                      (if (member (car (second df)) ~(struct union enum))
                          (aggregate-required-p (second (second df)))
@@ -330,8 +330,8 @@
 (defun defsymbol-p (sym)
   (rule:declaration-tag? sym :sc2c))
 
-;; ÌµÌ¾¤Îstruct¤Ê¤É¤Ï¡¤SC¤Ç¤ÏÌµÌ¾¤Ë¤Ç¤­¤Ê¤¤¤Î¤Ç¡¤
-;; mark ¤ò¤Ä¤±¤Æ¤ª¤¤¤Æ,¸å¤Ç identifier ¤ò·èÄê¤¹¤ë
+;; ç„¡åã®structãªã©ã¯ï¼ŒSCã§ã¯ç„¡åã«ã§ããªã„ã®ã§ï¼Œ
+;; mark ã‚’ã¤ã‘ã¦ãŠã„ã¦,å¾Œã§ identifier ã‚’æ±ºå®šã™ã‚‹
 (defvar *gensym-num*)
 (defun get-gensymid ()
   (prog1
@@ -1658,9 +1658,9 @@
   (aif (read-line stream nil)
       (if (eql #\$ (string-ref it 0))
           (progn
-            ;; S-expression ¤È¤·¤Æread¤·¤Æ¡¢¡¢¡¢
+            ;; S-expression ã¨ã—ã¦readã—ã¦ã€ã€ã€
             (handle-c2sc-directive (string-left-ntrim it))
-            ;; ¤¢¤é¤¿¤á¤Æ¼¡¤Î¹Ô¤òÆÉ¤à
+            ;; ã‚ã‚‰ãŸã‚ã¦æ¬¡ã®è¡Œã‚’èª­ã‚€
             (c2sc-getline stream))
         (funcall (if *want-debugging-output* #'print #'identity)
                  (string+ it #.(format nil "~%"))))
@@ -1706,8 +1706,8 @@
         (otherwise
          (push directive *scpp-directive-buffer*))))))
 
-;; *directive-emit-functions* ¤Î´Ø¿ô¡Ê¹½Ê¸Ã±°Ì¡Ë½èÍı¸å¡¤
-;; *scpp-direcive-buffer*¤Ë¤¿¤Ş¤Ã¤¿¥×¥ê¥×¥í¥»¥Ã¥µ»ØÎá¤òÅÇ¤­½Ğ¤¹
+;; *directive-emit-functions* ã®é–¢æ•°ï¼ˆæ§‹æ–‡å˜ä½ï¼‰å‡¦ç†å¾Œï¼Œ
+;; *scpp-direcive-buffer*ã«ãŸã¾ã£ãŸãƒ—ãƒªãƒ—ãƒ­ã‚»ãƒƒã‚µæŒ‡ä»¤ã‚’åãå‡ºã™
 (dolist (de-func *directive-emit-functions*)
   (let ((orig-func (symbol-function de-func)))
     (setf (symbol-function de-func)
@@ -1718,12 +1718,12 @@
             (nconc emit-directive
                    (apply orig-func args)))))))
 
-;;; %defconstant-cexp Ãæ¤ÎC¥³¡¼¥É¤ÎÃÇÊÒ¤ò²ÄÇ½¤Ê¤éSC²½
+;;; %defconstant-cexp ä¸­ã®Cã‚³ãƒ¼ãƒ‰ã®æ–­ç‰‡ã‚’å¯èƒ½ãªã‚‰SCåŒ–
 (defun defconstant-cexp-c2sc (defconstant-exp-directive)
   (assert (eq '%defconstant-cexp (car defconstant-exp-directive)))
   (let* ((const-name (second defconstant-exp-directive))
          (piece-c-code (third defconstant-exp-directive))
-         ;; C ¤Î "~" ¤Ï "~~" ¤Ë¤Ê¤Ã¤Æ¤¤¤ë¤Î¤Ç
+         ;; C ã® "~" ã¯ "~~" ã«ãªã£ã¦ã„ã‚‹ã®ã§
          (formatted-c-code #|(format nil|# piece-c-code #|)|#))
     (if (not (macro-required-p const-name)) nil
       (progn
@@ -1742,8 +1742,8 @@
                (format *error-output* "==> <give up...>~%"))
              `(sc::c-exp ,piece-c-code)) ))))))
 
-;;; defmacro ¤Ë¤ª¤±¤ë c-code ¤Î "$<arg_num>$" ¤ÎÉôÊ¬¤ò°ú¿ôÌ¾¤ËÃÖ¤­´¹¤¨¤ë
-;;; ÊÖ¤êÃÍ¤Ï
+;;; defmacro ã«ãŠã‘ã‚‹ c-code ã® "$<arg_num>$" ã®éƒ¨åˆ†ã‚’å¼•æ•°åã«ç½®ãæ›ãˆã‚‹
+;;; è¿”ã‚Šå€¤ã¯
 ;;; (values `(c-exp ...)
 ;;;         <formatted-c-code>)
 (defun replace-arguments (piece-c-code arg-list)
@@ -1770,7 +1770,7 @@
       (values `(cl:list 'sc::c-exp ,cexpstr ,@arg-list)
               formatted-c-code) )))
 
-;; ¥Ş¥¯¥íËÜÂÎ¤ò backquote-macro ¤ËÊÑ´¹
+;; ãƒã‚¯ãƒ­æœ¬ä½“ã‚’ backquote-macro ã«å¤‰æ›
 (defun to-eval-macroarg (scized-defmacro macro-arg-list)
   (if (atom scized-defmacro)
       (if (member scized-defmacro macro-arg-list)
@@ -1779,7 +1779,7 @@
     `(cl:list ,@(mapcar (suffixed-func #'to-eval-macroarg macro-arg-list)
                         scized-defmacro))))
 
-;;; %defmacro-cexp Ãæ¤ÎC¥³¡¼¥É¤ÎÃÇÊÒ¤ò²ÄÇ½¤Ê¤éSC²½
+;;; %defmacro-cexp ä¸­ã®Cã‚³ãƒ¼ãƒ‰ã®æ–­ç‰‡ã‚’å¯èƒ½ãªã‚‰SCåŒ–
 (defun defmacro-cexp-c2sc (defmacro-exp-directive)
   (assert (eq '%defmacro-cexp (car defmacro-exp-directive)))
   (destructuring-bind (macro-name piece-c-code arg-list)
@@ -1807,7 +1807,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; ´Ä¶­¤òÀ°¤¨¤Æinitiator¤«¤é¹½Ê¸²òÀÏ³«»Ï
+;; ç’°å¢ƒã‚’æ•´ãˆã¦initiatorã‹ã‚‰æ§‹æ–‡è§£æé–‹å§‹
 ;; input : input-stream or string
 (defun parser-main (input
                     &key
@@ -1879,8 +1879,8 @@
         fixed-typename-entries
         (mapcar #'make-typename-entry typename-list) )))))
 
-;; Æ±¤¸ÊÑ´¹·ë²Ì¤òºï½ü¤¹¤ë¡¥
-;; Ê£¿ô¤Î¸õÊä¤Î¸¶°ø¤¬·¿ÊÑ¿ô(or not)¤Î¾ì¹ç¡¤¤½¤ÎÊÑ¿ôÌ¾¤òÆÃÄê¤¹¤ë¡¥
+;; åŒã˜å¤‰æ›çµæœã‚’å‰Šé™¤ã™ã‚‹ï¼
+;; è¤‡æ•°ã®å€™è£œã®åŸå› ãŒå‹å¤‰æ•°(or not)ã®å ´åˆï¼Œãã®å¤‰æ•°åã‚’ç‰¹å®šã™ã‚‹ï¼
 (defun remove-duplicate-candidates (all-candidates)
   (let ((ret (list)))   ;; (<candidate> <typename-list> <not-typename-list>)
     (dolist (cand all-candidates)
@@ -1889,7 +1889,7 @@
                            (intersection (second (car it)) (second cand))
                            (intersection (third  (car it)) (third  cand)) ))
         (push cand ret)))
-    ;; ¸õÊä¤Î°ã¤¤¤Ë±Æ¶Á¤·¤Æ¤Ê¤¤ÊÑ¿ôÌ¾¤ò½ü¤¯
+    ;; å€™è£œã®é•ã„ã«å½±éŸ¿ã—ã¦ãªã„å¤‰æ•°åã‚’é™¤ã
     (mapc
      #'(lambda (get-place &aux (get-placea (compose #'car get-place)))
          (dolist (tn (funcall get-placea (first ret)))
@@ -1902,7 +1902,7 @@
      (list #'cdr #'cddr))
     ret))
 
-;; tried-function¤Ç»ØÄê¤µ¤ì¤¿Á´¤Æ¤Î¾ì½ê¤«¤éparsing¤ò»î¤ß¤ë
+;; tried-functionã§æŒ‡å®šã•ã‚ŒãŸå…¨ã¦ã®å ´æ‰€ã‹ã‚‰parsingã‚’è©¦ã¿ã‚‹
 (defun try-all-parsing (istring &key (tried-function *tried-function*))
   (check-type istring string)
   (let* ((all-candidates)               ; list of (<result> <tn-list> <not-tn-list>)
@@ -2031,8 +2031,8 @@
 
 ;;; (c2sc "csample/c_parser.c")
 
-;;; ÂĞÏÃ´Ä¶­¤Ç¤ÎÍøÍÑ¸ş¤±piece-c2sc 
-;;; sc:: ¤Ê¤É¤Î¾ğÊó¤ò½ü¤¤¤Æ¤¹¤Ã¤­¤ê½ĞÎÏ
+;;; å¯¾è©±ç’°å¢ƒã§ã®åˆ©ç”¨å‘ã‘piece-c2sc 
+;;; sc:: ãªã©ã®æƒ…å ±ã‚’é™¤ã„ã¦ã™ã£ãã‚Šå‡ºåŠ›
 (defun pcsc (x &rest try)
   (unless try (setq try *tried-function*))
   (immigrate-package (piece-c2sc x :tried-function try) *package*))

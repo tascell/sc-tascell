@@ -124,7 +124,7 @@ void recv_binary_terminator (void)
 /**/
 void swap_int32s (INT32 *a, int n)
 {
-  /* !!! Ì¤¼ÂÁõ !!! */
+  /* !!! æœªå®Ÿè£… !!! */
 }
 
 /**/
@@ -156,8 +156,8 @@ void swap_doubles (double *a, int n)
     for( i = 0 ; i < n ; i++ )
         {
             unsigned long *xp = (unsigned long *)(a+i);
-            unsigned long x0 = xp[0];  /* Á°32bit */
-            unsigned long x1 = xp[1];  /* ¸å32bit */
+            unsigned long x0 = xp[0];  /* å‰32bit */
+            unsigned long x1 = xp[1];  /* å¾Œ32bit */
             unsigned long y0 = x0;
             unsigned long y1 = x1;
                                        /* y0 y1 y2 y3 */

@@ -5,7 +5,7 @@
 (c-exp "#include<string.h>")
 ;; (c-exp "#include<sys/time.h>")
        
-;;; ¹½Â¤ÂÎÄêµÁ
+;;; æ§‹é€ ä½“å®šç¾©
 (def (struct _Bintree)
   (def key int)
   (def val int)
@@ -14,19 +14,19 @@
 
 (deftype Bintree (struct _Bintree))
 
-;;; ·×Â¬¥Ñ¥é¥á¡¼¥¿
+;;; è¨ˆæ¸¬ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 (static-def maxins int)
 (static-def maxsearch int)
 
 (def (newBintree k v) (fn (ptr Bintree) int int)
   (def p (ptr Bintree) 0)
   ;; (def ar (array int 20))
-  (= p (new (init Bintree (struct k v 0 0)))) ;¥İ¥¤¥ó¥¿¤Ï¤Á¤ã¤ó¤È½é´ü²½¤·¤Ê¤¤¤È¥¨¥é¡¼¤Ë¤¹¤ë¡£
+  (= p (new (init Bintree (struct k v 0 0)))) ;ãƒã‚¤ãƒ³ã‚¿ã¯ã¡ã‚ƒã‚“ã¨åˆæœŸåŒ–ã—ãªã„ã¨ã‚¨ãƒ©ãƒ¼ã«ã™ã‚‹ã€‚
   ;; (= ar (new (init (array int 20) (array 0))))
   ;; ((aref-this 15) 3)))))
   (return p))
 
-;;; x ¤¬¤¹¤Ç¤ËÂ¸ºß¤¹¤ë¾ì¹ç
+;;; x ãŒã™ã§ã«å­˜åœ¨ã™ã‚‹å ´åˆ
 (def (insert x k v) (fn void (ptr Bintree) int int)
   (def y (ptr Bintree) 0)
   (do-while 1
@@ -49,7 +49,7 @@
     (= x y))
   )
 
-;;; insert¤ÈÆ±ÍÍ¡£
+;;; insertã¨åŒæ§˜ã€‚
 (def (search x k v0) (fn int (ptr Bintree) int int)
   (while x
    (if (== (fref (mref x) key) k)

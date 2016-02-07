@@ -22,10 +22,10 @@
 ;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 ;;; SUCH DAMAGE.
 
-;;;;; Java§»§´§«ª»§¶label§ƒ§≠break,continue§ÚSC§«§‚ª»Õ—§«§≠§Î§Ë§¶§À§π§Î°•
-;;; *label-list* = list of (<do-while≈˘§À§ƒ§§§ø•È•Ÿ•Î>
-;;;                         <continueÕ—§Œgoto¿Ë•È•Ÿ•Î>
-;;;                         <breakÕ—§Œgoto¿Ë•È•Ÿ•Î>) 
+;;;;; Java„Å®„Åã„Åß‰Ωø„ÅÜlabel„Å§„Åçbreak,continue„ÇíSC„Åß„ÇÇ‰ΩøÁî®„Åß„Åç„Çã„Çà„ÅÜ„Å´„Åô„ÇãÔºé
+;;; *label-list* = list of (<do-whileÁ≠â„Å´„Å§„ÅÑ„Åü„É©„Éô„É´>
+;;;                         <continueÁî®„ÅÆgotoÂÖà„É©„Éô„É´>
+;;;                         <breakÁî®„ÅÆgotoÂÖà„É©„Éô„É´>) 
 
 (defvar *label-list*)
 

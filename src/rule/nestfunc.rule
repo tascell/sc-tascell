@@ -23,18 +23,18 @@
 ;;; SUCH DAMAGE.
 
 ;;; LW-SC0(with typeinfo) -> SC-0(with incomplete typeinfo)
-;;; :nestfunc-rename :nestfunc-type :nestfunc-temp ¤¬Å¬ÍÑºÑ¤ß¤Ç¤¢¤ë¤³¤È
+;;; :nestfunc-rename :nestfunc-type :nestfunc-temp ãŒé©ç”¨æ¸ˆã¿ã§ã‚ã‚‹ã“ã¨
 ;;;
-;;; Æş¤ì»Ò´Ø¿ô¤ÎÄêµÁ¤Ï
+;;; å…¥ã‚Œå­é–¢æ•°ã®å®šç¾©ã¯
 ;;; (def (<identifier-list>) (lightweight <type-expression-list>) ...)
 
 ;;; to be rewritten as an extension of the sc0t-to-sc0t rule-set.
 
 (define-ruleset nestfunc (sc0t-to-sc0t)
   (thread-creator ~pthread-create)
-  (estack-size #.(* 4 65536))           ; ÌÀ¼¨Åª¥¹¥¿¥Ã¥¯¤Î¥µ¥¤¥º¡Êsizeof char¡Ë
-  (all-in-estack nil)                   ; ¶É½êÊÑ¿ô¤Ê¤É¤òÁ´¤ÆÌÀ¼¨Åª¥¹¥¿¥Ã¥¯¤ËÃÖ¤¯(= CL-SC)
-  (use-builtin-expect t)                ; GCC¤Î __builtin_expect¤ò»È¤Ã¤ÆºÇÅ¬²½¤¹¤ë
+  (estack-size #.(* 4 65536))           ; æ˜ç¤ºçš„ã‚¹ã‚¿ãƒƒã‚¯ã®ã‚µã‚¤ã‚ºï¼ˆsizeof charï¼‰
+  (all-in-estack nil)                   ; å±€æ‰€å¤‰æ•°ãªã©ã‚’å…¨ã¦æ˜ç¤ºçš„ã‚¹ã‚¿ãƒƒã‚¯ã«ç½®ã(= CL-SC)
+  (use-builtin-expect t)                ; GCCã® __builtin_expectã‚’ä½¿ã£ã¦æœ€é©åŒ–ã™ã‚‹
   )
 
 (scr:require "NESTFUNC-DEFS")
@@ -69,194 +69,194 @@
       ((lw:top-level-p)
        ~(,scs ,id ,texp-ret ,@(if-pattern-variable init (list (initializer init)) nil)) )
       ((eq texp ~--label--)             ; local-label
-       ;; ¥Õ¥ì¡¼¥àÉüµ¢ÍÑ¥³¡¼¥É¡ÊcdrÉôÊ¬¡Ë¤Ï¡¢¤¢¤È¤Çlabel¤Î¤¢¤ë¾ì½ê¤ÇÄÉ²Ã
+       ;; ãƒ•ãƒ¬ãƒ¼ãƒ å¾©å¸°ç”¨ã‚³ãƒ¼ãƒ‰ï¼ˆcdréƒ¨åˆ†ï¼‰ã¯ã€ã‚ã¨ã§labelã®ã‚ã‚‹å ´æ‰€ã§è¿½åŠ 
        (lw:finfo-add-local-label id)
        ~(%splice) )
       ((string= "static" (storage-class-specifier! scs :sc2c)) ; static local
-       ;; Æş¤ì»Ò´Ø¿ô¤«¤é¤â¸«¤¨¤ë¤è¤¦¤Ë¡¤Ì¾Á°¤òÊÑ¤¨¤Æ³°¤Ë½Ğ¤¹
+       ;; å…¥ã‚Œå­é–¢æ•°ã‹ã‚‰ã‚‚è¦‹ãˆã‚‹ã‚ˆã†ã«ï¼Œåå‰ã‚’å¤‰ãˆã¦å¤–ã«å‡ºã™
        (lw:add-static-var-def (lw:finfo-add-local id texp-ret :static
                                                   :init (if-pattern-variable init init)))
        ~(%splice) )
       (t
        ;; local variable:
-       ;; ¾ï¤Ëestack¾å¤Ç°·¤¦ÊÑ¿ô¤ÏÀë¸À¤»¤º¡¤¥Õ¥ì¡¼¥à¹½Â¤ÂÎ¤Ø¤ÎÅĞÏ¿¤Î¤ß¹Ô¤¦
+       ;; å¸¸ã«estackä¸Šã§æ‰±ã†å¤‰æ•°ã¯å®£è¨€ã›ãšï¼Œãƒ•ãƒ¬ãƒ¼ãƒ æ§‹é€ ä½“ã¸ã®ç™»éŒ²ã®ã¿è¡Œã†
        (with* (init-ret (if-pattern-variable init (initializer! init))
                decl-ret (lw:finfo-add-local id texp-ret :var :init init-ret))
-         ;; Îã³°¡Ê½é´üÃÍ¤¬Ê¸»úÎó or ÇÛÎó¡Ë
+         ;; ä¾‹å¤–ï¼ˆåˆæœŸå€¤ãŒæ–‡å­—åˆ— or é…åˆ—ï¼‰
          (if (lw:estack-variable-p id)
              ~(%splice)
            decl-ret ))))))
   ;; function(top-level)
-  ;; ¡¦main°Ê³°¤ÎÂè°ì°ú¿ô¤Ëesp¤òÄÉ²Ã
-  ;; ¡¦esp,estack(main), new-esp¤ÎÉÕ²Ã¡£call-id¤ÎÄÉ²Ã
-  ;; ¡¦Æş¤ì»Ò´Ø¿ô(closure-t)¤ò¸Æ¤Ö´Ø¿ô¤Ç¤Ïargp¤òÉÕ²Ã
-  ;; ¡¦Éüµ¢½èÍı¤ÎÁŞÆş
-  ;; ¡¦efp, esp, new-exp¤Î½é´ü²½;
-  ;; ¡¦´Ø¿ô¤Î°ú¿ô¤ÎÊİÂ¸ÍÑÊÑ¿ô¤òÉÕ²Ã
-  ;; ¡¦´Ø¿ô¤Î·ë²Ì¤ÎÊİÂ¸ÍÑÊÑ¿ô¤òÉÕ²Ã (<- tmp.rule¤Ç)
-  ;; ¡¦¥Õ¥ì¡¼¥à¾ğÊó¹½Â¤ÂÎ¤òÉÕ²Ã¤·¤Æ¹½Â¤ÂÎ¤ÎÄêµÁ¤ò³°¤Ë½Ğ¤¹
-  ;; ¡¦tmp_esp, argp, call-id, ¤½¤ÎÂ¾¥í¡¼¥«¥ëÊÑ¿ô¤ÎÄÉ²Ã
-  ;; ¡¦Æş¤ì»Ò´Ø¿ô¤ÎÄêµÁ¤ò³°¤Ë½Ğ¤·¤Æ¡¢´Ø¿ôÆâ¤Ç¤Ïclosure-t·¿¤Ë
-  ;; ¡¦´Ø¿ô¸Æ¤Ó½Ğ¤·¤òwhile( tmp-res = ... ){ <ÊİÂ¸>,return,<Éüµ¢> } ¤ËÊÑ¤¨¤ë¡£
-  ;;   main¤È¤½¤ÎÂ¾¤Ç¤Ï{ ... } ¤Î¤È¤³¤Î½èÍı¤¬°ã¤¦
+  ;; ãƒ»mainä»¥å¤–ã®ç¬¬ä¸€å¼•æ•°ã«espã‚’è¿½åŠ 
+  ;; ãƒ»esp,estack(main), new-espã®ä»˜åŠ ã€‚call-idã®è¿½åŠ 
+  ;; ãƒ»å…¥ã‚Œå­é–¢æ•°(closure-t)ã‚’å‘¼ã¶é–¢æ•°ã§ã¯argpã‚’ä»˜åŠ 
+  ;; ãƒ»å¾©å¸°å‡¦ç†ã®æŒ¿å…¥
+  ;; ãƒ»efp, esp, new-expã®åˆæœŸåŒ–;
+  ;; ãƒ»é–¢æ•°ã®å¼•æ•°ã®ä¿å­˜ç”¨å¤‰æ•°ã‚’ä»˜åŠ 
+  ;; ãƒ»é–¢æ•°ã®çµæœã®ä¿å­˜ç”¨å¤‰æ•°ã‚’ä»˜åŠ  (<- tmp.ruleã§)
+  ;; ãƒ»ãƒ•ãƒ¬ãƒ¼ãƒ æƒ…å ±æ§‹é€ ä½“ã‚’ä»˜åŠ ã—ã¦æ§‹é€ ä½“ã®å®šç¾©ã‚’å¤–ã«å‡ºã™
+  ;; ãƒ»tmp_esp, argp, call-id, ãã®ä»–ãƒ­ãƒ¼ã‚«ãƒ«å¤‰æ•°ã®è¿½åŠ 
+  ;; ãƒ»å…¥ã‚Œå­é–¢æ•°ã®å®šç¾©ã‚’å¤–ã«å‡ºã—ã¦ã€é–¢æ•°å†…ã§ã¯closure-tå‹ã«
+  ;; ãƒ»é–¢æ•°å‘¼ã³å‡ºã—ã‚’while( tmp-res = ... ){ <ä¿å­˜>,return,<å¾©å¸°> } ã«å¤‰ãˆã‚‹ã€‚
+  ;;   mainã¨ãã®ä»–ã§ã¯{ ... } ã®ã¨ã“ã®å‡¦ç†ãŒé•ã†
   (#?(,scs[storage-class-specifier] (,fid[identifier] ,@id-list)
           (,fn-tag[function-tag] ,@texp-list) ,@body)
    (error-indent (format nil "In ordinary function ~S:" fid)
-     ;; global function¤È¤·¤ÆÅĞÏ¿
+     ;; global functionã¨ã—ã¦ç™»éŒ²
      (when (lw:top-level-p) (lw:add-global-func fid))
-     ;; C¤Î´Ø¿ô¤Ê¤é¤Ê¤Ë¤â¤·¤Ê¤¤
+     ;; Cã®é–¢æ•°ãªã‚‰ãªã«ã‚‚ã—ãªã„
      (when (or (cid-p fid) (eq 'csym::fn fn-tag))
        (return-from inlined-declaration x))
-     (let* ((thr-orig-p (lw:thread-origin-p fid)) ; main¤äÀ¸À®¤µ¤ì¤¿¥¹¥ì¥Ã¥É¤ÎºÇ½é¤Î´Ø¿ô¤Ë¤ÏÄÉ²Ã°ú¿ô¤Ê¤·
+     (let* ((thr-orig-p (lw:thread-origin-p fid)) ; mainã‚„ç”Ÿæˆã•ã‚ŒãŸã‚¹ãƒ¬ãƒƒãƒ‰ã®æœ€åˆã®é–¢æ•°ã«ã¯è¿½åŠ å¼•æ•°ãªã—
             (add-arg-p (not thr-orig-p))
-            (new-id-list (if add-arg-p (cons ~esp id-list) id-list)) ; ÄÉ²Ã°ú¿ô esp
+            (new-id-list (if add-arg-p (cons ~esp id-list) id-list)) ; è¿½åŠ å¼•æ•° esp
             (texp-rets (mapcar #'type-expression! texp-list))
-            (new-texp-list (if add-arg-p (insert1 ~(ptr char) texp-rets 1) texp-rets))) ; ÄÉ²Ã°ú¿ô
-       ;; ´Ø¿ô¥İ¥¤¥ó¥¿¤ò¶É½êÊÑ¿ô¤È¤·¤ÆÅĞÏ¿
+            (new-texp-list (if add-arg-p (insert1 ~(ptr char) texp-rets 1) texp-rets))) ; è¿½åŠ å¼•æ•°
+       ;; é–¢æ•°ãƒã‚¤ãƒ³ã‚¿ã‚’å±€æ‰€å¤‰æ•°ã¨ã—ã¦ç™»éŒ²
        (unless (lw:top-level-p)
          (lw:finfo-add-local fid ~(ptr (,fn-tag ,@new-texp-list)) :var))
-       ;; body¤¬¤«¤é¤Ã¤İ¤Ê¤é°ú¿ôÄÉ²Ã¤À¤±¹Ô¤Ã¤Æ½ªÎ»
+       ;; bodyãŒã‹ã‚‰ã£ã½ãªã‚‰å¼•æ•°è¿½åŠ ã ã‘è¡Œã£ã¦çµ‚äº†
        (when (null body)
          (return-from inlined-declaration ~(,scs (,fid ,@new-id-list) (,fn-tag ,@new-texp-list)) ))
        (let ((lw:*current-func* (lw:make-finfo
                                  :name fid :ret-type (car texp-rets)
                                  :estack-var (search-ptr body)))
-             (add-decl-list ()))        ;ÄÉ²Ã¤¹¤ëÀë¸À¤Î¥ê¥¹¥È
-         ;; frame¹½Â¤ÂÎ¤ò¿·µ¬ÅĞÏ¿
+             (add-decl-list ()))        ;è¿½åŠ ã™ã‚‹å®£è¨€ã®ãƒªã‚¹ãƒˆ
+         ;; frameæ§‹é€ ä½“ã‚’æ–°è¦ç™»éŒ²
          (lw:get-frame fid)
-         ;; °ú¿ô¤òframe¤ËÄÉ²Ã
+         ;; å¼•æ•°ã‚’frameã«è¿½åŠ 
          (loop for argid in id-list
              as argtype in (cdr texp-rets)
              do (lw:finfo-add-local argid argtype :var))
 
-         ;; ÀèÆ¬¤ÎÀë¸À¤ÎÄÉ²Ã
+         ;; å…ˆé ­ã®å®£è¨€ã®è¿½åŠ 
          (progn
-           ;; estack: ÌÀ¼¨Åª¥¹¥¿¥Ã¥¯
-           ;; esp (main°Ê³°¤Ç¤ÏÄÉ²Ã°ú¿ô): ÌÀ¼¨Åª¥¹¥¿¥Ã¥¯¥İ¥¤¥ó¥¿+²¼°Ì2¥Ó¥Ã¥È¥Õ¥é¥°
+           ;; estack: æ˜ç¤ºçš„ã‚¹ã‚¿ãƒƒã‚¯
+           ;; esp (mainä»¥å¤–ã§ã¯è¿½åŠ å¼•æ•°): æ˜ç¤ºçš„ã‚¹ã‚¿ãƒƒã‚¯ãƒã‚¤ãƒ³ã‚¿+ä¸‹ä½2ãƒ“ãƒƒãƒˆãƒ•ãƒ©ã‚°
            (when thr-orig-p
              (pushs (lw:finfo-add-local ~estack ~(array char ,lw:*estack-size*) :system)
                     (lw:finfo-add-local ~esp ~(ptr char) :system :init ~estack)
                     add-decl-list))
-           ;; esp-flag: esp¤Î²¼°Ì2¥Ó¥Ã¥È¤Î¥Õ¥é¥°ÉôÊ¬
-           ;;   ºÇ²¼°Ì -- ¥¹¥¿¥Ã¥¯ÀÑ¤ßÄ¾¤·Ãæ¥Õ¥é¥°
-           ;;   ²¼¤«¤é2¤Ä¤á -- Ì¤»ÈÍÑ
+           ;; esp-flag: espã®ä¸‹ä½2ãƒ“ãƒƒãƒˆã®ãƒ•ãƒ©ã‚°éƒ¨åˆ†
+           ;;   æœ€ä¸‹ä½ -- ã‚¹ã‚¿ãƒƒã‚¯ç©ã¿ç›´ã—ä¸­ãƒ•ãƒ©ã‚°
+           ;;   ä¸‹ã‹ã‚‰2ã¤ã‚ -- æœªä½¿ç”¨
            (when (and (not thr-orig-p) (not lw:*all-in-estack*))
              (push (lw:finfo-add-local ~esp-flag ~size-t :system
                                        :init ~(bit-and (cast size-t esp) 3))
                    add-decl-list))
-           ;; new-esp: esp¤Ë¥Õ¥é¥°¤òÄÉ²Ã¤·¤¿¤ê¤·¤Æ´Ø¿ô¸Æ½Ğ¤·¤Î°ú¿ô¤Ë¤¹¤ë
+           ;; new-esp: espã«ãƒ•ãƒ©ã‚°ã‚’è¿½åŠ ã—ãŸã‚Šã—ã¦é–¢æ•°å‘¼å‡ºã—ã®å¼•æ•°ã«ã™ã‚‹
            (unless lw:*all-in-estack*
              (push (lw:finfo-add-local ~new-esp ~(ptr char) :system) add-decl-list))
-           ;; efp: ÌÀ¼¨Åª¥¹¥¿¥Ã¥¯¥Õ¥ì¡¼¥à¥İ¥¤¥ó¥¿
+           ;; efp: æ˜ç¤ºçš„ã‚¹ã‚¿ãƒƒã‚¯ãƒ•ãƒ¬ãƒ¼ãƒ ãƒã‚¤ãƒ³ã‚¿
            (push (lw:finfo-add-local ~efp ~(ptr (struct ,(lw:get-frame-name fid))) :system)
                  add-decl-list))
 
          (with* (body-ret (function-body body)
                  (body-ret-decl body-ret-body) (list-until body-ret ~%%stat :key #'car))
-           ;; Æş¤ì»Ò´Ø¿ôcall¤¬Â¸ºß¤·¤¿¾ì¹ç¡¤
-           ;; argp (Æş¤ì»Ò´Ø¿ôcall»ş¤Îestack¾å¤Ë¤¢¤ë°ú¿ô¤Ø¤Î¥İ¥¤¥ó¥¿)¤ÎÀë¸À¤òÄÉ²Ã
+           ;; å…¥ã‚Œå­é–¢æ•°callãŒå­˜åœ¨ã—ãŸå ´åˆï¼Œ
+           ;; argp (å…¥ã‚Œå­é–¢æ•°callæ™‚ã®estackä¸Šã«ã‚ã‚‹å¼•æ•°ã¸ã®ãƒã‚¤ãƒ³ã‚¿)ã®å®£è¨€ã‚’è¿½åŠ 
            (when (lw:finfo-argp lw:*current-func*)
              (push (lw:finfo-add-local ~argp ~(ptr char) :system) add-decl-list))
-           ;; ºÇ½ªÅª¤ËÉ¬Í×¤ÊÀë¸À¤òÄÉ²Ã
+           ;; æœ€çµ‚çš„ã«å¿…è¦ãªå®£è¨€ã‚’è¿½åŠ 
            (setq body-ret-decl
              (nconc body-ret-decl
                     (nreverse add-decl-list)
-                    ;; ¥¹¥¿¥Ã¥¯ÀÑ¤ßÄ¾¤·»şÍÑ¤ÎÉüµ¢½èÍı
+                    ;; ã‚¹ã‚¿ãƒƒã‚¯ç©ã¿ç›´ã—æ™‚ç”¨ã®å¾©å¸°å‡¦ç†
                     (lw:make-resume lw:*current-func*) 
-                    ;; estack¥Õ¥ì¡¼¥à¥İ¥¤¥ó¥¿½é´ü²½
+                    ;; estackãƒ•ãƒ¬ãƒ¼ãƒ ãƒã‚¤ãƒ³ã‚¿åˆæœŸåŒ–
                     (lw:make-init-efp-esp lw:*current-func*) 
                     (when lw:*all-in-estack*
                       (nconc
-                       ;; CL-SC»ş¡¤°ú¿ô¤ÎÃÍ¤òestack¤ËÊİÂ¸
+                       ;; CL-SCæ™‚ï¼Œå¼•æ•°ã®å€¤ã‚’estackã«ä¿å­˜
                        (lw:save-args-into-estack id-list (cdr texp-rets))
-                       ;; CL-SC»ş¡¤Æş¤ì»Ò´Ø¿ô¤ò¤³¤³¤Ç½é´ü²½¡ÊLW-SC¤È°ã¤Ã¤ÆÃÙ±ä¤µ¤ì¤Ê¤¤¡Ë
+                       ;; CL-SCæ™‚ï¼Œå…¥ã‚Œå­é–¢æ•°ã‚’ã“ã“ã§åˆæœŸåŒ–ï¼ˆLW-SCã¨é•ã£ã¦é…å»¶ã•ã‚Œãªã„ï¼‰
                        (lw:make-normalize-nf)))))
-           ;; ¥Õ¥ì¡¼¥à¹½Â¤ÂÎ¤ÎÄêµÁ¤òºî¤Ã¤ÆÅĞÏ¿
+           ;; ãƒ•ãƒ¬ãƒ¼ãƒ æ§‹é€ ä½“ã®å®šç¾©ã‚’ä½œã£ã¦ç™»éŒ²
            (lw:add-frame-def (lw:make-frame-def lw:*current-func*))
-           ;; ´Ø¿ôÄêµÁ¤ÎÊÑ´¹·ë²Ì
+           ;; é–¢æ•°å®šç¾©ã®å¤‰æ›çµæœ
            ~(,scs (,fid ,@new-id-list) (,fn-tag ,@new-texp-list)
                   ,.body-ret-decl ,@body-ret-body) )))))
 
-  ;; lightweight¤Î´Ø¿ôÀë¸À
-  ;; ¡¦°ú¿ô¤ÈÊÖ¤êÃÍ¤Î·¿¤òÊÑ¹¹¡£
-  ;; ¡¦´Ø¿ô¤ÎÀèÆ¬¤Çestack¤«¤é°ú¿ô¤ÎÃÍ¤ò¼õ¤±¼è¤ë½èÍı¤òÄÉ²Ã
-  ;; ¡¦ÊÌÅÓstatementµ¬Â§¤Çreturn¤ò¤¤¤¸¤ëÉ¬Í×
+  ;; lightweightã®é–¢æ•°å®£è¨€
+  ;; ãƒ»å¼•æ•°ã¨è¿”ã‚Šå€¤ã®å‹ã‚’å¤‰æ›´ã€‚
+  ;; ãƒ»é–¢æ•°ã®å…ˆé ­ã§estackã‹ã‚‰å¼•æ•°ã®å€¤ã‚’å—ã‘å–ã‚‹å‡¦ç†ã‚’è¿½åŠ 
+  ;; ãƒ»åˆ¥é€”statementè¦å‰‡ã§returnã‚’ã„ã˜ã‚‹å¿…è¦
   (#?(,scs[storage-class-specifier] (,fid[identifier] ,@id-list[identifier])
           (lightweight ,@texp-list) ,@body)
    (error-indent (format nil "In nested function ~S:" fid)
      (let* ((parent-name (lw:finfo-name lw:*current-func*))
             (parent-func lw:*current-func*)
             (extid (lw:make-extid fid))
-            (texp-rets (mapcar #'type-expression texp-list))) ;³°¤Ë½Ğ¤¹´Ø¿ôÌ¾
-       ;; Æş¤ì»Ò´Ø¿ô¥ê¥¹¥È¤ËÄÉ²Ã
+            (texp-rets (mapcar #'type-expression texp-list))) ;å¤–ã«å‡ºã™é–¢æ•°å
+       ;; å…¥ã‚Œå­é–¢æ•°ãƒªã‚¹ãƒˆã«è¿½åŠ 
        (lw:finfo-add-nestfunc fid extid)
-       ;; ¤³¤³¤Ç *current-func* ¤ò¥Ğ¥¤¥ó¥É
+       ;; ã“ã“ã§ *current-func* ã‚’ãƒã‚¤ãƒ³ãƒ‰
        (let ((lw:*current-func* (lw:make-finfo :name extid
                                                :parent-func parent-func
                                                :ret-type (car texp-rets)
                                                :estack-var (search-ptr body)))
-             (add-decl-list nil))       ;ÄÉ²Ã¤ÎÊÑ¿ôÄêµÁ
-         ;; frame¹½Â¤ÂÎ¤ò¿·µ¬ÅĞÏ¿
+             (add-decl-list nil))       ;è¿½åŠ ã®å¤‰æ•°å®šç¾©
+         ;; frameæ§‹é€ ä½“ã‚’æ–°è¦ç™»éŒ²
          (lw:get-frame extid)
-         ;; ÀèÆ¬¤ÎÀë¸À¤ÎÄÉ²Ã
+         ;; å…ˆé ­ã®å®£è¨€ã®è¿½åŠ 
          (progn
-           ;; new-esp: esp + ¸Æ½Ğ¤·Àè¤Î´Ø¿ô¤ËÅÏ¤¹²¼°Ì2¥Ó¥Ã¥È¥Õ¥é¥°
-           (unless lw:*all-in-estack*   ; LW-SC¤Î¤ß
+           ;; new-esp: esp + å‘¼å‡ºã—å…ˆã®é–¢æ•°ã«æ¸¡ã™ä¸‹ä½2ãƒ“ãƒƒãƒˆãƒ•ãƒ©ã‚°
+           (unless lw:*all-in-estack*   ; LW-SCã®ã¿
              (push (lw:finfo-add-local ~new-esp ~(ptr char) :system) add-decl-list) )
-           ;; efp: etack¾å¤Î¥Õ¥ì¡¼¥à¥İ¥¤¥ó¥¿
+           ;; efp: etackä¸Šã®ãƒ•ãƒ¬ãƒ¼ãƒ ãƒã‚¤ãƒ³ã‚¿
            (push (lw:finfo-add-local ~efp ~(ptr (struct ,(lw:get-frame-name extid))) :system)
                  add-decl-list)
-           ;; xfp: ¿Æ´Ø¿ô¤Îetack¾å¤Î¥Õ¥ì¡¼¥à¥İ¥¤¥ó¥¿
+           ;; xfp: è¦ªé–¢æ•°ã®etackä¸Šã®ãƒ•ãƒ¬ãƒ¼ãƒ ãƒã‚¤ãƒ³ã‚¿
            (push (lw:finfo-add-local ~xfp
                                      ~(ptr (struct ,(lw:get-frame-name parent-name)))
                                      :var :init ~xfp0)
                  add-decl-list)
-           ;; esp-flag: esp¤Î²¼°Ì2¥Ó¥Ã¥È¥Õ¥é¥°
-           (unless lw:*all-in-estack*   ; LW-SC¤Î¤ß
+           ;; esp-flag: espã®ä¸‹ä½2ãƒ“ãƒƒãƒˆãƒ•ãƒ©ã‚°
+           (unless lw:*all-in-estack*   ; LW-SCã®ã¿
              (push (lw:finfo-add-local ~esp-flag ~size-t :system
                                        :init ~(bit-and (cast size-t esp) 3))
                    add-decl-list) )
-           ;; parmp: °ú¿ô¼õ¤±¼è¤ê¤Îºî¶ÈÍÑÊÑ¿ô
+           ;; parmp: å¼•æ•°å—ã‘å–ã‚Šã®ä½œæ¥­ç”¨å¤‰æ•°
            (push (lw:finfo-add-local ~parmp ~(ptr char) :system :init (lw:make-parmp-init))
                  add-decl-list) )
 
-         ;; °ú¿ô¤òÌÀ¼¨Åª¥¹¥¿¥Ã¥¯¤Î¥È¥Ã¥×¤«¤épop¤·¤Ê¤¬¤é³ÍÆÀ
+         ;; å¼•æ•°ã‚’æ˜ç¤ºçš„ã‚¹ã‚¿ãƒƒã‚¯ã®ãƒˆãƒƒãƒ—ã‹ã‚‰popã—ãªãŒã‚‰ç²å¾—
          (loop
              for argid in id-list
              as argtp in (cdr texp-rets)
              do (with1 decl (lw:finfo-add-local argid argtp :var)
-                  (unless lw:*all-in-estack* ; CL-SC¤Ç¤Ïestack¤òÄ¾ÀÜ»²¾È¤¹¤ë¤Î¤ÇÉÔÍ×
+                  (unless lw:*all-in-estack* ; CL-SCã§ã¯estackã‚’ç›´æ¥å‚ç…§ã™ã‚‹ã®ã§ä¸è¦
                     (push ~(,@decl (pop-arg ,argtp parmp))
                           add-decl-list) )))
 
          (with1 body-ret (function-body body)
            (multiple-value-bind (body-ret-decl body-ret-body)
                (list-until body-ret ~%%stat :key #'car)
-             ;; Æş¤ì»Ò´Ø¿ôcall¤¬Â¸ºß¤·¤¿¾ì¹ç¡¤
-             ;; argp (Æş¤ì»Ò´Ø¿ôcall»ş¤Îestack¾å¤Ë¤¢¤ë°ú¿ô¤Ø¤Î¥İ¥¤¥ó¥¿)¤ÎÀë¸À¤òÄÉ²Ã
+             ;; å…¥ã‚Œå­é–¢æ•°callãŒå­˜åœ¨ã—ãŸå ´åˆï¼Œ
+             ;; argp (å…¥ã‚Œå­é–¢æ•°callæ™‚ã®estackä¸Šã«ã‚ã‚‹å¼•æ•°ã¸ã®ãƒã‚¤ãƒ³ã‚¿)ã®å®£è¨€ã‚’è¿½åŠ 
              (when (lw:finfo-argp lw:*current-func*)
                (push (lw:finfo-add-local ~argp ~(ptr char) :system) add-decl-list))
-             ;; ºÇ½ªÅª¤ËÉ¬Í×¤ÊÀë¸À¤òÄÉ²Ã
+             ;; æœ€çµ‚çš„ã«å¿…è¦ãªå®£è¨€ã‚’è¿½åŠ 
              (setq body-ret-decl
                (nconc body-ret-decl
                       (nreverse add-decl-list)
-                      ;; ¥¹¥¿¥Ã¥¯ÀÑ¤ßÄ¾¤·»ş¤ÎÉüµ¢½èÍı
+                      ;; ã‚¹ã‚¿ãƒƒã‚¯ç©ã¿ç›´ã—æ™‚ã®å¾©å¸°å‡¦ç†
                       (lw:make-resume lw:*current-func*)
-                      ;; estack¥Õ¥ì¡¼¥à¥İ¥¤¥ó¥¿½é´ü²½
+                      ;; estackãƒ•ãƒ¬ãƒ¼ãƒ ãƒã‚¤ãƒ³ã‚¿åˆæœŸåŒ–
                       (lw:make-init-efp-esp lw:*current-func*)
                       (when lw:*all-in-estack*
                         (nconc
-                         ;; CL-SC»ş¡¤°ú¿ô¤ÎÃÍ¤òestack¤ËÊİÂ¸
+                         ;; CL-SCæ™‚ï¼Œå¼•æ•°ã®å€¤ã‚’estackã«ä¿å­˜
                          (lw:save-args-into-estack id-list (cdr texp-rets))
-                         ;; CL-SC»ş¡¤Æş¤ì»Ò´Ø¿ô¤ò¤³¤³¤Ç½é´ü²½¡ÊLW-SC¤È°ã¤Ã¤ÆÃÙ±ä¤µ¤ì¤Ê¤¤¡Ë
+                         ;; CL-SCæ™‚ï¼Œå…¥ã‚Œå­é–¢æ•°ã‚’ã“ã“ã§åˆæœŸåŒ–ï¼ˆLW-SCã¨é•ã£ã¦é…å»¶ã•ã‚Œãªã„ï¼‰
                          (lw:make-normalize-nf)))) )
-             ;; ¥Õ¥ì¡¼¥à¹½Â¤ÂÎÄêµÁ¤òºî¤Ã¤ÆÅĞÏ¿
+             ;; ãƒ•ãƒ¬ãƒ¼ãƒ æ§‹é€ ä½“å®šç¾©ã‚’ä½œã£ã¦ç™»éŒ²
              (lw:add-frame-def (lw:make-frame-def lw:*current-func*))
-             ;; ´Ø¿ôÄêµÁ¤ò¥È¥Ã¥×¥ì¥Ù¥ë¤Ë
+             ;; é–¢æ•°å®šç¾©ã‚’ãƒˆãƒƒãƒ—ãƒ¬ãƒ™ãƒ«ã«
              (lw:add-nestfunc-def
               ~(,scs (,extid esp xfp0) (fn (ptr char) (ptr char) (ptr void))
                      ,.body-ret-decl ,@body-ret-body (return 0))) )))
-       ;; Æş¤ì»Ò´Ø¿ô¤ÏestackÆâ¤Î¤â¤Î¤ò»²¾È¤¹¤ë¤Î¤Ç¿Æ´Ø¿ôÆâ¤Ç¤ÎÀë¸À¤ÏÉÔÍ×
+       ;; å…¥ã‚Œå­é–¢æ•°ã¯estackå†…ã®ã‚‚ã®ã‚’å‚ç…§ã™ã‚‹ã®ã§è¦ªé–¢æ•°å†…ã§ã®å®£è¨€ã¯ä¸è¦
        ~(%splice) )))
   )
 
@@ -267,8 +267,8 @@
      ~(fn ,(car texp-rets) (ptr char) ,@(cdr texp-rets)) )))
 
 ;;; Function body & block item:
-;;; * with-new-block¤ÎÄÉ²Ã
-;;; * ³Æblock-item¤Ëdecl¤«stat¤«¤ò¼±ÊÌ¤Ç¤­¤ë¥¿¥°¤òÉÕÍ¿
+;;; * with-new-blockã®è¿½åŠ 
+;;; * å„block-itemã«declã‹statã‹ã‚’è­˜åˆ¥ã§ãã‚‹ã‚¿ã‚°ã‚’ä»˜ä¸
 (defrule function-body nestfunc
   (#?({:attr ,f-attr} { ,r-decl[register-declarator] } ,@bi-list)
 
@@ -289,8 +289,8 @@
 (extendrule statement nestfunc
   ;; label
   (#?(label ,id ,stat)
-   ;; ¶É½ê¥é¥Ù¥ë¤È¤·¤ÆÀë¸ÀºÑ¤Î¥é¥Ù¥ë¤ËÂĞ¤·¤Æ¡¢
-   ;; Æş¤ì»Ò´Ø¿ô¤«¤égoto¤ÇÃ¦½Ğ¤·¤Æ¤­¤¿¤È¤­ÍÑ¤ÎÉüµ¢¾ğÊó¤òÉÕÍ¿
+   ;; å±€æ‰€ãƒ©ãƒ™ãƒ«ã¨ã—ã¦å®£è¨€æ¸ˆã®ãƒ©ãƒ™ãƒ«ã«å¯¾ã—ã¦ã€
+   ;; å…¥ã‚Œå­é–¢æ•°ã‹ã‚‰gotoã§è„±å‡ºã—ã¦ããŸã¨ãç”¨ã®å¾©å¸°æƒ…å ±ã‚’ä»˜ä¸
    (multiple-value-bind (lab-level llab-info)
        (lw:finfo-find-local-label id)
      (when (and lab-level (= lab-level 0))
@@ -301,43 +301,43 @@
    (multiple-value-bind (lab-level llab-info labnum)
        (lw:finfo-find-local-label id)
      (declare (ignore llab-info))
-     (if (or (null lab-level) (= lab-level 0)) ; __label__¤ÇÄêµÁ¤µ¤ì¤Æ¤¤¤Ê¤¤¤«¡¤¿Æ´Ø¿ô¤Î¥é¥Ù¥ë¤Ç¤Ï¤Ê¤¤¾ì¹ç
-         x                              ; ÄÌ¾ï¤Îgoto
-       ;; ¿Æ´Ø¿ô¤Ø¤Îgoto¤Ë¤è¤ëÃ¦½Ğ¡§
-       ;; nested-func¤«¤éreturn¤Î¤è¤¦¤ËC¥¹¥¿¥Ã¥¯¤ò´¬¤­Ìá¤¹¤¬¡¤¸Æ½Ğ¤·¸µ¤Ş¤Ç¤Ç¤Ï¤Ê¤¯¡¤
-       ;; ¥¸¥ã¥ó¥×Àè¤Î¿Æ¡ÊÁÄÀè¡Ë´Ø¿ô¤Î¤È¤³¤í¤Ş¤Ç´¬¤­Ìá¤¹¡¥¤½¤Î¸å¡¤»ØÄê¤µ¤ì¤¿¥é¥Ù¥ë¤Î¾ì½ê¤Ë
-       ;; ÄÌ¾ï¤Îgoto¤ÇÈô¤Ö¡¥¥¸¥ã¥ó¥×Àè¤Ïetack¾å¤Îcall-id¤Ë¤è¤ë¾ò·ïÊ¬´ô¤ÇÆÃÄê¡Êreturn»ş¤ÈÆ±ÍÍ¡Ë¡¥
-       (let* ((xfp-exp (butlast         ; ¥¸¥ã¥ó¥×Àè´Ø¿ô¤Îestack¾å¤Î¥Õ¥ì¡¼¥à¥İ¥¤¥ó¥¿
+     (if (or (null lab-level) (= lab-level 0)) ; __label__ã§å®šç¾©ã•ã‚Œã¦ã„ãªã„ã‹ï¼Œè¦ªé–¢æ•°ã®ãƒ©ãƒ™ãƒ«ã§ã¯ãªã„å ´åˆ
+         x                              ; é€šå¸¸ã®goto
+       ;; è¦ªé–¢æ•°ã¸ã®gotoã«ã‚ˆã‚‹è„±å‡ºï¼š
+       ;; nested-funcã‹ã‚‰returnã®ã‚ˆã†ã«Cã‚¹ã‚¿ãƒƒã‚¯ã‚’å·»ãæˆ»ã™ãŒï¼Œå‘¼å‡ºã—å…ƒã¾ã§ã§ã¯ãªãï¼Œ
+       ;; ã‚¸ãƒ£ãƒ³ãƒ—å…ˆã®è¦ªï¼ˆç¥–å…ˆï¼‰é–¢æ•°ã®ã¨ã“ã‚ã¾ã§å·»ãæˆ»ã™ï¼ãã®å¾Œï¼ŒæŒ‡å®šã•ã‚ŒãŸãƒ©ãƒ™ãƒ«ã®å ´æ‰€ã«
+       ;; é€šå¸¸ã®gotoã§é£›ã¶ï¼ã‚¸ãƒ£ãƒ³ãƒ—å…ˆã¯etackä¸Šã®call-idã«ã‚ˆã‚‹æ¡ä»¶åˆ†å²ã§ç‰¹å®šï¼ˆreturnæ™‚ã¨åŒæ§˜ï¼‰ï¼
+       (let* ((xfp-exp (butlast         ; ã‚¸ãƒ£ãƒ³ãƒ—å…ˆé–¢æ•°ã®estackä¸Šã®ãƒ•ãƒ¬ãƒ¼ãƒ ãƒã‚¤ãƒ³ã‚¿
                         ~(fref
                           ,@(apply #'append
                                    (make-list lab-level
                                               :initial-element ~(xfp ->))))))
               (callid-exp ~(,@xfp-exp -> call-id)))
          ~(begin
-           (= ,callid-exp ,(- labnum))  ; gotoÀè¤Îcall-id½ñ¤­´¹¤¨
-           (return (cast (ptr char) ,xfp-exp))) )))) ; gotoÀè¤Îefp¤òreturn
-  ;; ÊÖ¤êÃÍ¤Ê¤·return
+           (= ,callid-exp ,(- labnum))  ; gotoå…ˆã®call-idæ›¸ãæ›ãˆ
+           (return (cast (ptr char) ,xfp-exp))) )))) ; gotoå…ˆã®efpã‚’return
+  ;; è¿”ã‚Šå€¤ãªã—return
   (#?(return)
    (if (lw:finfo-parent-func lw:*current-func*)
-       ~(return 0)                      ; Æş¤ì»Ò´Ø¿ô¤Ê¤éÀµ¾ï½ªÎ»¤ò¼¨¤¹0¤òÊÖ¤¹
+       ~(return 0)                      ; å…¥ã‚Œå­é–¢æ•°ãªã‚‰æ­£å¸¸çµ‚äº†ã‚’ç¤ºã™0ã‚’è¿”ã™
      ~(return) ))
-  ;; ÊÖ¤êÃÍ¤Ä¤­return
+  ;; è¿”ã‚Šå€¤ã¤ãreturn
   (#?(return ,exp)
    (with1 exp-ret (expression! exp)
-     (if (lw:finfo-parent-func lw:*current-func*) ; Æş¤ì»Ò´Ø¿ô¤Î¾ì¹ç
+     (if (lw:finfo-parent-func lw:*current-func*) ; å…¥ã‚Œå­é–¢æ•°ã®å ´åˆ
          ~(begin
            (= (mref-t ,(lw:finfo-ret-type lw:*current-func*) efp) ,exp-ret)
-           (return 0))             ; return¼«ÂÎ¤ÎÊÖ¤êÃÍ¤ÏÀµ¾ï½ªÎ»¤ò¼¨¤¹0
-       ~(return ,exp-ret) )))           ; Æş¤ì»Ò´Ø¿ô¤Ç¤Ê¤±¤ì¤ĞÉáÄÌ¤Ëreturn
+           (return 0))             ; returnè‡ªä½“ã®è¿”ã‚Šå€¤ã¯æ­£å¸¸çµ‚äº†ã‚’ç¤ºã™0
+       ~(return ,exp-ret) )))           ; å…¥ã‚Œå­é–¢æ•°ã§ãªã‘ã‚Œã°æ™®é€šã«return
   )
 
 ;;; expression (with type-info)
 
-;;; :nestfunc-temp ¤ÎÊÑ´¹·ë²Ì¤Ë¤è¤ê¡¢call¤Ï
-;;; #1=(the ,texp (call (the ,texp ,exp) ,@exp-list))  ; ÂåÆş¤Ê¤·
-;;; ¤«¡¤
-;;; (the ,texp (= (the ,texp ,id) #1#))                ; ÂåÆş¤¢¤ê
-;;; ¤Î¤É¤Á¤é¤«¤Î·Á¤Ç¸½¤ì¤ë¤è¤¦¤Ë¤Ê¤Ã¤Æ¤¤¤ë¡£
+;;; :nestfunc-temp ã®å¤‰æ›çµæœã«ã‚ˆã‚Šã€callã¯
+;;; #1=(the ,texp (call (the ,texp ,exp) ,@exp-list))  ; ä»£å…¥ãªã—
+;;; ã‹ï¼Œ
+;;; (the ,texp (= (the ,texp ,id) #1#))                ; ä»£å…¥ã‚ã‚Š
+;;; ã®ã©ã¡ã‚‰ã‹ã®å½¢ã§ç¾ã‚Œã‚‹ã‚ˆã†ã«ãªã£ã¦ã„ã‚‹ã€‚
 
 (defrule thread-creator nestfunc
   (#?,id[#'(lambda (xx) (eq xx (ruleset-param 'thread-creator)))]
@@ -346,14 +346,14 @@
 
 (extendrule expression nestfunc
   ;; thread-create (typically pthread-create)
-  ;; thread-origin ´Ø¿ô¤òÃæ·Ñ¤·¤Æstart-routine¤ò¸Æ¤Ó¤À¤¹¡¥
-  ;; thread-origin ¤Ï¿·¤·¤¤estack¤Ê¤É¤òÍÑ°Õ¤¹¤ë¥é¥¤¥Ö¥é¥ê´Ø¿ô¡¥
+  ;; thread-origin é–¢æ•°ã‚’ä¸­ç¶™ã—ã¦start-routineã‚’å‘¼ã³ã ã™ï¼
+  ;; thread-origin ã¯æ–°ã—ã„estackãªã©ã‚’ç”¨æ„ã™ã‚‹ãƒ©ã‚¤ãƒ–ãƒ©ãƒªé–¢æ•°ï¼
   ((#?#1=(the ,texp (call (the ,texp-p ,exp-f[thread-creator])
                           ,thread ,attr ,start-routine ,arg))
     #?(the ,texp0 (= (the ,texp1 ,id) #1#)) )
    (let* ((farg-id (generate-id "farg"))
           (farg-decl (lw:finfo-add-local farg-id ~(ptr (struct func-arg)) :system))
-          (tcreate-exp                  ; func-arg¹½Â¤ÂÎ: ¤â¤È¤â¤È¤Îfunc¤Èarg¤ò¥Ñ¥Ã¥¯
+          (tcreate-exp                  ; func-argæ§‹é€ ä½“: ã‚‚ã¨ã‚‚ã¨ã®funcã¨argã‚’ãƒ‘ãƒƒã‚¯
            ~(exps (= ,farg-id (cast (ptr (struct func-arg))
                                 (csym::malloc (sizeof (struct func-arg)))))
                   (= (fref ,farg-id -> func) ,start-routine)
@@ -364,9 +364,9 @@
      (if-pattern-variable id            ; assignment expression?
          ~(the ,texp0 (= ,(expression! ~(the ,texp1 ,id)) ,tcreate-exp))
        tcreate-exp )))
-  ;; ÄÌ¾ï¤Îfunction-call
-  ;; ¡¦°ú¿ô¤ÎÃÍ¤òÊİÂ¸
-  ;; ¡¦¸Æ¤Ó½Ğ¤¹´Ø¿ô¤Î¥İ¥¤¥ó¥¿¤âÊİÂ¸
+  ;; é€šå¸¸ã®function-call
+  ;; ãƒ»å¼•æ•°ã®å€¤ã‚’ä¿å­˜
+  ;; ãƒ»å‘¼ã³å‡ºã™é–¢æ•°ã®ãƒã‚¤ãƒ³ã‚¿ã‚‚ä¿å­˜
   ((#?#2=(the ,texp (call (the (ptr (,fn-tag[function-tag] ,@texp-list)) ,exp-f)
                           ,@exp-list))
     #?(the ,texp0 (= (the ,texp1 ,id) #2#)) )
@@ -376,15 +376,15 @@
            rettype-ret (type-expression! (car texp-list))
            exp-rets (mapcar #'expression! exp-list))
      (declare (ignorable id-ret rettype-ret))
-     ;; C¤Î´Ø¿ô¤Ê¤é¤Ê¤Ë¤â¤·¤Ê¤¤
+     ;; Cã®é–¢æ•°ãªã‚‰ãªã«ã‚‚ã—ãªã„
      (when (or (cid-p exp-f) (eq 'csym::fn fn-tag))
        (with1 r-exp ~(the ,texp (call ,fexp-ret ,@exp-rets))
          (return-from expression (if-pattern-variable id
                                                       ~(= ,id-ret ,r-exp)
                                                       r-exp)) ))
      (let* ((decl-prev-tmpid-list
-             ;; ÉûºîÍÑ¤ò²¿²ó¤âµ¯¤³¤µ¤Ê¤¤¤è¤¦¤Ë´Ø¿ô¥İ¥¤¥ó¥¿¤È°ú¿ô¤ÎÃÍ¤ò°ì»şÊÑ¿ô¤ËÊİÂ¸
-             ;; ¤½¤Î¤¿¤á¤ËÉ¬Í×¤ÊÀë¸À¡¤Àè¹Ô¤Î¼°¡¤°ì»şÊÑ¿ôÌ¾¤òcollect
+             ;; å‰¯ä½œç”¨ã‚’ä½•å›ã‚‚èµ·ã“ã•ãªã„ã‚ˆã†ã«é–¢æ•°ãƒã‚¤ãƒ³ã‚¿ã¨å¼•æ•°ã®å€¤ã‚’ä¸€æ™‚å¤‰æ•°ã«ä¿å­˜
+             ;; ãã®ãŸã‚ã«å¿…è¦ãªå®£è¨€ï¼Œå…ˆè¡Œã®å¼ï¼Œä¸€æ™‚å¤‰æ•°åã‚’collect
              (loop
                  for exp-ret in (cons fexp-ret exp-rets)
                  if (lw:simple-exp-p exp-ret)
@@ -399,17 +399,17 @@
             (prev-list (remove nil (mapcar #'second decl-prev-tmpid-list)))
             (tmpid-list (mapcar #'third decl-prev-tmpid-list))
             (fcall-exp ~(call ,(car tmpid-list)
-                              ,(if lw:*all-in-estack* ~esp ~new-esp) ; ÄÉ²Ã°ú¿ô
+                              ,(if lw:*all-in-estack* ~esp ~new-esp) ; è¿½åŠ å¼•æ•°
                               ,@(cdr tmpid-list)))
-            (eq-exp (if-pattern-variable id ; ÊÖ¤êÃÍ¤Ë¤è¤ëÀµ¾ï½ªÎ»È½Äê
+            (eq-exp (if-pattern-variable id ; è¿”ã‚Šå€¤ã«ã‚ˆã‚‹æ­£å¸¸çµ‚äº†åˆ¤å®š
                         ~(== (= ,id-ret ,fcall-exp) (SPECIAL ,rettype-ret))))
-            (neq-exp ~(!= (= (fref efp -> tmp-esp) ; ¥Õ¥ì¡¼¥à¥İ¥¤¥ó¥¿¤Ë¤è¤ëÀµ¾ï½ªÎ»È½Äê
+            (neq-exp ~(!= (= (fref efp -> tmp-esp) ; ãƒ•ãƒ¬ãƒ¼ãƒ ãƒã‚¤ãƒ³ã‚¿ã«ã‚ˆã‚‹æ­£å¸¸çµ‚äº†åˆ¤å®š
                              (mref-t (ptr char) esp))
                           0)))
        (declare (ignorable eq-exp))
        (unless lw:*all-in-estack* (push ~(= new-esp esp) prev-list))
        (dolist (decl decl-list) (lw:add-local-decl decl))
-       ;; °Ê²¼¤¬ÊÖ¤êÃÍ¡ÊÊÑ´¹·ë²Ì¡Ë
+       ;; ä»¥ä¸‹ãŒè¿”ã‚Šå€¤ï¼ˆå¤‰æ›çµæœï¼‰
        ~(begin
          ,.prev-list
          (while ,(if-pattern-variable id
@@ -421,10 +421,10 @@
                        ~(exps ,fcall-exp
                               (csym::--builtin-expect ,neq-exp 0))
                      ~(exps ,fcall-exp ,neq-exp)))
-           ;; ´Ø¿ô¤¬Àµ¾ï½ªÎ»¤·¤Ê¤«¤Ã¤¿¤È¤­ (LW-SC»ş¤ÎÆş¤ì»Ò´Ø¿ôcall or goto¤Ë¤è¤ëÃ¦½Ğ¡Ë
-           ;; °Ê²¼¤¬¼Â¹Ô¤µ¤ì¤ë
+           ;; é–¢æ•°ãŒæ­£å¸¸çµ‚äº†ã—ãªã‹ã£ãŸã¨ã (LW-SCæ™‚ã®å…¥ã‚Œå­é–¢æ•°call or gotoã«ã‚ˆã‚‹è„±å‡ºï¼‰
+           ;; ä»¥ä¸‹ãŒå®Ÿè¡Œã•ã‚Œã‚‹
            ,@(cond
-              ;; CL-SC»ş: goto¤Ë¤è¤ëÈó¶É½êÃ¦½Ğ¤ÎÌÌÅİ¤ò¸«¤ë
+              ;; CL-SCæ™‚: gotoã«ã‚ˆã‚‹éå±€æ‰€è„±å‡ºã®é¢å€’ã‚’è¦‹ã‚‹
               (lw:*all-in-estack*
                ~((if (< (cast (ptr char) (fref efp -> tmp-esp))
                         (cast (ptr char) efp))
@@ -434,12 +434,12 @@
                  (= (fref efp -> tmp-esp) 0)
                  (goto LGOTO)
                  ) )
-              ;; LW-SC¡¤main ¤ª¤è¤Ó Æş¤ì»Ò´Ø¿ô
+              ;; LW-SCï¼Œmain ãŠã‚ˆã³ å…¥ã‚Œå­é–¢æ•°
               ((or (lw:thread-origin-p (lw:finfo-name lw:*current-func*))
                    (lw:finfo-parent-func lw:*current-func*))
                ~((def goto-fr (ptr char))
                  (= (mref-t (ptr char) esp) 0)
-                 ;; ¥Õ¥ì¡¼¥à¾ğÊóÊİÂ¸¡õÆş¤ì»Ò´Ø¿ô¤ÎÀµµ¬²½
+                 ;; ãƒ•ãƒ¬ãƒ¼ãƒ æƒ…å ±ä¿å­˜ï¼†å…¥ã‚Œå­é–¢æ•°ã®æ­£è¦åŒ–
                  ,@(lw:make-frame-save)
                  ,@(lw:make-normalize-nf)
                  (= goto-fr (lw-call (fref efp -> tmp-esp)))
@@ -451,29 +451,29 @@
                  (if (== (cast (ptr char) goto-fr)
                          (cast (ptr char) efp))
                      (goto LGOTO))
-                 ,@(lw:make-frame-resume) ; Æş¤ì»Ò´Ø¿ô¤Ç¤ÎÊÑ¹¹¤òÈ¿±Ç
+                 ,@(lw:make-frame-resume) ; å…¥ã‚Œå­é–¢æ•°ã§ã®å¤‰æ›´ã‚’åæ˜ 
                  ) )
-              ;; LW-SC¡¤main °Ê³°¤ÎÄÌ¾ï´Ø¿ô
+              ;; LW-SCï¼Œmain ä»¥å¤–ã®é€šå¸¸é–¢æ•°
               (t
-               ~(;; ¥Õ¥ì¡¼¥à¾ğÊó¤ÎÊİÂ¸,Æş¤ì»Ò´Ø¿ô¤ÎÀµµ¬²½ 
+               ~(;; ãƒ•ãƒ¬ãƒ¼ãƒ æƒ…å ±ã®ä¿å­˜,å…¥ã‚Œå­é–¢æ•°ã®æ­£è¦åŒ– 
                  ,@(lw:make-frame-save)
                    ,@(lw:make-normalize-nf)
-                   ;; call-id¤Î¹¹¿·
+                   ;; call-idã®æ›´æ–°
                    (= (fref efp -> call-id) ,(lw:finfo-next-call-id))
                    ;; return
                    ,(lw:make-suspend-return)
-                   ;; Éüµ¢°ÌÃÖ
+                   ;; å¾©å¸°ä½ç½®
                    (label ,(lw:finfo-add-resume-label) ())
-                   ;; C¥Õ¥ì¡¼¥à¾õÂÖ¤ÎÉü¸µ
+                   ;; Cãƒ•ãƒ¬ãƒ¼ãƒ çŠ¶æ…‹ã®å¾©å…ƒ
                    ,@(lw:make-frame-resume)
                    ) ))
-           ;; LW-SC»ş¡¤main/main°Ê³°¶¦ÄÌ¡ÊC¥¹¥¿¥Ã¥¯ÀÑ¤ßÄ¾¤·¥Õ¥é¥°¤òÎ©¤Æ¤ë¡Ë
+           ;; LW-SCæ™‚ï¼Œmain/mainä»¥å¤–å…±é€šï¼ˆCã‚¹ã‚¿ãƒƒã‚¯ç©ã¿ç›´ã—ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹ï¼‰
            ,@(unless lw:*all-in-estack*
                ~((= new-esp (+ esp 1)))))) )))
-  ;; lightweight¤Îfunction-call
-  ;; * argp (estack¾å¤Î°ú¿ô¤Î¾ì½ê¤Ø¤Î¥İ¥¤¥ó¥¿)¤òpush
-  ;; * °ú¿ô¤ÎÃÍ¤â½ç¤Ëpush
-  ;; * ¥Õ¥ì¡¼¥à¾ğÊó¤ÎÊİÂ¸¡¥resumeÍÑ¤Î¥é¥Ù¥ëÀßÃÖ¡¤¤ª¤è¤Óresume½èÍı¡¥
+  ;; lightweightã®function-call
+  ;; * argp (estackä¸Šã®å¼•æ•°ã®å ´æ‰€ã¸ã®ãƒã‚¤ãƒ³ã‚¿)ã‚’push
+  ;; * å¼•æ•°ã®å€¤ã‚‚é †ã«push
+  ;; * ãƒ•ãƒ¬ãƒ¼ãƒ æƒ…å ±ã®ä¿å­˜ï¼resumeç”¨ã®ãƒ©ãƒ™ãƒ«è¨­ç½®ï¼ŒãŠã‚ˆã³resumeå‡¦ç†ï¼
   ((#?#3=(the ,texp (call (the (ptr (lightweight ,@texp-list)) ,fexp) ,@exp-list))
     #?(the ,texp0 (= (the ,texp1 ,id) #3#)) )
    (with* (return-p (not (or (lw:thread-origin-p (lw:finfo-name lw:*current-func*))
@@ -483,8 +483,8 @@
            exp-rets (mapcar #'expression! exp-list)
            id-ret  (if-pattern-variable id (expression! ~(the ,texp1 ,id)))
            (fp-decl fp-prev fp-id)
-           ;; ¡Êglobal²½¤·¤¿¡ËÆş¤ì»Ò´Ø¿ô¥İ¥¤¥ó¥¿¤ÎÃÍ¤òµá¤á¤Æ°ì»şÊÑ¿ô¤ËÊİÂ¸
-           (if (lw:simple-exp-p fexp-ret t) ; ÉûºîÍÑ¤¬¤Ê¤¤¤³¤È¤¬ÌÀ¤é¤«¤Ê¾ì¹ç
+           ;; ï¼ˆglobalåŒ–ã—ãŸï¼‰å…¥ã‚Œå­é–¢æ•°ãƒã‚¤ãƒ³ã‚¿ã®å€¤ã‚’æ±‚ã‚ã¦ä¸€æ™‚å¤‰æ•°ã«ä¿å­˜
+           (if (lw:simple-exp-p fexp-ret t) ; å‰¯ä½œç”¨ãŒãªã„ã“ã¨ãŒæ˜ã‚‰ã‹ãªå ´åˆ
                (values nil nil fexp-ret)
              (with* (fp-type (type-expression! ~(ptr (lightweight ,@texp-list)))
                      new-id (generate-id "nf_tmp_fp"))
@@ -492,85 +492,85 @@
                        ~(= ,new-id ,fexp-ret)
                        new-id))))
      (declare (ignorable id-ret))
-     ;; ´Ø¿ôÆâ¤ËÆş¤ì»Ò´Ø¿ô¤¬Â¸ºß¤¹¤ë¡Êargp¤¬É¬Í×¤Ç¤¢¤ë¡Ë¥Õ¥é¥°
+     ;; é–¢æ•°å†…ã«å…¥ã‚Œå­é–¢æ•°ãŒå­˜åœ¨ã™ã‚‹ï¼ˆargpãŒå¿…è¦ã§ã‚ã‚‹ï¼‰ãƒ•ãƒ©ã‚°
      (setf (lw:finfo-argp lw:*current-func*) t)
-     ;; ÄÉ²Ã¤Î°ì»şÊÑ¿ô¤¬È¯À¸¤·¤Æ¤¤¤ì¤ĞÀë¸À¤òÄÉ²Ã
+     ;; è¿½åŠ ã®ä¸€æ™‚å¤‰æ•°ãŒç™ºç”Ÿã—ã¦ã„ã‚Œã°å®£è¨€ã‚’è¿½åŠ 
      (when fp-decl (lw:add-local-decl fp-decl))
-     ;; ÊÖ¤êÃÍ
+     ;; è¿”ã‚Šå€¤
      ~(begin
        ,.(unless return-p
            (list ~(def goto-fr (ptr char)) ))
        ,.(when fp-prev (list fp-prev))
        (= argp (aligned-add esp (sizeof (ptr char))))
-       ;; °ú¿ô¤ò½ç¤Ëpush¡ÊÀèÆ¬¤Î°ú¿ô¤¬top¤Ë¤¯¤ë¤è¤¦¤Ë¡Ë
+       ;; å¼•æ•°ã‚’é †ã«pushï¼ˆå…ˆé ­ã®å¼•æ•°ãŒtopã«ãã‚‹ã‚ˆã†ã«ï¼‰
        ,.(loop for exp-ret in (reverse exp-rets)
              collect (with1 type (gettype exp-ret) ~(push-arg ,type ,exp-ret argp)))
-       ;; Æş¤ì»Ò´Ø¿ô¤Ø¤Î¥İ¥¤¥ó¥¿¤òargp¤ËÃÖ¤¯
+       ;; å…¥ã‚Œå­é–¢æ•°ã¸ã®ãƒã‚¤ãƒ³ã‚¿ã‚’argpã«ç½®ã
        (= (mref-t (ptr closure-t) argp) ,fp-id)
-       ;; Æş¤ì»Ò´Ø¿ô¤ÎÀµµ¬²½¡ÊCL-SC¤Ç¤Ï´Ø¿ô¤ÎÀèÆ¬¤Ç¤¹¤Ç¤Ë¤ä¤Ã¤Æ¤¤¤ë¡Ë
+       ;; å…¥ã‚Œå­é–¢æ•°ã®æ­£è¦åŒ–ï¼ˆCL-SCã§ã¯é–¢æ•°ã®å…ˆé ­ã§ã™ã§ã«ã‚„ã£ã¦ã„ã‚‹ï¼‰
        ,@(unless lw:*all-in-estack* (lw:make-normalize-nf))
-       ;; ¥Õ¥ì¡¼¥à¾ğÊó¡Êº£¼Â¹ÔÃæ¤Î´Ø¿ô¤Î¶É½êÊÑ¿ô¤ä°ú¿ô¡Ë¤ÎÊİÂ¸
+       ;; ãƒ•ãƒ¬ãƒ¼ãƒ æƒ…å ±ï¼ˆä»Šå®Ÿè¡Œä¸­ã®é–¢æ•°ã®å±€æ‰€å¤‰æ•°ã‚„å¼•æ•°ï¼‰ã®ä¿å­˜
        ,@(lw:make-frame-save)
        ,@(when return-p
-           ~((= (fref efp -> argp) argp) ; ¸å¤ÇÊÖ¤êÃÍ¤ò³ÍÆÀ¤¹¤ë¤¿¤á
-             (= (fref efp -> tmp-esp) argp))) ; return¤·¤Ê¤¬¤éÅÁ¤¨¤ë¤¿¤á
+           ~((= (fref efp -> argp) argp) ; å¾Œã§è¿”ã‚Šå€¤ã‚’ç²å¾—ã™ã‚‹ãŸã‚
+             (= (fref efp -> tmp-esp) argp))) ; returnã—ãªãŒã‚‰ä¼ãˆã‚‹ãŸã‚
        ,@(if return-p
-             ;; LW-SC»ş¡¤main°Ê³°¤Î´Ø¿ô
-             ~(;; call-id¤Î¹¹¿·¡¥Æş¤ì»Ò´Ø¿ô¼Â¹Ô¸å¤³¤Î¾ì½ê¤ËÌá¤Ã¤Æ¤³¤ì¤ë¤è¤¦¤Ë
+             ;; LW-SCæ™‚ï¼Œmainä»¥å¤–ã®é–¢æ•°
+             ~(;; call-idã®æ›´æ–°ï¼å…¥ã‚Œå­é–¢æ•°å®Ÿè¡Œå¾Œã“ã®å ´æ‰€ã«æˆ»ã£ã¦ã“ã‚Œã‚‹ã‚ˆã†ã«
                (= (fref efp -> call-id) ,(lw:finfo-next-call-id))
-               ;; returnÊ¸¡ÊC¥¹¥¿¥Ã¥¯¤Î´¬¤­Ìá¤·³«»Ï¡Ë
+               ;; returnæ–‡ï¼ˆCã‚¹ã‚¿ãƒƒã‚¯ã®å·»ãæˆ»ã—é–‹å§‹ï¼‰
                ,(lw:make-suspend-return)
-               ;; Éüµ¢°ÌÃÖ¤Î¥é¥Ù¥ë¡¥Æş¤ì»Ò´Ø¿ô¤Î¼Â¹Ô¸å¡¤¤³¤³¤Ëgoto¤ÇÄ·¤ó¤Ç¤¯¤ë¡¥
+               ;; å¾©å¸°ä½ç½®ã®ãƒ©ãƒ™ãƒ«ï¼å…¥ã‚Œå­é–¢æ•°ã®å®Ÿè¡Œå¾Œï¼Œã“ã“ã«gotoã§è·³ã‚“ã§ãã‚‹ï¼
                (label ,(lw:finfo-add-resume-label) nil)
-               ;; C¥Õ¥ì¡¼¥à¾ğÊó¤ÎÉü¸µ
+               ;; Cãƒ•ãƒ¬ãƒ¼ãƒ æƒ…å ±ã®å¾©å…ƒ
                ,@(lw:make-frame-resume))
-             ;; CL-SC»ş¡¤¤Ş¤¿¤ÏLW-SC»ş¤Îmain¤ª¤è¤ÓÆş¤ì»Ò´Ø¿ô
+             ;; CL-SCæ™‚ï¼Œã¾ãŸã¯LW-SCæ™‚ã®mainãŠã‚ˆã³å…¥ã‚Œå­é–¢æ•°
              ~((= goto-fr (lw-call argp))
-               (if goto-fr              ; Àµ¾ï½ªÎ» or goto¤Ë¤è¤ëÈó¶É½êÃ¦½Ğ¤Î¥Á¥§¥Ã¥¯
-                                        ; goto¤Ê¤é¡¤goto-fr¤Ë¤Ï¥¸¥ã¥ó¥×Àè´Ø¿ô¤Îestack¾å¤Î¥Õ¥ì¡¼¥à¥İ¥¤¥ó¥¿
+               (if goto-fr              ; æ­£å¸¸çµ‚äº† or gotoã«ã‚ˆã‚‹éå±€æ‰€è„±å‡ºã®ãƒã‚§ãƒƒã‚¯
+                                        ; gotoãªã‚‰ï¼Œgoto-frã«ã¯ã‚¸ãƒ£ãƒ³ãƒ—å…ˆé–¢æ•°ã®estackä¸Šã®ãƒ•ãƒ¬ãƒ¼ãƒ ãƒã‚¤ãƒ³ã‚¿
                    (if (< (cast (ptr char) goto-fr)
                           (cast (ptr char) efp))
-                       ;; ¼«Ê¬¤è¤êÁ°¤Î´Ø¿ô¤¬¥¸¥ã¥ó¥×Àè
+                       ;; è‡ªåˆ†ã‚ˆã‚Šå‰ã®é–¢æ•°ãŒã‚¸ãƒ£ãƒ³ãƒ—å…ˆ
                        ,(if (lw:finfo-parent-func lw:*current-func*)
                             ~(return goto-fr)
                             ~(begin
                               (= (fref efp -> tmp-esp) goto-fr)
                               ,(lw:make-suspend-return)))
-                     ;; ¼«Ê¬¤¬¥¸¥ã¥ó¥×Àè
-                     ;; -> ´Ø¿ô¤ÎÀèÆ¬¤Ë¤¢¤ë swtich-case-goto¤Ë¤è¤Ã¤Æ½êË¾¤Î¾ì½ê¤Ë¥¸¥ã¥ó¥×
+                     ;; è‡ªåˆ†ãŒã‚¸ãƒ£ãƒ³ãƒ—å…ˆ
+                     ;; -> é–¢æ•°ã®å…ˆé ­ã«ã‚ã‚‹ swtich-case-gotoã«ã‚ˆã£ã¦æ‰€æœ›ã®å ´æ‰€ã«ã‚¸ãƒ£ãƒ³ãƒ—
                      (begin
                       (= (fref efp -> tmp-esp) 0)
                       (goto LGOTO))))
-               ;; Àµ¾ï½ªÎ»¤Ê¤éÂ³¤­¤ò¤ä¤ë¡¥
-               ;; LW-SC¤Ç¤âmain¤Î¥Õ¥ì¡¼¥à¤ÏÄÙ¤µ¤ì¤Æ¤¤¤Ê¤¤¤¬¡¤
-               ;; Æş¤ì»Ò´Ø¿ô¤Ë¤è¤Ã¤Æ½ñ¤­´¹¤¨¤é¤ì¤Æ¤¤¤ë¤«¤â¤·¤ì¤Ê¤¤¤Î¤Çresume¤ÏÉ¬Í×¡¥
+               ;; æ­£å¸¸çµ‚äº†ãªã‚‰ç¶šãã‚’ã‚„ã‚‹ï¼
+               ;; LW-SCã§ã‚‚mainã®ãƒ•ãƒ¬ãƒ¼ãƒ ã¯æ½°ã•ã‚Œã¦ã„ãªã„ãŒï¼Œ
+               ;; å…¥ã‚Œå­é–¢æ•°ã«ã‚ˆã£ã¦æ›¸ãæ›ãˆã‚‰ã‚Œã¦ã„ã‚‹ã‹ã‚‚ã—ã‚Œãªã„ã®ã§resumeã¯å¿…è¦ï¼
                ,@(unless lw:*all-in-estack* (lw:make-frame-resume)))
              )
-       ;; ÊÖ¤êÃÍ¤òestack¤«¤é³ÍÆÀ
+       ;; è¿”ã‚Šå€¤ã‚’estackã‹ã‚‰ç²å¾—
        ,@(if-pattern-variable id
              ~((= ,id-ret (mref-t ,texp1 ,(if return-p ~(fref efp -> argp) ~argp)) ))))))
-  ;; ¼±ÊÌ»Ò¡§
-  ;; ¡ö Æş¤ì»Ò´Ø¿ôÆâ¤Ë¤ª¤±¤ë¿Æ´Ø¿ô¤ÎÊÑ¿ô¤Ø¤Î»²¾È¤Ï xfp->id¤Î·Á¤ËÃÖ¤­´¹¤¨¤ë
-  ;; ¡ö ¥İ¥¤¥ó¥¿¤ò³ÍÆÀ¤·¤Æ¤¤¤ë¥í¡¼¥«¥ëÊÑ¿ô¤Ø¤Î»²¾È¤Ï efp->id ¤ËÃÖ¤­´¹¤¨¤ë
-  ;; ¡ö Æş¤ì»Ò´Ø¿ô¤Ø¤Î»²¾È¤Ï estack ¤Ø¤Î»²¾È¤ËÃÖ¤­´¹¤¨¤ë
+  ;; è­˜åˆ¥å­ï¼š
+  ;; ï¼Š å…¥ã‚Œå­é–¢æ•°å†…ã«ãŠã‘ã‚‹è¦ªé–¢æ•°ã®å¤‰æ•°ã¸ã®å‚ç…§ã¯ xfp->idã®å½¢ã«ç½®ãæ›ãˆã‚‹
+  ;; ï¼Š ãƒã‚¤ãƒ³ã‚¿ã‚’ç²å¾—ã—ã¦ã„ã‚‹ãƒ­ãƒ¼ã‚«ãƒ«å¤‰æ•°ã¸ã®å‚ç…§ã¯ efp->id ã«ç½®ãæ›ãˆã‚‹
+  ;; ï¼Š å…¥ã‚Œå­é–¢æ•°ã¸ã®å‚ç…§ã¯ estack ã¸ã®å‚ç…§ã«ç½®ãæ›ãˆã‚‹
   (#?(the ,texp ,id[identifier])
    (multiple-value-bind (n-up kind find-finfo) (lw:howmany-outer id)
      (case kind
        ((:var)
         (acond 
-         ;; ¿Æ´Ø¿ô¤Îid -- "xfp->..."
+         ;; è¦ªé–¢æ•°ã®id -- "xfp->..."
          ((> n-up 0)
           ~(fref 
             ,@(apply #'append
                      (make-list n-up :initial-element ~(xfp ->)) )
             ,id))
-         ;; ÌÀ¼¨Åª¥¹¥¿¥Ã¥¯¤Î¸½ºß¤Î¥Õ¥ì¡¼¥à¤ËÃÖ¤«¤ì¤¿¤â¤Î -- "efp->... "
+         ;; æ˜ç¤ºçš„ã‚¹ã‚¿ãƒƒã‚¯ã®ç¾åœ¨ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã«ç½®ã‹ã‚ŒãŸã‚‚ã® -- "efp->... "
          ((and (= n-up 0) (lw:estack-variable-p id find-finfo t))
           ~(the ,texp (fref efp -> ,id)) )
-         ;; staticÄêµÁ¤µ¤ì¤¿localÊÑ¿ô -> Ì¾Á°¤òext-id¤ËÊÑ¹¹
+         ;; staticå®šç¾©ã•ã‚ŒãŸlocalå¤‰æ•° -> åå‰ã‚’ext-idã«å¤‰æ›´
          ((and (= n-up 0) (lw:static-variable-p id find-finfo t))
           ~(the ,texp ,it))
-         ;; ¤½¤ÎÂ¾¡¥½èÍıÉÔÍ×
+         ;; ãã®ä»–ï¼å‡¦ç†ä¸è¦
          (t ~(the ,texp ,id)) ))
        ((:nestfunc)
         (cond
@@ -581,13 +581,13 @@
                  ,id)) )
          (t
           ~(ptr (fref efp -> ,id))) ))
-       ((nil)                           ; ½èÍıÉÔÍ×
+       ((nil)                           ; å‡¦ç†ä¸è¦
         ~(the ,texp ,id) )
        (otherwise
         (ierror "Unknown kind of variable: ~S." kind)) )) )
   )
 
-;;; expression-with-typeinfo ¤«¤étype-expression¤òÆÀ¤ë¡£
+;;; expression-with-typeinfo ã‹ã‚‰type-expressionã‚’å¾—ã‚‹ã€‚
 (defrule gettype nestfunc
   ((#?(the ,texp ,exp))
    texp)
@@ -595,7 +595,7 @@
    (ierror "gettype: ~S is not expression." x))
   )
 
-;;; bodyÃæ¤Î ptr¤Ç¥İ¥¤¥ó¥¿¤ò³ÍÆÀ¤·¤Æ¤¤¤ëÊÑ¿ô¤Î¥ê¥¹¥È¤òÊÖ¤¹
+;;; bodyä¸­ã® ptrã§ãƒã‚¤ãƒ³ã‚¿ã‚’ç²å¾—ã—ã¦ã„ã‚‹å¤‰æ•°ã®ãƒªã‚¹ãƒˆã‚’è¿”ã™
 (defrule search-ptr nestfunc
   ((#?(,@body))
    (remove-duplicates (mapcan #'search-ptr2 body) :test #'eq))

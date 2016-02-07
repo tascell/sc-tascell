@@ -32,13 +32,13 @@
 ;; (deftype size-t long)
 (deftype align-t double)
 
-;;; (def d desc-t) ¤Î²¼°Ì2¥Ó¥Ã¥È¤ËËä¤á¹ş¤à
+;;; (def d desc-t) ã®ä¸‹ä½2ãƒ“ãƒƒãƒˆã«åŸ‹ã‚è¾¼ã‚€
 (%defconstant TYPE-STRUCT 0)
 (%defconstant TYPE-REF-ARRAY 1)
 (%defconstant TYPE-NONREF-ARRAY 3)
 
-;;; ¹½Â¤ÂÎ<sid>¤Î¹½Â¤¡Êhsc.rule¤è¤ê¡Ë
-;; ~(def (struct ,data-sid) ,@sbody-ret) ; ¸µ¤Î¹½Â¤ÂÎ¾ğÊó¤Ï <sid>_data
+;;; æ§‹é€ ä½“<sid>ã®æ§‹é€ ï¼ˆhsc.ruleã‚ˆã‚Šï¼‰
+;; ~(def (struct ,data-sid) ,@sbody-ret) ; å…ƒã®æ§‹é€ ä½“æƒ…å ±ã¯ <sid>_data
 ;; ~(def (struct ,sid)     ; <sid> --> {<type_info>, <ptr to descriptor>, <sid>_data}
 ;;   (def d desc-t)        ; (ptr (struct desc-struct))
 ;;   (def data (struct ,data-sid))
@@ -54,7 +54,7 @@
 (deftype desc-t (ptr descriptor))
 
 (def (struct array-object)
-  (decl d desc-t)   ; ²¼°Ì2bit°Ê³°¤Ï¥À¥ß¡¼
+  (decl d desc-t)   ; ä¸‹ä½2bitä»¥å¤–ã¯ãƒ€ãƒŸãƒ¼
   (decl length int)
   (decl el-size size-t)
   (decl size size-t)

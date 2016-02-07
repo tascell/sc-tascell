@@ -38,16 +38,16 @@
 (defconstant comma-dot 'BQ-COMMA-DOT)
 (defconstant optional 'OPTIONAL)
 
-;; pattern¤òread¤¹¤ë¤È¤­¤Î¥Ñ¥Ã¥±¡¼¥¸¡¤¥ê¡¼¥É¥Æ¡¼¥Ö¥ë
-;; nil ¤Ê¤éÊÑ¹¹¤·¤Ê¤¤.
+;; patternã‚’readã™ã‚‹ã¨ãã®ãƒ‘ãƒƒã‚±ãƒ¼ã‚¸ï¼Œãƒªãƒ¼ãƒ‰ãƒ†ãƒ¼ãƒ–ãƒ«
+;; nil ãªã‚‰å¤‰æ›´ã—ãªã„.
 (defvar *pattern-package* sc-file:*code-package*)
-;; ¥Ñ¥¿¡¼¥óÊÑ¿ô¤òÆÉ¤à¤È¤­¤Î¥Ñ¥Ã¥±¡¼¥¸
-;; pattern¤Î³°¤Î¥Ñ¥Ã¥±¡¼¥¸¤òread³«»Ï»ş¤Ë³Ğ¤¨¤Æ¤ª¤¯
+;; ãƒ‘ã‚¿ãƒ¼ãƒ³å¤‰æ•°ã‚’èª­ã‚€ã¨ãã®ãƒ‘ãƒƒã‚±ãƒ¼ã‚¸
+;; patternã®å¤–ã®ãƒ‘ãƒƒã‚±ãƒ¼ã‚¸ã‚’readé–‹å§‹æ™‚ã«è¦šãˆã¦ãŠã
 (defvar *outside-pattern-package*)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; read´Ä¶­¤òÊÑ¤¨¤ë¥Ş¥¯¥í
+;;;; readç’°å¢ƒã‚’å¤‰ãˆã‚‹ãƒã‚¯ãƒ­
 (defmacro with-pattern-package (&body body)
   (with-fresh-variables (package-var)
     `(let ((,package-var (aif *pattern-package* it *package*))
@@ -70,16 +70,16 @@
                              ,@body)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; ÄÌ¾ï¤Îreadtable´Ä¶­¤ÎÊÑ¹¹
+;;;; é€šå¸¸ã®readtableç’°å¢ƒã®å¤‰æ›´
 
-;;; #?<pattern> ¤Ç ,¤ä@ Åù¤ò´Ş¤à¥Ñ¥¿¡¼¥ó¤ò½ñ¤±¤ë
+;;; #?<pattern> ã§ ,ã‚„@ ç­‰ã‚’å«ã‚€ãƒ‘ã‚¿ãƒ¼ãƒ³ã‚’æ›¸ã‘ã‚‹
 (set-dispatch-macro-character
  #\# #\?
  #'(lambda (stream char1 char2)
      (declare (ignore char1 char2))
      (read-pattern stream t nil t)))
 
-;;; `~'¡§Â³¤¯S¼°¤¬ SC-readtable ¤ÇÆÉ¤Ş¤ì¤ëback-quote
+;;; `~'ï¼šç¶šãSå¼ãŒ SC-readtable ã§èª­ã¾ã‚Œã‚‹back-quote
 (set-macro-character
  #\~
  #'(lambda (stream char)
@@ -149,7 +149,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; #\~ ÆÉ¤ß¹ş¤ßÍÑ¡¤¼«ºî¤Îbackquote¥Ş¥¯¥íÅ¸³«´Ø¿ô
+;;;; #\~ èª­ã¿è¾¼ã¿ç”¨ï¼Œè‡ªä½œã®backquoteãƒã‚¯ãƒ­å±•é–‹é–¢æ•°
 (defun quasiquote-expand (exp)
   (assert (not (pat-commaat-p exp)))
   (assert (not (pat-commadot-p exp)))
@@ -214,7 +214,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; ¥Ñ¥¿¡¼¥ó¤ò°·¤¦´Ø¿ô¡¦¥Ş¥¯¥í
+;;;; ãƒ‘ã‚¿ãƒ¼ãƒ³ã‚’æ‰±ã†é–¢æ•°ãƒ»ãƒã‚¯ãƒ­
 
 (defstruct (:pattern (:print-function pattern-print))
   body
@@ -226,13 +226,13 @@
         (match-check-list x))
     (pattern-_matching-list x)))
 
-;; ¥Ñ¥¿¡¼¥óÈ½Äê½Ò¸ì
+;; ãƒ‘ã‚¿ãƒ¼ãƒ³åˆ¤å®šè¿°èª
 #+obsolete
 (defun pattern-p (x)
   (and (consp x)
        (eq 'pattern (car x))))
 
-;; ¥Ñ¥¿¡¼¥ó¤Î¼ïÎà
+;; ãƒ‘ã‚¿ãƒ¼ãƒ³ã®ç¨®é¡
 (defun pat-comma-p (pbody)
   (and (consp pbody)
        (eq comma (car pbody))))
@@ -246,8 +246,8 @@
   (and (consp pbody)
        (eq optional (car pbody))))
 
-;;; pattern¤ÎÆâÉôÉ½¸½¤ò¡¢, ¤ä ,@ ¤ò»È¤Ã¤¿·Á¤ÎÊ¸»úÎó¤Ç½ĞÎÏ
-;;; string2pat¤ÎµÕ
+;;; patternã®å†…éƒ¨è¡¨ç¾ã‚’ã€, ã‚„ ,@ ã‚’ä½¿ã£ãŸå½¢ã®æ–‡å­—åˆ—ã§å‡ºåŠ›
+;;; string2patã®é€†
 (defun pattern-print (pat ostream depth)
   (assert (pattern-p pat))
   (with-pattern-package
@@ -276,20 +276,20 @@
                   " "))))
     (format nil "~S" pbody)))
 
-;; ¥Ñ¥¿¡¼¥ó¤òLisp¤ÇÉ¾²Á¤·¤¿¤È¤­
+;; ãƒ‘ã‚¿ãƒ¼ãƒ³ã‚’Lispã§è©•ä¾¡ã—ãŸã¨ã
 #+obsolete
 (defmacro pattern (&whole x y)
   (declare (ignore y))
   `',x)
 
 
-;; ¥Ñ¥¿¡¼¥ó¤òÆÉ¤à´Ä¶­¤Çread
+;; ãƒ‘ã‚¿ãƒ¼ãƒ³ã‚’èª­ã‚€ç’°å¢ƒã§read
 (defun read-pattern (&rest read-args)
   (with-pattern-read-environment
       #+obsolete `(pattern ,(apply #'read read-args))
       (make-pattern :body (apply #'read read-args))))
 
-;; ¥Ñ¥¿¡¼¥ó¤òÆÉ¤à´Ä¶­¤Çread-from-string
+;; ãƒ‘ã‚¿ãƒ¼ãƒ³ã‚’èª­ã‚€ç’°å¢ƒã§read-from-string
 (defun string2pat (str)
   (with-input-from-string (istr str)
     (read-pattern istr)))
