@@ -36,16 +36,16 @@
 (c-exp "#include<stdlib.h>")
 (c-exp "#include\"xccmem.h\"")
 
-;;; ¥ï¡¼¥«¤´¤È¤Ë½èÍı¤·¤¿¥¿¥¹¥¯¤Î¿ô¤ò¥«¥¦¥ó¥È¤·¤ÆÉ½¼¨
+;;; ãƒ¯ãƒ¼ã‚«ã”ã¨ã«å‡¦ç†ã—ãŸã‚¿ã‚¹ã‚¯ã®æ•°ã‚’ã‚«ã‚¦ãƒ³ãƒˆã—ã¦è¡¨ç¤º
 ;; (%defconstant COUNT-NTASK)
-;;; »ş¡¹v-list¤ÎÀ°¹çÀ­¤ò¥Á¥§¥Ã¥¯
+;;; æ™‚ã€…v-listã®æ•´åˆæ€§ã‚’ãƒã‚§ãƒƒã‚¯
 ;; (%defconstant CHECK)
-;;; search1-p ¤Ç¤ÎÄºÅÀºÆË¬¥Á¥§¥Ã¥¯¤Ë¤ª¤±¤ë¥á¥â¥ê¥Ğ¥ê¥¢¤ÎÊıË¡
+;;; search1-p ã§ã®é ‚ç‚¹å†è¨ªãƒã‚§ãƒƒã‚¯ã«ãŠã‘ã‚‹ãƒ¡ãƒ¢ãƒªãƒãƒªã‚¢ã®æ–¹æ³•
 (%ifndef* SEARCH-P-MEM-BARRIER-1
   (%ifndef* SEARCH-P-MEM-BARRIER-2
     (%ifndef* SEARCH-P-MEM-BARRIER-3
       (%defconstant SEARCH-P-MEM-BARRIER-3)))) ; 1 or 2 or 3 (default=3)
-;;; Åı·×¾ğÊó¤ò¤È¤ë
+;;; çµ±è¨ˆæƒ…å ±ã‚’ã¨ã‚‹
 ;; (%defconstant STATISTICS)
 
 (%ifndef* NF-TYPE
@@ -80,42 +80,42 @@
   (%defconstant CALL-BOUND 30))
 
 ;;;;;;;;;;
-(def V-Length int)                      ; ¥°¥é¥Õ¤ÎÁ´ÄºÅÀ¿ô
+(def V-Length int)                      ; ã‚°ãƒ©ãƒ•ã®å…¨é ‚ç‚¹æ•°
 
 (def (struct vertex)
-  (def degree int)                      ; ÀÜÂ³¤·¤Æ¤¤¤ë»Ş¤Î¿ô
-  (def first-e int)                     ; »Ş¤Î¤¦¤Á¤Î1¤Ä¡Ê»Ä¤ê¤Ïnext-e¤ÇÃ©¤ë¡Ë
-  (def parent int))                     ; spanning tree¤Î¿Æ¤ÎÄºÅÀID+1¡¤Ì¤Äê¤Î¾ì¹ç¤Ï0¡¤root¤Ï¼«Ê¬¼«¿È¤ò»Ø¤¹
+  (def degree int)                      ; æ¥ç¶šã—ã¦ã„ã‚‹æã®æ•°
+  (def first-e int)                     ; æã®ã†ã¡ã®1ã¤ï¼ˆæ®‹ã‚Šã¯next-eã§è¾¿ã‚‹ï¼‰
+  (def parent int))                     ; spanning treeã®è¦ªã®é ‚ç‚¹ID+1ï¼Œæœªå®šã®å ´åˆã¯0ï¼Œrootã¯è‡ªåˆ†è‡ªèº«ã‚’æŒ‡ã™
 
 (def VV (array (struct vertex) MAX-V))
 
 ;;;;;;;;;;
-(def E-Length int)                      ; ¥°¥é¥Õ¤ÎÁ´»Ş¿ô
+(def E-Length int)                      ; ã‚°ãƒ©ãƒ•ã®å…¨ææ•°
 
 (def (struct edge)
-  (def next-v int)                      ; »Ş¤¬»Ø¤·¤Æ¤¤¤ëÄºÅÀ
-  (def next-e int))                     ; ¼¡¤Î»Ş
+  (def next-v int)                      ; æãŒæŒ‡ã—ã¦ã„ã‚‹é ‚ç‚¹
+  (def next-e int))                     ; æ¬¡ã®æ
 
 (def EE (array (struct edge) MAX-E))
 
 ;;;;;;;;;;
 ;;; list of arrays of vertices
-;;; ¡Êºî¶È¥¹¥¿¥Ã¥¯¡Ë
+;;; ï¼ˆä½œæ¥­ã‚¹ã‚¿ãƒƒã‚¯ï¼‰
 
 (def (struct v-list-body)
-  (def next (ptr (struct v-list-body)))   ; ¼¡¤ÎÍ×ÁÇ
-  (def i int)                             ; ¥¹¥¿¥Ã¥¯¥İ¥¤¥ó¥¿¡Ê(== i V-LIST-ALLOC-SIZE)¤¬Äì¡Ë
-  (def v (array int V-LIST-ALLOC-SIZE)))  ; ÄºÅÀID¤Î¥ê¥¹¥È
+  (def next (ptr (struct v-list-body)))   ; æ¬¡ã®è¦ç´ 
+  (def i int)                             ; ã‚¹ã‚¿ãƒƒã‚¯ãƒã‚¤ãƒ³ã‚¿ï¼ˆ(== i V-LIST-ALLOC-SIZE)ãŒåº•ï¼‰
+  (def v (array int V-LIST-ALLOC-SIZE)))  ; é ‚ç‚¹IDã®ãƒªã‚¹ãƒˆ
 
-(def V-List-Length int)                 ; v-list-body¥ê¥¹¥È¤ÎÄ¹¤µ
-(def V-List (ptr (struct v-list-body))) ; v-list-body¥ê¥¹¥È¤ÎÀèÆ¬
+(def V-List-Length int)                 ; v-list-bodyãƒªã‚¹ãƒˆã®é•·ã•
+(def V-List (ptr (struct v-list-body))) ; v-list-bodyãƒªã‚¹ãƒˆã®å…ˆé ­
 
 (def (struct v-list-head)
   (def first (ptr (struct v-list-body)))
   (def last (ptr (struct v-list-body)))
   (def length int))
 
-;;; ÊÂÎóÈÇ¤Ç¤Ï¥ï¡¼¥«¤´¤È¤Ë¥¹¥¿¥Ã¥¯¤ò»ı¤Ä
+;;; ä¸¦åˆ—ç‰ˆã§ã¯ãƒ¯ãƒ¼ã‚«ã”ã¨ã«ã‚¹ã‚¿ãƒƒã‚¯ã‚’æŒã¤
 (def worker-data
     (%ifdef* COUNT-NTASK
       (def n-task int))
@@ -132,14 +132,14 @@
   (= WDATA.V-List.length 0)
   )
 
-;;; Åı·×¾ğÊó
+;;; çµ±è¨ˆæƒ…å ±
 (%ifdef* STATISTICS
   (%defconstant LOOP-MAX 1000)
-  (def N-Iter int 0)                          ; search[-p[-array]]¤Ç¤ÎÈ¿Éü²ó¿ô
-  (def V-List-Remain (array int LOOP-MAX))    ; ³ÆÈ¿Éü³«»Ï»ş¤Î¥ê¥¹¥È¤ÎÄ¹¤µ
-  (def Visited-Vertices (array int LOOP-MAX)) ; ³ÆÈ¿Éü³«»Ï»ş¤ËË¬ÌäºÑ¤ß¤ÎÄºÅÀ¿ô
+  (def N-Iter int 0)                          ; search[-p[-array]]ã§ã®åå¾©å›æ•°
+  (def V-List-Remain (array int LOOP-MAX))    ; å„åå¾©é–‹å§‹æ™‚ã®ãƒªã‚¹ãƒˆã®é•·ã•
+  (def Visited-Vertices (array int LOOP-MAX)) ; å„åå¾©é–‹å§‹æ™‚ã«è¨ªå•æ¸ˆã¿ã®é ‚ç‚¹æ•°
   
-  ;; ÁöºººÑ¤ß¤ÎÄºÅÀ¿ô
+  ;; èµ°æŸ»æ¸ˆã¿ã®é ‚ç‚¹æ•°
   (def (csym::count-visited-vertices) (csym::fn int void)
     (def v int)
     (def n int 0)
@@ -158,8 +158,8 @@
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; v-list-body¤ò1¸Äpush
-;;; length¤ÎÃÍ¤ÏÊÌÅÓ½èÍı¤¹¤ëÉ¬Í×¤¬¤¢¤ë¤Î¤ÇÃí°Õ
+;;; v-list-bodyã‚’1å€‹push
+;;; lengthã®å€¤ã¯åˆ¥é€”å‡¦ç†ã™ã‚‹å¿…è¦ãŒã‚ã‚‹ã®ã§æ³¨æ„
 (def (csym::alloc-v-list next) (csym::fn (ptr (struct v-list-body)) (ptr (struct v-list-body)))
   (def a (ptr (struct v-list-body)))
   (= a (cast (ptr (struct v-list-body))
@@ -168,15 +168,15 @@
   (= a->i V-LIST-ALLOC-SIZE)
   (return a))
 
-;;; v-list-body¤ò1¸Äpop
-;;; length¤ÎÃÍ¤ÏÊÌÅÓ½èÍı¤¹¤ëÉ¬Í×¤¬¤¢¤ë¤Î¤ÇÃí°Õ
+;;; v-list-bodyã‚’1å€‹pop
+;;; lengthã®å€¤ã¯åˆ¥é€”å‡¦ç†ã™ã‚‹å¿…è¦ãŒã‚ã‚‹ã®ã§æ³¨æ„
 (def (csym::dealloc-v-list a) (csym::fn (ptr (struct v-list-body)) (ptr (struct v-list-body)))
   (def next (ptr (struct v-list-body)))
   (= next a->next)
   (csym::free a)
   (return next))
 
-;;; ¡Ê¥Ç¥Ğ¥Ã¥°ÍÑ¡Ëv-list-last¤¬v-list¤ÎºÇ¸å¤«¥Á¥§¥Ã¥¯
+;;; ï¼ˆãƒ‡ãƒãƒƒã‚°ç”¨ï¼‰v-list-lastãŒv-listã®æœ€å¾Œã‹ãƒã‚§ãƒƒã‚¯
 (def (csym::check-last v-list v-list-last info)
     (csym::fn void (ptr (struct v-list-body)) (ptr (struct v-list-body)) (ptr char))
   (def cur (ptr (struct v-list-body)))
@@ -185,7 +185,7 @@
   (when (!= cur v-list-last)
     (csym::fprintf stderr "!! last is incorrect. %s ~%" info)))
 
-;;; ¡Ê¥Ç¥Ğ¥Ã¥°ÍÑ¡Ëv-list¤ÎÄ¹¤µ¤¬len-expect¤Ç¤¢¤ë¤«¥Á¥§¥Ã¥¯
+;;; ï¼ˆãƒ‡ãƒãƒƒã‚°ç”¨ï¼‰v-listã®é•·ã•ãŒlen-expectã§ã‚ã‚‹ã‹ãƒã‚§ãƒƒã‚¯
 (def (csym::check-length v-list len-expect info) (csym::fn void (ptr (struct v-list-body)) int (ptr char))
   (def cur (ptr (struct v-list-body)))
   (def len int 0)
@@ -194,15 +194,15 @@
   (when (!= len len-expect)
     (csym::fprintf stderr "!! Unexpected length len:%d expect:%d %s~%" len len-expect info)))
 
-;;; ¡Ê¥Ç¥Ğ¥Ã¥°ÍÑ¡Ëcheck-last and check-length
+;;; ï¼ˆãƒ‡ãƒãƒƒã‚°ç”¨ï¼‰check-last and check-length
 (def (csym::check-v-list v-list v-list-last len-expect info)
     (csym::fn void (ptr (struct v-list-body)) (ptr (struct v-list-body)) int (ptr char))
   (csym::check-length v-list len-expect info)
   (csym::check-last v-list v-list-last info))
 
-;;; v-list a¤Î¸å¤í¤Ëb¤òÏ¢·ë¡ÊÇË²õÅª¡Ë
-;;; a-last¤¬¤ï¤«¤ë¾ì¹ç¤ÏÍ¿¤¨¤Æ¤ª¤¯¤ÈÁ°¤«¤é¤¿¤É¤é¤Ê¤¤
-;;; length¤ÎÃÍ¤ÏÊÌÅÓ½èÍı¤¹¤ëÉ¬Í×¤¬¤¢¤ë¤Î¤ÇÃí°Õ
+;;; v-list aã®å¾Œã‚ã«bã‚’é€£çµï¼ˆç ´å£Šçš„ï¼‰
+;;; a-lastãŒã‚ã‹ã‚‹å ´åˆã¯ä¸ãˆã¦ãŠãã¨å‰ã‹ã‚‰ãŸã©ã‚‰ãªã„
+;;; lengthã®å€¤ã¯åˆ¥é€”å‡¦ç†ã™ã‚‹å¿…è¦ãŒã‚ã‚‹ã®ã§æ³¨æ„
 (def (csym::nconc-v-list a a-last b)
     (csym::fn (ptr (struct v-list-body)) (ptr (struct v-list-body)) (ptr (struct v-list-body)) (ptr (struct v-list-body)))
   (def cur (ptr (struct v-list-body)))
@@ -218,7 +218,7 @@
     (else
      (return b))))
 
-;;; v-list¤òÇÛÎó²½
+;;; v-listã‚’é…åˆ—åŒ–
 (def (csym::v-list-to-array buf v-list-first len)
     (csym::fn void (ptr (ptr (struct v-list-body))) (ptr (struct v-list-body)) int)
   (def i int)
@@ -234,15 +234,15 @@
 ;; (%defconstant USE-CAS-IN-SEARCH2 1)
 (def (csym::search-s2 fv) (csym::fn void int)
   (def my-v-list (ptr (struct v-list-body)))
-  (def my-v-list-length int)            ; ºî¶ÈÃæ¤Îv-list-body
-  (def vi int)                          ; ¥í¡¼¥«¥ë¤Ê¥¹¥¿¥Ã¥¯¥İ¥¤¥ó¥¿¡Ê(== vi V-LIST-ALLOC-SIZE)¤¬Äì¡Ë
+  (def my-v-list-length int)            ; ä½œæ¥­ä¸­ã®v-list-body
+  (def vi int)                          ; ãƒ­ãƒ¼ã‚«ãƒ«ãªã‚¹ã‚¿ãƒƒã‚¯ãƒã‚¤ãƒ³ã‚¿ï¼ˆ(== vi V-LIST-ALLOC-SIZE)ãŒåº•ï¼‰
   (= (fref (aref VV fv) parent) (+ fv 1))
   (= my-v-list (csym::alloc-v-list 0))
   (= my-v-list-length 1)
   (= vi my-v-list->i)
-  (= (aref my-v-list->v (-- vi)) fv)    ; ¥¹¥¿¥Ã¥¯¤ËºÇ½é¤ÎÍ×ÁÇÄÉ²Ã
+  (= (aref my-v-list->v (-- vi)) fv)    ; ã‚¹ã‚¿ãƒƒã‚¯ã«æœ€åˆã®è¦ç´ è¿½åŠ 
   (while (< vi V-LIST-ALLOC-SIZE)
-    (def v int (aref my-v-list->v (inc vi))) ; ¥¹¥¿¥Ã¥¯¤«¤é°ìÍ×ÁÇ¼è¤ê½Ğ¤¹
+    (def v int (aref my-v-list->v (inc vi))) ; ã‚¹ã‚¿ãƒƒã‚¯ã‹ã‚‰ä¸€è¦ç´ å–ã‚Šå‡ºã™
     (def i int)
     (def d int (fref (aref VV v) degree))
     (def e int (fref (aref VV v) first-e))
@@ -250,23 +250,23 @@
       (def nv int (fref (aref EE e) next-v))
       (when (== (fref (aref VV nv) parent) 0)
         (when (%ifdef* USE-CAS-IN-SEARCH2
-                (not (csym::cas-int (fref (aref VV nv) parent) 0 (+ v 1))) ; »Ş¤ÎÀè¤ÎÄºÅÀ¤Î¿Æ¤ò¼«Ê¬¤Ë¥»¥Ã¥È¡¥À®¸ù¤·¤¿¤é0
+                (not (csym::cas-int (fref (aref VV nv) parent) 0 (+ v 1))) ; æã®å…ˆã®é ‚ç‚¹ã®è¦ªã‚’è‡ªåˆ†ã«ã‚»ãƒƒãƒˆï¼æˆåŠŸã—ãŸã‚‰0
                 %else
                 1)
            (%ifndef* USE-CAS-IN-SEARCH2
              (= (fref (aref VV nv) parent) (+ v 1)))
-           (when (<= vi 0)              ; ÇÛÎó¤¬°ìÇÕ¤Ë¤Ê¤Ã¤¿¤év-list-body¤òpush
-             (= my-v-list->i vi)        ; ¥¹¥¿¥Ã¥¯¥İ¥¤¥ó¥¿¤ò¹½Â¤ÂÎ¤ËÈ¿±Ç
+           (when (<= vi 0)              ; é…åˆ—ãŒä¸€æ¯ã«ãªã£ãŸã‚‰v-list-bodyã‚’push
+             (= my-v-list->i vi)        ; ã‚¹ã‚¿ãƒƒã‚¯ãƒã‚¤ãƒ³ã‚¿ã‚’æ§‹é€ ä½“ã«åæ˜ 
              (= my-v-list (csym::alloc-v-list my-v-list))
              (inc my-v-list-length)
              (= vi my-v-list->i))
-           (= (aref my-v-list->v (-- vi)) nv)))) ; »Ş¤ÎÀè¤ÎÄºÅÀ¤ò¥¹¥¿¥Ã¥¯¤ËÄÉ²Ã
-    (while (and (== vi V-LIST-ALLOC-SIZE) ; ¥¹¥¿¥Ã¥¯¤¬¶õ¤Ë¤Ê¤Ã¤¿¤év-list-body¤òpop
+           (= (aref my-v-list->v (-- vi)) nv)))) ; æã®å…ˆã®é ‚ç‚¹ã‚’ã‚¹ã‚¿ãƒƒã‚¯ã«è¿½åŠ 
+    (while (and (== vi V-LIST-ALLOC-SIZE) ; ã‚¹ã‚¿ãƒƒã‚¯ãŒç©ºã«ãªã£ãŸã‚‰v-list-bodyã‚’pop
                 (> my-v-list-length 1))
       (= my-v-list (csym::dealloc-v-list my-v-list))
       (dec my-v-list-length)
       (= vi my-v-list->i)))
-  (= my-v-list->i vi))                  ; ¥¹¥¿¥Ã¥¯¥İ¥¤¥ó¥¿¤ò¹½Â¤ÂÎ¤ËÈ¿±Ç¡Ê°ì±ş¡Ë
+  (= my-v-list->i vi))                  ; ã‚¹ã‚¿ãƒƒã‚¯ãƒã‚¤ãƒ³ã‚¿ã‚’æ§‹é€ ä½“ã«åæ˜ ï¼ˆä¸€å¿œï¼‰
 
 ;;;;;;;;;;;;;;;;;;;;
 
@@ -277,13 +277,13 @@
   (def d int (fref (aref VV v) degree))
   (def e int (fref (aref VV v) first-e))
   ;; (DEBUG-PRINT 1 "search1 v:%d b:%d d:%d~%" v b d)
-  ;; ¤¦¤Ş¤¯do-many¤Ë¤Ç¤­¤ë¤«¡©
+  ;; ã†ã¾ãdo-manyã«ã§ãã‚‹ã‹ï¼Ÿ
   (for ((= i 0) (< i d) (exps (inc i) (= e (fref (aref EE e) next-e))))
     (def nv int (fref (aref EE e) next-v))
     ;; (DEBUG-PRINT 1 "nv: %d~%" nv)
     (when (== (fref (aref VV nv) parent) 0)
       (when (%ifdef* USE-CAS-IN-SEARCH1
-              (not (csym::cas-int (fref (aref VV nv) parent) 0 (+ v 1))) ; »Ş¤ÎÀè¤ÎÄºÅÀ¤Î¿Æ¤ò¼«Ê¬¤Ë¥»¥Ã¥È¡¥cas-int¤ÎÃÍ¤ÏÀ®¸ù¤·¤¿¤é0
+              (not (csym::cas-int (fref (aref VV nv) parent) 0 (+ v 1))) ; æã®å…ˆã®é ‚ç‚¹ã®è¦ªã‚’è‡ªåˆ†ã«ã‚»ãƒƒãƒˆï¼cas-intã®å€¤ã¯æˆåŠŸã—ãŸã‚‰0
               %else
               1)
         (%ifndef* USE-CAS-IN-SEARCH1
@@ -309,7 +309,7 @@
   (DEBUG-PRINT 1 "V-List-Length: %d~%" V-List-Length)
   (do-while (or (> V-List-Length 1)
                 (< V-List->i V-LIST-ALLOC-SIZE))
-    ;; V-List¤òmy-v-list¤Ë°Ü¤¹
+    ;; V-Listã‚’my-v-listã«ç§»ã™
     (= my-v-list V-List) (= mlist my-v-list)
     (= my-v-list-length V-List-Length) (= mlist-length my-v-list-length)
     (= V-List (csym::alloc-v-list 0))
@@ -344,7 +344,7 @@
       (DEBUG-PRINT 1 "Worker %d starts %d-th task (t-search1)~%" WORKER-ID WDATA.n-task))
   (def stack-created-p int 0)
   (unless WDATA.V-List.first
-    ;; WDATA.V-List¤ò½é´ü²½
+    ;; WDATA.V-Listã‚’åˆæœŸåŒ–
     (= WDATA.V-List.first (csym::alloc-v-list 0))
     (= WDATA.V-List.length 1)
     (= WDATA.V-List.last WDATA.V-List.first)
@@ -376,7 +376,7 @@
 ;;
 (%ifdef* SEARCH-P-MEM-BARRIER-1
   (%defmacro DUP-CHECK (&body body)
-    `(unless (csym::cas-int (fref (aref VV nv) parent) 0 (+ v 1)) ; À®¸ù¤·¤¿¤é0
+    `(unless (csym::cas-int (fref (aref VV nv) parent) 0 (+ v 1)) ; æˆåŠŸã—ãŸã‚‰0
        (csym::start_access_after_lock)
        ,@body))
   %else
@@ -403,9 +403,9 @@
   (do-many for i from k0 to k1
     (= nv (fref (aref EE e) next-v))
     (DUP-CHECK
-     (if (> b 0)                        ; boundary¤ËÃ£¤·¤Æ¤¤¤Ê¤±¤ì¤Ğ¿¼¤µÍ¥Àè
+     (if (> b 0)                        ; boundaryã«é”ã—ã¦ã„ãªã‘ã‚Œã°æ·±ã•å„ªå…ˆ
          (search1-p nv (- b 1) 0 (fref (aref VV nv) degree))
-       (begin                           ; boundary¤ËÃ£¤·¤Æ¤¤¤ì¤Ğ¥¹¥¿¥Ã¥¯¤ËÀÑ¤ó¤ÇÉıÍ¥Àè
+       (begin                           ; boundaryã«é”ã—ã¦ã„ã‚Œã°ã‚¹ã‚¿ãƒƒã‚¯ã«ç©ã‚“ã§å¹…å„ªå…ˆ
          (when (<= WDATA.V-List.first->i 0)
            (= WDATA.V-List.first (csym::alloc-v-list WDATA.V-List.first))
            (inc WDATA.V-List.length)
@@ -428,35 +428,35 @@
 
 ;;; parallel version of search
 (def (search-p v) (wfn void int)
-  (defs (struct v-list-head) my-v-list mlist) ; my-v-list¡§1È¿Éü¤Ç½èÍı¤¹¤ë¥ê¥¹¥È¡¤mlist¡§m-v-list²òÊüÍÑ
+  (defs (struct v-list-head) my-v-list mlist) ; my-v-listï¼š1åå¾©ã§å‡¦ç†ã™ã‚‹ãƒªã‚¹ãƒˆï¼Œmlistï¼šm-v-listè§£æ”¾ç”¨
   (def i int)
   (DEBUG-PRINT 1 "[%2d] search-p v:%d~%" WORKER-ID v)
   (= (fref (aref VV v) parent) (+ v 1))
-  ;; WDATA.V-List¤ò½é´ü²½
+  ;; WDATA.V-Listã‚’åˆæœŸåŒ–
   (= WDATA.V-List.first (csym::alloc-v-list 0))
   (= WDATA.V-List.length 1)
   (= WDATA.V-List.last WDATA.V-List.first)
-  ;; »ÏÅÀ¤«¤é¿¼¤µÀ©¸Â¤Ä¤­DF search
+  ;; å§‹ç‚¹ã‹ã‚‰æ·±ã•åˆ¶é™ã¤ãDF search
   (search1-p v CALL-BOUND 0 (fref (aref VV v) degree))
   (DEBUG-PRINT 1 "V-List-Length: %d~%" WDATA.V-List.length)
   (while (or (> WDATA.V-List.length 1)
              (< WDATA.V-List.first->i V-LIST-ALLOC-SIZE))
-    ;; Åı·×
+    ;; çµ±è¨ˆ
     (%ifdef* STATISTICS
       (= (aref V-List-Remain N-Iter) WDATA.V-List.length)
       (= (aref Visited-Vertices N-Iter) (csym::count-visited-vertices))
       (inc N-Iter))
-    ;; WDATA.V-List¤òmy-v-list¤Ë°Ü¤¹
+    ;; WDATA.V-Listã‚’my-v-listã«ç§»ã™
     (= my-v-list WDATA.V-List) (= mlist my-v-list)
-    ;; WDATA.V-List¤ò½é´ü²½
+    ;; WDATA.V-Listã‚’åˆæœŸåŒ–
     (= WDATA.V-List.first (csym::alloc-v-list 0))
     (= WDATA.V-List.length 1)
     (= WDATA.V-List.last WDATA.V-List.first)
-    ;; my-v-list¤ò½èÍı
+    ;; my-v-listã‚’å‡¦ç†
     (DEBUG-PRINT 1 "my-v-list-length: %d~%" my-v-list.length)
     (%ifdef* CHECK (csym::check-length my-v-list.first my-v-list.length "in search-p"))
     (search-p-b my-v-list.first 0 my-v-list.length)
-    ;; ½èÍıºÑ¤ß¤Îmy-v-list¤ò²òÊü
+    ;; å‡¦ç†æ¸ˆã¿ã®my-v-listã‚’è§£æ”¾
     (for ((= i 0) (< i mlist.length) (inc i))
       (= mlist.first (csym::dealloc-v-list mlist.first)))
     )
@@ -476,7 +476,7 @@
       (DEBUG-PRINT 1 "Worker %d starts %d-th task (t-search-b)~%" WORKER-ID WDATA.n-task))
   (def stack-created-p int 0)
   (unless WDATA.V-List.first
-    ;; WDATA.V-List¤ò½é´ü²½
+    ;; WDATA.V-Listã‚’åˆæœŸåŒ–
     (= WDATA.V-List.first (csym::alloc-v-list 0))
     (= WDATA.V-List.length 1)
     (= WDATA.V-List.last WDATA.V-List.first)
@@ -517,7 +517,7 @@
   (do-many for i from i0 to i1
     (search-p-c my-v-list-first my-v-list-first->i V-LIST-ALLOC-SIZE)
     (= my-v-list-first my-v-list-first->next)
-    (handles t-search-b                           ; my-v-list0¤Î i0-2¡Ái1-2 ¤ÎÈÏ°Ï¤òÅÏ¤¹
+    (handles t-search-b                           ; my-v-list0ã® i0-2ã€œi1-2 ã®ç¯„å›²ã‚’æ¸¡ã™
      (:put from i0-2 to i1-2
            (= this.my-v-list-first my-v-list-first0)
            (= this.i0 i0-2) (= this.i1 i1-2))
@@ -531,42 +531,42 @@
     ))
 ;;; list2array version of search-p
 (def (search-p-array v) (wfn void int)
-  (def my-v-array (ptr (ptr (struct v-list-body)))) ; my-v-list¡§1È¿Éü¤Ç½èÍı¤¹¤ëÄºÅÀ¥¹¥¿¥Ã¥¯ÇÛÎó
+  (def my-v-array (ptr (ptr (struct v-list-body)))) ; my-v-listï¼š1åå¾©ã§å‡¦ç†ã™ã‚‹é ‚ç‚¹ã‚¹ã‚¿ãƒƒã‚¯é…åˆ—
   (def my-v-array-length int)
   (def buf-size int)
   (def i int)
   (DEBUG-PRINT 1 "[%2d] search-p-array v:%d~%" WORKER-ID v)
   (= (fref (aref VV v) parent) (+ v 1))
-  ;; WDATA.V-List¤ò½é´ü²½
+  ;; WDATA.V-Listã‚’åˆæœŸåŒ–
   (= WDATA.V-List.first (csym::alloc-v-list 0))
   (= WDATA.V-List.length 1)
   (= WDATA.V-List.last WDATA.V-List.first)
-  ;; »ÏÅÀ¤«¤é¿¼¤µÀ©¸Â¤Ä¤­DF search
+  ;; å§‹ç‚¹ã‹ã‚‰æ·±ã•åˆ¶é™ã¤ãDF search
   (search1-p v CALL-BOUND 0 (fref (aref VV v) degree))
   (DEBUG-PRINT 1 "V-List-Length: %d~%" WDATA.V-List.length)
   (= my-v-array 0) (= buf-size 0)
   (while (or (> WDATA.V-List.length 1)
                 (< WDATA.V-List.first->i V-LIST-ALLOC-SIZE))
-    ;; Åı·×
+    ;; çµ±è¨ˆ
     (%ifdef* STATISTICS
       (= (aref V-List-Remain N-Iter) WDATA.V-List.length)
       (= (aref Visited-Vertices N-Iter) (csym::count-visited-vertices))
       (inc N-Iter)
       )
-    ;; WDATA.V-List¤òÇÛÎó²½
+    ;; WDATA.V-Listã‚’é…åˆ—åŒ–
     (= my-v-array-length WDATA.V-List.length)
     (when (> my-v-array-length buf-size)
       (= buf-size (* 2 my-v-array-length))
       (= my-v-array (cast (ptr (ptr (struct v-list-body)))
                       (csym::realloc my-v-array (* buf-size (sizeof (ptr (struct v-list-body))))))))
     (csym::v-list-to-array my-v-array WDATA.V-List.first WDATA.V-List.length)
-    ;; WDATA.V-List¤ò½é´ü²½
+    ;; WDATA.V-Listã‚’åˆæœŸåŒ–
     (= WDATA.V-List.first (csym::alloc-v-list 0))
     (= WDATA.V-List.length 1)
     (= WDATA.V-List.last WDATA.V-List.first)
-    ;; my-v-array¤ò½èÍı
+    ;; my-v-arrayã‚’å‡¦ç†
     (search-p-b-array my-v-array 0 my-v-array-length)
-    ;; ½èÍıºÑ¤ß¤Îmy-v-array¤ò²òÊü
+    ;; å‡¦ç†æ¸ˆã¿ã®my-v-arrayã‚’è§£æ”¾
     (for ((= i 0) (< i my-v-array-length) (inc i))
       (csym::dealloc-v-list (aref my-v-array i)))
     )
@@ -587,7 +587,7 @@
       (DEBUG-PRINT 1 "Worker %d starts %d-th task (t-search-b-array)~%" WORKER-ID WDATA.n-task))
   (def stack-created-p int 0)
   (unless WDATA.V-List.first
-    ;; WDATA.V-List¤ò½é´ü²½
+    ;; WDATA.V-Listã‚’åˆæœŸåŒ–
     (= WDATA.V-List.first (csym::alloc-v-list 0))
     (= WDATA.V-List.length 1)
     (= WDATA.V-List.last WDATA.V-List.first)
@@ -623,7 +623,7 @@
   (DEBUG-PRINT 1 "[%2d] search-p-b-array %p %d %d~%" WORKER-ID my-v-array i0 i1)
   (do-many for i from i0 to i1
     (search-p-c (aref my-v-array i) (fref (aref my-v-array i) -> i) V-LIST-ALLOC-SIZE)
-    (handles t-search-b-array                   ; my-v-array¤Î i0-2¡Ái1-2 ¤ÎÈÏ°Ï¤òÅÏ¤¹
+    (handles t-search-b-array                   ; my-v-arrayã® i0-2ã€œi1-2 ã®ç¯„å›²ã‚’æ¸¡ã™
      (:put from i0-2 to i1-2
            (= this.my-v-array my-v-array)
            (= this.i0 i0-2) (= this.i1 i1-2))
@@ -651,7 +651,7 @@
       (DEBUG-PRINT 1 "Worker %d starts %d-th task (t-search-c)~%" WORKER-ID WDATA.n-task))
   (def stack-created-p int 0)
   (unless WDATA.V-List.first
-    ;; WDATA.V-List¤ò½é´ü²½
+    ;; WDATA.V-Listã‚’åˆæœŸåŒ–
     (= WDATA.V-List.first (csym::alloc-v-list 0))
     (= WDATA.V-List.length 1)
     (= WDATA.V-List.last WDATA.V-List.first)
@@ -701,15 +701,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; for graph construction
-;;; v1->v2¤Î»Ş¤òºî¤Ã¤Æe¤Î°ÌÃÖ¤Ë³ÊÇ¼¡¥ÊÖ¤êÃÍ¤Ï¼¡¤Î»Ş¤Î³ÊÇ¼¾ì½ê
+;;; v1->v2ã®æã‚’ä½œã£ã¦eã®ä½ç½®ã«æ ¼ç´ï¼è¿”ã‚Šå€¤ã¯æ¬¡ã®æã®æ ¼ç´å ´æ‰€
 (def (csym::make-edge1 v1 v2 e) (csym::fn int int int int)
   (= (fref (aref EE e) next-v) v2)
   (= (fref (aref EE e) next-e) (fref (aref VV v1) first-e))
-  (= (fref (aref VV v1) first-e) (inc e)) ; v1¤Î»Ş¥ê¥¹¥È¤Ëpush
+  (= (fref (aref VV v1) first-e) (inc e)) ; v1ã®æãƒªã‚¹ãƒˆã«push
   (inc (fref (aref VV v1) degree))
   (return e))
 
-;;; v1->v2¤Î»Ş¤¬¤¢¤ì¤Ğ1¡¤¤½¤¦¤Ç¤Ê¤±¤ì¤Ğ0¤òÊÖ¤¹
+;;; v1->v2ã®æãŒã‚ã‚Œã°1ï¼Œãã†ã§ãªã‘ã‚Œã°0ã‚’è¿”ã™
 (def (csym::check-dup1 v1 v2) (csym::fn int int int)
   (def i int)
   (def d int (fref (aref VV v1) degree))
@@ -720,20 +720,20 @@
       (return 0)))
   (return 1))
 
-;;; v1->v2¤Î»Ş¤¬¤Ê¤±¤ì¤Ğºî¤ë¡¥ÊÖ¤êÃÍ¤Ï¼¡¤Î»Ş¤Î³ÊÇ¼¾ì½ê
+;;; v1->v2ã®æãŒãªã‘ã‚Œã°ä½œã‚‹ï¼è¿”ã‚Šå€¤ã¯æ¬¡ã®æã®æ ¼ç´å ´æ‰€
 (def (csym::check-make-edge1 v1 v2 e) (csym::fn int int int int)
   (when (csym::check-dup1 v1 v2)
     (= e (csym::make-edge1 v1 v2 e)))
   (return e))
 
-;;; v1<->v2¤ÎÎ¾Êı¸ş¤Î»Ş¤òºî¤ë¡¥ÊÖ¤êÃÍ¤Ï¼¡¤Î»Ş¤Î³ÊÇ¼¾ì½ê
+;;; v1<->v2ã®ä¸¡æ–¹å‘ã®æã‚’ä½œã‚‹ï¼è¿”ã‚Šå€¤ã¯æ¬¡ã®æã®æ ¼ç´å ´æ‰€
 (def (csym::make-edge v1 v2 e) (csym::fn int int int int)
   (= e (csym::make-edge1 v1 v2 e))
   (= e (csym::make-edge1 v2 v1 e))
   (return e))
 
-;;; v1<->v2¤ÎÎ¾Êı¸ş¤Î»Ş¤ò¡¤´û¤Ë»Ş¤¬¤Ê¤¤¤«¤½¤ì¤¾¤ì³ÎÇ§¤·¤Æ¤«¤éºî¤ë¡¥
-;;; ÊÖ¤êÃÍ¤Ï¼¡¤Î»Ş¤Î³ÊÇ¼¾ì½ê
+;;; v1<->v2ã®ä¸¡æ–¹å‘ã®æã‚’ï¼Œæ—¢ã«æãŒãªã„ã‹ãã‚Œãã‚Œç¢ºèªã—ã¦ã‹ã‚‰ä½œã‚‹ï¼
+;;; è¿”ã‚Šå€¤ã¯æ¬¡ã®æã®æ ¼ç´å ´æ‰€
 (def (csym::check-make-edge v1 v2 e) (csym::fn int int int int)
   (= e (csym::check-make-edge1 v1 v2 e))
   (= e (csym::check-make-edge1 v2 v1 e))
@@ -774,7 +774,7 @@
           (= next (+ (* next 1103515245) 12345))
           (for ((= q n-e) (> q 0) (dec q))
             (= next (+ (* next 1103515245) 12345))
-            (= p (/ (* q (% (/ next 65536) 32768)) 32768)) ; qÌ¤Ëş¤ÎÍğ¿ô
+            (= p (/ (* q (% (/ next 65536) 32768)) 32768)) ; qæœªæº€ã®ä¹±æ•°
             (= e (csym::check-make-edge1 i (aref v p) e))
             (= (aref v p) (aref v (- q 1)))))
       ;; without pseudo randomness, some unfair preference exists.
@@ -891,7 +891,7 @@
 ;;;;;;;;;;
 
 ;;; graph utils
-;;; "ÄºÅÀÈÖ¹æ[¿Æ¤ÎÄºÅÀÈÖ¹æ] (ÀÜÂ³¤µ¤ì¤Æ¤¤¤ëÄºÅÀÈÖ¹æ¤Î¥ê¥¹¥È)" ¤ò½ĞÎÏ
+;;; "é ‚ç‚¹ç•ªå·[è¦ªã®é ‚ç‚¹ç•ªå·] (æ¥ç¶šã•ã‚Œã¦ã„ã‚‹é ‚ç‚¹ç•ªå·ã®ãƒªã‚¹ãƒˆ)" ã‚’å‡ºåŠ›
 (def (csym::show-graph) (csym::fn void)
   (defs int v e i)
   (for ((= v 0) (< v V-Length) (inc v))
@@ -906,7 +906,7 @@
           (csym::fprintf stderr ",%d" (fref (aref EE e) next-v)))))
     (csym::fprintf stderr ")~%")))
 
-;;; Ã±½ã¤ËÄºÅÀ¤È»Ş¤Î¾ğÊó¤Î¥ê¥¹¥È¤ò½ĞÎÏ
+;;; å˜ç´”ã«é ‚ç‚¹ã¨æã®æƒ…å ±ã®ãƒªã‚¹ãƒˆã‚’å‡ºåŠ›
 (def (csym::show-graph2) (csym::fn void)
   (defs int v e i)
   (for ((= v 0) (< v V-Length) (inc v))
@@ -918,7 +918,7 @@
   (defs int v e)
   (def fp (ptr FILE))
   (= fp (csym::fopen file "w"))
-  ;; ¥°¥é¥ÕÌ¾
+  ;; ã‚°ãƒ©ãƒ•å
   ;; "vertex"
   ;; # of vertex
   ;; degree first-e
@@ -980,7 +980,7 @@
   (return))
 
 
-;;; parent¤ÎÃÍ¤¬ÁÛÄê³°¤Î¤â¤Î¤Ë¤Ê¤Ã¤Æ¤¤¤Ê¤¤¤«¥Á¥§¥Ã¥¯
+;;; parentã®å€¤ãŒæƒ³å®šå¤–ã®ã‚‚ã®ã«ãªã£ã¦ã„ãªã„ã‹ãƒã‚§ãƒƒã‚¯
 (def (csym::check-graph) (csym::fn void)
   (def v int)
   (for ((= v 0) (< v V-Length) (inc v))

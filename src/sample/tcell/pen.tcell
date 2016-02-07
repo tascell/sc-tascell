@@ -74,7 +74,7 @@
                 (- (fref (aref tp 1) tv-usec)
                    (fref (aref tp 0) tv-usec))))))
 
-;; ¿·¤·¤¤ÌäÂê¤ò²ò¤¯
+;; æ–°ã—ã„å•é¡Œã‚’è§£ã
 (def (task-body start-pentomino)
   (decl tp (array (struct timeval) 2))
   (def pen (struct pentomino))
@@ -91,7 +91,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (def ps (array int 57 5)
   (array
-   (array 1 1 1 1) (array 7 7 7 7)      ; ***** ¤È¤½¤Î½Ä¸ş¤­
+   (array 1 1 1 1) (array 7 7 7 7)      ; ***** ã¨ãã®ç¸¦å‘ã
    (array 4 1 1 1) (array 7 7 6 1)      ;    *    *
                                         ; ****    *
                                         ;         *
@@ -156,9 +156,9 @@
 (def pos (array int 13) (array 0 2 4 12 16 20 24 32 36 37 45 53 57))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; k: ºÇ½é¤Î¶õ¤­¥»¥ë
+;; k: æœ€åˆã®ç©ºãã‚»ãƒ«
 ;; j0:
-;; j1--j2: »î¤¹¥Ó¡¼¥¹¤Î¼ïÎà
+;; j1--j2: è©¦ã™ãƒ“ãƒ¼ã‚¹ã®ç¨®é¡
 (def (search k j0 j1 j2 tsk) (wfn int int int int int (ptr (struct pentomino)))
   (def s int 0)
   (do-many for p from j1 to j2

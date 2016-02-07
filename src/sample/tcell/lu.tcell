@@ -78,7 +78,7 @@
 (deftype task-tp enum TASK-CMD TASK-LU TASK-R TASK-D TASK-RD)
 
 (def (task task-lu)
-  (def tt task-tp) ; »Å»ö¤Î¼ïÎà¡¥0(=TASK-CMD)¤Ç¿·µ¬¤Ë³«»Ï
+  (def tt task-tp) ; ä»•äº‹ã®ç¨®é¡ï¼0(=TASK-CMD)ã§æ–°è¦ã«é–‹å§‹
   (def n1 int)
   (def n2 int)
   (def n3 int)
@@ -245,10 +245,10 @@
       (begin
        (def n1-1 int (/ n1 2))
        (def n1-2 int (- n1 n1-1))
-       ;; Cilk¤È¤ÎÈæ³ÓÍÑ
+       ;; Cilkã¨ã®æ¯”è¼ƒç”¨
        (decomp-rd n1-1 n2 n3 b1 b2 a nx anx)
        (decomp-rd n1-2 n2 n3 (+ b1 n1-1) (+ b2 (* n1-1 nx)) a nx anx)
-       ;; ËÜÍè
+       ;; æœ¬æ¥
        ;;        (do-two 
        ;;            (decomp-rd n1-1 n2 n3 b1 b2 a nx anx)
        ;;          (decomp-rd n1-2 n2 n3 (+ b1 n1-1) (+ b2 (* n1-1 nx)) a nx anx)
@@ -284,9 +284,9 @@
                       (+ a (+ (+ (* i nx) i) n1)) nx anx)))
 
 
-;; Å¬Åö¤Ê¥Ç¡¼¥¿¤¬Æş¤Ã¤¿¥µ¥¤¥ºn ¤ÎÇÛÎó¤òºî¤ë
-;; a: ½ĞÎÏÀè
-;; nx: 1¹Ô¤¢¤¿¤ê¤Î¥á¥â¥ê¥µ¥¤¥º
+;; é©å½“ãªãƒ‡ãƒ¼ã‚¿ãŒå…¥ã£ãŸã‚µã‚¤ã‚ºn ã®é…åˆ—ã‚’ä½œã‚‹
+;; a: å‡ºåŠ›å…ˆ
+;; nx: 1è¡Œã‚ãŸã‚Šã®ãƒ¡ãƒ¢ãƒªã‚µã‚¤ã‚º
 (def (csym::genmat n a nx) (fn void int (ptr double) int)
   (decl i int)
   (decl j int)
@@ -311,7 +311,7 @@
       (= (aref l (+ (* i nx) j))
          (if-exp (< i j) 0.0 (aref a (+ (* i nx) j)))))))
 
-;; u¤ÎÂĞ³ÑÀ®Ê¬¤¬1 ¡ÊCrout·¿¡Ë
+;; uã®å¯¾è§’æˆåˆ†ãŒ1 ï¼ˆCroutå‹ï¼‰
 (def (csym::copy-u n a u nx) (fn void int (ptr double) (ptr double) int)
   (decl i int) (decl j int)
   (for ((= i 0) (< i n) (inc i))

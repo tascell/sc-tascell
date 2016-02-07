@@ -37,42 +37,42 @@
 (scr:require "SC-MISC")
 (scr:require "SC-FILE")
 
-;;; rule ¤ËÂĞ±ş¤¹¤ë .rule.lsp ¡Êrule.o¡Ë ¤Î¤¦¤ÁºÇ¿·¤Î¤â¤Î¤òload
-;;; .rule ¤¬ºÇ¿·¤Î¾ì¹ç¤Ï¥³¥ó¥Ñ¥¤¥ë¤·¤Æ¤«¤éload
-;;; force-load ¤¬ t ¤Ê¤é rule¥Õ¥¡¥¤¥ë¤¬ºÇ¿·¤Ç¤âÆÉ¤ßÄ¾¤¹¡¥
-;;; compile ¤¬ t ¤Ê¤é, .rule.lsp ¤ò¥³¥ó¥Ñ¥¤¥ë¤¹¤ë
+;;; rule ã«å¯¾å¿œã™ã‚‹ .rule.lsp ï¼ˆrule.oï¼‰ ã®ã†ã¡æœ€æ–°ã®ã‚‚ã®ã‚’load
+;;; .rule ãŒæœ€æ–°ã®å ´åˆã¯ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ã—ã¦ã‹ã‚‰load
+;;; force-load ãŒ t ãªã‚‰ ruleãƒ•ã‚¡ã‚¤ãƒ«ãŒæœ€æ–°ã§ã‚‚èª­ã¿ç›´ã™ï¼
+;;; compile ãŒ t ãªã‚‰, .rule.lsp ã‚’ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ã™ã‚‹
 (defvar *force-recompile* nil)
 (defvar *compile-rulelsp* t)
 
 ;;;;;
 (defconstant *default-sct-user-package* (find-package "SC-TRANSFORMER-USER"))
-(defconstant *init-function-name* "INITIATE") ; µ¬Â§¤ÎÊÑ´¹¤ò³«»Ï¤¹¤ë´Ø¿ôÌ¾
-(defconstant *arg-name* "X")       ; ¥Ñ¥¿¡¼¥óÁ´ÂÎ¤ò»²¾È¤¹¤ë¤¿¤á¤ÎÊÑ¿ôÌ¾
+(defconstant *init-function-name* "INITIATE") ; è¦å‰‡ã®å¤‰æ›ã‚’é–‹å§‹ã™ã‚‹é–¢æ•°å
+(defconstant *arg-name* "X")       ; ãƒ‘ã‚¿ãƒ¼ãƒ³å…¨ä½“ã‚’å‚ç…§ã™ã‚‹ãŸã‚ã®å¤‰æ•°å
 (defconstant *rulepackage-varname* "*RULE-PACKAGE*")
 (defconstant *parameters-varname* "*PARAMETERS*")
 (defconstant *block-label* 'pattern-matched)
-(defvar *initiator-alist* (list)) ; Rule-set ¤ÇºÇ½é¤Ë¸Æ¤Ó½Ğ¤¹´Ø¿ô
+(defvar *initiator-alist* (list)) ; Rule-set ã§æœ€åˆã«å‘¼ã³å‡ºã™é–¢æ•°
 
-;;;;; Rule-set ¤´¤È¤ÎÀßÄê
+;;;;; Rule-set ã”ã¨ã®è¨­å®š
 (defstruct (rule-environment
              (:constructor create-rule-environment (rule-name)))
   rule-name
-  (source-package *default-sct-user-package*) ; ÉáÄÌ¤Ï in-package ¤Ç»ØÄê
-  (initiator :default)    ; rule-set ¤òµ¯Æ°¤¹¤ë´Ø¿ô
-  (package-sensitive t)   ; symbol ¤ÎÈæ³Ó¤ò package sensitive ¤Ë¹Ô¤¦
+  (source-package *default-sct-user-package*) ; æ™®é€šã¯ in-package ã§æŒ‡å®š
+  (initiator :default)    ; rule-set ã‚’èµ·å‹•ã™ã‚‹é–¢æ•°
+  (package-sensitive t)   ; symbol ã®æ¯”è¼ƒã‚’ package sensitive ã«è¡Œã†
   (otherwise-action '(error "No pattern matched.")))
-					; ¥Ñ¥¿¡¼¥ó¤Ë¥Ş¥Ã¥Á¤·¤Ê¤«¤Ã¤¿¤È¤­¤ÎÆ°ºî
+					; ãƒ‘ã‚¿ãƒ¼ãƒ³ã«ãƒãƒƒãƒã—ãªã‹ã£ãŸã¨ãã®å‹•ä½œ
 (defvar *rule-environment* (create-rule-environment "DEFAULT"))
 
 ;;;;;
 
 
-;; Í¿¤¨¤é¤ì¤¿µ¬Â§Ì¾¤ËÂĞ±ş¤¹¤ërule¥Õ¥¡¥¤¥ë¤òlisp¥×¥í¥°¥é¥à¤Ë¥³¥ó¥Ñ¥¤¥ë
-;; ÊÖ¤êÃÍ¤Ï½ĞÎÏ¥Õ¥¡¥¤¥ëÌ¾
+;; ä¸ãˆã‚‰ã‚ŒãŸè¦å‰‡åã«å¯¾å¿œã™ã‚‹ruleãƒ•ã‚¡ã‚¤ãƒ«ã‚’lispãƒ—ãƒ­ã‚°ãƒ©ãƒ ã«ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«
+;; è¿”ã‚Šå€¤ã¯å‡ºåŠ›ãƒ•ã‚¡ã‚¤ãƒ«å
 (defun rule2lsp (rule-name
 		 &aux input-file output-file rule-list lisp-forms
 		 (*rule-environment* (create-rule-environment rule-name)))
-  ;; ÆşÎÏ/½ĞÎÏ¥Õ¥¡¥¤¥ëÌ¾
+  ;; å…¥åŠ›/å‡ºåŠ›ãƒ•ã‚¡ã‚¤ãƒ«å
   (unless (setq input-file (get-rule-rulefile rule-name))
     (error "Can't find rule-file for ~S" rule-name))
   (setq output-file 
@@ -80,13 +80,13 @@
          :name (pathname-name (get-rule-lspfile-name rule-name))
          :directory (pathname-directory (truename input-file))))
   
-  ;; µ¬Â§¥Õ¥¡¥¤¥ëÆÉ¤ß¹ş¤ß
+  ;; è¦å‰‡ãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿
   (format *error-output* "Reading ~S...~%" input-file)
   (finish-output *error-output*)
   (multiple-value-setq (rule-list lisp-forms)
     (read-rule input-file))
   
-  ;; ½ĞÎÏÀ¸À® => ret
+  ;; å‡ºåŠ›ç”Ÿæˆ => ret
   (format *error-output* "Compiling ~S...~%" input-file)
   (finish-output *error-output*)
   (let*
@@ -140,8 +140,8 @@
   output-file
   )
 
-;;; ÊÑ·Áµ¬Â§¤´¤È¤ÎÀßÄê *rule-environment* ¤ÎÀßÄê
-;;; rule-set ¤Îµ­½Ò¼Ô¤¬»È¤¦¡¥
+;;; å¤‰å½¢è¦å‰‡ã”ã¨ã®è¨­å®š *rule-environment* ã®è¨­å®š
+;;; rule-set ã®è¨˜è¿°è€…ãŒä½¿ã†ï¼
 (defmacro set-rule-environment (&rest options)
   (when *rule-environment*
     (let ((opt (gensym))
@@ -164,7 +164,7 @@
                    `(progn ,@(cdr ,opt))
                    (second ,opt)))))))))
 
-;;; *rule-package* ¤Î´Ä¶­¤ò¼Âºİ¤Îload»ş¤ÈÆ±¤¸¤Ë¤¹¤ë
+;;; *rule-package* ã®ç’°å¢ƒã‚’å®Ÿéš›ã®loadæ™‚ã¨åŒã˜ã«ã™ã‚‹
 #+obsolete
 (defun renew-rule-package-environment ()
   (let ((*package* *rule-package*))
@@ -177,16 +177,16 @@
 
 
 
-;;; ³°Éô¤«¤é¤Î¸Æ¤Ó½Ğ¤·ÍÑ¤Îµ¬Â§symbol
+;;; å¤–éƒ¨ã‹ã‚‰ã®å‘¼ã³å‡ºã—ç”¨ã®è¦å‰‡symbol
 ;;; rule -> @rule
 (defun make-ext-rule-id (rule-id)
   (intern (string+ "@" (symbol-name rule-id))
           (symbol-package rule-id)))
 
-;;;; µ¬Â§¥Õ¥¡¥¤¥ëÆÉ¤ß¹ş¤ß¡Ê¥³¥ó¥Ñ¥¤¥ë¼Â¹ÔÍÑ¡Ë
-;;; ÊÖ¤êÃÍ¤Ï (values rule-list lisp-forms)
+;;;; è¦å‰‡ãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿ï¼ˆã‚³ãƒ³ãƒ‘ã‚¤ãƒ«å®Ÿè¡Œç”¨ï¼‰
+;;; è¿”ã‚Šå€¤ã¯ (values rule-list lisp-forms)
 ;;; rule-list := list of (<fsymbol> . list of (<patterns> . <action>))
-;;; lisp-forms := <(%lisp ...) ¤Çµ­½Ò¤µ¤ì¤¿¥Õ¥©¡¼¥à¤Î¥ê¥¹¥È
+;;; lisp-forms := <(%lisp ...) ã§è¨˜è¿°ã•ã‚ŒãŸãƒ•ã‚©ãƒ¼ãƒ ã®ãƒªã‚¹ãƒˆ
 (defun read-rule (rule-file
 		  &aux 
 		  (rule-list '())  ; return value1
@@ -205,8 +205,8 @@
         (push form lisp-forms)
         (eval form))
 
-      ;; *package* ¤¬ default¤Î¤Ş¤Ş¤À¤Ã¤¿¤é
-      ;; defpackage, in-package ¤ò¼«Æ°Åª¤Ëºî¤ë
+      ;; *package* ãŒ defaultã®ã¾ã¾ã ã£ãŸã‚‰
+      ;; defpackage, in-package ã‚’è‡ªå‹•çš„ã«ä½œã‚‹
       (when (eq *package* *default-sct-user-package*)
 	(let* ((rule-name (rule-environment-rule-name *rule-environment*))
 	       (add-forms `((defpackage ,rule-name
@@ -218,7 +218,7 @@
       (setf (rule-environment-source-package *rule-environment*)
             *package*)
 
-      ;; ÊÑ·Áµ¬Â§ËÜÂÎ¤ÎÆÉ¤ß¹ş¤ß
+      ;; å¤‰å½¢è¦å‰‡æœ¬ä½“ã®èª­ã¿è¾¼ã¿
       (do ((y (read-pattern istream nil 'eof) 
 	      (read-pattern istream nil 'eof))
 	   (patlist '()))
@@ -237,10 +237,10 @@
 	  ((and (symbolp y)
 		(string= "->" (symbol-name y)))
 	   (setq y (read istream))	; y <== <action>
-	   ;; -> ¤è¤êÁ°¤Î¥Ñ¥¿¡¼¥ó¤ò rule-list ¤ËÄÉ²Ã
+	   ;; -> ã‚ˆã‚Šå‰ã®ãƒ‘ã‚¿ãƒ¼ãƒ³ã‚’ rule-list ã«è¿½åŠ 
 	   ;;(format t "~S~%" y)
 	   (let ((fsymbol (caar patlist)))
-	     (let ((pos	   ; (<patterns> . <action>) ¤ÎÁŞÆş°ÌÃÖ
+	     (let ((pos	   ; (<patterns> . <action>) ã®æŒ¿å…¥ä½ç½®
 		    (car 
 		     (or (member fsymbol rule-list :key #'car :test #'eq)
 			 (push (cons fsymbol nil) rule-list)))))
@@ -271,15 +271,15 @@
 
 ;; pat-act-list = list of <pat-act>
 ;; pat-act = ( ((pattern ,@rest-arg) ...) . action)
-;; 1¤Ä¤Î rulename¤ËÂĞ±ş¤¹¤ëdefun¼°¤Î¥ê¥¹¥È¤òÀ¸À®¤¹¤ë¡¥
-;; ÊÖ¤êÃÍ¡§(values <defun¤Î¥ê¥¹¥È> <ºÇ½é¤Î¥Ñ¥¿¡¼¥ó¥Ş¥Ã¥Á¤òµ¯Æ°¤¹¤ë¤¿¤á¤Îform>)
+;; 1ã¤ã® rulenameã«å¯¾å¿œã™ã‚‹defunå¼ã®ãƒªã‚¹ãƒˆã‚’ç”Ÿæˆã™ã‚‹ï¼
+;; è¿”ã‚Šå€¤ï¼š(values <defunã®ãƒªã‚¹ãƒˆ> <æœ€åˆã®ãƒ‘ã‚¿ãƒ¼ãƒ³ãƒãƒƒãƒã‚’èµ·å‹•ã™ã‚‹ãŸã‚ã®form>)
 (defun patacts2defun (rulename pat-act-list
 		      &key
 		      (source-package
 		       (rule-environment-source-package *rule-environment*))
 		      (arg-var (intern *arg-name* source-package)))
   (let* ((patterns-list (mapcar #'(lambda (x) (mapcar #'car (car x))) pat-act-list))
-	 (rest-arg-list (mapcar #'cdaar pat-act-list)) ;ÀèÆ¬¤Îrestarg¤ò»È¤¦
+	 (rest-arg-list (mapcar #'cdaar pat-act-list)) ;å…ˆé ­ã®restargã‚’ä½¿ã†
 	 (action-list (mapcar #'cdr pat-act-list))
 	 (defun-name-list (mapcar (prefixed-func #'patlist-defun-symbol rulename)
 				  patterns-list))
@@ -340,26 +340,26 @@
 		 #'>
 		 :key #'(lambda (file) (if file (file-write-date file) -1)))))
       (cond
-        ((or force-recompile  ; .rule ¤¬ºÇ¿· or force-recompile
+        ((or force-recompile  ; .rule ãŒæœ€æ–° or force-recompile
 	     (eq rule-file (first file-prio-list)))
          (let ((lisp-filename (rule2lsp rulename)))
            (load (if compile
 		     (compile-rulelsp rulename) 
 		     lisp-filename))))
-        ((and compile         ; ¥³¥ó¥Ñ¥¤¥ëÍ×µá & .rule.lsp ¤¬ºÇ¿·
+        ((and compile         ; ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«è¦æ±‚ & .rule.lsp ãŒæœ€æ–°
               (eq lisp-file (first file-prio-list)))
 	 (load (compile-rulelsp rulename)))
-        (t                    ; ºÇ¿·¤Î¤â¤Î¤ò¡ÊÌ¤ÆÉ¤Ê¤é¡Ëload
+        (t                    ; æœ€æ–°ã®ã‚‚ã®ã‚’ï¼ˆæœªèª­ãªã‚‰ï¼‰load
          (let ((load-filename (first file-prio-list)))
 	   (require rulename load-filename)))))))
 
-;;;; µ¬Â§Ì¾¤ËÂĞ±ş¤¹¤ë³Æ¥Õ¥¡¥¤¥ë[Ì¾]
-;; µ¬Â§¥Õ¥¡¥¤¥ë
+;;;; è¦å‰‡åã«å¯¾å¿œã™ã‚‹å„ãƒ•ã‚¡ã‚¤ãƒ«[å]
+;; è¦å‰‡ãƒ•ã‚¡ã‚¤ãƒ«
 (defun get-rule-rulefile-name (rulename)
   (change-extension (string-downcase (string rulename)) "rule"))
 (defun get-rule-rulefile (rulename)
   (path-search (get-rule-rulefile-name rulename) *rule-path*))
-;; lisp¥³¥ó¥Ñ¥¤¥ëºÑµ¬Â§¥Õ¥¡¥¤¥ë
+;; lispã‚³ãƒ³ãƒ‘ã‚¤ãƒ«æ¸ˆè¦å‰‡ãƒ•ã‚¡ã‚¤ãƒ«
 (defun get-rule-lspfile-name (rulename)
   (change-extension
    (string+ *cl-implementation* "-"
@@ -370,7 +370,7 @@
   (probe-file
    (change-filename (get-rule-rulefile rulename)
 		    (get-rule-lspfile-name rulename))))
-;; fasl¥³¥ó¥Ñ¥¤¥ëºÑµ¬Â§¥Õ¥¡¥¤¥ë
+;; faslã‚³ãƒ³ãƒ‘ã‚¤ãƒ«æ¸ˆè¦å‰‡ãƒ•ã‚¡ã‚¤ãƒ«
 (defun get-rule-ofile-name (rulename)
   (compile-file-pathname 
    (change-extension (get-rule-lspfile-name rulename) nil)))
@@ -378,7 +378,7 @@
   (probe-file
    (change-filename (get-rule-rulefile rulename)
 		    (get-rule-ofile-name rulename))))
-;; µ¬Â§¸Æ½Ğ¤·ÍÑ´Ø¿ô
+;; è¦å‰‡å‘¼å‡ºã—ç”¨é–¢æ•°
 (defun get-initiator (rulename)
   (require-rule rulename)
   (cdr (assoc rulename *initiator-alist* :test #'eq)))

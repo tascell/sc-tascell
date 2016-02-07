@@ -118,7 +118,7 @@
   (decl tp (array (struct timeval) 2))
   (def i int) (def j int)
   (DEBUG-PRINT 1 "start %d %d~%" this.n1 this.n2)
-  (if (> 0 this.n2)              ; n2<0 ¤Î¤È¤­¤Ï¡¤¿·¤·¤¤ÌäÂê¤òºî¤Ã¤Æ²ò¤¯
+  (if (> 0 this.n2)              ; n2<0 ã®ã¨ãã¯ï¼Œæ–°ã—ã„å•é¡Œã‚’ä½œã£ã¦è§£ã
       (begin
        (= this.d1
           (cast (ptr INT32)

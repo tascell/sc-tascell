@@ -35,7 +35,7 @@
 
 #-sc-system
 (progn
-  ;; sc-decl¤ÈÆ±°ì¡Ê¤Ê¤ó¤È¤«¤·¤¿¤¤¡Ë
+  ;; sc-declã¨åŒä¸€ï¼ˆãªã‚“ã¨ã‹ã—ãŸã„ï¼‰
   (defpackage "MISC"
     (:use "CL")
     (:export 
@@ -81,7 +81,7 @@
 
 ;;;;;
 
-;;; ¿·¤·¤¤ÊÑ¿ôÌ¾¤òºî¤ë¡Ê¥Ş¥¯¥íµ­½ÒÍÑ¡Ë
+;;; æ–°ã—ã„å¤‰æ•°åã‚’ä½œã‚‹ï¼ˆãƒã‚¯ãƒ­è¨˜è¿°ç”¨ï¼‰
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro with-fresh-variables (varlist &body body)
     `(let ,(mapcar
@@ -97,10 +97,10 @@
     `(multiple-value-bind ,syms ,init ,@body)))
 (defmacro with* (binds &body body)
   (if (endp binds)
-      `(let () ,@body)                  ; progn¤Ë¤¹¤ë¤ÈÀèÆ¬¤Ëdeclare¤È¤«¤¬½ñ¤±¤Ê¤¤
+      `(let () ,@body)                  ; prognã«ã™ã‚‹ã¨å…ˆé ­ã«declareã¨ã‹ãŒæ›¸ã‘ãªã„
     `(with1 ,(car binds) ,(cadr binds)
        (with* ,(cddr binds) ,@body))))
-;; multiple-value ¤ËÂĞ±ş¤µ¤»¤ë¤¿¤áÃ±½ã¤Êlet¤ò»È¤Ã¤¿¼ÂÁõ¤È¤·¤Æ¤¤¤Ê¤¤
+;; multiple-value ã«å¯¾å¿œã•ã›ã‚‹ãŸã‚å˜ç´”ãªletã‚’ä½¿ã£ãŸå®Ÿè£…ã¨ã—ã¦ã„ãªã„
 (defmacro with (binds &body body)
   (let ((kari-syms (loop for bind on binds by #'cddr 
                        if (atom (car bind))
@@ -161,7 +161,7 @@
                ,@(cdr cl1))
            (acond ,@(cdr clauses)))))))
 
-;;; ¥³¥Ş¥ó¥É¥é¥¤¥ó¤Î¼Â¹Ô¡Ê¼ÂÁõ°ÍÂ¸ÉôÊ¬¤òµÛ¼ı¡Ë
+;;; ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã®å®Ÿè¡Œï¼ˆå®Ÿè£…ä¾å­˜éƒ¨åˆ†ã‚’å¸åï¼‰
 #+(and allegro mswindows) (defparameter *sh-command* "\\cygwin\\bin\\sh.exe")
 #+(or allegro kcl ecl cmu clisp)
 (defun command-line (command &key args verbose other-options)
@@ -194,14 +194,14 @@
            other-options)
     ))
 
-;;;;; ¥Õ¥¡¥¤¥ëÁàºî
+;;;;; ãƒ•ã‚¡ã‚¤ãƒ«æ“ä½œ
 
-;;; *readtable* ¤ò°ì»şÅª¤ËÀÚÂØ¤¨
+;;; *readtable* ã‚’ä¸€æ™‚çš„ã«åˆ‡æ›¿ãˆ
 (defmacro with-readtable (readtable &body forms)
   `(let ((*readtable* ,readtable))
      ,@forms))
 
-;;; *package* ¤ò°ì»şÅª¤ËÀÚÂØ¤¨
+;;; *package* ã‚’ä¸€æ™‚çš„ã«åˆ‡æ›¿ãˆ
 (defmacro with-package (package &body forms)
   (let ((package-var (gensym "package")))
     `(let ((,package-var (find-package ,package)))
@@ -210,12 +210,12 @@
        (let ((*package* ,package-var))
          ,@forms)) ))
 
-;;; pname ¤Î¥Ñ¥Ã¥±¡¼¥¸¤¬¸«¤Ä¤«¤é¤Ê¤±¤ì¤Ğ¿·¤¿¤Ëºî¤Ã¤ÆÊÖ¤¹
+;;; pname ã®ãƒ‘ãƒƒã‚±ãƒ¼ã‚¸ãŒè¦‹ã¤ã‹ã‚‰ãªã‘ã‚Œã°æ–°ãŸã«ä½œã£ã¦è¿”ã™
 (defun find-package2 (pname &rest args)
   (or (find-package pname)
       (apply #'make-package pname args)))
 
-;;; ¥Õ¥¡¥¤¥ë¤òS¼°¤È¤·¤ÆÆÉ¤ß¹ş¤à
+;;; ãƒ•ã‚¡ã‚¤ãƒ«ã‚’Så¼ã¨ã—ã¦èª­ã¿è¾¼ã‚€
 (defun read-file (file-name
                   &key
                   ((:package *package*) *package*)
@@ -228,13 +228,13 @@
         ((eq y 'eof) (nreverse ret))
       (push y ret))))
 
-;;; ¥Õ¥¡¥¤¥ë¤òÊ¸»úÎó¤È¤·¤ÆÆÉ¤ß¹ş¤à
+;;; ãƒ•ã‚¡ã‚¤ãƒ«ã‚’æ–‡å­—åˆ—ã¨ã—ã¦èª­ã¿è¾¼ã‚€
 (defun read-file-as-string (file-name)
   (with-open-file (istream file-name :direction :input)
     (input-buffer-to-string istream)))
 
 #+allegro (defparameter *eol-convention* :unix)
-;;; ¥Õ¥¡¥¤¥ë¤ËS¼°¤Ş¤¿¤ÏÊ¸»úÎó¤ò½ñ¤­¹ş¤à
+;;; ãƒ•ã‚¡ã‚¤ãƒ«ã«Så¼ã¾ãŸã¯æ–‡å­—åˆ—ã‚’æ›¸ãè¾¼ã‚€
 (defun write-file (file-name list 
                    &key
                    (overwrite nil) (write-string nil)
@@ -255,7 +255,7 @@
         (format ostream "~S" elm)
         (terpri ostream)))))
 
-;; eof¤«?
+;; eofã‹?
 (defun eof-p (stream)
   (let ((ch (read-char-no-hang stream nil t)))
     (cond
@@ -267,13 +267,13 @@
      (t
       nil))))
 
-;; ¥Õ¥¡¥¤¥ë¤Î1¹Ô¤´¤È¤Î½èÍı
+;; ãƒ•ã‚¡ã‚¤ãƒ«ã®1è¡Œã”ã¨ã®å‡¦ç†
 (defmacro do-text-line ((line istream &optional ret) &body body)
   `(do ((,line (read-line ,istream nil) (read-line ,istream nil)))
        ((null ,line) ,ret)
      ,@body))
 
-;; input-stream ¤Î¥Ğ¥Ã¥Õ¥¡¤Ë¤¿¤Ş¤Ã¤Æ¤¤¤ë¤â¤Î¤ËÂĞ¤·¤Æ¤Î½èÍı
+;; input-stream ã®ãƒãƒƒãƒ•ã‚¡ã«ãŸã¾ã£ã¦ã„ã‚‹ã‚‚ã®ã«å¯¾ã—ã¦ã®å‡¦ç†
 (defmacro do-input-stream-buffer ((var istream &optional ret) &body body)
   (with-fresh-variables (is-var)
     `(let ((,is-var ,istream))
@@ -282,7 +282,7 @@
            ((null ,var) ,ret)
          ,@body))))
 
-;; input-stream ¤Î¥Ğ¥Ã¥Õ¥¡¤Ë¤¿¤Ş¤Ã¤Æ¤¤¤ë¤â¤Î¤òoutput-stream¤ËÎ®¤¹
+;; input-stream ã®ãƒãƒƒãƒ•ã‚¡ã«ãŸã¾ã£ã¦ã„ã‚‹ã‚‚ã®ã‚’output-streamã«æµã™
 (defun input-buffer-to-output (istream &rest ostreams &aux (cnt 0))
   (do-input-stream-buffer (ch istream cnt)
     (incf cnt)
@@ -290,12 +290,12 @@
       (write-char ch ost))
     ))
 
-;; input-stream ¤Î¥Ğ¥Ã¥Õ¥¡¤Ë¤¿¤Ş¤Ã¤Æ¤¤¤ë¤â¤Î¤òÊ¸»úÎó¤ËÊÑ´¹
+;; input-stream ã®ãƒãƒƒãƒ•ã‚¡ã«ãŸã¾ã£ã¦ã„ã‚‹ã‚‚ã®ã‚’æ–‡å­—åˆ—ã«å¤‰æ›
 (defun input-buffer-to-string (istream)
   (with-output-to-string (os)
     (input-buffer-to-output istream os)))
 
-;; ¥Ç¥£¥ì¥¯¥È¥ê¤Î¹çÀ®
+;; ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®åˆæˆ
 (defun directory+ (&rest pathname-or-directories)
   (cond
    ((endp pathname-or-directories) '(:relative))
@@ -312,8 +312,8 @@
        ((eq :relative (car pd2)) (apply #'directory+ (append pd1 (cdr pd2)) rest-args))
        (t (error "Unexpected value of pd2: ~S" (second pathname-or-directories))))))))
 
-;;; path-list ¤ª¤è¤Ó¸½ºß¤Î¥Ç¥£¥ì¥¯¥È¥ê(current-directory=t¤Î»ş)
-;;; ¤«¤é¥Õ¥¡¥¤¥ë¤ò¸¡º÷
+;;; path-list ãŠã‚ˆã³ç¾åœ¨ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª(current-directory=tã®æ™‚)
+;;; ã‹ã‚‰ãƒ•ã‚¡ã‚¤ãƒ«ã‚’æ¤œç´¢
 (defun path-search (filespec path-list
                     &key
                     (current-directory t)
@@ -332,7 +332,7 @@
         (when (probe-file candidate)
           (return candidate))))))
 
-;;; ¡Ê¥Ç¥£¥ì¥¯¥È¥ê¤ò´¹¤¨¤º¤Ë¡Ë¥Õ¥¡¥¤¥ëÌ¾¤òÊÑ´¹
+;;; ï¼ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’æ›ãˆãšã«ï¼‰ãƒ•ã‚¡ã‚¤ãƒ«åã‚’å¤‰æ›
 (defun change-filename (pathname newfilename)
   (unless (pathnamep pathname)
     (setq pathname (pathname pathname)))
@@ -341,7 +341,7 @@
    :type (pathname-type newfilename)
    :directory (pathname-directory pathname)))
 
-;;; ¥Õ¥¡¥¤¥ëÌ¾¤Î³ÈÄ¥»ÒÊÑ´¹, ¤Ê¤±¤ì¤ĞÄÉ²Ã
+;;; ãƒ•ã‚¡ã‚¤ãƒ«åã®æ‹¡å¼µå­å¤‰æ›, ãªã‘ã‚Œã°è¿½åŠ 
 (defun change-extension (pathname newext)
   (unless (pathnamep pathname)
     (setq pathname (pathname pathname)))
@@ -363,7 +363,7 @@
             )
   )
 
-;;; ¥Õ¥¡¥¤¥ëÌ¾¤Î³ÈÄ¥»Ò³ÍÆÀ
+;;; ãƒ•ã‚¡ã‚¤ãƒ«åã®æ‹¡å¼µå­ç²å¾—
 (defun get-extension (pathname)
   (let* ((pathstring (namestring pathname))
          (i (when pathstring (position #\. pathstring :test #'char=))))
@@ -371,7 +371,7 @@
         (subseq pathstring (1+ i))
       "" )))
 
-;;; ¥Õ¥¡¥¤¥ë¤Î¿·µìÈæ³Ó
+;;; ãƒ•ã‚¡ã‚¤ãƒ«ã®æ–°æ—§æ¯”è¼ƒ
 (defun file-newer (path1 path2)
   (let ((exists1-p (probe-file path1))
         (exists2-p (probe-file path2)))
@@ -384,13 +384,13 @@
       (> (file-write-date path1)
          (file-write-date path2))))))
 
-;;; CLTL¤Ë¤Ê¤¤namestring·Ï
+;;; CLTLã«ãªã„namestringç³»
 (defun name-namestring (pathname)
   (namestring (make-pathname :name (pathname-name pathname))))
 
-;;;;;; Ê¸»úÎóÁàºî
+;;;;;; æ–‡å­—åˆ—æ“ä½œ
 
-;;; ÂçÊ¸»ú¡¿¾®Ê¸»ú¤ÎµÕÅ¾
+;;; å¤§æ–‡å­—ï¼å°æ–‡å­—ã®é€†è»¢
 (defun char-invertcase (char)
   (cond
    ((char<= #\a char #\z)
@@ -408,8 +408,8 @@
   (declare (string str))
   (map 'string #'char-invertcase str))
 
-;;; str2 ¤¬ str1 ¤Ç»Ï¤Ş¤ëÊ¸»úÎó¤Ê¤é¡¢
-;;; ¤½¤Î»Ä¤ê¤ÎÊ¸»úÎó (need-remain=t)¤Ş¤¿¤Ït(need-remain=nil)¤òÊÖ¤¹
+;;; str2 ãŒ str1 ã§å§‹ã¾ã‚‹æ–‡å­—åˆ—ãªã‚‰ã€
+;;; ãã®æ®‹ã‚Šã®æ–‡å­—åˆ— (need-remain=t)ã¾ãŸã¯t(need-remain=nil)ã‚’è¿”ã™
 (defun string-begin-with (str1 str2 &optional (need-remain t)) 
   (declare (string str1 str2))
   (with (len1 (length str1)
@@ -419,44 +419,44 @@
              always (char= (aref str1 i) (aref str2 i)))
          (if need-remain (string-left-ntrim str2 len1) t))))
 
-;;; character or string or symbol ¤Î¥ê¥¹¥È¤òÊ¸»úÎó¤È¤·¤Æ·ë¹ç
+;;; character or string or symbol ã®ãƒªã‚¹ãƒˆã‚’æ–‡å­—åˆ—ã¨ã—ã¦çµåˆ
 (defun string+ (&rest strings)
   (declare (list strings))
   (apply #'concatenate 'string
          (mapcar #'string strings)))
 
-;;; treeÆâ¤Ë¤¢¤ëÁ´¤Æ¤ÎÊ¸»úÎó¤ò·ë¹ç
+;;; treeå†…ã«ã‚ã‚‹å…¨ã¦ã®æ–‡å­—åˆ—ã‚’çµåˆ
 (defun string+-rec (&rest trees)
   (declare (list trees))
   (with-output-to-string (s)
     (do-all-atoms #'(lambda (x) (when x (princ x s)))
       trees)))
 
-;;; ¥ê¥¹¥ÈÆâ¤ÎÊ¸»úÎó¤ò·ë¹ç
+;;; ãƒªã‚¹ãƒˆå†…ã®æ–‡å­—åˆ—ã‚’çµåˆ
 (defun strcat (string-list &optional (inter "") (prev "") (post ""))
   (declare (list string-list))
   (apply #'string+
          (separate-list string-list inter prev post)))
 
-;;; Ê¸»úÎó»²¾È
+;;; æ–‡å­—åˆ—å‚ç…§
 (defun string-ref (str n)
   (declare (string str) (fixnum n))
   (if (>= n (length str))
       nil
     (aref str n)))
 
-;;; Ê¸»úÎóÄÉ²Ã
+;;; æ–‡å­—åˆ—è¿½åŠ 
 (defmacro add-string (str &rest slist)
   (let ((newstr (nconc `(concatenate 'string ,str) slist)))
     `(setq ,str ,newstr)))
 
-;;; Ê¸»úÎó¤ò¤òopen¤Èclose¤Ç°Ï¤à¡¥
-;;; open¤òÍ¿¤¨¤Æclose¤òÍ¿¤¨¤Ê¤±¤ì¤Ğclose:=open
+;;; æ–‡å­—åˆ—ã‚’ã‚’openã¨closeã§å›²ã‚€ï¼
+;;; openã‚’ä¸ãˆã¦closeã‚’ä¸ãˆãªã‘ã‚Œã°close:=open
 (defun add-paren (str &optional (open #\( open-p)
                                 (close (if open-p open #\))))
   (string+ open str close))
 
-;;; ºÇ½é¤ÎnÊ¸»ú
+;;; æœ€åˆã®næ–‡å­—
 (defun string-firstn (str n &optional (ellipsis "..."))
   (declare (string str ellipsis) (fixnum n))
   (with-output-to-string (s-out)
@@ -469,13 +469,13 @@
             (when (and ellipsis (read-char s-in nil nil))
               (write-string ellipsis s-out))))))
 
-;;; nÊ¸»úºï½ü
+;;; næ–‡å­—å‰Šé™¤
 (defun string-left-ntrim (str &optional (n 1))
   (declare (string str) (fixnum n))
   (values (subseq str n)
           (subseq str 0 n)))
 
-;;; º¸¤«¤é¾ò·ï¤Ë¹ç¤¦Ê¸»ú¤òºï½ü
+;;; å·¦ã‹ã‚‰æ¡ä»¶ã«åˆã†æ–‡å­—ã‚’å‰Šé™¤
 (defun string-left-trim-if (str func)
   (declare (string str) (function func))
   (if (or (string= "" str)
@@ -490,13 +490,13 @@
            (values (concatenate 'string curr)
                    (concatenate 'string str-list)))))))
 
-;;; ±¦¤«¤é¾ò·ï¤Ë¹ç¤¦Ê¸»ú¤òºï½ü
+;;; å³ã‹ã‚‰æ¡ä»¶ã«åˆã†æ–‡å­—ã‚’å‰Šé™¤
 (defun string-right-trim-if (str func)
   (declare (string str) (function func))
   (let ((str2 (copy-seq str)))
     (nreverse (string-left-trim-if (nreverse str2) func))))
 
-;;; ¶õÇòºï½ü
+;;; ç©ºç™½å‰Šé™¤
 (defun string-left-trim-space (str)
   (declare (string str))
   (string-left-trim-if
@@ -509,7 +509,7 @@
   (let ((str2 (copy-seq str)))
     (nreverse (string-left-trim-space (nreverse str2)))))
 
-;;; ¶õÇò¤Ç¤Ê¤¤¤â¤Î¤òºï½ü
+;;; ç©ºç™½ã§ãªã„ã‚‚ã®ã‚’å‰Šé™¤
 (defun string-left-trim-notspace (str)
   (declare (string str))
   (string-left-trim-if
@@ -523,7 +523,7 @@
   (let ((str2 (copy-seq str)))
     (nreverse (string-left-trim-notspace (nreverse str2)))))
 
-;; ch¤ÎÉôÊ¬¤òstr¤ËÃÖ¤­´¹¤¨¤ë
+;; chã®éƒ¨åˆ†ã‚’strã«ç½®ãæ›ãˆã‚‹
 (defun substitute-string (newstr oldch str)
   (declare (string newstr str) (character oldch))
   (with-output-to-string (ost)
@@ -534,7 +534,7 @@
                    (write-char ch ost)))
          str)))
 
-;; Ê¸»úÎóstr¤òchars¤Ë´Ş¤Ş¤ì¤ëÊ¸»ú¤ÇÊ¬³ä¤·¤Æ¥ê¥¹¥È¤Ë¤¹¤ë
+;; æ–‡å­—åˆ—strã‚’charsã«å«ã¾ã‚Œã‚‹æ–‡å­—ã§åˆ†å‰²ã—ã¦ãƒªã‚¹ãƒˆã«ã™ã‚‹
 (defun split-string (str &optional (chars '(#\Tab #\Newline #\Page #\Return #\Space))
                      &aux (ret (list)))
   (declare (string str))
@@ -555,7 +555,7 @@
                 (write-char ch s-out)))
             ret))))
 
-;; Ê¸»úÎóstr¤òºÇ½é¤Îchars¤Ë´Ş¤Ş¤ì¤ëÊ¸»ú¤ÇÊ¬³ä¤·¤Æ2Í×ÁÇ¤Î¥ê¥¹¥È¤ÇÊÖ¤¹
+;; æ–‡å­—åˆ—strã‚’æœ€åˆã®charsã«å«ã¾ã‚Œã‚‹æ–‡å­—ã§åˆ†å‰²ã—ã¦2è¦ç´ ã®ãƒªã‚¹ãƒˆã§è¿”ã™
 (defun split-string-1 (str &optional (chars '(#\Tab #\Newline #\Page #\Return #\Space)))
   (declare (string str))
   (setq chars (mklist chars))
@@ -575,7 +575,7 @@
                 (write-char ch s-out)))))
       (list ret1 ret2))))
 
-;; case¤ÎÊ¸»úÎóÈÇ
+;; caseã®æ–‡å­—åˆ—ç‰ˆ
 (defmacro string-case (exp &body case-clauses)
   (with-fresh-variables (exp-var)
     `(let ((,exp-var ,exp))
@@ -594,8 +594,8 @@
                            (mklist (car clause))))
                     ,@(cdr clause)))))))))
 
-;; string-case¤Î¹âÂ®ÈÇ¡§exp¤¬Í¿¤¨¤é¤¨¤¿Ê¸»úÎó¤Î¤É¤ì¤«¤Ç¤¢¤ë¤³¤È¤ò²¾Äê¤·¡¤
-;; ÀèÆ¬ÉôÊ¬¤À¤±¤ÇÈ½ÃÇ¤¹¤ë¤³¤È¤Ç¹âÂ®¤ËÈ½Äê
+;; string-caseã®é«˜é€Ÿç‰ˆï¼šexpãŒä¸ãˆã‚‰ãˆãŸæ–‡å­—åˆ—ã®ã©ã‚Œã‹ã§ã‚ã‚‹ã“ã¨ã‚’ä»®å®šã—ï¼Œ
+;; å…ˆé ­éƒ¨åˆ†ã ã‘ã§åˆ¤æ–­ã™ã‚‹ã“ã¨ã§é«˜é€Ÿã«åˆ¤å®š
 (defmacro string-case-eager (exp &body case-clauses)
   (with-fresh-variables (x-var len-var bl-var otw-tag)
     (let* ((otw-action (list `(error "No string matched ~S." ,x-var)))
@@ -613,7 +613,7 @@
                           (error "syntax error in string-case-opt."))))))
       (labels ((iter (i str-tag-list)   ; list of ("..." . <goto-tag>)
                  ;; (print `(iter ,i ,str-tag-list))
-                 (if (with1 tag1 (cdar str-tag-list) ; Á´¤Æ¤Î¥¿¥°¤¬Æ±¤¸
+                 (if (with1 tag1 (cdar str-tag-list) ; å…¨ã¦ã®ã‚¿ã‚°ãŒåŒã˜
                        (every #'(lambda (x) (eq tag1 (cdr x)))
                               (cdr str-tag-list)))
                      `(go ,(cdar str-tag-list))
@@ -645,21 +645,21 @@
                ,otw-tag
                (return-from ,bl-var (progn ,@otw-action)))))))))
                  
-;;;;;; multiple-value ´ØÏ¢
+;;;;;; multiple-value é–¢é€£
 (defmacro nth-multiple-value (n form)
   `(nth ,n (multiple-value-list ,form)))
 
-;;;;;; ¥·¥ó¥Ü¥ëÁàºî
+;;;;;; ã‚·ãƒ³ãƒœãƒ«æ“ä½œ
 
-;;; ÃÍ¤Î¸ò´¹
+;;; å€¤ã®äº¤æ›
 (defmacro swap (place1 place2)
   (let ((temp (gensym)))
     `(let ((,temp ,place1))
        (setf ,place1 ,place2
              ,place2 ,temp))))
 
-;;; x Ãæ¤Î pkg2 ¤ËÅĞÏ¿¤µ¤ì¤Æ¤¤¤ë¥·¥ó¥Ü¥ë( inherited ¤â´Ş¤à )
-;;; ¤ò pkg1 ¤ËÅĞÏ¿¤·Ä¾¤·¤¿¤â¤Î¤òÊÖ¤¹
+;;; x ä¸­ã® pkg2 ã«ç™»éŒ²ã•ã‚Œã¦ã„ã‚‹ã‚·ãƒ³ãƒœãƒ«( inherited ã‚‚å«ã‚€ )
+;;; ã‚’ pkg1 ã«ç™»éŒ²ã—ç›´ã—ãŸã‚‚ã®ã‚’è¿”ã™
 (defun immigrate-package (x pkg1 &optional pkg2)
   (declare (package pkg1))
   (map-all-atoms 
@@ -689,7 +689,7 @@
         (intern symstr package)
       (make-symbol symstr))))
 
-;;; ÅĞÏ¿¤µ¤ì¤Æ¤¤¤ëpackge¤Ë°Í¤é¤º¡¤¥·¥ó¥Ü¥ëÌ¾¤¬Æ±¤¸¤¬¤É¤¦¤«¤òÈ½Äê
+;;; ç™»éŒ²ã•ã‚Œã¦ã„ã‚‹packgeã«ä¾ã‚‰ãšï¼Œã‚·ãƒ³ãƒœãƒ«åãŒåŒã˜ãŒã©ã†ã‹ã‚’åˆ¤å®š
 (defun symbol= (sym1 sym2)
   (declare (symbol sym1 sym2))
   (and
@@ -703,9 +703,9 @@
   (and (symbolp x)
        (funcall test name (symbol-name x))))
 
-;;;;;; ¥ê¥¹¥ÈÁàºî
+;;;;;; ãƒªã‚¹ãƒˆæ“ä½œ
 
-;;; list ¤ò `(,@prev ,el1 ,@inter ,el2 ,@inter ... ,eln ,@post)
+;;; list ã‚’ `(,@prev ,el1 ,@inter ,el2 ,@inter ... ,eln ,@post)
 (defun separate-list (elms separator
                       &optional (head nil head-p) (tail nil tail-p))
   (declare (list elms))
@@ -725,35 +725,35 @@
       ((endp cur)
        (if prev prev test-not))))
 
-;;; ¥ê¥¹¥È¤ÎËöÈø¤ËÍ×ÁÇÄÉ²Ã
+;;; ãƒªã‚¹ãƒˆã®æœ«å°¾ã«è¦ç´ è¿½åŠ 
 (defmacro add-element (place &rest elist)
   `(setf ,place (nconc ,place ,`(list ,@elist)))) 
 
-;;; Ê£¿ô²ó¤Îpush¤ò°ìÅÙ¤Ë½ñ¤¯
+;;; è¤‡æ•°å›ã®pushã‚’ä¸€åº¦ã«æ›¸ã
 (defmacro pushs (&rest args &aux (place (car (last args))))
   `(progn
      ,@(mapcar #'(lambda (x)
                    `(push ,x ,place))
                (butlast args))))
 
-;; list¤ÎnÈÖÌÜ¤ÎÄ¾Á°¤Ë xs ¤òappend¤·¤¿¤â¤Î¤òÊÖ¤¹¡Ên=0¤Çappend¤ÈÆ±¤¸¡Ë
+;; listã®nç•ªç›®ã®ç›´å‰ã« xs ã‚’appendã—ãŸã‚‚ã®ã‚’è¿”ã™ï¼ˆn=0ã§appendã¨åŒã˜ï¼‰
 (defun insert (xs list &optional (n 0))
   (declare (list xs list) (fixnum n))
   (multiple-value-bind (prev post)
       (list-until list (nthcdr n list))
     (nconc prev (append xs post))))
 
-;; list¤ÎnÈÖÌÜ¤ÎÄ¾Á°¤Ë x ¤òcons¤·¤¿¤â¤Î¤òÊÖ¤¹¡Ên=0¤Çcons¤ÈÆ±¤¸¡Ë
+;; listã®nç•ªç›®ã®ç›´å‰ã« x ã‚’consã—ãŸã‚‚ã®ã‚’è¿”ã™ï¼ˆn=0ã§consã¨åŒã˜ï¼‰
 (defun insert1 (x list &optional (n 0))
   (declare (list list) (fixnum n))
   (insert (list x) list n))
 
-;;; ¥ê¥¹¥È¤ÎÀèÆ¬nÍ×ÁÇ¤ÎÊ£À½¤òÊÖ¤¹
+;;; ãƒªã‚¹ãƒˆã®å…ˆé ­nè¦ç´ ã®è¤‡è£½ã‚’è¿”ã™
 (defun firstn (xs &optional (n 1))
   (declare (list xs) (fixnum n))
   (loop repeat n as x in xs collect x))
 
-;;; ¥ê¥¹¥È¤ÎnÈÖÌÜ¤ònew ¤ËÃÖ¤­´¹¤¨¤¿¤Î¤â¤Î¤òÊÖ¤¹
+;;; ãƒªã‚¹ãƒˆã®nç•ªç›®ã‚’new ã«ç½®ãæ›ãˆãŸã®ã‚‚ã®ã‚’è¿”ã™
 ;;; n-new-list == (n1 new1 n2 new2 ...)
 ;; > (substitute-n '(1 2 3 4) 1 nil 2 10)
 ;; (1 nil 10 4)
@@ -784,7 +784,7 @@
                    (rec (cdr focus) (cons 'cdr acc)))))))
     (rec list nil)))
 
-;;; ¥ê¥¹¥È¤ÎÍ×ÁÇ¤ò :key ¤ÎÍ×ÁÇ¤¬ :test ¤Î°ÕÌ£¤ÇÅù¤·¤¤¤â¤ÎÆ±»Î¤Ç¤Ş¤È¤á¤ë
+;;; ãƒªã‚¹ãƒˆã®è¦ç´ ã‚’ :key ã®è¦ç´ ãŒ :test ã®æ„å‘³ã§ç­‰ã—ã„ã‚‚ã®åŒå£«ã§ã¾ã¨ã‚ã‚‹
 ;; > (assort '((1 2) (1 3) (3 4) (2 5) (9 3) (3 2)) :key #'car)
 ;; (((9 3)) ((2 5)) ((3 2) (3 4)) ((1 3) (1 2)))
 (defun assort (lst &key (test #'eql) (key #'identity))
@@ -796,8 +796,8 @@
             (push elm (cdar it))
           (push (cons keyval (list elm)) retval))))))
 
-;; ¥ê¥¹¥È¤Î½çÈÖ¤òÊİÂ¸¤¹¤ëassort
-;; assort¤Î¼ÂÁõ¤Ë°ÍÂ¸¤¹¤ë¼ÂÁõ¤Ê¤Î¤ÇÃí°Õ
+;; ãƒªã‚¹ãƒˆã®é †ç•ªã‚’ä¿å­˜ã™ã‚‹assort
+;; assortã®å®Ÿè£…ã«ä¾å­˜ã™ã‚‹å®Ÿè£…ãªã®ã§æ³¨æ„
 ;; > (stable-assort '((1 2) (1 3) (3 4) (2 5) (9 3) (3 2)) :key #'car)
 ;; (((1 2) (1 3)) ((3 4) (3 2)) ((2 5)) ((9 3)))
 (defun stable-assort (lst &key (test #'eql) (key #'identity))
@@ -805,8 +805,8 @@
   (nreverse (mapcar #'nreverse (assort lst :test test :key key))))
 
 
-;;; ¥ê¥¹¥È¤Î³ÆÍ×ÁÇ¤ò :test¤ÇÈ½Äê¤·¤Æ (Èónil¤Ë¤Ê¤Ã¤¿¤â¤Î¤Î¥ê¥¹¥È nil¤Ë¤Ê¤Ã¤¿¤â¤Î¤Î¥ê¥¹¥È¡Ë
-;;; ¤òÊÖ¤¹
+;;; ãƒªã‚¹ãƒˆã®å„è¦ç´ ã‚’ :testã§åˆ¤å®šã—ã¦ (énilã«ãªã£ãŸã‚‚ã®ã®ãƒªã‚¹ãƒˆ nilã«ãªã£ãŸã‚‚ã®ã®ãƒªã‚¹ãƒˆï¼‰
+;;; ã‚’è¿”ã™
 (defun assort-bool (lst &key (test #'identity) (key #'identity))
   (loop for x in lst
       as tf = (funcall test (funcall key x))
@@ -819,7 +819,7 @@
 (defun stable-assort-bool (&rest args)
   (apply #'assort-bool args))
  
-;; ¥ê¥¹¥È¤ÎÃæ¤«¤éÍ¿¤¨¤é¤ì¤¿´ğ½à¤Ç¤ÎºÇ¹âÍ×ÁÇ¤ò¸«ÉÕ¤±¤ë
+;; ãƒªã‚¹ãƒˆã®ä¸­ã‹ã‚‰ä¸ãˆã‚‰ã‚ŒãŸåŸºæº–ã§ã®æœ€é«˜è¦ç´ ã‚’è¦‹ä»˜ã‘ã‚‹
 (defun find-max (lst &key (test #'>) (key #'identity))
   (declare (list lst) (function test key))
   (let* ((ret (car lst))
@@ -832,7 +832,7 @@
           (cdr lst))
     (values ret ret-key)))
 
-;; ¥ê¥¹¥È¤ÎÃæ¤«¤éºÇ½é¤Ë¾ò·ï¤Ë¹ç¤Ã¤¿¤â¤Î¤ò½ü¤¤¤Æ¡¤½ü¤¤¤¿¤â¤Î¤òÊÖ¤¹
+;; ãƒªã‚¹ãƒˆã®ä¸­ã‹ã‚‰æœ€åˆã«æ¡ä»¶ã«åˆã£ãŸã‚‚ã®ã‚’é™¤ã„ã¦ï¼Œé™¤ã„ãŸã‚‚ã®ã‚’è¿”ã™
 (defmacro find-pop (place test &key (key #'identity))
   (with-fresh-variables (test-var key-var prev-var x-var)
     `(let ((,test-var ,test)
@@ -847,17 +847,17 @@
              do (rplacd ,prev-var (cddr ,prev-var))
                 (return ,x-var))))))
 
-;; Ãæ´ÖÃÍ
+;; ä¸­é–“å€¤
 (defun median (lst &key (test #'>) (key #'identity))
   (declare (list lst) (function test key))
   (nth (truncate (/ (length lst) 2))
        (sort (copy-list lst) test :key key)))
 
-;;; list¤Ç¤Ê¤¤°ú¿ô¤ò¥ê¥¹¥È²½
+;;; listã§ãªã„å¼•æ•°ã‚’ãƒªã‚¹ãƒˆåŒ–
 (defun mklist (obj)
   (if (listp obj) obj (list obj)))
 
-;;; ¥ê¥¹¥È¤ÎËöÈø¤Ëobj¤òÄÉ²Ã
+;;; ãƒªã‚¹ãƒˆã®æœ«å°¾ã«objã‚’è¿½åŠ 
 (defun append1 (lst obj)
   (declare (list lst))
   (append lst (list obj)))
@@ -865,7 +865,7 @@
   (declare (list lst))
   (nconc lst (list obj)))
 
-;;; ¥ê¥¹¥È¤ÎÄ¹¤µ¤ÈÀ°¿ô¤òÈæ³Ó
+;;; ãƒªã‚¹ãƒˆã®é•·ã•ã¨æ•´æ•°ã‚’æ¯”è¼ƒ
 (defun list-length>= (list n)
   (declare (list list) (fixnum n))
   (if (endp list) (<= n 0)
@@ -882,13 +882,13 @@
                      (return (endp (cdr rest)))))))
 
 
-;;; ¥ê¥¹¥È¤«¤é¥é¥ó¥À¥à¤Ç°ìÍ×ÁÇÁªÂò
+;;; ãƒªã‚¹ãƒˆã‹ã‚‰ãƒ©ãƒ³ãƒ€ãƒ ã§ä¸€è¦ç´ é¸æŠ
 (defun list-random-select (list &optional (len (length list)))
   (nth (random len) list))
 
-;;;;; ½¸¹ç±é»»
+;;;;; é›†åˆæ¼”ç®—
 
-;;; ¶Ò½¸¹ç
+;;; å·¾é›†åˆ
 (defun power-set (list)
   (declare (list list))
   (if (endp list)
@@ -898,9 +898,9 @@
               (mapcar (prefixed-func #'cons (car list))
                       remain-power-set)))))
 
-;;; list ¤Î p ¤ÈÆ±¤¸Í×ÁÇ¤ÎÄ¾Á°¤Ş¤Ç¤ÎÉôÊ¬¤Î¥³¥Ô¡¼¤È
-;;; ¤½¤ÎÍ×ÁÇ°Ê¸å¤Î¥ê¥¹¥È¤òÊÖ¤¹¡£
-;;; test = #'eq , key = #'identity ¤Î¤È¤­¤Ï ldiff ¤È¤Û¤ÜÆ±¤¸
+;;; list ã® p ã¨åŒã˜è¦ç´ ã®ç›´å‰ã¾ã§ã®éƒ¨åˆ†ã®ã‚³ãƒ”ãƒ¼ã¨
+;;; ãã®è¦ç´ ä»¥å¾Œã®ãƒªã‚¹ãƒˆã‚’è¿”ã™ã€‚
+;;; test = #'eq , key = #'identity ã®ã¨ãã¯ ldiff ã¨ã»ã¼åŒã˜
 (defun list-until (list p &key (test #'eq) (key #'identity))
   (declare (list list) (function test key))
   (labels ((l-u-tail (list acc)
@@ -911,8 +911,8 @@
                (l-u-tail (cdr list) (cons (car list) acc)))))
     (l-u-tail list nil)))
 
-;;; ÀèÆ¬¤Î¶¦ÄÌÉôÊ¬¿ô¤À¤±¡¤Âè°ì¥ê¥¹¥È¤«¤é¥³¥Ô¡¼¤·¤ÆÊÖ¤¹
-;;; ÂèÆóÊÖ¤êÃÍ¤Ç³Ægiven¥ê¥¹¥È¤Î¶¦ÄÌÉôÊ¬¤Î»Ä¤ê¤ò¥ê¥¹¥È¤Ë¤·¤ÆÊÖ¤¹
+;;; å…ˆé ­ã®å…±é€šéƒ¨åˆ†æ•°ã ã‘ï¼Œç¬¬ä¸€ãƒªã‚¹ãƒˆã‹ã‚‰ã‚³ãƒ”ãƒ¼ã—ã¦è¿”ã™
+;;; ç¬¬äºŒè¿”ã‚Šå€¤ã§å„givenãƒªã‚¹ãƒˆã®å…±é€šéƒ¨åˆ†ã®æ®‹ã‚Šã‚’ãƒªã‚¹ãƒˆã«ã—ã¦è¿”ã™
 (defun head-intersection (test list &rest lists)
   (declare (function test) (list list))
   (if (not lists) (values (copy-list list) (list nil))
@@ -928,8 +928,8 @@
            (values (nreverse ret) (cons cur-list cur-lists)))
         (push (car cur-elms) ret)))))
 
-;;; list ¤Îcd..dr ¤ò½ç¤ËÄ´¤Ù¡¤test¤òËş¤¿¤¹Ä¾Á°¤Ş¤Ç¤Î¥³¥Ô¡¼¤È
-;;; ¤½¤ÎÍ×ÁÇ°Ê¸å¤Î¥ê¥¹¥È¤òÊÖ¤¹¡¥
+;;; list ã®cd..dr ã‚’é †ã«èª¿ã¹ï¼Œtestã‚’æº€ãŸã™ç›´å‰ã¾ã§ã®ã‚³ãƒ”ãƒ¼ã¨
+;;; ãã®è¦ç´ ä»¥å¾Œã®ãƒªã‚¹ãƒˆã‚’è¿”ã™ï¼
 (defun list-until-if (test list &key (key #'identity))
   (declare (function test key) (list list))
   (list-until list t 
@@ -1059,7 +1059,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
              (rplacd prev (cddr prev))
              (return x)))))
 
-;;;;;; ¥Ï¥Ã¥·¥å¥Æ¡¼¥Ö¥ë
+;;;;;; ãƒãƒƒã‚·ãƒ¥ãƒ†ãƒ¼ãƒ–ãƒ«
 (defun list-to-hashtable (list &optional (default-value t)
                           &rest make-hash-table-args)
   (declare (list list))
@@ -1078,16 +1078,16 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
         do (setf (gethash key ret-hashtable) val))
     ret-hashtable))
 
-;;;;;; ¹â³¬´Ø¿ô¥æ¡¼¥Æ¥£¥ê¥Æ¥£
+;;;;;; é«˜éšé–¢æ•°ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£
 
-;;; Äê¿ô¤òÊÖ¤¹´Ø¿ô
+;;; å®šæ•°ã‚’è¿”ã™é–¢æ•°
 (defun const-f (&rest values)
   #'(lambda (&rest dummy)
       (declare (ignore dummy))
       (values-list values)))
 
-;;; ÅÓÃæ¤Çnil¤¬¤Ç¤¿¤éÃæÃÇ¤·¤Ænil¤òÊÖ¤¹mapcar
-;;; multiple-value ÂĞ±ş
+;;; é€”ä¸­ã§nilãŒã§ãŸã‚‰ä¸­æ–­ã—ã¦nilã‚’è¿”ã™mapcar
+;;; multiple-value å¯¾å¿œ
 (defun check-mapcar (func list)
   (declare (function func) (list list))
   (catch 'suspend
@@ -1111,8 +1111,8 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
                (apply #'rmapcar fn args))
            args)))
 
-;;; tree¤ÎÁ´¤Æ¤ÎatomÍ×ÁÇ¤Ëfn¤òÅ¬ÍÑ¤¹¤ë
-;;; ÊÖ¤êÃÍ¤Ïarg¼«¿È
+;;; treeã®å…¨ã¦ã®atomè¦ç´ ã«fnã‚’é©ç”¨ã™ã‚‹
+;;; è¿”ã‚Šå€¤ã¯argè‡ªèº«
 (defun do-all-atoms (fn tree)
   (declare (function fn) (list tree))
   (if (atom tree)
@@ -1121,7 +1121,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
       (map-all-atoms fn (car tree))
       (map-all-atoms fn (cdr tree)))))
 
-;;; tree¤ÎÁ´¤Æ¤ÎatomÍ×ÁÇ¤ò¡¤fn¤òÅ¬ÍÑ¤·¤¿·ë²Ì¤ËÃÖ¤­´¹¤¨¤¿tree¤òÀ¸À®¤·¤ÆÊÖ¤¹
+;;; treeã®å…¨ã¦ã®atomè¦ç´ ã‚’ï¼Œfnã‚’é©ç”¨ã—ãŸçµæœã«ç½®ãæ›ãˆãŸtreeã‚’ç”Ÿæˆã—ã¦è¿”ã™
 (defun map-all-atoms (fn tree)
   (declare (function fn) (list tree))
   (if (atom tree)
@@ -1129,12 +1129,12 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
     (cons (map-all-atoms fn (car tree))
 	  (map-all-atoms fn (cdr tree)))))
 
-;;; ÈóÇË²õÅª¤Êmapcan
+;;; éç ´å£Šçš„ãªmapcan
 (defun mappend (fn &rest lists)
   (declare (function fn))
   (mapcan #'copy-list (apply #'mapcar fn lists)))
 
-;;; quote¤µ¤ì¤Æ¤¤¤ë¼°¤«
+;;; quoteã•ã‚Œã¦ã„ã‚‹å¼ã‹
 (defun quoted-p (exp)
   (and (consp exp)
        (eq 'quote (car exp))))
@@ -1192,7 +1192,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
   #'(lambda (&rest args)
       (some #'every fns args)))
 
-;; fun: ´Ø¿ôÀ¸À®¥ª¥Ú¥ì¡¼¥¿ (from "On Lisp")
+;; fun: é–¢æ•°ç”Ÿæˆã‚ªãƒšãƒ¬ãƒ¼ã‚¿ (from "On Lisp")
 (defmacro fun (expr) `#',(rbuild expr))
 (defun rbuild (expr)
   (if (or (atom expr) (eq (car expr) 'lambda))
@@ -1304,12 +1304,12 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
          (apply #'suffixed-func func suffixes)
          prefixes))
 
-;;; ¥á¥Ã¥»¡¼¥¸¤òÉ½¼¨¤·¤Æ¥æ¡¼¥¶¡¼¤ÎÆşÎÏ¤òµá¤á¤ë
+;;; ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’è¡¨ç¤ºã—ã¦ãƒ¦ãƒ¼ã‚¶ãƒ¼ã®å…¥åŠ›ã‚’æ±‚ã‚ã‚‹
 (defun query (message)
   (format *error-output* "~A? " message)
   (read))
 
-;;; ¥ê¥¹¥È¤ÎÃæ¤ÎÍ×ÁÇ¤ò1¤Ä¡¢¥æ¡¼¥¶¤«¤é¤ÎÆşÎÏ¤Ë¤è¤Ã¤ÆÁª¤Ö
+;;; ãƒªã‚¹ãƒˆã®ä¸­ã®è¦ç´ ã‚’1ã¤ã€ãƒ¦ãƒ¼ã‚¶ã‹ã‚‰ã®å…¥åŠ›ã«ã‚ˆã£ã¦é¸ã¶
 (defun query-select-list (list &key
                                (print-elm #'write-to-string) 
                                (message "Select number"))
@@ -1325,7 +1325,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
           (setq user-input (query message)))
     (nth (1- user-input) list)))
 
-;;;;;;; ¥¨¥é¡¼É½¼¨
+;;;;;;; ã‚¨ãƒ©ãƒ¼è¡¨ç¤º
 
 ;; CL-USER> (error-indent ("In function ~S:" 'f)
 ;; 	   (iwarn "123")
@@ -1364,9 +1364,9 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
       do
         (fresh-line *error-output*)
         (format *error-output* "~A~%" annot))
-  ;; °ìÅÙÉ½¼¨¤·¤¿annotation ¤ÏÉ½¼¨¤·¤Ê¤¤¡¥
+  ;; ä¸€åº¦è¡¨ç¤ºã—ãŸannotation ã¯è¡¨ç¤ºã—ãªã„ï¼
   (mapl #'(lambda (sl) (rplaca sl nil)) *error-annotations*)
-  (setq *error-annotations* nil))       ; ¼¡¤Îloop¤Î¼ê´Ö¤ò¾Ê¤¯¤¿¤á
+  (setq *error-annotations* nil))       ; æ¬¡ã®loopã®æ‰‹é–“ã‚’çœããŸã‚
 
 (defun ierror (&rest args)
   (print-annotations)
@@ -1385,12 +1385,12 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
   (format *error-output* "~A~?"
     *error-indent-spaces* fstr args))
 
-;;;;;;; ¥Ç¥Ğ¥Ã¥°ÍÑ¥Ä¡¼¥ë
+;;;;;;; ãƒ‡ãƒãƒƒã‚°ç”¨ãƒ„ãƒ¼ãƒ«
 
-;;; recexpand¤ËÅĞÏ¿¤µ¤ì¤Æ¤¤¤ë¥·¥ó¥Ü¥ë¤¬ÀèÆ¬¤Î¥Õ¥©¡¼¥à¤Ë¤Ä¤¤¤Æ¤Ï
-;;; ºÆµ¢Åª¤Ëmacroexpand¤¹¤ë¡¥
-;;; ¼Âºİ¤ËÉ¾²Á¤µ¤ì¤ë¥Õ¥©¡¼¥à¤«¤ÎÈ½Äê¡Ê¥Ç¡¼¥¿¤È¤Î¶èÊÌ¡Ë¤Ï¤·¤Ê¤¤
-;;; once ¤¬Èónil¤Ê¤éºÇÄã°ìÅÙ¤Ïexpand¤¹¤ë
+;;; recexpandã«ç™»éŒ²ã•ã‚Œã¦ã„ã‚‹ã‚·ãƒ³ãƒœãƒ«ãŒå…ˆé ­ã®ãƒ•ã‚©ãƒ¼ãƒ ã«ã¤ã„ã¦ã¯
+;;; å†å¸°çš„ã«macroexpandã™ã‚‹ï¼
+;;; å®Ÿéš›ã«è©•ä¾¡ã•ã‚Œã‚‹ãƒ•ã‚©ãƒ¼ãƒ ã‹ã®åˆ¤å®šï¼ˆãƒ‡ãƒ¼ã‚¿ã¨ã®åŒºåˆ¥ï¼‰ã¯ã—ãªã„
+;;; once ãŒénilãªã‚‰æœ€ä½ä¸€åº¦ã¯expandã™ã‚‹
 (defvar *recexpand-symbols* (list))
 (defvar *abbrev-symbols* (list))
 (defun macroexpand-rec (form &optional (once t))
@@ -1408,7 +1408,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
         as cur = (car rest)
         collect (macroexpand-rec2 cur)))))
 
-;;; *recexpand-symbols*¤Ø¤ÎÅĞÏ¿¡¤ºï½ü
+;;; *recexpand-symbols*ã¸ã®ç™»éŒ²ï¼Œå‰Šé™¤
 (defun recexpand (&rest symbols)
   (setq *recexpand-symbols*
     (delete-duplicates (nconc *recexpand-symbols* symbols))))
@@ -1419,7 +1419,7 @@ Returns a list whose Nth element is (cons (nth x) (nth y))"
 (defun recexpand-clean ()
   (setq *recexpand-symbols* nil))
 
-;;; *abbrev-symbols*¤Ø¤ÎÅĞÏ¿¡¤ºï½ü
+;;; *abbrev-symbols*ã¸ã®ç™»éŒ²ï¼Œå‰Šé™¤
 (defun recexpand-abbrev (&rest symbols)
   (setq *abbrev-symbols*
     (delete-duplicates (nconc *abbrev-symbols* symbols))))

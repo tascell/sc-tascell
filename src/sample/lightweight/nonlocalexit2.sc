@@ -27,8 +27,8 @@
   (%defconstant NF-TYPE LW-SC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
 (%include "rule/nestfunc-setrule.sh")
 
-;;; goto ¤Ë¤è¤ëÆş¤ì»Ò´Ø¿ôÃ¦½ĞÎã
-;;; (Ê£»¨¤Ê¥±¡¼¥¹)
+;;; goto ã«ã‚ˆã‚‹å…¥ã‚Œå­é–¢æ•°è„±å‡ºä¾‹
+;;; (è¤‡é›‘ãªã‚±ãƒ¼ã‚¹)
 ;;; g -> f -> g1 -> g -> g1 ==goto==> g
 (%rule (:nestfunc-sc1 :nestfunc-type :nestfunc-temp :nestfunc :untype))
 
@@ -38,7 +38,7 @@
   (pg 0)
   (return 0))
 
-;; ¿Æ´Ø¿ô¤Ø¤Î¸Æ½Ğ¤·¤¬¤¢¤ë¤È¤­¤Ï¥×¥í¥È¥¿¥¤¥×Àë¸À¤¬É¬¿Ü
+;; è¦ªé–¢æ•°ã¸ã®å‘¼å‡ºã—ãŒã‚ã‚‹ã¨ãã¯ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ—å®£è¨€ãŒå¿…é ˆ
 (decl (g pg) (fn int (ptr (lightweight void int))))
 
 (def (g pg) (fn int (ptr (lightweight void int)))
@@ -51,13 +51,13 @@
   (if (== pg 0)
       (return (f g1))
       (begin
-       (g1 1)  ; gotoÀè¤Ï¸å¤Ç¸Æ¤Ó½Ğ¤µ¤ì¤¿g
+       (g1 1)  ; gotoå…ˆã¯å¾Œã§å‘¼ã³å‡ºã•ã‚ŒãŸg
        (return 0)))
   
   (label L1
    (if (== pg 0)
        (return 0)
-       (pg 1)  ; gotoÀè¤ÏºÇ½é¤Ë¸Æ¤Ó½Ğ¤µ¤ì¤¿g
+       (pg 1)  ; gotoå…ˆã¯æœ€åˆã«å‘¼ã³å‡ºã•ã‚ŒãŸg
        )))
   
 (def (main) (fn int)

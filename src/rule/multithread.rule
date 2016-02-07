@@ -42,8 +42,8 @@
 
 ;;;;;; declaration ;;;;;;
 
-;; declaration, block-item, expression ¤ÎÊÖ¤êÃÍ¤Ï
-;;(<Æş¤ì»Ò´Ø¿ô¤Îitem-list> <¸µ¤Î´Ø¿ô¤Îitem-list>)
+;; declaration, block-item, expression ã®è¿”ã‚Šå€¤ã¯
+;;(<å…¥ã‚Œå­é–¢æ•°ã®item-list> <å…ƒã®é–¢æ•°ã®item-list>)
 (extendrule inlined-declaration multithread
   ;; function
   ((#?(,scs[storage-class-specifier] (,func-id ,@arg-id[identifier])
@@ -69,7 +69,7 @@
                 ~(,scs (,func-id c-p ,@arg-id)
                        (fn ,func-texp cont-f ,@arg-texp)
                        ,@new-decl ,@add-decl ,def-nfunc ,@new-body)
-                ;;msc-main´Ø¿ô¤Ê¤é¡¢main´Ø¿ô¤ÎÄêµÁ¤òÄÉ²Ã
+                ;;msc-mainé–¢æ•°ãªã‚‰ã€mainé–¢æ•°ã®å®šç¾©ã‚’è¿½åŠ 
                 (when (eq ~msc-main func-id)
                   (list ~(%include "rule/multithread-main.sc"))))) ))))
   (otherwise
@@ -154,7 +154,7 @@
                  ,@caller-resume
                  (return))
                ~((return ,return-exp)))))) )
-  ;;; <--- ¥Ş¥ë¥Á¥¹¥ì¥Ã¥ÉÍÑ¥×¥ê¥ß¥Æ¥£¥Ö
+  ;;; <--- ãƒãƒ«ãƒã‚¹ãƒ¬ãƒƒãƒ‰ç”¨ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–
   ((#?(thread-create ,@body))
    (let* ((ln (1+ (length (mt:finfo-label mt:*current-func*))))
           (label-l (generate-id (string+ "L" (write-to-string ln))))
@@ -214,13 +214,13 @@
   ((#?(thread-resume ,exp))
    (list (list ~(thr-resume ,exp))
          (list ~(thr-resume ,exp))) )
-  ;;; ¥Ş¥ë¥Á¥¹¥ì¥Ã¥ÉÍÑ¥×¥ê¥ß¥Æ¥£¥Ö --->
+  ;;; ãƒãƒ«ãƒã‚¹ãƒ¬ãƒƒãƒ‰ç”¨ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ– --->
   ;; expression-statement
   (otherwise
    (expression x))
   )
 
-;;; thread-create¤ÎºÇ½é¤ÎÀë¸ÀÍÑ
+;;; thread-createã®æœ€åˆã®å®£è¨€ç”¨
 (defrule mtcreate-decl multithread
   ((#?(,id[identifier] ,texp ,@init))
    (mtcreate-decl (cons ~def x)))
@@ -230,16 +230,16 @@
 
 ;;;;;;;;;;;
 ;;; expression
-;;; tmp.rule¤ÎÊÑ´¹·ë²Ì¤Ë¤è¤ê¡¢call¤Ï
+;;; tmp.ruleã®å¤‰æ›çµæœã«ã‚ˆã‚Šã€callã¯
 ;;; (the void (call (the ,texp ,exp) ,@exp-list))
-;;; ¤«¡¢
+;;; ã‹ã€
 ;;; (the ,texp (= (the ,texp ,id) (the ,texp (call (the ,texp ,exp) ,@exp-list)))
-;;; ¤Î¤É¤Á¤é¤«¤Î·Á¤Ç¸½¤ì¤ë¤è¤¦¤Ë¤Ê¤Ã¤Æ¤¤¤ë¡£
+;;; ã®ã©ã¡ã‚‰ã‹ã®å½¢ã§ç¾ã‚Œã‚‹ã‚ˆã†ã«ãªã£ã¦ã„ã‚‹ã€‚
 
 (defrule expression multithread
   ;; function-call
-  ;; ¡¦°ú¿ô¤ÎÃÍ¤òÊİÂ¸
-  ;; ¡¦¸Æ¤Ó½Ğ¤¹´Ø¿ô¤Î¥İ¥¤¥ó¥¿¤âÊİÂ¸
+  ;; ãƒ»å¼•æ•°ã®å€¤ã‚’ä¿å­˜
+  ;; ãƒ»å‘¼ã³å‡ºã™é–¢æ•°ã®ãƒã‚¤ãƒ³ã‚¿ã‚‚ä¿å­˜
   ((#? #1=(the ,texp (call (the (ptr (,fn-tag[function-tag] ,fexp1 ,@fexp)) ,exp-f)
                            ,@arg-list))
     #?(the ,texp0 (= (the ,texp1 ,id) #1#)))
@@ -251,14 +251,14 @@
             (renew-ln ~(= ln ,ln))
             (label-stat ~(label ,label-l nil))
             (tmp-id (if-pattern-variable id id nil))
-            ;; Âè1°ú¿ô¤ËÆş¤ì»Ò´Ø¿ô¤Ø¤Î¥İ¥¤¥ó¥¿¤òÄÉ²Ã
+            ;; ç¬¬1å¼•æ•°ã«å…¥ã‚Œå­é–¢æ•°ã¸ã®ãƒã‚¤ãƒ³ã‚¿ã‚’è¿½åŠ 
             (call-exp ~(,exp-f ,nfunc-id ,@arg-list))
             (new-exp (if-pattern-variable id ~(= ,id ,call-exp) call-exp)))
        (push (list label-l tmp-id)
              (mt:finfo-label mt:*current-func*))
        (list (list renew-ln new-exp label-stat)
              (list renew-ln new-exp)) )))
-  ;; ¤½¤ÎÂ¾¤Î¼°¡¤c-exp
+  ;; ãã®ä»–ã®å¼ï¼Œc-exp
   ((#?(the ,@rem))
    (list (list x) (list x)) )
   ((#?(c-exp ,@rem))

@@ -27,7 +27,7 @@
 (c-exp "#include<stdlib.h>")
 (c-exp "#include<pthread.h>")
 
-;;; ÄÉ²Ã¤¹¤ë·¿¡¢¥Þ¥¯¥íÄêµÁ
+;;; è¿½åŠ ã™ã‚‹åž‹ã€ãƒžã‚¯ãƒ­å®šç¾©
 (deftype nestfn-t (ptr (fn (ptr char) (ptr char) (ptr void))))
 
 (deftype closure-t struct
@@ -38,13 +38,13 @@
 (%defmacro mref-t (tp p)
   `(mref (cast (ptr ,tp) ,p)))
 
-;;; nonlocalexit-goto ¤ËÂÐ±þ
+;;; nonlocalexit-goto ã«å¯¾å¿œ
 (def (lw-call esp) (fn (ptr char) (ptr char))
   (def clos (ptr closure-t) (mref-t (ptr closure-t) esp))
-  ;; Æþ¤ì»Ò´Ø¿ô¤ò¸Æ¤Ó½Ð¤¹¡£
-  ;; goto ¤ÇÃ¦½Ð¤·¤Æ¤­¤¿¾ì¹ç¤Ï¡¢Ã¦½ÐÀè¤Îefp
-  ;; (stack¤Îreconstruction¤òefp¤Î¤È¤³¤í¤Î¥Õ¥ì¡¼¥à¤Ç»ß¤á¤ë)
-  ;; ¤½¤¦¤Ç¤Ê¤¤¾ì¹ç¤Ï¡¢0 ¤¬ÊÖ¤êÃÍ¤È¤Ê¤ë¡£ 
+  ;; å…¥ã‚Œå­é–¢æ•°ã‚’å‘¼ã³å‡ºã™ã€‚
+  ;; goto ã§è„±å‡ºã—ã¦ããŸå ´åˆã¯ã€è„±å‡ºå…ˆã®efp
+  ;; (stackã®reconstructionã‚’efpã®ã¨ã“ã‚ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã§æ­¢ã‚ã‚‹)
+  ;; ãã†ã§ãªã„å ´åˆã¯ã€0 ãŒè¿”ã‚Šå€¤ã¨ãªã‚‹ã€‚ 
   (return ((fref clos -> fun) esp (fref clos -> fr))))
 
 ;; for handling pthread

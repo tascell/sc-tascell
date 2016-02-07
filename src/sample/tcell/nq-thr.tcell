@@ -65,14 +65,14 @@
 (def Threshold int)
 (def Tp (array (struct timeval) 2))
 (def (task nqueens)
-  (def r int :out)  ; ¡ÊÉôÊ¬¡Ë²ò¤Î¿ô
-  (def n int :in)   ;  ÌäÂê¥µ¥¤¥º
-  (def k int :in)   ;  ½é´ü²½->Ãµº÷³«»Ï(k<0) or ÉôÊ¬Ãµº÷³«»Ï¤«¤Î¥Õ¥é¥°(>=0)
-  (def i1 int)  ;  Ãµº÷ÈÏ°Ï start
-  (def i2 int)  ;  Ãµº÷ÈÏ°Ï end
-  (def a (array int 20)) ; »ÈÍÑºÑ¤ß¹Ô¤Î´ÉÍı
-  (def lb (array int 40)) ; È×ÌÌ¾ğÊó1
-  (def rb (array int 40)) ; È×ÌÌ¾ğÊó2
+  (def r int :out)  ; ï¼ˆéƒ¨åˆ†ï¼‰è§£ã®æ•°
+  (def n int :in)   ;  å•é¡Œã‚µã‚¤ã‚º
+  (def k int :in)   ;  åˆæœŸåŒ–->æ¢ç´¢é–‹å§‹(k<0) or éƒ¨åˆ†æ¢ç´¢é–‹å§‹ã‹ã®ãƒ•ãƒ©ã‚°(>=0)
+  (def i1 int)  ;  æ¢ç´¢ç¯„å›² start
+  (def i2 int)  ;  æ¢ç´¢ç¯„å›² end
+  (def a (array int 20)) ; ä½¿ç”¨æ¸ˆã¿è¡Œã®ç®¡ç†
+  (def lb (array int 40)) ; ç›¤é¢æƒ…å ±1
+  (def rb (array int 40)) ; ç›¤é¢æƒ…å ±2
   )
 
 (def (task-sender nqueens)
@@ -104,14 +104,14 @@
   )))
 
 
-;; k: a[j] (0<k)¤Ş¤Ç¤Î¹Ô¤Ë¤Ï¤â¤¦ÃÖ¤¤¤¿
-;; ix, iy:  Ãµº÷ÈÏ°Ï
+;; k: a[j] (0<k)ã¾ã§ã®è¡Œã«ã¯ã‚‚ã†ç½®ã„ãŸ
+;; ix, iy:  æ¢ç´¢ç¯„å›²
 (def (nqueens n k ix iy tsk)
     (wfn int int int int int (ptr (struct nqueens)))
   (def s int 0)
   (do-many for i from ix to iy
     (def ai int (aref tsk->a i))
-    ;; ¶ğ¤¬ÃÖ¤±¤ë¤«¥Á¥§¥Ã¥¯
+    ;; é§’ãŒç½®ã‘ã‚‹ã‹ãƒã‚§ãƒƒã‚¯
     (if (not (or (aref tsk->lb (+ n -1 (- ai) k))
                  (aref tsk->rb (+ ai k))))
         (begin

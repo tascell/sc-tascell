@@ -24,10 +24,10 @@
 ;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 ;;; SUCH DAMAGE.
 
-;;; HSC -> LW-SC ¡ÊÍ×hoisting, type, temp¡Ë
+;;; HSC -> LW-SC ï¼ˆè¦hoisting, type, tempï¼‰
 
-;; Ì¤ÂĞ±ş
-;; ¡¦¹½Â¤ÂÎ¤¬¥á¥ó¥Ğ¤È¤·¤Æ¹½Â¤ÂÎ¤ò»ı¤Ä¾ì¹ç
+;; æœªå¯¾å¿œ
+;; ãƒ»æ§‹é€ ä½“ãŒãƒ¡ãƒ³ãƒã¨ã—ã¦æ§‹é€ ä½“ã‚’æŒã¤å ´åˆ
 
 (scr:require "HSC-DEFS")
 
@@ -60,7 +60,7 @@
   (#?(,scs[storage-class-specifier]
       (,fname ,@arg-list) (,fntag[function-tag] ,rtype ,@type-list {,va-arg[vaarg-tag]})
       ,@body)
-     (if (or (cid-p fname) (cid-p fntag)) (list x)   ; csym::¤Ê¤é²¿¤â¤·¤Ê¤¤
+     (if (or (cid-p fname) (cid-p fntag)) (list x)   ; csym::ãªã‚‰ä½•ã‚‚ã—ãªã„
        (let* ((hsc:*finfo* (hsc:make-finfo :main-p (eq fname ~hsc-main)))
 	      (vaarg-ret (if-pattern-variable va-arg (list (get-retval va-arg))))
               (rtype-ret (type-expression! rtype))
@@ -86,12 +86,12 @@
        (let ((sbody-ret (mapcar #'struct-declaration sbody)))
          (list
           'splice
-          ~(def (struct ,data-sid) ,@sbody-ret) ; ¸µ¤Î¹½Â¤ÂÎ¾ğÊó
+          ~(def (struct ,data-sid) ,@sbody-ret) ; å…ƒã®æ§‹é€ ä½“æƒ…å ±
           ~(def (struct ,hsc-sid)	; <sid> --> {<type_info>, <ptr to descriptor>, <sid>_data}
 	     (def d desc-t)
 	     (def data (struct ,data-sid)))
-          ~(def ,smap-id (array size-t) ,(hsc:make-struct-map)) ; ¥ª¥Ö¥¸¥§¥¯¥ÈÃæ¤Î»²¾È¤Î°ÌÃÖ
-          ~(def ,sdesc-id descriptor ,(hsc:make-descriptor)) ; ¹½Â¤ÂÎ¸ÇÍ­¤Î¾ğÊó(descriptor)
+          ~(def ,smap-id (array size-t) ,(hsc:make-struct-map)) ; ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆä¸­ã®å‚ç…§ã®ä½ç½®
+          ~(def ,sdesc-id descriptor ,(hsc:make-descriptor)) ; æ§‹é€ ä½“å›ºæœ‰ã®æƒ…å ±(descriptor)
           )))))
   ;; union (not featured)
   (#?(def (union ,sid) ,@sbody)
@@ -106,7 +106,7 @@
      ~(,scs ,id ,texp-ret 0)))
   ;; variable (otherwise)
   (#?(,scs[storage-class-specifier] ,id[identifier] ,texp {,init})
-   ;;ptr¤Ê¤émoveÂĞ¾İ¤È¤·¤Æ¥ê¥¹¥È¤Ë²Ã¤¨¤ë¡£csym::¤¬¤Ä¤¤¤Æ¤¤¤¿¤émoveÂĞ¾İ¤«¤é³°¤¹¡£
+   ;;ptrãªã‚‰moveå¯¾è±¡ã¨ã—ã¦ãƒªã‚¹ãƒˆã«åŠ ãˆã‚‹ã€‚csym::ãŒã¤ã„ã¦ã„ãŸã‚‰moveå¯¾è±¡ã‹ã‚‰å¤–ã™ã€‚
    (if (cid-p id) x
      (let* ((texp-ret (type-expression texp))
             (init-ret (if-pattern-variable init (list (initializer init))
@@ -115,7 +115,7 @@
        ~(,scs ,id ,texp-ret ,@init-ret))))
   )
 
-;; ¥á¥ó¥Ğ¤ò*sinfo*¤ËÅĞÏ¿
+;; ãƒ¡ãƒ³ãƒã‚’*sinfo*ã«ç™»éŒ²
 (defrule struct-declaration hsc
   (#?(def ,id ,texp)
    (let ((texp-ret (type-expression texp)))
@@ -123,9 +123,9 @@
      ~(def ,id ,texp-ret))))
 
 ;; type-expression
-;; * fn·¿¤ËÂè°ì°ú¿ô (Æş¤ì»Ò´Ø¿ôsht·¿)ÄÉ²Ã
+;; * fnå‹ã«ç¬¬ä¸€å¼•æ•° (å…¥ã‚Œå­é–¢æ•°shtå‹)è¿½åŠ 
 ;; * array -> ptr
-;; * ¹½Â¤ÂÎÌ¾¤òÊÑ´¹
+;; * æ§‹é€ ä½“åã‚’å¤‰æ›
 (defrule type-expression hsc
   (#?,atom[#'atom]
    x)
@@ -145,7 +145,7 @@
   (otherwise
    (mapcar #'type-expression x)))
 
-;; texp¤¬»²¾È·¿¤«¤É¤¦¤«¤ÎÈ½Äê
+;; texpãŒå‚ç…§å‹ã‹ã©ã†ã‹ã®åˆ¤å®š
 (defrule ref-type-p hsc
   ((#?(ptr ,texp)
     #?(array ,@rem))
@@ -153,7 +153,7 @@
   (otherwise
    nil))
 
-;; Àë¸À¤ÎºÇ¸å¤Ë°ì»şÊÑ¿ô¤ÎÀë¸À¤ª¤è¤ÓÆş¤ì»Ò´Ø¿ô¤ÎÄÉ²Ã
+;; å®£è¨€ã®æœ€å¾Œã«ä¸€æ™‚å¤‰æ•°ã®å®£è¨€ãŠã‚ˆã³å…¥ã‚Œå­é–¢æ•°ã®è¿½åŠ 
 (defrule function-body hsc
   (#?({:attr ,f-attr} { ,r-decl[register-declarator] }
                       ,@bi-list)
@@ -163,16 +163,16 @@
                             (list (get-retval r-decl)))))
             (fhead (hsc:function-head-p))
             (rembody bi-list)
-            (decls (loop for bi in bi-list ; bodyÀèÆ¬¤ÎÀë¸ÀÉô
+            (decls (loop for bi in bi-list ; bodyå…ˆé ­ã®å®£è¨€éƒ¨
                        as ret = (inlined-declaration (car rembody))
                        until (eq 'rule::no-match ret)
                        do (pop rembody)
                        collect ret))
-            (stats (mapcar #'statement! rembody))) ; »Ä¤ê¤ÎstatementÉô
+            (stats (mapcar #'statement! rembody))) ; æ®‹ã‚Šã®statementéƒ¨
        (nconc pre decls
               (when fhead
-                (nconc (hsc:make-add-decls) ; °ì»şÊÑ¿ô¤ÎÀë¸À
-                       (list (hsc:make-nestfunc)))) ; Æş¤ì»Ò´Ø¿ôÄêµÁ
+                (nconc (hsc:make-add-decls) ; ä¸€æ™‚å¤‰æ•°ã®å®£è¨€
+                       (list (hsc:make-nestfunc)))) ; å…¥ã‚Œå­é–¢æ•°å®šç¾©
               stats)))
   )
 
@@ -232,22 +232,22 @@
 				     (bit-or TYPE-STRUCT ; type-id (see "hsc.sh")
 					     (cast size-t ; descriptor
 						   (ptr ,(hsc:sinfo-sdesc-id sinfo)))))
-                               ,init-ret) ; ¤â¤È¤â¤È¤Î¥Ç¡¼¥¿
+                               ,init-ret) ; ã‚‚ã¨ã‚‚ã¨ã®ãƒ‡ãƒ¼ã‚¿
                        ))))
   ;; field reference
-  ;; (struct d data) ¤ËÊÑ¤ï¤Ã¤Æ¤¤¤ë¤Î¤ÇdataÉô¤ò»Ø¤¹¤è¤¦¤ËÊÑ¹¹
+  ;; (struct d data) ã«å¤‰ã‚ã£ã¦ã„ã‚‹ã®ã§dataéƒ¨ã‚’æŒ‡ã™ã‚ˆã†ã«å¤‰æ›´
   (#?(the ,texp (fref ,exp ,@id-list))
-   (let* ((exp-ret (expression! exp))   ; frefÂè°ì¼°
+   (let* ((exp-ret (expression! exp))   ; frefç¬¬ä¸€å¼
           (exp-type (second exp-ret)))
      (aif (and (tagged-p ~struct exp-type)
                (hsc:find-sinfo (second exp-type)))
          ~(the ,texp (fref ,exp-ret data ,@id-list))
-       (progn                           ; Ì¤ÄêµÁ¤Ş¤¿¤Ï¹½Â¤ÂÎ·¿¤Ç¤Ê¤¤
+       (progn                           ; æœªå®šç¾©ã¾ãŸã¯æ§‹é€ ä½“å‹ã§ãªã„
          (warn "~S (type of ~S) is not defined as structure"
                exp-type (third exp))
          ~(the ,texp (fref ,exp-ret ,@id-list))))))
-  ;; array object: bodyÉô¤ò»²¾È¤¹¤ë¤è¤¦¤ËÊÑ¹¹
-  ;; index¤¬¤Ê¤¤¾ì¹ç¤Ï¡¤C¤Ø¤Î´Ø¿ôÅÏ¤·ÍÑ¤Ë¡¤Ã±¤Ëbody¤ò»²¾È¤¹¤ë
+  ;; array object: bodyéƒ¨ã‚’å‚ç…§ã™ã‚‹ã‚ˆã†ã«å¤‰æ›´
+  ;; indexãŒãªã„å ´åˆã¯ï¼ŒCã¸ã®é–¢æ•°æ¸¡ã—ç”¨ã«ï¼Œå˜ã«bodyã‚’å‚ç…§ã™ã‚‹
   (#?(the (array ,texp) (aref ,exp))
    (let* ((texp-ret (type-expression! texp))
 	  (exp-ret (expression! exp)))
@@ -266,7 +266,7 @@
   ;; function call
   (#?(the ,texp (call (the (ptr (,ftag ,@texp-list)) ,exp)
                       ,@exp-list))
-     (let ((exp-ret (expression! (second (third x)))) ; callÂè°ì¼°
+     (let ((exp-ret (expression! (second (third x)))) ; callç¬¬ä¸€å¼
            (expl-ret (mapcar #'expression! exp-list)))
        (if (or (eq 'csym::fn ftag) (cid-p exp))
            ~(the ,texp (call ,exp-ret ,@expl-ret))

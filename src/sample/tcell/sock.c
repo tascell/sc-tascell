@@ -323,7 +323,7 @@ int connect_to (char *hostname, unsigned short port)
     int dstSocket;              /* socket */
     struct sockaddr_in dstAddr; /* sockaddr_in structure object */
 
-    /* Ì¾Á°->IP address */
+    /* åå‰->IP address */
     servhost = gethostbyname(hostname);
     if (servhost == NULL) {
         perror ("gethostbyname");

@@ -22,10 +22,10 @@
 ;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 ;;; SUCH DAMAGE.
 
-;; ¼Â¹ÔÎã
-;; (exec-with-remote-io "../fib-xcc")   ; Ã±ÂÎ
-;; (start-procs 5 "../fib-xcc")         ; Ê£¿ôÆ±»şµ¯Æ°
-;; (kill-procs)                         ; start-procs¤Î¸å»ÏËö
+;; å®Ÿè¡Œä¾‹
+;; (exec-with-remote-io "../fib-xcc")   ; å˜ä½“
+;; (start-procs 5 "../fib-xcc")         ; è¤‡æ•°åŒæ™‚èµ·å‹•
+;; (kill-procs)                         ; start-procsã®å¾Œå§‹æœ«
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (featurep :allegro)
