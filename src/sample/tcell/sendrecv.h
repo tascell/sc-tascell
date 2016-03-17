@@ -33,6 +33,10 @@ void send_int(int n);
 int recv_int(void);
 
 /**/
+void send_long(long n);
+long recv_long(void);
+
+/**/
 void send_longlong(long long int n);
 long long int recv_longlong(void);
 
