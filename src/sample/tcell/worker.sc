@@ -1748,7 +1748,7 @@
         (csym::set-aux-data (ptr aux) aux-type aux-body)
         (csym::print-aux-data thr->fp-tc (ptr aux))
         (csym::fputc #\Newline thr->fp-tc)))
-  (return))
+  (return (aref thr->ev-cnt ev)))
 
 ;;; Show time / event counters
 (def (csym::show-counters) (fn void)
