@@ -1,4 +1,4 @@
-;;; Copyright (c) 2009-2014 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; Copyright (c) 2009-2016 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -52,13 +52,6 @@
 (%if* VERBOSE
   (c-exp "#define NDEBUG"))
 (c-exp "#include<assert.h>")
-
-;;; Variables for debug information
-(%ifdef* VERBOSE
-         (static n-dreq-handler int 0)  ; # running dreq-handler threads
-         (static n-sending-dreq int 0)  ; # dreq handlers executing send-dreq-for-required-range
-         (static n-sending-data int 0)  ; # dreq handlers sending data
-         (static n-waiting-data int 0)) ; # dreq handlers waiting data
 
 
 (%defmacro xread (tp exp)
@@ -215,10 +208,7 @@
       ((aref rslt-senders task-no) body)
       (csym::write-eol)
       )))
-   ((== w DATA)
-    ;; data-mut has been already acquired
-    (csym::data-send (aref pcmd->v 1 0) (aref pcmd->v 1 1))
-    (csym::write-eol)))
+   )
 
   (csym::flush-send)
   (csym::pthread-mutex-unlock (ptr send-mut))
@@ -252,12 +242,7 @@
    (case TREQ) (csym::recv-treq pcmd) (break)
    (case NONE) (csym::recv-none pcmd) (break)
    (case RACK) (csym::recv-rack pcmd) (break)
-   (case DREQ) (csym::recv-dreq pcmd) (break)
-   (case DATA) (csym::recv-data pcmd) (break)
    (case BCST) (csym::recv-bcst pcmd) (break)
-   (case LEAV) (csym::recv-leav pcmd) (break)
-   (case LACK) (csym::recv-lack pcmd) (break)
-   (case ABRT) (csym::recv-abrt pcmd) (break)
    (case CNCL) (csym::recv-cncl pcmd) (break)
    (case BCAK) (csym::recv-bcak pcmd) (break)
    (case STAT) (csym::print-status pcmd) (break)
@@ -1054,285 +1039,6 @@
   (csym::pthread-mutex-unlock (ptr thr->rack-mut)))
 
 
-;;;; NOTE: currentry the implementation of data-dreq mechanism is incomplete.
-
-;; The pointer to thevarray of existence flags (initialozed in setup-data())
-(def data-flags (ptr (enum DATA-FLAG)) 0)
-;; The lock and condition variable for data-flags
-(def data-mutex pthread-mutex-t)
-(def data-cond  pthread-cond-t)
-
-;; A built-in function of Tascell: initialize data (n: size)
-(def (csym::-setup-data n) (csym::fn void int)
-  (def i int)
-  (def tmp (ptr (enum DATA-FLAG)))
-
-  (if data-flags (return))
-  (csym::pthread-mutex-lock (ptr data-mutex))
-  ;; Initialize data-flags
-  (if (not data-flags)
-      (begin
-       (= tmp (cast (ptr (enum DATA-FLAG)) (csym::malloc (* n (sizeof (enum DATA-FLAG))))))
-       (for ((= i 0) (< i n) (inc i))
-            (= (aref tmp i) DATA-NONE))
-       (= data-flags tmp)))
-  ;; Allocate data by invoking a user-defined method
-  (csym::data-allocate n)
-  (csym::pthread-mutex-unlock (ptr data-mutex))
-  (return))
-
-;; For each on-demand data element in the range [start,end), send pcmd if it is NONE and
-;; pcmd-fwd if it is REQUESTING. Then, update the status of NONE elements to REQUESTING.
-;; pcmd and pcmd-fwd are pointers to dreq commands to which arguments except the third
-;; argument, which indicates the data range, are set.
-;; If pcmd or pcmd-fwd is NULL, sending the corresponding message is skipped.
-(def (csym::send-dreq-for-required-range start end pcmd pcmd-fwd)
-    (csym::fn void int int (ptr (struct cmd)) (ptr (struct cmd)))
-  (defs int i j)
-  (csym::pthread-mutex-lock (ptr data-mutex))
-  (for ((= i start) (< i end) (inc i))
-    (cond
-     ((== (aref data-flags i) DATA-NONE)
-      (= (aref data-flags i) DATA-REQUESTING)
-      (for ((= j (+ i 1)) (and (< j end) (== (aref data-flags j) DATA-NONE)) (inc j))
-        (= (aref data-flags j) DATA-REQUESTING))
-      ;; Send a data request (pcmd) for [i,j)
-      (if pcmd
-          (begin
-            (= (aref pcmd->v 2 0) i)  (= (aref pcmd->v 2 1) j)
-            (= (aref pcmd->v 2 2) TERM)
-            (csym::send-command pcmd 0 0)))
-      (= i (- j 1)))     ; Continue from the next location of the requested range
-     ((== (aref data-flags i) DATA-REQUESTING)
-      (for ((= j (+ i 1)) (and (< j end) (== (aref data-flags j) DATA-REQUESTING)) (inc j))
-        )
-      ;; Send a data request (pcmd-fwd) for [i,j)
-      (if pcmd-fwd
-          (begin
-            (= (aref pcmd-fwd->v 2 0) i)  (= (aref pcmd-fwd->v 2 1) j)
-            (= (aref pcmd-fwd->v 2 2) TERM)
-            (csym::send-command pcmd-fwd 0 0)))
-      (= i (- j 1)))     ; Continue from the next location of the requested range
-     ))
-  (csym::pthread-mutex-unlock (ptr data-mutex))
-  )
-
-;; Find the task of the tid-th worker that generated the task-home entry whose id is sid.
-;; If the task is sent from external node, output its address to "head".
-;; Otherwise, find the task-home entry in another worker and repeat this search step.
-(def (csym::get-first-outside-ancestor-task-address head tid sid) (csym::fn int (ptr (enum addr)) int int)
-  (def thr (ptr (struct thread-data)))
-  (def hx (ptr (struct task-home)))
-  (def ok int)
-  (do-while 1
-    ;; thr: the tid-th worker thread
-    (= thr (+ threads tid))
-    (csym::pthread-mutex-lock (ptr thr->mut))
-    ;; hx: the task-home entry of the tid-th worker whose id is sid.
-    (if (not (= hx (csym::search-task-home-by-id sid thr->sub)))
-        (csym::fprintf stderr "Error in get-first-outside-ancestor-task-address (specified task not exists)~%"))
-    ;; hx->owner: the task that generated the hx entry
-    (cond
-     ((not hx->owner)                   ; Error occurs if there is no parent
-      (csym::fprintf stderr "error in get-first-outside-ancestor-task-address: no owner found.~%")
-      (csym::print-status 0)
-      (csym::exit 1))
-     ((== hx->owner->rslt-to OUTSIDE)   ; If hx->owner is sent from external node, output its address
-      (csym::copy-address head hx->owner->rslt-head)
-      (break)))
-    ;; If hx->owner is sent from a worker in the same node,
-    ;; get its worker id and task-home id, and repeat the search step
-    (= tid (aref hx->owner->rslt-head 0))
-    (= sid (aref hx->owner->rslt-head 1))
-    (csym::pthread-mutex-unlock (ptr thr->mut))
-    )
-  (return ok))
-
-;; Tascell user function: request data of the range [start,end) to the parent task
-(def (csym::-request-data thr start end) (csym::fn void (ptr (struct thread-data)) int int)
-  (def cmd (struct cmd))
-  (def tx (ptr (struct task)))
-  (DEBUG-PRINT 2 "request-data: %d--%d start~%" start end)
-  (csym::pthread-mutex-lock (ptr thr->mut))
-  (= tx thr->task-top)                  ; the task being executed by thr
-  (csym::pthread-mutex-unlock (ptr thr->mut))
-  ;; Generate a template for dreq commands
-  (= cmd.w DREQ)
-  (= cmd.c 3)
-  ;; Sender address
-  (= (aref cmd.v 0 0) 0)  (= (aref cmd.v 0 1) TERM)
-  ;; Rcipient address: search ancestor tasks for the first task in an external node
-  (if (== OUTSIDE tx->rslt-to)
-      (csym::copy-address (aref cmd.v 1) tx->rslt-head)
-    (csym::get-first-outside-ancestor-task-address
-     (aref cmd.v 1) (aref tx->rslt-head 0) (aref tx->rslt-head 1)))
-  (= cmd.node OUTSIDE)
-
-  (DEBUG-STMTS 2
-               (= (aref cmd.v 2 0) TERM)
-               (csym::proto-error "dreq template" (ptr cmd)))
-  
-  ;; Send dreq commands for necessary ranges
-  (csym::send-dreq-for-required-range start end (ptr cmd) 0)
-  (DEBUG-PRINT 2 "request-data: %d--%d end~%" start end)
-  (return)
-  )
-
-;; Tascell user function: wait until data of the range [stard,end) reach
-(def (csym::-wait-data start end) (csym::fn void int int)
-  (def i int)
-  (DEBUG-PRINT 2 "wait-data: %d--%d start~%" start end)
-  (csym::pthread-mutex-lock (ptr data-mutex))
-  (for ((= i start) (< i end) (inc i))
-    (while (!= (aref data-flags i) DATA-EXIST)
-      (csym::pthread-cond-wait (ptr data-cond) (ptr data-mutex))))
-  (csym::pthread-mutex-unlock (ptr data-mutex))
-  (DEBUG-PRINT 2 "wait-data: %d--%d end~%" start end)
-  )
-
-;; Set the data-flag of the range [start,end) to DATA-EXIST
-(def (csym::-set-exist-flag start end) (csym::fn void int int)
-  (def i int)
-  (csym::pthread-mutex-lock (ptr data-mutex))
-  (for ((= i start) (< i end) (inc i))
-    (= (aref data-flags i) DATA-EXIST))
-  (csym::pthread-mutex-unlock (ptr data-mutex))
-  )
-
-
-
-;; The main function of a data request handler thread
-(def (csym::dreq-handler parg0) (csym::fn (ptr void) (ptr void))
-  (def parg (ptr (struct dhandler-arg)) parg0)
-  (def start int parg->start)
-  (def end int parg->end)
-  (def pcmd (ptr (struct cmd)) (ptr parg->dreq-cmd))
-  (def pcmd-fwd (ptr (struct cmd)) (ptr parg->dreq-cmd-fwd))
-  (def data-cmd (struct cmd))
-  (defs int i j)
-
-  (%ifdef* VERBOSE (inc n-dreq-handler))
-   
-  #+comment
-  (DEBUG-STMTS 1 (= (aref pcmd->v 2 0) TERM)
-               (csym::fprintf stderr "dreq-handler: %d %d~%" start end)
-               (csym::proto-error "template" pcmd))
-  
-  ;; Send pcmd for subranges whose flags are "NONE" (not exist in this node)
-  ;; Send pcmd-fwd for for subranges whose flags are "REQUESTING" (not exist
-  ;; in this node but already requesting to another node)
-  (%ifdef* VERBOSE (inc n-sending-dreq))
-  (csym::send-dreq-for-required-range start end pcmd pcmd-fwd)
-  (%ifdef* VERBOSE (dec n-sending-dreq))
-  
-  ;; Ignore dreq command from a worker in the same node
-  (if (== parg->data-to INSIDE)
-      (begin
-       (%ifdef* VERBOSE (dec n-dreq-handler))
-       (return)))
-
-  ;; Generate a template for "data" commands
-  (= data-cmd.w DATA)
-  (= data-cmd.c 2)
-  (= data-cmd.node parg->data-to)       ; internal or external
-  (csym::copy-address (aref data-cmd.v 0) parg->head) ; recipient address
-  
-  ;; Wait for data by cond-wait and send as "data" messages
-  (%ifdef* VERBOSE (inc n-sending-data))
-  (csym::pthread-mutex-lock (ptr data-mutex))
-  (for ((= i start) (< i end) (inc i))
-    (while (!= (aref data-flags i) DATA-EXIST)
-      (%ifdef* VERBOSE (inc n-waiting-data))
-      (csym::pthread-cond-wait (ptr data-cond) (ptr data-mutex))
-      (%ifdef* VERBOSE (dec n-waiting-data)) )
-    (for ((= j (+ i 1)) (and (< j end) (== (aref data-flags j) DATA-EXIST)) (inc j))
-      )
-    ;; Send a "data" message for [i,j) (the data body is sent in send-cmmand())
-    (csym::assert (< i j))
-    (= (aref data-cmd.v 1 0) i)  (= (aref data-cmd.v 1 1) j)
-    (= (aref data-cmd.v 1 2) TERM)
-    (csym::send-command (ptr data-cmd) 0 0)
-    (= i (- j 1)))
-  (csym::pthread-mutex-unlock (ptr data-mutex))
-  (%ifdef* VERBOSE (dec n-sending-data))
-  
-  (csym::free parg)
-  (%ifdef* VERBOSE (dec n-dreq-handler))
-  (return))
-
-;; dreq: request dreq handler of an external node to send data of the specified range
-;; dreq <sender> <recipient> <range("start:end" indicating [start,end))>
-(def (csym::recv-dreq pcmd) (csym::fn void (ptr (struct cmd)))
-  (def tx (ptr (struct task)))
-  (def tid (enum addr))
-  (def sid int)
-  (def parg (ptr (struct dhandler-arg)))
-  (def len size-t)
-  ;; Check # of arguments
-  (if (< pcmd->c 3) (csym::proto-error "Wrong dreq" pcmd))
-  
-  ;; Set arguments for dreq-handler
-  (= parg (cast (ptr (struct dhandler-arg)) (csym::malloc (sizeof (struct dhandler-arg)))))
-  (= parg->data-to pcmd->node)          ; internal or external
-  (csym::copy-address parg->head (aref pcmd->v 0)) ; the recipient address of "data"
-  ;; parg->dreq-cmd: a template for dreq messages when requested data are "DATA-NONE".
-  ;; <Range> is set later
-  (= parg->dreq-cmd.w DREQ)
-  (= parg->dreq-cmd.c 3)
-  (= (aref parg->dreq-cmd.v 0 0) 0)     ; <sender> (dummy)
-  (= (aref parg->dreq-cmd.v 0 1) TERM)  ; <sender> (dummy)
-  (begin                                ; set the <recipient>
-    (= tid (aref pcmd->v 1 0))
-    (if (not (< tid num-thrs)) (csym::proto-error "wrong dreq-head" pcmd))
-    (= sid (aref pcmd->v 1 1))
-    (if (== TERM sid) (csym::proto-error "Wrong dreq-head (no task-home-id)" pcmd))
-    ;; Search ancestors for the first external task and set the address of the task-home
-    ;; entry corresponding to the task
-    (csym::get-first-outside-ancestor-task-address (aref parg->dreq-cmd.v 1) tid sid)
-    )
-  (= parg->dreq-cmd.node OUTSIDE)
-  ;; parg->dreq-cmd-fwd: a template for dreq messages when requested data are "DATA-REQUESTING".
-  ;; <Range> is set later
-  (= parg->dreq-cmd-fwd.w DREQ)
-  (= parg->dreq-cmd-fwd.c 3)
-  (= (aref parg->dreq-cmd-fwd.v 0 0) FORWARD)       ; <sender>
-  (csym::copy-address (ptr (aref parg->dreq-cmd-fwd.v 0 1))
-                      (aref pcmd->v 0))
-  (csym::copy-address (aref parg->dreq-cmd-fwd.v 1) ; <recipient> (same as dreq-cmd)
-                      (aref parg->dreq-cmd.v 1))
-  (= parg->dreq-cmd-fwd.node OUTSIDE)
-  ;; Extract start and end from <range>
-  (= parg->start (aref pcmd->v 2 0))
-  (= parg->end   (aref pcmd->v 2 1))
-  
-  ;; Invoke dreq-handler asynchronously
-  (begin
-    (def tid pthread-t)
-    (csym::pthread-create (ptr tid) 0 csym::dreq-handler parg))
-  (return))
-
-
-;; data: reply to a dreq message with data
-;; data <recipient> <range("<start>:<end>" indicating [start,end))>
-(def (csym::recv-data pcmd) (csym::fn void (ptr (struct cmd)))
-  (def i int)
-  (def start int (aref pcmd->v 1 0))
-  (def end int (aref pcmd->v 1 1))
-  ;; Check # of arguments
-  (if (< pcmd->c 2) (csym::proto-error "Wrong data" pcmd))
-  ;; Ignore an internal "data" message
-  (if (== pcmd->node INSIDE) (return))
-  ;; Receive data by invoking a user-defined receiver method
-  (csym::pthread-mutex-lock (ptr data-mutex))
-  (csym::data-receive start end)
-  (csym::read-to-eol)
-  (for ((= i start) (< i end) (inc i))
-    (= (aref data-flags i) DATA-EXIST))
-  (csym::pthread-cond-broadcast (ptr data-cond))
-  (csym::pthread-mutex-unlock (ptr data-mutex))
-  (return))
-
-
 ;;; bcst: send data to all nodes
 ;;; bcst <sender> <data-kind>
 (def (csym::recv-bcst pcmd) (csym::fn void (ptr (struct cmd)))
@@ -1360,89 +1066,8 @@
   (csym::copy-address (aref rcmd.v 0) (aref pcmd->v 0))
   (csym::send-command (ptr rcmd) 0 task-no))
 
-;;; leav: a message from a computing node to indicate the node
-;;; will leave from the Tascell network.
-;;; Here, a message handler just outputs error message because
-;;; a leav message from a Tascell server should not be sent.
-(def (csym::recv-leav pcmd) (csym::fn void (ptr (struct cmd)))
-  (csym::fprintf stderr "Leav from server is unexpected.~%"))
-
 
-;;; Cancel all worker threads after acquiring all threads' locks
-(def (csym::cancel-workers) (csym::fn void void)
-  (def i int 0)
-  (def thr (ptr (struct thread-data)))
-  (for ((= i 0) (< i num-thrs) (inc i))
-    (= thr (ptr (aref threads i)))
-    (csym::pthread-mutex-lock (ptr thr->mut))
-    (csym::pthread-mutex-lock (ptr thr->rack-mut)))
-  (for ((= i 0) (< i num-thrs) (inc i))
-    (= thr (ptr (aref threads i)))
-   (csym::pthread-cancel thr->pthr-id)
-   (csym::fprintf stderr "Cancelled worker %d~%" i))
-  (return))
-
-;;; lack: a reply to a leav message
-(def (csym::recv-lack pcmd) (csym::fn void (ptr (struct cmd)))
-  (def cur (ptr (struct task)))
-  (def task-top (ptr (struct task))) 
-  (def thr (ptr (struct thread-data)))
-  (def i int)
-  (def rcmd (struct cmd))
-  ;; Prevent workers from sending out messages.
-  (csym::pthread-mutex-lock (ptr send-mut))
-  ;; Prevent workers from modifying their own information (task stacks etc.)
-  (csym::cancel-workers)
-  (for ((= i 0) (< i num-thrs) (inc i))
-    (= thr (ptr (aref threads i)))
-    (= task-top thr->task-top)
-    (for ((= cur task-top) cur (= cur cur->next))
-      (= rcmd.w ABRT)
-      (= rcmd.c 1)
-      (= rcmd.node cur->rslt-to)        ; external or internal
-      (csym::copy-address (aref rcmd.v 0) cur->rslt-head)
-      (csym::send-command (ptr rcmd) 0 0))
-    (csym::print-thread-status thr))
-  ;; all command check
-  (csym::exit 0))
-
-;;; abrt: reply to a task message without the result
-;;; abrt <recipient("<worker-id>:<task-home-id>")>
-(def (csym::recv-abrt pcmd) (csym::fn void (ptr (struct cmd)))
-  (def rcmd (struct cmd))               ; rack message
-  (def thr (ptr (struct thread-data)))
-  (def hx (ptr (struct task-home)))
-  (def tid (enum addr))
-  (def sid int)
-  ;; Check # of arguments
-  (if (< pcmd->c 1)
-      (csym::proto-error "Wrong abrt" pcmd))
-  ;; Extract <worker-id> and <task-home-id> from <recipients>
-  (= tid (aref pcmd->v 0 0))
-  (if (not (< tid num-thrs))
-      (csym::proto-error "Wrong abrt-head" pcmd))
-  (= sid (aref pcmd->v 0 1))
-  (if (== TERM sid)
-      (csym::proto-error "Wrong abrt-head (no task-home-id)" pcmd))
-  (= thr (+ threads tid))
-  
-  (csym::pthread-mutex-lock (ptr thr->mut))
-  ;; Find the task-home entry corresponding to the abrt message.
-  ;; (the task-home entry whose .id is sid)
-  (if (not (= hx (csym::search-task-home-by-id sid thr->sub)))
-      (csym::proto-error "Wrong abrt-head (specified task not exists)" pcmd))
-  
-  (= hx->stat TASK-HOME-ABORTED)
-  (if (== hx thr->sub)
-      (begin
-	(csym::pthread-cond-broadcast (ptr thr->cond-r))
-	(csym::pthread-cond-broadcast (ptr thr->cond)))
-    )
-  (csym::pthread-mutex-unlock (ptr thr->mut))
-  (csym::send-command (ptr rcmd) 0 0))  ; Send rack
-
-
-;;; cncl: set a cancellation to the recipient task
+;;; cncl: set a cancellation flag to the recipient task
 ;;; cncl <sender> <recipient>
 (def (csym::recv-cncl pcmd) (csym::fn void (ptr (struct cmd)))
   (def from-addr (ptr (enum addr)))    ; return address of the task to be cancelled (search key)
@@ -1561,10 +1186,6 @@
                  (if-exp option.node-name option.node-name "Unnamed"))
   (csym::fprintf stderr "num-thrs: %d~%" num-thrs)
   (csym::fprintf stderr "verbose-level: %d~%" option.verbose)
-  (%ifdef* VERBOSE
-    (csym::fprintf stderr
-                   "active dreq-handlers: %d (%d sending dreq, %d sending data (%d waiting data))~%"
-                   n-dreq-handler n-sending-dreq n-sending-data n-waiting-data))
 
   (for ((= i 0) (< i num-thrs) (inc i))
     (csym::print-thread-status (ptr (aref threads i))))
@@ -2180,10 +1801,6 @@
   
   ;; Initialize send-mut (lock for sending out external messages)
   (csym::pthread-mutex-init (ptr send-mut) (ptr m-attr))
-
-  ;; Initialize data-mut/data-cond (lock/condition variable for on-demand data)
-  (csym::pthread-mutex-init (ptr data-mutex) (ptr m-attr))
-  (csym::pthread-cond-init (ptr data-cond) 0)
   
   ;; Initialize thread-data objects (workers)
   (= num-thrs option.num-thrs)

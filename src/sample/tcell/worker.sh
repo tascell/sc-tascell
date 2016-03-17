@@ -1,4 +1,4 @@
-;;; Copyright (c) 2009-2014 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; Copyright (c) 2009-2016 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -64,12 +64,12 @@
 (def (enum node) INSIDE OUTSIDE)
 ;; Commands
 (def (enum command)
-    TASK RSLT TREQ NONE RACK DREQ DATA
-    BCST BCAK STAT VERB EXIT LEAV LACK ABRT CNCL WRNG)
+    TASK RSLT TREQ NONE RACK
+    BCST BCAK STAT VERB EXIT CNCL WRNG)
 ;; Strings corresponding to the commands above.
 (static cmd-strings (array (ptr char))
-  (array "task" "rslt" "treq" "none" "rack" "dreq" "data"
-         "bcst" "bcak" "stat" "verb" "exit" "leav" "lack" "abrt" "cncl" "wrng" 0))
+  (array "task" "rslt" "treq" "none" "rack"
+         "bcst" "bcak" "stat" "verb" "exit" "cncl" "wrng" 0))
 
 ;; How to determine the recipient of "treq any" (random or in-order)
 (def (enum choose) CHS-RANDOM CHS-ORDER)
@@ -112,27 +112,6 @@
       (array (ptr (csym::fn void (ptr void))) TASK-MAX))
 (extern-decl rslt-receivers
       (array (ptr (csym::fn void (ptr void))) TASK-MAX))
-
-;;;; NOTE: this functionality (on-demand data request) is incomplete now.
-;;;; Functions for on-demand data communications.
-;;; Allocate the array for on-demand data. Invoked during initialization.
-(decl (csym::data-allocate) (csym::fn void int))
-;;; Send data
-(decl (csym::data-send) (csym::fn void int int))
-;;; Receive data
-(decl (csym::data-receive) (csym::fn void int int))
-
-;;; Tascell user functions for the on-demand data requsest functionality.
-;;; "csym::-F" is provided as the built-in function named "F" for Tascell programmers
-;; Allocate and initialize data space and flags for om-demand data.
-(decl (csym::-setup-data) (csym::fn void int))
-;; Send dreq messages for a given range to the holder of a parent task.
-;; (The first argument (thread data) is added by Tascell compiler.)
-(decl (csym::-request-data) (csym::fn void (ptr (struct thread-data)) int int))
-;; Wait for data of a given range reaching this node.
-(decl (csym::-wait-data) (csym::fn void int int))
-;; Set data-flags of a given range to DATA-EXIST
-(decl (csym::-set-exist-flag) (csym::fn void int int))
 
 ;;;; Worker local storage
 ;;; Declaration of the struct for worker local storage objects.
@@ -348,8 +327,6 @@
 (decl (csym::recv-task) (csym::fn void (ptr (struct cmd)) (ptr void)))
 (decl (csym::recv-treq) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-rack) (csym::fn void (ptr (struct cmd))))
-(decl (csym::recv-dreq) (csym::fn void (ptr (struct cmd))))
-(decl (csym::recv-data) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-none) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-back) (csym::fn void (ptr (struct cmd))))
 (decl (csym::print-task-list task-top name) (csym::fn void (ptr (struct task)) (ptr char)))
@@ -360,9 +337,6 @@
 (decl (csym::recv-exit) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-bcst) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-bcak) (csym::fn void (ptr (struct cmd))))
-(decl (csym::recv-leav) (csym::fn void (ptr (struct cmd))))
-(decl (csym::recv-lack) (csym::fn void (ptr (struct cmd))))
-(decl (csym::recv-abrt) (csym::fn void (ptr (struct cmd))))
 (decl (csym::recv-cncl) (csym::fn void (ptr (struct cmd))))
 
 (PROF-CODE
