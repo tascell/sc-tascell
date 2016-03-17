@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; Copyright (c) 2008-2016 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -92,13 +92,6 @@
        (case #\r) (= (mref buf) TREQ) (break)
        (default) (= (mref buf) WRNG) (return 0))
      (break)
-
-     (case #\d)
-     (switch (mref (inc p))
-       (case #\r) (= (mref buf) DREQ) (break)
-       (case #\a) (= (mref buf) DATA) (break)
-       (default) (= (mref buf) WRNG) (return 0))
-     (break)
      
      (case #\r)
      (switch (mref (inc p))
@@ -122,16 +115,8 @@
      (case #\s) (= (mref buf) STAT) (break)
      (case #\v) (= (mref buf) VERB) (break)
      (case #\e) (= (mref buf) EXIT) (break)
-     (case #\a) (= (mref buf) ABRT) (break)
      (case #\c) (= (mref buf) CNCL) (break)
-  
-     (case #\l)
-     (switch (mref (inc p))
-       (case #\e) (= (mref buf) LEAV) (break)
-       (case #\a) (= (mref buf) LACK) (break)
-       (default) (= (mref buf) WRNG) (return 0))
-     (break)
-          
+     
      (default) (= (mref buf) WRNG) (return 0))
    (= p (csym::skip-notwhitespace p))
    (= p (csym::skip-whitespace p))
