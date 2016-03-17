@@ -177,7 +177,7 @@
 		   (begin
 		     (goto ,label-id)))
 	       ;; * The terminal of temporary backtracking
-	       (return)) ))
+	       (return 0)) ))
        ,@body
        (label ,label-id (return))
        )

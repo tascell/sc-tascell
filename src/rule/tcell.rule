@@ -39,6 +39,7 @@
        (let ((pg (mapcar #'external-declaration decl-list)))
          (append
           (list ~(%include "rule/tcell.sh")
+		~(c-exp "#include \"sendrecv.h\"")
                 ~(decl (handle-reqs) (fn void
 					 (ptr ,(tcell:nestfunc-type))
 					 (ptr (struct thread-data))))
@@ -48,13 +49,6 @@
 					      long))
 		)
           pg
-          ;; データ系の関数が定義されてなければ空定義の関数を追加する
-          (unless (tcell:func-name-exists-p ~csym::data-allocate)
-            (list ~(def (csym::data-allocate n1) (csym::fn void int))))
-          (unless (tcell:func-name-exists-p ~csym::data-send)
-            (list ~(def (csym::data-send n1 n2) (csym::fn void int int))))
-          (unless (tcell:func-name-exists-p ~csym::data-receive)
-            (list ~(def (csym::data-receive n1 n2) (csym::fn void int int))))
           ;; sender/receiver関数およびその配列
           (tcell:sender-and-receiver-functions-all)
           (tcell:task-maps)
