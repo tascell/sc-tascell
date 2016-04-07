@@ -25,6 +25,9 @@
 
 ;;;; Tascell worker
 
+;;;
+(%defconstant USEMPI 1)
+
 ;;; Affected by NF-TYPE (see worker.sh)
 (%include "rule/nestfunc-setrule.sh")
 
@@ -40,7 +43,9 @@
 (c-exp "#include<stdio.h>")
 (c-exp "#include<stdlib.h>")
 (c-exp "#include<string.h>")
+(c-exp "#include<float.h>")
 (c-exp "#include<math.h>")
+(c-exp "#include<limits.h>")
 (c-exp "#include<pthread.h>")
 (c-exp "#include<sys/time.h>")
 (c-exp "#include<unistd.h>")
@@ -86,6 +91,19 @@
 ;;;; Constatnts for stback
 (%defconstant WAIT-STBACK-INSIDE  (* 0 (* 1 1000)))
 (%defconstant WAIT-STBACK-OUTSIDE (* 1 (* 1 1000)))
+;(%defconstant WAIT-RANGE-OUTSIDE 16)
+
+(%defconstant ENABLE-PREV-EXEC 0)
+(%defconstant PREV-EXEC-TIME 0.001)
+
+(%defconstant OPTIMIZE-TREQ-ANY-BY-TREE-DEPTH 0)
+(%defconstant OPTIMIZE-TREQ-ANY-BY-COPINE-MIN_ID 0)
+(%defconstant OPTIMIZE-TREQ-ANY-BY-COPINE-RANGE_ID 0)
+
+(%defconstant OPTIMIZE-TREQ-ANY-BY-PRIORITY 0)
+(%defconstant FORMULA-PRIORITY (+ (* 0.10 (csym::log2 (cast double (+ 1 (fref elem copineMinID))))) (* 0.90 (- 128 (csym::log2 (cast double (fref elem copineRangeID)))))))
+
+(%defconstant NUM-TRIAL-TREQ-ANY 0)
 
 
 ;;;; Worker threads
@@ -181,6 +199,166 @@
 
 (def (csym::flush-send) (csym::fn void void)
   (if (< sv-socket 0) (csym::fflush stdout)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Initialize a candQueue
+(def (csym::allocateCandQueue q max) (fn int (ptr candQueue) int)
+  (= (fref q -> numElem) 0)
+  (= (fref q -> frontPtr) 0)
+  (= (fref q -> rearPtr) 0)
+  (if (== NULL (= (fref q -> que) (csym::malloc (* max (sizeof candElem)))))
+    (begin
+      (= (fref q -> maxElem) 0)
+      (return -1)))
+  (= (fref q -> maxElem) max)
+  (return 0))
+
+;; free an candQueue
+(def (csym::freeCandQueue q) (fn void (ptr candQueue))
+  (if (!= NULL (fref q -> que))
+    (begin
+      (csym::free (fref q -> que))
+      (= (fref q -> maxElem) 0)
+      (= (fref q -> numElem) 0)
+      (= (fref q -> frontPtr) 0)
+      (= (fref q -> rearPtr) 0))))
+
+;; enqueue an element
+(def (csym::enCandQueue thr q id treeDepth copineMinID copineMaxID) (fn int (ptr (struct thread-data)) (ptr candQueue) int int __uint128_t __uint128_t)
+  (def elem candElem)
+  (if (>= (fref q -> numElem) (fref q -> maxElem))
+    (begin
+      (return -1)))
+    (begin
+      (= (fref elem id) id)
+(if (and (!= NULL thr) (== TCOUNTER-EXEC thr->tcnt-stat))
+  (begin
+      (= (fref elem treeDepth) treeDepth)
+      (= (fref elem copineMinID) copineMinID)
+      (= (fref elem copineMaxID) copineMaxID)
+      (= (fref elem copineRangeID) (- copineMaxID copineMinID))
+      (= (fref elem priority) FORMULA-PRIORITY)
+  )
+  (begin
+      (= (fref elem treeDepth) INT_MAX)
+      (= (fref elem copineMinID) -1)
+      (= (fref elem copineMaxID) -1)
+      (= (fref elem copineRangeID) 0)
+      (= (fref elem priority) DBL_MAX)
+  ))
+
+      (inc (fref q -> numElem))
+      (= (aref (fref q -> que) (inc (fref q -> rearPtr))) elem)
+      (if (== (fref q -> rearPtr) (fref q -> maxElem))
+        (begin
+          (= (fref q -> rearPtr) 0)))
+      (return 0)))
+
+;; dequeue an element
+(def (csym::deCandQueue q id) (fn int (ptr candQueue) (ptr int))
+  (if (<= (fref q -> numElem) 0)
+    (begin
+      (return -1))
+    (begin
+      (dec (fref q -> numElem))
+      (= (mref id) (fref (aref (fref q -> que) (inc (fref q -> frontPtr))) id))
+      (if (== (fref q -> frontPtr) (fref q -> maxElem))
+        (begin
+          (= (fref q -> frontPtr) 0)))
+      (return 0))))
+
+;;
+(def (csym::quickCandQueueByTreeDepth q left right) (fn void (ptr candElem) int int)
+  (def temp candElem)
+  (def pl int left)
+  (def pr int right)
+  (def x candElem (aref q (/ (+ pl pr) 2)))
+  (do-while (<= pl pr)
+    (while (< (fref (aref q pl) treeDepth) (fref x treeDepth))
+      (inc pl))
+    (while (> (fref (aref q pr) treeDepth) (fref x treeDepth))
+      (dec pr))
+    (if (<= pl pr)
+      (begin
+        (= temp (aref q pl))
+        (= (aref q pl) (aref q pr))
+        (= (aref q pr) temp)
+        (inc pl)
+        (dec pr))))
+  (if (< left pr)
+    (csym::quickCandQueueByTreeDepth q left pr))
+  (if (< pl right)
+    (csym::quickCandQueueByTreeDepth q pl right)))
+
+;;
+(def (csym::quickCandQueueByMinID q left right) (fn void (ptr candElem) int int)
+  (def temp candElem)
+  (def pl int left)
+  (def pr int right)
+  (def x candElem (aref q (/ (+ pl pr) 2)))
+  (do-while (<= pl pr)
+    (while (< (fref (aref q pl) copineMinID) (fref x copineMinID))
+      (inc pl))
+    (while (> (fref (aref q pr) copineMinID) (fref x copineMinID))
+      (dec pr))
+    (if (<= pl pr)
+      (begin
+        (= temp (aref q pl))
+        (= (aref q pl) (aref q pr))
+        (= (aref q pr) temp)
+        (inc pl)
+        (dec pr))))
+  (if (< left pr)
+    (csym::quickCandQueueByMinID q left pr))
+  (if (< pl right)
+    (csym::quickCandQueueByMinID q pl right)))
+
+;;
+(def (csym::quickCandQueueByRangeID q left right) (fn void (ptr candElem) int int)
+  (def temp candElem)
+  (def pl int left)
+  (def pr int right)
+  (def x candElem (aref q (/ (+ pl pr) 2)))
+  (do-while (<= pl pr)
+    (while (> (fref (aref q pl) copineRangeID) (fref x copineRangeID))
+      (inc pl))
+    (while (< (fref (aref q pr) copineRangeID) (fref x copineRangeID))
+      (dec pr))
+    (if (<= pl pr)
+      (begin
+        (= temp (aref q pl))
+        (= (aref q pl) (aref q pr))
+        (= (aref q pr) temp)
+        (inc pl)
+        (dec pr))))
+  (if (< left pr)
+    (csym::quickCandQueueByRangeID q left pr))
+  (if (< pl right)
+    (csym::quickCandQueueByRangeID q pl right)))
+
+;;
+(def (csym::quickCandQueueByPriority q left right) (fn void (ptr candElem) int int)
+  (def temp candElem)
+  (def pl int left)
+  (def pr int right)
+  (def x candElem (aref q (/ (+ pl pr) 2)))
+  (do-while (<= pl pr)
+    (while (< (fref (aref q pl) priority) (fref x priority))
+      (inc pl))
+    (while (> (fref (aref q pr) priority) (fref x priority))
+      (dec pr))
+    (if (<= pl pr)
+      (begin
+        (= temp (aref q pl))
+        (= (aref q pl) (aref q pr))
+        (= (aref q pr) temp)
+        (inc pl)
+        (dec pr))))
+  (if (< left pr)
+    (csym::quickCandQueueByPriority q left pr))
+  (if (< pl right)
+    (csym::quickCandQueueByPriority q pl right)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -950,6 +1128,8 @@
   (def thr (ptr (struct thread-data)))
   (def fail-reason int 0)
   (def avail int 0)
+  (def tp (struct timeval))
+  (def tp0 (ptr (struct timeval)))
 
   (= thr (+ threads id))
 
@@ -973,6 +1153,21 @@
   (if (and (not fail-reason) (== (aref dest-addr 0) ANY))
     (if (< thr->probability (csym::my-random-probability thr))
       (= fail-reason 5)))
+  (%if* ENABLE-PREV-EXEC (begin
+    (if (and (== (aref dest-addr 0) ANY) (< thr->prev-task-exec-time PREV-EXEC-TIME))
+      (= fail-reason 6))))
+  ;(if (and (and (== (aref dest-addr 0) ANY) (!= thr->tcnt-stat TCOUNTER-INIT)) (!= thr->task-top->next NULL))
+  ;  (= fail-reason 7))
+  ;(if (and (and (== (aref dest-addr 0) ANY) (== thr->tcnt-stat TCOUNTER-EXEC)) (!= PARENT (aref thr->task-top->rslt-head 0)))
+  ;  (= fail-reason 8))
+  ;(if (and (and (== (aref dest-addr 0) ANY) (== thr->tcnt-stat TCOUNTER-EXEC)) (!= NULL thr->sub))
+  ;  (= fail-reason 9))
+  ;(if (and (== (aref dest-addr 0) ANY) (== thr->tcnt-stat TCOUNTER-EXEC))
+  ;  (begin
+  ;    (= tp0 (ptr (aref thr->tcnt-tp thr->tcnt-stat)))
+  ;    (csym::gettimeofday (ptr tp) 0)
+  ;    (if (< (- (csym::diff-timevals (ptr tp) (ptr tp-strt)) (csym::diff-timevals tp0 (ptr tp-strt))) PREV-EXEC-TIME)
+  ;      (= fail-reason 10))))
   (= avail (not fail-reason))
   (csym::pthread-mutex-unlock (ptr thr->rack-mut))
 
@@ -1011,8 +1206,12 @@
 	(= hx->next thr->treq-top)       ; Set the next of the new entry to the former top
 	(= hx->stat TASK-HOME-ALLOCATED) ; Set the status of the new entry
 	(if (== (aref dest-addr 0) ANY)
-	    (= (aref hx->waiting-head 0) TERM)
-	  (csym::copy-address hx->waiting-head from-addr))
+          (begin
+            (= hx->stback 0)
+	    (= (aref hx->waiting-head 0) TERM))
+          (begin
+            (= hx->stback 1)
+            (csym::copy-address hx->waiting-head from-addr)))
 	(csym::copy-address hx->task-head (aref pcmd->v 0)) ; Set the address of the recipient of the result
 	(if (!= pcmd->node OUTSIDE)
 	    (= hx->req-from INSIDE)
@@ -1059,44 +1258,69 @@
 (def (csym::recv-treq pcmd) (csym::fn void (ptr (struct cmd)))
   (def rcmd (struct cmd))
   (def dst0 (enum addr))
+  (def thr (ptr (struct thread-data)))
+  (def que candQueue)
   ;; Check # of arguments
   (if (< pcmd->c 2)
       (csym::proto-error "Wrong treq" pcmd))
   ;; Extract <recipient> from the message
   (= dst0 (aref pcmd->v 1 0))
   (cond
-   ;; ANY
-   ((== dst0 ANY)
-     (let ((myid int) (start-id int) (d int) (id int))
-       (= myid (aref pcmd->v 0 0))           ; extract <sender>
-       (= start-id (csym::choose-treq myid)) ; choose the first candidate worker
-       (for ((= d 0) (< d num-thrs) (inc d))
-         (= id (% (+ d start-id) num-thrs))  ; the candidate worker id
-         (if (and (!= pcmd->node OUTSIDE)
-           (== id myid))
-           (continue))                       ; skip the treq sender
-         (if (csym::try-treq pcmd id)        ; try and handle request for the id-th worker
-           (begin
-             (DEBUG-PRINT 2 "(%d): treq(any) %d->%d... accepted.~%"
+  ;; ANY
+    ((== dst0 ANY)
+      (let ((myid int) (start-id int) (d int) (id int))
+        (= myid (aref pcmd->v 0 0))           ; extract <sender>
+        (= start-id (csym::choose-treq myid)) ; choose the first candidate worker
+        (csym::allocateCandQueue (ptr que) num-thrs)
+        (= d 0)
+        (for ((< d NUM-TRIAL-TREQ-ANY) (inc d))
+          (= id (% (+ d start-id) num-thrs))  ; the candidate worker id
+          (= thr (+ threads id))
+          (csym::enCandQueue thr (ptr que) id thr->treeDepth thr->copineMinID thr->copineMaxID))
+        (%if* OPTIMIZE-TREQ-ANY-BY-TREE-DEPTH (begin
+          (if (< 0 NUM-TRIAL-TREQ-ANY)
+            (csym::quickCandQueueByTreeDepth (fref que que) 0 (- NUM-TRIAL-TREQ-ANY 1)))))
+        (%if* OPTIMIZE-TREQ-ANY-BY-COPINE-MIN_ID (begin
+          (if (< 0 NUM-TRIAL-TREQ-ANY)
+            (csym::quickCandQueueByMinID (fref que que) 0 (- NUM-TRIAL-TREQ-ANY 1)))))
+        (%if* OPTIMIZE-TREQ-ANY-BY-COPINE-RANGE_ID (begin
+          (if (< 0 NUM-TRIAL-TREQ-ANY)
+            (csym::quickCandQueueByRangeID (fref que que) 0 (- NUM-TRIAL-TREQ-ANY 1)))))
+        (%if* OPTIMIZE-TREQ-ANY-BY-PRIORITY (begin
+          (if (< 0 NUM-TRIAL-TREQ-ANY)
+            (csym::quickCandQueueByPriority (fref que que) 0 (- NUM-TRIAL-TREQ-ANY 1)))))
+        (for ((< d num-thrs) (inc d))
+          (= id (% (+ d start-id) num-thrs))  ; the candidate worker id
+          (csym::enCandQueue NULL (ptr que) id 0 0 0))
+        (for ((= d 0) (< d num-thrs) (inc d))
+          (csym::deCandQueue (ptr que) (ptr id))
+          ;(= id (% (+ d start-id) num-thrs))  ; the candidate worker id
+          (if (and (!= pcmd->node OUTSIDE)
+            (== id myid))
+            (continue))                       ; skip the treq sender
+          (if (csym::try-treq pcmd id)        ; try and handle request for the id-th worker
+            (begin
+              (DEBUG-PRINT 2 "(%d): treq(any) %d->%d... accepted.~%"
                           (csym::get-universal-real-time) myid id)
-             (break)))
-         (DEBUG-PRINT 4 "(%d): treq(any) %d->%d... refused.~%"
+              (break)
+))
+          (DEBUG-PRINT 4 "(%d): treq(any) %d->%d... refused.~%"
                      (csym::get-universal-real-time) myid id)
-         )
-      (if (< d num-thrs)                    ; Return if the treq is accepted
-          (return))))
+          )
+        (csym::freeCandQueue (ptr que))
+        (if (< d num-thrs)                    ; Return if the treq is accepted
+          (begin
+            (return)))))
    ;; An arbitrary worker (= stealing back request)
    (else
-    (if (not (and (<= 0 dst0) (< dst0 num-thrs)))   ; Range check of <recipient>
-        (csym::proto-error "Wrong task-head" pcmd))
-    (if (csym::try-treq pcmd dst0)          ; try and handle request for the dst0-th worker
-        (begin
+     (if (not (and (<= 0 dst0) (< dst0 num-thrs))) ; Range check of <recipient>
+       (csym::proto-error "Wrong task-head" pcmd))
+     (if (csym::try-treq pcmd dst0)                ; try and handle request for the dst0-th worker
+       (begin
          (DEBUG-STMTS 2
-                      (let ((buf1 (array char BUFSIZE)))
-                        (csym::fprintf stderr "(%d): treq %s->%d (stealing back)... accepted.~%"
-                                       (csym::get-universal-real-time)
-                                       (exps (csym::serialize-arg buf1 (aref pcmd->v 0)) buf1) dst0)))
-         (return)))                         ; Return if the treq is accepted
+           (let ((buf1 (array char BUFSIZE)))
+             (csym::fprintf stderr "(%d): treq %s->%d (stealing back)... accepted.~%" (csym::get-universal-real-time) (exps (csym::serialize-arg buf1 (aref pcmd->v 0)) buf1) dst0)))
+         (return)))                                ; Return if the treq is accepted
     (DEBUG-STMTS 2
                  (let ((buf1 (array char BUFSIZE)))
                    (csym::fprintf stderr "(%d): treq %s->%d (stealing back)... refused.~%"
@@ -1847,11 +2071,6 @@
 	(begin
 	  (csym::set-cancelled thr thr->task-top sub->eldest)
 	  (csym::send-cncl-for-flagged-subtasks thr)))
-    ;; Quit if the subtask is finished or aborted.
-    (if (or (== sub->stat TASK-HOME-DONE)
-	    (== sub->stat TASK-HOME-EXCEPTION)
-	    (== sub->stat TASK-HOME-ABORTED)) 
-	(break))
     ;; Wait for a moment if the victim is an internal worker.
     (if (== INSIDE sub->req-from)
 	(let ((now (struct timeval))
@@ -1862,6 +2081,8 @@
 					(ptr t-until))
 	  ))
     ;; Wait for a moment if the victim is an external worker.
+;(if (< (cast int (csym::log2 (cast double (- sub->copineMaxID sub->copineMinID)))) WAIT-RANGE-OUTSIDE)
+;  (begin
     (if (== OUTSIDE sub->req-from)
 	(let ((now (struct timeval))
 	      (t-until (struct timespec)))
@@ -1870,6 +2091,12 @@
 	  (csym::pthread-cond-timedwait (ptr thr->cond-r) (ptr thr->mut)
 					(ptr t-until))
 	  ))
+;))
+    ;; Quit if the subtask is finished or aborted.
+    (if (or (== sub->stat TASK-HOME-DONE)
+	    (== sub->stat TASK-HOME-EXCEPTION)
+	    (== sub->stat TASK-HOME-ABORTED)) 
+	(break))
     (if stback
         ;; Steal and execute a task
 	(begin
@@ -2137,6 +2364,8 @@
     (= (aref thr->tcnt i) 0)
     (= (aref thr->tcnt-tp i) tp))
   (= thr->tc-aux.type OBJ-NULL)
+  (%if* ENABLE-PREV-EXEC (begin
+    (= thr->prev-task-exec-time DBL_MAX)))
   )
 
 ;;; Set the start a time of tcnt-stat to the current time
@@ -2197,6 +2426,10 @@
 	      (csym::fputc #\Newline thr->fp-tc)
               ;; Save the given aux data for the next output
               (csym::set-aux-data (ptr thr->tc-aux) aux-type aux-body)
+              ;; 
+              (%if* ENABLE-PREV-EXEC (begin
+                (if (== tcnt-stat0 TCOUNTER-EXEC)
+                  (= thr->prev-task-exec-time (- (csym::diff-timevals (ptr tp) (ptr tp-strt)) (csym::diff-timevals tp0 (ptr tp-strt)))))))
 	      ))
 	))
   (return tcnt-stat0))
@@ -2385,5 +2618,9 @@
         (csym::proc-cmd pcmd 0))
       (begin
         (while 1
-          (csym::sleep 2147483647)))) )
+          (csym::sleep 2147483647)))))
+
+  (%ifdef* USEMPI
+    (csym::MPI_Finalize))
+
   (csym::exit 0))

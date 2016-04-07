@@ -269,6 +269,9 @@
                                         ; (referred when sending stealing back "treq" or "rack")
   (def next (ptr (struct task-home)))   ; link to the next (older) task-home
   (def body (ptr void))                 ; task object
+  (def stback int)                      ; 
+  (def copineMinID __uint128_t)         ; 
+  (def copineMaxID __uint128_t)         ; 
   )
 
 (def (struct thread-data)
@@ -313,6 +316,12 @@
    )
   ;; dummy
   (def dummy (array char DUMMY-SIZE))   ; padding for preventing false sharing
+  ;; 
+  (def prev-task-exec-time double)      ;
+  ;; variables for COPINE
+  (def treeDepth int)                   ; 
+  (def copineMinID __uint128_t)         ; 
+  (def copineMaxID __uint128_t)         ; 
   )
 
 ;;;; NOTE: this functionality (on-demand data request) is incomplete now.
@@ -407,3 +416,21 @@
    (def timechart-file (ptr char)))     ; postfix of timechart output file names
   )
 (extern-decl option (struct runtime-option))
+
+;;;; element of candQueue
+(deftype candElem struct
+  (decl id int)                    ; worker id
+  (def priority double)            ; 
+  (def treeDepth int)              ; 
+  (def copineMinID __uint128_t)    ; 
+  (def copineMaxID __uint128_t)    ;
+  (def copineRangeID __uint128_t)) ; 
+
+;;;; candQueue
+(deftype candQueue struct
+  (decl maxElem int)         ; 
+  (decl numElem int)         ; 
+  (decl frontPtr int)        ; 
+  (decl rearPtr int)         ; 
+  (decl que (ptr candElem))) ; 
+

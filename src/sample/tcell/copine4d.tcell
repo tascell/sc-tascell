@@ -179,6 +179,10 @@
 (decl itMutex (array pthread_mutex_t V-SIZE))
 (decl excpMutex (array pthread_mutex_t NUM-WORKERS))
 
+;;; Cut Off
+(%defconstant ENABLE-CUT-OFF 0)
+(%defconstant CUT-OFF-VALUE 10)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Function: getrusageSec - have the user time
@@ -737,11 +741,35 @@
   ;            (break)))))
   ;    (= (aref numQe (fref -thr -> id)) 0)))
   ;(csym::pthread_mutex_unlock (ptr (aref excpMutex (fref -thr -> id))))
-
   ;(if (!= excpValue -1)
   ;  (begin
   ;    (inc (aref numThrow (fref -thr -> id)))
   ;    (throw excpValue)))
+
+  ;(if (aref numQe (fref -thr -> id))
+  ;  (begin
+  ;    (inc (fref pTsk -> numEmutexTrylock))
+  ;    (if (!= (csym::pthread_mutex_trylock (ptr (aref excpMutex (fref -thr -> id)))) 0)
+  ;      (begin
+  ;        (inc (fref pTsk -> numEmutexLocked))
+  ;        (csym::pthread_mutex_lock (ptr (aref excpMutex (fref -thr -> id))))))
+  ;    (= excpValue -1)
+  ;    (= excpIndex INT_MAX)
+  ;    (for ((= j 0) (< j (aref numQe (fref -thr -> id))) (inc j))
+  ;      (for ((= k 0) (< k (fref pTsk -> numT)) (inc k))
+  ;        (if (== (aref Qe (fref -thr -> id) j) (aref (fref pTsk -> T) k))
+  ;          (begin
+  ;            (if (< k excpIndex)
+  ;              (begin
+  ;                (= excpValue (cast int (aref (fref pTsk -> T) k)))
+  ;                (= excpIndex k)))
+  ;            (break)))))
+  ;    (csym::pthread_mutex_unlock (ptr (aref excpMutex (fref -thr -> id))))
+  ;    (if (!= excpValue -1)
+  ;      (begin
+  ;        (inc (aref numThrow (fref -thr -> id)))
+  ;        (= (aref numQe (fref -thr -> id)) 0)
+  ;        (throw excpValue)))))
 
   ;; DFS
   (for ((= i minC) (< i maxC) (inc i))
@@ -880,7 +908,10 @@
                     (csym::fprintf stderr "> %d~%" (aref (fref pTsk -> T) (- (fref pTsk -> numT) 1))))))
 
                 ;; recursive call
-                (exploreCCIG2 0 (fref pTsk -> numC) vv commonItem pTsk)
+                (catch vv
+                  (exploreCCIG2 0 (fref pTsk -> numC) vv commonItem pTsk)
+                  (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
+                    (dec (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j)))))
 
                 (%if* DEBUG-LOCK (begin
                   (= locked 0)))
@@ -903,9 +934,6 @@
                     (csym::removeITnode (ptr (aref vItemTable vv)) ITadd)))
                 (csym::pthread_mutex_unlock (ptr (aref itMutex vv)))
     
-                (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
-                  (dec (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j))))
-
                 (-= (fref pTsk -> numC) cc)
                 (dec (fref pTsk -> numT)))
               (begin
@@ -1123,20 +1151,29 @@
                       (begin
                         (if (>= (cast int (csym::log2 (cast double (- (fref pTsk -> maxID) (fref pTsk -> minID))))) (* (fref option num-thrs) NUM-NODES))
                           (begin
-                            (catch vv
-                              (exploreCCIG 0 (fref pTsk -> numC) vv commonItem pTsk)
-                              (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
-                                (dec (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j))))))
+                            (if (<= (fref pTsk -> numT) CUT-OFF-VALUE)
+                              (begin
+                                (catch vv
+                                  (exploreCCIG 0 (fref pTsk -> numC) vv commonItem pTsk)
+                                  (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
+                                    (dec (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j))))))
+                              (begin
+                                (catch vv
+                                  (exploreCCIG2 0 (fref pTsk -> numC) vv commonItem pTsk)
+                                  (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
+                                    (dec (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j))))))))
                           (begin
                             (inc (aref seqTaskRequest (fref -thr -> id)))
-                            (exploreCCIG2 0 (fref pTsk -> numC) vv commonItem pTsk)
-                            (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
-                              (dec (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j)))))))
+                            (catch vv
+                              (exploreCCIG2 0 (fref pTsk -> numC) vv commonItem pTsk)
+                              (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
+                                (dec (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j))))))))
                       (begin
                         (inc (aref seqTaskRequest (fref -thr -> id)))
-                        (exploreCCIG2 0 (fref pTsk -> numC) vv commonItem pTsk)
-                        (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
-                          (dec (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j)))))))
+                        (catch vv
+                          (exploreCCIG2 0 (fref pTsk -> numC) vv commonItem pTsk)
+                          (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
+                            (dec (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j))))))))
                   (:after
                    (if (or (== EXITING EXITING-CANCEL)
                            (== EXITING EXITING-EXCEPTION))
@@ -1228,7 +1265,7 @@
 
     (handles T-exploreCCIG
 ;(%if* USE-SPN-RANGE
-;  (:spawn-from (if-exp (== OUTSIDE (fref (fref -thr -> treq_top) -> req_from)) (/ (+ 1 i i2) 2) (if-exp (> (- i2 i) spawnSize) (+ i spawnSize) (/ (+ 1 i i2) 2)))))
+;  (:spawn-from (if-exp (== OUTSIDE (fref (fref -thr -> treq_top) -> req_from)) (if-exp (> (- i2 i) (* spawnSize 16)) (+ i (* spawnSize 16)) (/ (+ 1 i i2) 2)) (if-exp (> (- i2 i) spawnSize) (+ i spawnSize) (/ (+ 1 i i2) 2)))))
       (%if* USE-SPN-RANGE
         (:spawn-from (if-exp (> (- i2 i) spawnSize) (+ i spawnSize) (/ (+ 1 i i2) 2))))
       (%if* USE-SPN-RATIO
@@ -1292,17 +1329,25 @@
     (begin
       (if (>= (cast int (csym::log2 (cast double (- (fref this maxID) (fref this minID))))) (* (fref option num-thrs) NUM-NODES))
         (begin
-          (= seq 0)
-          (catch (fref this v)
-            (exploreCCIG (fref this minC) (fref this maxC) (fref this v) (fref this itemSet) (ptr this))))
+          (if (<= (fref this numT) CUT-OFF-VALUE)
+            (begin
+              (= seq 0)
+              (catch (fref this v)
+                (exploreCCIG (fref this minC) (fref this maxC) (fref this v) (fref this itemSet) (ptr this))))
+            (begin
+              (= seq 1)
+              (catch (fref this v)
+                (exploreCCIG2 (fref this minC) (fref this maxC) (fref this v) (fref this itemSet) (ptr this))))))
         (begin
           (= seq 1)
           (inc (aref seqTaskRequest (fref -thr -> id)))
-          (exploreCCIG2 (fref this minC) (fref this maxC) (fref this v) (fref this itemSet) (ptr this)))))
+          (catch (fref this v)
+            (exploreCCIG2 (fref this minC) (fref this maxC) (fref this v) (fref this itemSet) (ptr this))))))
     (begin
       (= seq 1)
       (inc (aref seqTaskRequest (fref -thr -> id)))
-      (exploreCCIG2 (fref this minC) (fref this maxC) (fref this v) (fref this itemSet) (ptr this))))
+      (catch (fref this v)
+        (exploreCCIG2 (fref this minC) (fref this maxC) (fref this v) (fref this itemSet) (ptr this)))))
   (csym::gettimeofday (+ tp 1) 0)
   (+= (aref visit2Vertices (fref -thr -> id)) (fref this numSearch))
   (+= (aref thresholdPruning (fref -thr -> id)) (fref this numThreshold))
@@ -1670,7 +1715,10 @@
             (inc (fref pTsk -> treeDepth))
             (inc (fref pTsk -> numTraversed))
 
-            (exploreCCIG2 0 (fref pTsk -> numC) i (aref vItem i) pTsk)
+            (catch i
+              (exploreCCIG2 0 (fref pTsk -> numC) i (aref vItem i) pTsk)
+              (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
+                (= (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j)) 0)))
 
             (%if* DEBUG-LOCK (begin
               (= locked 0)))
@@ -1692,9 +1740,6 @@
               (begin
                 (csym::removeITnode (ptr (aref vItemTable i)) ITadd)))
             (csym::pthread_mutex_unlock (ptr (aref itMutex i)))
-  
-            (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
-              (= (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j)) 0))
 
             (= (fref pTsk -> numC) 0)
             (= (fref pTsk -> numT) 0)
@@ -1829,20 +1874,29 @@
               (begin
                 (if (>= (cast int (csym::log2 (cast double (- (fref pTsk -> maxID) (fref pTsk -> minID))))) (* (fref option num-thrs) NUM-NODES))
                   (begin
-                    (catch i
-                      (exploreCCIG 0 (fref pTsk -> numC) i (aref vItem i) pTsk)
-                      (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
-                        (= (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j)) 0))))
+                    (if (<= (fref pTsk -> numT) CUT-OFF-VALUE)
+                      (begin
+                        (catch i
+                          (exploreCCIG 0 (fref pTsk -> numC) i (aref vItem i) pTsk)
+                          (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
+                            (= (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j)) 0))))
+                      (begin
+                        (catch i
+                          (exploreCCIG2 0 (fref pTsk -> numC) i (aref vItem i) pTsk)
+                          (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
+                            (= (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j)) 0))))))
                   (begin
                     (inc (aref seqTaskRequest (fref -thr -> id)))
-                    (exploreCCIG2 0 (fref pTsk -> numC) i (aref vItem i) pTsk)
-                    (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
-                      (= (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j)) 0)))))
+                    (catch i
+                      (exploreCCIG2 0 (fref pTsk -> numC) i (aref vItem i) pTsk)
+                      (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
+                        (= (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j)) 0))))))
               (begin
                 (inc (aref seqTaskRequest (fref -thr -> id)))
-                (exploreCCIG2 0 (fref pTsk -> numC) i (aref vItem i) pTsk)
-                (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
-                  (= (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j)) 0))))
+                (catch i
+                  (exploreCCIG2 0 (fref pTsk -> numC) i (aref vItem i) pTsk)
+                  (for ((= j 0) (< j (fref pTsk -> numC)) (inc j))
+                    (= (aref (fref pTsk -> vTraversed) (aref (fref pTsk -> C) j)) 0)))))
 
             (%if* DEBUG-LOCK (begin
               (= locked 0)))
@@ -1882,7 +1936,7 @@
 
     (handles T-enumCCIG
 ;(%if* USE-SPN-RANGE
-;  (:spawn-from (if-exp (== OUTSIDE (fref (fref -thr -> treq_top) -> req_from)) (/ (+ 1 i i2) 2) (if-exp (> (- i2 i) spawnSize) (+ i spawnSize) (/ (+ 1 i i2) 2)))))
+;  (:spawn-from (if-exp (== OUTSIDE (fref (fref -thr -> treq_top) -> req_from)) (if-exp (> (- i2 i) (* spawnSize 16)) (+ i (* spawnSize 16)) (/ (+ 1 i i2) 2)) (if-exp (> (- i2 i) spawnSize) (+ i spawnSize) (/ (+ 1 i i2) 2)))))
       (%if* USE-SPN-RANGE
         (:spawn-from (if-exp (> (- i2 i) spawnSize) (+ i spawnSize) (/ (+ 1 i i2) 2))))
       (%if* USE-SPN-RATIO
