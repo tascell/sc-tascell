@@ -28,7 +28,7 @@
 ;;; How to execute
 ;; task 0 0 0 4
 ;; <graph-type>   ; 1: random, 2: 2D-torus, 3: hyper-cube, 4:bintree
-;; <algorithm>    ; 1: sequential (search-s2), 2: sequential (search), 3: parallel (search-p), 4: parallel (search-p-array)
+;; <algorithm>    ; 1: sequential (search-s2), 2: sequential (search), 3: parallel (search-p), 4: parallel (search-p-array), 89: dump graph for COPINE
 ;; <show-graph-p> ; 0: no, 1: show by show-graph, 2: show by show-graph2
 ;; <show-tree-p>  ; 0: no, 1: show by show-graph, 2: show by show-graph2
 
@@ -914,6 +914,22 @@
   (for ((= e 0) (< e E-Length) (inc e))
     (csym::fprintf stderr "%9d => %d -> e: %d~%" e (fref (aref EE e) next-v) (fref (aref EE e) next-e))))
 
+(def (csym::dump-copine-graph name file) (csym::fn void (ptr char) (ptr char))
+  (defs int v e d)
+  (def fp (ptr FILE))
+  (= fp (csym::fopen file "w"))
+  (csym::fprintf fp "# %s~%" name)
+  (csym::fprintf fp "# |V|: %d~%" V-Length)
+  (csym::fprintf fp "# |E|: %d~%" E-Length)
+  (for ((= v 0) (< v V-Length) (inc v))
+    (= e (fref (aref VV v) first-e))
+    (for ((= d (fref (aref VV v) degree)) (> d 0) (dec d))
+      (csym::fprintf fp "%d~|11|0~|11|%d~%" v (fref (aref EE e) next-v))
+      (= e (fref (aref EE e) next-e))))
+  (csym::fclose fp)
+  (csym::fprintf stderr "Graph \"%s\" successfully dumped.~%" name)
+  (return))
+
 (def (csym::dump-graph name file) (csym::fn void (ptr char) (ptr char))
   (defs int v e)
   (def fp (ptr FILE))
@@ -1027,6 +1043,7 @@
     (case 5) (csym::make-ncube 21)                 (= gname "HCube21.graph") (break)
     (case 6) (csym::make-2dt 4000)                 (= gname "2DTorus-4000.graph") (break)
     (case 11) (= gname "Random4000000.graph") (csym::read-graph gname) (break)
+    (case 21) (csym::make-random 1500 12) (= gname "Random_1500-12.graph") (break)
     (default)
     (cond
      ((and (> this.graph 20000) (< this.graph 30000))
@@ -1051,6 +1068,7 @@
     (case 2) (csym::search 0)    (= algstr "search")    (break)
     (case 3) (search-p 0)        (= algstr "search-p")  (break)
     (case 4) (search-p-array 0)  (= algstr "search-p-array") (break)
+    (case 89) (csym::dump-copine-graph gname gname) (csym::exit 0)
     (case 99) (csym::dump-graph gname gname) (csym::exit 0)
     (default) (csym::search-s2 0) (= algstr "search-s2") (break))
   (csym::gettimeofday (+ tp 1) 0)
