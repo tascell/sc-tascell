@@ -381,7 +381,7 @@
   (def numSubgraph int)
   (def numSearch uint64_t)
   (def numThreshold uint64_t)
-  (def numPruning int)
+  (def numPruning uint64_t)
   (def numTableReference uint64_t)
   (def numITmutexTrylock uint64_t)
   (def numITmutexLocked uint64_t)
@@ -437,7 +437,8 @@
   (decl vv int)                          ; vertex whice is searched next time
   (def numC int (fref pTsk -> numC))     ; 
   (decl commonNum int)                   ; # of common itemset
-  (decl commonItem (array set BIT-ITEM)) ; common itemset
+  ;(decl commonItem (array set BIT-ITEM)) ; common itemset
+  (decl commonItem (ptr set))            ; 
   (def closed int 1)                     ; flag which denotes subgraph is closed
   (decl pruning int)                     ; flag to prune
   (def excpValue int -1)                 ; exception value
@@ -446,6 +447,8 @@
   (decl ITadd (ptr ITnode))              ; 
   (decl locked int)                      ; 
   (decl tp (array (struct timeval) 2))   ;
+
+  (= commonItem (cast (ptr set) (csym::malloc (* BIT-ITEM (sizeof set)))))
 
   ;(inc (fref pTsk -> numEmutexTrylock))
   ;(if (!= (csym::pthread_mutex_trylock (ptr (aref excpMutex (fref -thr -> id)))) 0)
@@ -483,8 +486,8 @@
         (for ((= k 0) (= m 0) (= commonNum 0) (< k BIT-ITEM) (inc k))
           (= (aref commonItem k) (cast set (bit-and (aref itemSet k) (aref vItem vv k))))
           ;(+= commonNum (csym::countBits32 (aref commonItem k)))
-          (+= commonNum (csym::countBits64 (aref commonItem k)))
-          ;(+= commonNum (csym::_mm_popcnt_u64 (aref commonItem k)))
+          ;(+= commonNum (csym::countBits64 (aref commonItem k)))
+          (+= commonNum (csym::_mm_popcnt_u64 (aref commonItem k)))
           (if (== (aref commonItem k) (aref itemSet k))
             (inc m)))
         (if (== m BIT-ITEM)
@@ -653,6 +656,8 @@
                   (csym::fprintf stderr " %d -" (aref (fref pTsk -> T) l)))
                 (csym::fprintf stderr "> %d~%" vv)))))))))
 
+  (csym::free commonItem)
+
   (if closed
     ;; output common-itemset subgraph
     (begin
@@ -667,7 +672,8 @@
   (decl vv int)                          ; vertex whice is searched next time
   (def numC int (fref pTsk -> numC))     ; 
   (decl commonNum int)                   ; # of common itemset
-  (decl commonItem (array set BIT-ITEM)) ; common itemset
+  ;(decl commonItem (array set BIT-ITEM)) ; common itemset
+  (decl commonItem (ptr set))            ; 
   (def closed int 1)                     ; flag which denotes subgraph is closed
   (decl pruning int)                     ; flag to prune
   (def excpValue int -1)                 ; exception value
@@ -677,6 +683,8 @@
   (decl locked int)                      ; 
   (decl tp (array (struct timeval) 2))   ;
   (decl tpc (array (struct timeval) 4))  ;
+
+  (= commonItem (cast (ptr set) (csym::malloc (* BIT-ITEM (sizeof set)))))
 
   (if (aref numQe (fref -thr -> id))
     (begin
@@ -714,8 +722,8 @@
         (for ((= k 0) (= m 0) (= commonNum 0) (< k BIT-ITEM) (inc k))
           (= (aref commonItem k) (cast set (bit-and (aref itemSet k) (aref vItem vv k))))
           ;(+= commonNum (csym::countBits32 (aref commonItem k)))
-          (+= commonNum (csym::countBits64 (aref commonItem k)))
-          ;(+= commonNum (csym::_mm_popcnt_u64 (aref commonItem k)))
+          ;(+= commonNum (csym::countBits64 (aref commonItem k)))
+          (+= commonNum (csym::_mm_popcnt_u64 (aref commonItem k)))
           (if (== (aref commonItem k) (aref itemSet k))
             (inc m)))
         (if (== m BIT-ITEM)
@@ -996,6 +1004,8 @@
         (%if* DEBUG-COPY (begin
           (csym::gettimeofday (+ tpc 3) 0)
           (csym::fprintf fpCopy "%f, 1~%" (+ (csym::elapsedTime tpc (+ tpc 1)) (csym::elapsedTime (+ tpc 2) (+ tpc 3)))))))))
+
+  (csym::free commonItem)
 
   (if closed
     ;; output common-itemset subgraph
@@ -1475,11 +1485,15 @@
   (decl n int)                    ; item number
   (decl v int)                    ; vertex number
   (decl item (ptr char))          ; 
-  (decl buff (array char 256))    ; buffer
+  (decl buff (ptr char))          ; buffer
+  (def buffSize int 1024)         ; 
   (decl temp (array char 256))    ;
+  (decl vTemp (ptr char))         ; 
   (decl he (struct entry))        ;
   (decl hep (ptr (struct entry))) ; 
   (decl fp (ptr FILE))            ; file pointer
+
+  (= buff (cast (ptr char) (csym::malloc (* (sizeof char) buffSize))))
 
   ;; open pattern file
   (if (== (= fp (csym::fopen patternFile "r")) NULL)
@@ -1492,10 +1506,14 @@
     ;; skip a comment line
     (if (!= (csym::strncmp buff "#" 1) 0)
       (begin
-        (= v (csym::atoi (csym::strtok buff "~|11|")))
+        ;(= v (csym::atoi (csym::strtok buff "~|11|")))
+        (= vTemp (csym::strtok buff "~|11|"))
 
         ;; find v from eHash
-        (csym::sprintf temp "%d" v)
+        ;(csym::sprintf temp "%d" v)
+        (if (!= NULL vTemp)
+          (begin
+            (csym::strcpy temp vTemp)))
         (= (fref he key) temp)
         (csym::hsearch_r he FIND (ptr hep) eHash)
         (if (== hep NULL)
@@ -1521,6 +1539,8 @@
           ;; evaluate maximum # of items
           (if (> n (mref maxNumItems))
             (= (mref maxNumItems) n))))))
+
+  (csym::free buff)
 
   ;; close pattern file
   (csym::fclose fp))
@@ -1578,6 +1598,8 @@
   (decl empty (ptr char))         ; 
   (decl buff (array char 256))    ; buffer
   (decl temp (array char 256))    ;
+  (decl v1Temp (ptr char))        ; 
+  (decl v2Temp (ptr char))        ; 
   (decl he (struct entry))        ;
   (decl hep (ptr (struct entry))) ; 
   (decl fp (ptr FILE))            ; file pointer
@@ -1593,13 +1615,18 @@
     ;; skip a comment line
     (if (!= (csym::strncmp buff "#" 1) 0)
       (begin
-        (= v1 (csym::atoi (csym::strtok buff "~|11|")))
+        ;(= v1 (csym::atoi (csym::strtok buff "~|11|")))
+        (= v1Temp (csym::strtok buff "~|11|"))
         (= eLabel (csym::strtok NULL "~|11|"))
-        (= v2 (csym::atoi (csym::strtok NULL "~|11|")))
+        ;(= v2 (csym::atoi (csym::strtok NULL "~|11|")))
+        (= v2Temp (csym::strtok NULL "~|11|~%"))
         (= empty (csym::strtok NULL "~|11|"))
 
         ;; enter v1 to eHash
-        (csym::sprintf temp "%d" v1)
+        ;(csym::sprintf temp "%d" v1)
+        (if (!= NULL v1Temp)
+          (begin
+            (csym::strcpy temp v1Temp)))
         (= (fref he key) temp)
         (csym::hsearch_r he FIND (ptr hep) eHash)
         (if (== hep NULL)
@@ -1609,7 +1636,10 @@
         (= v1 (cast int (fref hep -> data)))
 
         ;; enter v2 to eHash
-        (csym::sprintf temp "%d" v2)
+        ;(csym::sprintf temp "%d" v2)
+        (if (!= NULL v2Temp)
+          (begin
+            (csym::strcpy temp v2Temp)))
         (= (fref he key) temp)
         (csym::hsearch_r he FIND (ptr hep) eHash)
         (if (== hep NULL)
@@ -1762,8 +1792,8 @@
   ;(= graphFile "data/dblp_cites_network.tab")
   ;(= patternFile "data/eg_pattern.txt")
   ;(= graphFile "data/eg_graph.txt")
-  ;(= patternFile "data/eg2_pattern.txt")
-  ;(= graphFile "data/eg2_graph.txt")
+  ;(= patternFile "data/Erdos-Renyi_wom.pattern")
+  ;(= graphFile "data/Erdos-Renyi.graph")
   (= th (fref this th))
   (= spawnSize (fref this spawnSize))
   (= resultFile "result.txt")
