@@ -193,7 +193,7 @@
                                         ; この数のchildが接続するまでメッセージ処理を行わない
    (child-next-id :accessor ts-child-next-id :type fixnum :initform 0)
    (socket-format :accessor ts-socket-format :type symbol :initform *socket-format* :initarg :socket-format)
-   (bcst-receipants :accessor ts-bcst-receipants :type list :initform ())
+   (bcst-recipients :accessor ts-bcst-recipients :type list :initform ())
 					; (<bcak返信先> . <bcstをforwardしたhostのリスト>)のリスト
    (exit-gate :accessor ts-exit-gate :initform (mp:make-gate nil))
    (treq-any-list :accessor ts-talist :type list :initform '()) ;; treq-anyを出せていないリスト
@@ -353,11 +353,11 @@
                   ,@(mapcar #'(lambda (host)
                                 (list (hostid host) (host-unreplied-treqs host)))
                             (cons (ts-parent sv) (ts-children sv))))
-                `(:bcst-receipants
+                `(:bcst-recipients
                   ,@(mapcar #'(lambda (rcp-entry)
                                 (cons (car rcp-entry)
                                       (mapcar #'hostid (cdr rcp-entry))))
-                            (ts-bcst-receipants sv)))
+                            (ts-bcst-recipients sv)))
                 )
           *error-output*)
   (terpri *error-output*)
@@ -1255,12 +1255,12 @@
 	  (send-bcst to p-bcak-head task-no bcst-body)
 	  (push to recipients)))
       ;; (<bcak返信先> . <forward先のリスト>)を記憶する
-      (when (member p-bcak-head (ts-bcst-receipants sv)
+      (when (member p-bcak-head (ts-bcst-recipients sv)
 		    :key #'car :test #'string=)
 	(warn "Server received the same broadcast twice: ~S"
 	      p-bcak-head))
       (if recipients
-          (push (cons p-bcak-head recipients) (ts-bcst-receipants sv))
+          (push (cons p-bcak-head recipients) (ts-bcst-recipients sv))
         ;; broadcast先がいなければ即座にbcakを返す
         (send-bcak from (second cmd)))
       )))
@@ -1271,24 +1271,24 @@
   (let ((bcak-head (second cmd)))
     (destructuring-bind (to s-bcak-head) ; bcak送信先
 	(head-shift sv bcak-head)
-      (let ((receipants-entry		
-	     (car (member bcak-head (ts-bcst-receipants sv)
+      (let ((recipients-entry		
+	     (car (member bcak-head (ts-bcst-recipients sv)
 			  :key #'car :test #'string=))))
-	(if (null receipants-entry)	; bcak-headからのbcstがあったかチェック
+	(if (null recipients-entry)	; bcak-headからのbcstがあったかチェック
 	    (warn "No bcst from ~S is remenbered." bcak-head)
-	  (if (not (member from (cdr receipants-entry) :test #'eq))
+	  (if (not (member from (cdr recipients-entry) :test #'eq))
 					; fromがbcak待ちリストにあるかチェック
 	      (warn "No bcst from ~S to ~S is remembered."
 		    bcak-head (hostinfo from))
 	    (progn
 	      ;; bcak待ちからfromを削除
-	      (rplacd receipants-entry
-		      (delete from (cdr receipants-entry) :test #'eq))
+	      (rplacd recipients-entry
+		      (delete from (cdr recipients-entry) :test #'eq))
 	      ;; 待ちリストが空になっていたらbcakを返す
-	      (when (null (cdr receipants-entry))
+	      (when (null (cdr recipients-entry))
 		(send-bcak to s-bcak-head)
-                (setf (ts-bcst-receipants sv)
-                  (delete receipants-entry (ts-bcst-receipants sv) :test #'eq)))
+                (setf (ts-bcst-recipients sv)
+                  (delete recipients-entry (ts-bcst-recipients sv) :test #'eq)))
 	      )))))))
 
 ;;; dreq
