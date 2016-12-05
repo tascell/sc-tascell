@@ -84,10 +84,10 @@
 ;;; コマンドに続いてデータをともなうコマンド
 ;;; These constants are referred to in compile time with #. reader macros.
 (eval-when (:execute :load-toplevel :compile-toplevel)
-  (defparameter *commands* '("treq" "task" "none" "rslt" "rack" "bcst" "bcak" "dreq" "data"
+  (defparameter *commands* '("treq" "task" "none" "rslt" "rack" "bcst" "bcak"
                              "leav" "cncl"
                              "log"  "stat" "verb" "eval" "exit"))
-  (defparameter *commands-with-data* '("task" "rslt" "data"))
+  (defparameter *commands-with-data* '("task" "rslt"))
   (defparameter *commands-broadcast* '("bcst"))
   (defparameter *commands-without-data* (set-difference
                                          (set-difference *commands*
@@ -573,7 +573,7 @@
           (values (cons hst msg) eof-p))
         )))
 
-;;; "task", "rslt", "bcst", "data" のbody部を読み込み，リストにして返す
+;;; "task", "rslt", "bcst" のbody部を読み込み，リストにして返す
 ;;; バイナリ部分はbufferに書き込み，読み出すための関数を用意する
 (defun read-body-into-buffer (stream buffer)
   (let ((ret '())
@@ -614,7 +614,7 @@
             ))))
     (nreverse ret)))
 
-;;; "task", "rslt", "bcst" "data" のbody部を読み込み，リストにして返す
+;;; "task", "rslt", "bcst" のbody部を読み込み，リストにして返す
 (defun read-body (stream)
   (let ((ret '()))
     (loop
@@ -1012,14 +1012,6 @@
 (defmethod send-bcak (to bcak-head)
   (send to (list "bcak " bcak-head #\Newline)))
 
-(defgeneric send-dreq (to data-head dreq-head range))
-(defmethod send-dreq (to data-head dreq-head range)
-  (send to (list "dreq " data-head #\Space dreq-head #\Space range #\Newline)))
-
-(defgeneric send-data (to data-head range data-body))
-(defmethod send-data (to data-head range data-body)
-  (send to (list "data " data-head #\Space range #\Newline data-body #\Newline)))
-
 (defgeneric send-leav (to))
 (defmethod send-leav (to)
   (send to (list "leav " #\Newline)))
@@ -1052,8 +1044,6 @@
     ("rack" (proc-rack sv from cmd))
     ("bcst" (proc-bcst sv from cmd))
     ("bcak" (proc-bcak sv from cmd))
-    ("dreq" (proc-dreq sv from cmd))
-    ("data" (proc-data sv from cmd))
     ("leav" (proc-leav sv from cmd))
     ("cncl" (proc-cncl sv from cmd))
     ("log"  (proc-log sv from cmd))
@@ -1290,24 +1280,6 @@
                 (setf (ts-bcst-recipients sv)
                   (delete recipients-entry (ts-bcst-recipients sv) :test #'eq)))
 	      )))))))
-
-;;; dreq
-(defgeneric proc-dreq (sv from cmd))
-(defmethod proc-dreq ((sv tcell-server) (from host) cmd)
-  (let ((p-data-head (head-push from (second cmd))) ; データ要求者
-        (range (fourth cmd)))           ; データ要求範囲
-    (destructuring-bind (hst0 s-dreq-head) ; データ要求先
-        (head-shift sv (third cmd))
-      (send-dreq hst0 p-data-head s-dreq-head range))))
-
-;;; data
-(defgeneric proc-data (sv from cmd))
-(defmethod proc-data ((sv tcell-server) (from host) cmd)
-  (destructuring-bind (to s-data-head)  ; data送信先
-      (head-shift sv (second cmd))
-    (let ((range (third cmd))           ; データ要求範囲
-          (data-body (cdddr cmd)))      ; データ本体
-      (send-data to s-data-head range data-body))))
 
 ;;; leav: the computation node want to drop out
 ;; 子から->invalidate
