@@ -1,4 +1,4 @@
-;;; Copyright (c) 2009-2011 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; Copyright (c) 2009-2016 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -85,7 +85,7 @@
 ;;; These constants are referred to in compile time with #. reader macros.
 (eval-when (:execute :load-toplevel :compile-toplevel)
   (defparameter *commands* '("treq" "task" "none" "rslt" "rack" "bcst" "bcak" "dreq" "data"
-                             "leav" "lack" "abrt" "cncl"
+                             "leav" "cncl"
                              "log"  "stat" "verb" "eval" "exit"))
   (defparameter *commands-with-data* '("task" "rslt" "data"))
   (defparameter *commands-broadcast* '("bcst"))
@@ -903,15 +903,6 @@
                  task-no #\Newline
                  task-body #\Newline)))
 
-;; Reply in place of an invalid child.
-(defmethod send-task :around ((to child) 
-                              wsize-str rslt-head task-head task-no task-body)
-  (declare (ignore wsize-str task-head task-no task-body))
-  (if (child-valid to)
-      (call-next-method)
-    (proc-cmd (host-server to) to
-              (list "abrt" rslt-head))))
-
 ;;; counting messages between clusters (for SACSIS11)
 #+SACSIS11
 (progn
@@ -947,14 +938,6 @@
 		 rslt-rsn  #\Space
 		 rslt-excp #\Space
 		 #\Newline rslt-body #\Newline)))
-
-;; Reply in place of an invalid child.
-#+PENDING ; rsltだけではrackの返信先がわからない
-(defmethod send-rslt :around (to rslt-head rslt-rsn rslt-excp rslt-body)
-  (if (child-valid to)
-      (call-next-method)
-    (proc-cmd (host-server to) to
-              (list "rack")))) 
 
 (defmethod send-rslt :after ((to parent) rslt-head rslt-rsn rslt-excp rslt-body)
   (declare (ignore rslt-head rslt-rsn rslt-excp rslt-body))
@@ -1041,21 +1024,6 @@
 (defmethod send-leav (to)
   (send to (list "leav " #\Newline)))
 
-(defgeneric send-lack (to lack-head))
-(defmethod send-lack (to lack-head)
-  (send to (list "lack " lack-head #\Newline)))
-(defmethod send-lack :around ((to child) lack-head)
-  (declare (ignore lack-head))
-  (if (child-valid to)
-      (progn
-        (call-next-method)
-        (invalidate-child to))))
-
-
-(defgeneric send-abrt (to rslt-head))
-(defmethod send-abrt (to rslt-head)
-  (send to (list "abrt " rslt-head #\Newline)))
-
 (defgeneric send-cncl (to task-head cncl-head))
 (defmethod send-cncl (to task-head cncl-head)
   (send to (list "cncl " task-head #\Space cncl-head #\Newline)))
@@ -1087,8 +1055,6 @@
     ("dreq" (proc-dreq sv from cmd))
     ("data" (proc-data sv from cmd))
     ("leav" (proc-leav sv from cmd))
-    ("lack" (proc-lack sv from cmd))
-    ("abrt" (proc-abrt sv from cmd))
     ("cncl" (proc-cncl sv from cmd))
     ("log"  (proc-log sv from cmd))
     ("stat" (proc-stat sv from cmd))
@@ -1344,36 +1310,17 @@
       (send-data to s-data-head range data-body))))
 
 ;;; leav: the computation node want to drop out
-;; 子から->lackを返す（invalidateはsend-lackにて）
+;; 子から->invalidate
 ;; 親から->無視
 (defgeneric proc-leav (sv from cmd))
 (defmethod proc-leav ((sv tcell-server) (from child) cmd)
   (declare (ignore cmd))
-  (send-lack from "0")                  ; "0" is a dummy argument
+  (invalidate-child from)
   )
 
 (defmethod proc-leav ((sv tcell-server) (from parent) cmd)
   (declare (ignore cmd))
   (warn "Leav message from parent is unexpected."))
-
-;;; lack: tell that the computation node is marked as invalidated
-;; 子から->無視．親から->転送
-(defgeneric proc-lack (sv from cmd))
-(defmethod proc-lack ((sv tcell-server) (from child) cmd)
-  (declare (ignore cmd))
-  (warn "Lack message from child is unexpected."))
-(defmethod proc-lack ((sv tcell-server) (from parent) cmd)
-  (destructuring-bind (to s-lack-head)
-      (head-shift sv (second cmd))      ; lack送信先
-    (send-lack to s-lack-head)))
-
-;;; abrt: tell that the result to the task is no longer returned.
-;; The message is just forwarded.
-(defgeneric proc-abrt (sv from cmd))
-(defmethod proc-abrt ((sv tcell-server) (from host) cmd)
-  (destructuring-bind (to s-rslt-head)
-      (head-shift sv (second cmd))      ; abrt送信先
-    (send-abrt to s-rslt-head)))
 
 ;;; cncl: tell that the result to the task is no longer accepted.
 ;; The message is just forwarded.
