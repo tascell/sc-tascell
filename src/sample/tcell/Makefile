@@ -13,7 +13,7 @@ GCC=mpicc #$(XCC)
 # Command for Intel C Compiler
 ICC=icc
 # Optimization options for C Compilers
-OPT=-O3 -msse4.2 -g $(MOPT)
+OPT=-O3 -g $(MOPT)
 
 # Keyword for L-Closures and Closures in XC Cube. Don't modify.
 XCCOPT=-DCT=lightweight
@@ -47,7 +47,7 @@ endif
 # icc-c, icc-lw, and icc-clos}
 # By default, this Makefile makes all ALL_PROGS. You can make just one of targets by specifying the target file name,
 # (e.g., "make fib-gcc")
-APPS=fib fib-guard fib-try fib-thr lu cmp pen pen-excep pen6x17 pen6x17-guard pen6x17-try pen6x17-thr nq nq-try nq-thr grav matmul spanning bcast copine0 copine1 copine2 copine3 copine4 copine0d copine1d copine3d
+APPS=fib fib-guard fib-try fib-thr lu cmp pen pen-excep pen6x17 pen6x17-guard pen6x17-try pen6x17-thr nq nq-try nq-thr grav matmul spanning bcast copine0 copine1 copine2 copine3 copine4 copine0d copine1d copine3d copine4d
 
 C_PROGS=$(addsuffix -c,$(APPS))
 GCC_PROGS=$(addsuffix -gcc,$(APPS))

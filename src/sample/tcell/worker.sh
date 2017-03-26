@@ -322,6 +322,13 @@
   (def treeDepth int)                   ; 
   (def copineMinID __uint128_t)         ; 
   (def copineMaxID __uint128_t)         ; 
+  ;; 
+  (def numTaskStackEntry int)           ; 
+  (def maxTaskStackEntry int)           ; 
+  (def maxSubtaskStackEntry int)        ; 
+  (def traceCallStackSize int)          ; 
+  (def traceCallStack (ptr void))       ; 
+  (def maxCallStackSize int)            ; 
   )
 
 ;;;; NOTE: this functionality (on-demand data request) is incomplete now.
