@@ -43,6 +43,7 @@
 (c-exp "#include<stdio.h>")
 (c-exp "#include<stdlib.h>")
 (c-exp "#include<string.h>")
+(c-exp "#include<stdint.h>")
 (c-exp "#include<float.h>")
 (c-exp "#include<math.h>")
 (c-exp "#include<limits.h>")
@@ -66,16 +67,22 @@
          (static n-waiting-data int 0)) ; # dreq handlers waiting data
 
 ;;; Variables for distributed memory environments
+;;(%defconstant ENABLE-TAU 1) ; define only for treq-any stback
 (%defconstant OUTER_TREQ-ANY_THRESHOLD 0)
 (%defconstant OUTER_TREQ-ANY_PROB 0)
 
+;;; Variables for stback optimization
+(%defconstant ENABLE-STBACK 1) ;;;;;;;;;;;;;;;
+
 (%defconstant THRESHOLD-OUTER-TASK 0)
+(def obtainedRootTask int 0)
+(def numTryingTreq int 0)
 (def numTaskFromOutside int 0)
 (%defconstant PROB-TREQ-ANY-IN_OUT 0.00)
 (def doneSrandom (volatile int) 0)
 
 (decl outerTaskMutex pthread_mutex_t)
-(def initedOuterTaskMutex (volatile int) 0)
+(decl tryingTreqMutex pthread_mutex_t)
 
 
 (%defmacro xread (tp exp)
@@ -89,8 +96,10 @@
     ))
 
 ;;;; Constatnts for stback
-(%defconstant WAIT-STBACK-INSIDE  (* 0 (* 1 1000)))
-(%defconstant WAIT-STBACK-OUTSIDE (* 1 (* 1 1000)))
+(%defconstant WAIT-STBACK-INSIDE-SEC 0)
+(%defconstant WAIT-STBACK-INSIDE-NSEC (* 0 (* 1000 1000)))
+(%defconstant WAIT-STBACK-OUTSIDE-SEC 0)
+(%defconstant WAIT-STBACK-OUTSIDE-NSEC (* 0 (* 1000 1000)))
 ;(%defconstant WAIT-RANGE-OUTSIDE 16)
 
 (%defconstant ENABLE-PREV-EXEC 0)
@@ -104,6 +113,9 @@
 (%defconstant FORMULA-PRIORITY (+ (* 0.10 (csym::log2 (cast double (+ 1 (fref elem copineMinID))))) (* 0.90 (- 128 (csym::log2 (cast double (fref elem copineRangeID)))))))
 
 (%defconstant NUM-TRIAL-TREQ-ANY 0)
+
+;;;; Debug for traceback
+(%defconstant DEBUG-TRACEBACK 0)
 
 
 ;;;; Worker threads
@@ -419,19 +431,20 @@
   (csym::pthread-mutex-unlock (ptr send-mut))
   ;; ---> sender-lock --->
   (if (and (== w RSLT) option.auto-exit)
-      (begin
-	(PROF-CODE
-	 (let ((i int) (thr (ptr (struct thread-data))) (fp (ptr FILE)))
-	   (for ((= i 0) (< i num-thrs) (inc i))
-	     (= thr (+ threads i))
-	     (csym::tcounter-change-state thr TCOUNTER-INIT OBJ-NULL 0)
-	     (if thr->fp-tc
-		 (begin
-		   (= fp thr->fp-tc)
-		   (= thr->fp-tc 0)
-		   (csym::fclose fp)))))
-	 (csym::show-counters))
-	(csym::exit 0)))
+    (begin
+      ;(PROF-CODE
+      ;  (let ((i int) (thr (ptr (struct thread-data))) (fp (ptr FILE)))
+      ;    (for ((= i 0) (< i num-thrs) (inc i))
+      ;      (= thr (+ threads i))
+      ;      (csym::tcounter-change-state thr TCOUNTER-INIT OBJ-NULL 0)
+      ;      (if thr->fp-tc
+      ;        (begin
+      ;          (= fp thr->fp-tc)
+      ;          (= thr->fp-tc 0)
+      ;          (csym::fflush fp)
+      ;          (csym::fclose fp)))))
+      ;  (csym::show-counters))
+      (csym::exit 0)))
   )
 
 ;;; Take cmd and call the function corresponding to its command name.
@@ -558,7 +571,8 @@
                (csym::sprintf buf0 "and stealing-back from %s" buf1)
                buf0)
             "")
-          ignored)))
+          ignored)
+    ))
   )
 
 ;;; allocate a task in thr's task stack and return the pointer to the task.
@@ -570,25 +584,33 @@
   (if (not tx) (csym::mem-error "Not enough task memory"))
   (= thr->task-top tx)
   (= thr->task-free tx->prev)
+  ;(DEBUG-PRINT 1 "(%d): (Thread %d) allocate %d<%p> (body=%p).~%" (csym::get-universal-real-time) thr->id tx->task-no tx tx->body)
+  (inc thr->numTaskStackEntry)
+  (if (< thr->maxTaskStackEntry thr->numTaskStackEntry)
+    (= thr->maxTaskStackEntry thr->numTaskStackEntry))
   (return tx))
 
 ;;; Deallocate a task of the thread 'thr' in the task stack
 (def (csym::deallocate-task thr) (fn void (ptr (struct thread-data)))
   (def tx (ptr (struct task)) thr->task-top)
+  (dec thr->numTaskStackEntry)
+  ;(DEBUG-PRINT 1 "(%d): (Thread %d) deallocate %d<%p> (body=%p).~%" (csym::get-universal-real-time) thr->id tx->task-no tx tx->body)
   (= thr->task-free tx)                 ; return the space to the free lists.
   (= thr->task-top tx->next)
   (return))
 
-;;; Set pts-dst(timespec) = ptv-src(timeval) + diff[nsec]
-(def (csym::timeval-plus-nsec-to-timespec pts-dst ptv-src diff)
-    (fn void (ptr (struct timespec)) (ptr (struct timeval)) long)
-  (def nsec long (+ diff (* 1000 ptv-src->tv-usec)))
-  (= pts-dst->tv-nsec (if-exp (> nsec 999999999)
-                              (- nsec 999999999)
-                              nsec))
-  (= pts-dst->tv-sec (+ ptv-src->tv-sec
-                        (if-exp (> nsec 999999999) 1 0)))
-  )
+;;; Set pts-dst(timespec) = ptv-src(timeval) + diff_sec[sec] + diff_nsec[nsec]
+(def (csym::timeval-plus-nsec-to-timespec pts-dst ptv-src diff_sec diff_nsec)
+    (fn void (ptr (struct timespec)) (ptr (struct timeval)) long long)
+  (def  sec long (+ diff_sec ptv-src->tv-sec))
+  (def nsec long (+ diff_nsec (* 1000 ptv-src->tv-usec)))
+  (if (> nsec 999999999)
+    (begin
+      (= pts-dst->tv-nsec (- nsec 999999999))
+      (= pts-dst->tv-sec  (+ sec 1)))
+    (begin
+      (= pts-dst->tv-nsec nsec)
+      (= pts-dst->tv-sec sec))))
 
 ;;; Send a treq message from the "thr" worker and wait for a reply.
 ;;; If a task message is returned, initialize the task in thr->task-top.
@@ -612,14 +634,24 @@
   (= (aref rcmd.v 0 0) thr->id)
 
   (%if* OUTER_TREQ-ANY-THRESHOLD (begin
-    (if (not initedOuterTaskMutex)
-      (begin
-        (= initedOuterTaskMutex 1)
-        (csym::pthread_mutex_init (ptr outerTaskMutex) NULL)))
-    (if (and (< numTaskFromOutside THRESHOLD-OUTER-TASK) (== thr->task-top->next NULL))
+    (csym::pthread_mutex_lock (ptr tryingTreqMutex))
+    (inc numTryingTreq)
+    (if (and (not obtainedRootTask)
+             (== 0 thr->id)
+             (== thr->task-top->next NULL))
       (begin
         (= rcmd.node OUTSIDE)
-        (csym::fprintf stderr "send-treq-to-init-task: THRESHOLD-OUTER-TASK!~%")))))
+        (csym::fprintf stderr "send-treq-to-init-task: FIRST-OUTER-TASK!~%")))
+    (if (and obtainedRootTask
+             (< numTaskFromOutside THRESHOLD-OUTER-TASK)
+             (<= numTryingTreq THRESHOLD-OUTER-TASK)
+             (== thr->task-top->next NULL))
+      (begin
+        (= rcmd.node OUTSIDE)
+        (csym::fprintf stderr "send-treq-to-init-task: THRESHOLD-OUTER-TASK!~%")
+        ))
+    (csym::pthread_mutex_unlock (ptr tryingTreqMutex))
+    ))
 
   (%if* OUTER_TREQ-ANY_PROB (begin
     (if (and (== thr->task-top->next NULL) (== rcmd.node INSIDE))
@@ -661,23 +693,25 @@
      (csym::pthread-mutex-lock (ptr thr->mut)))
 
      (%if* OUTER_TREQ-ANY_THRESHOLD (begin
-       (if (not initedOuterTaskMutex)
-         (begin
-           (= initedOuterTaskMutex 1)
-           (csym::pthread_mutex_init (ptr outerTaskMutex) NULL)))
+       (csym::pthread_mutex_lock (ptr tryingTreqMutex))
+       (dec numTryingTreq)
+       (csym::pthread_mutex_unlock (ptr tryingTreqMutex))
        (if (and (== rcmd.node OUTSIDE) (== thr->task-top->next NULL))
          (begin
            (csym::pthread_mutex_lock (ptr outerTaskMutex))
            (inc numTaskFromOutside)
+           (= obtainedRootTask 1)
            (csym::pthread_mutex_unlock (ptr outerTaskMutex))
-           (csym::fprintf stderr "send_treq_to_outside: %d~%" numTaskFromOutside)))))
+           (csym::fprintf stderr "send_treq_to_outside: %d~%" numTaskFromOutside)
+           ))))
 
     ;; Wait for *tx being initialized in recv-task invoked by a sender worker thread
     ;; (internal task message) or the message handler (external task message)
     (loop
       ;; If the most recent spawned task has been completed,
       ;; stop getting a new task and resume the suspended task.
-      (if (and (!= tx->stat TASK-INITIALIZED)
+      (%if* ENABLE-STBACK (begin
+        (if (and (!= tx->stat TASK-INITIALIZED)
 	       thr->sub
 	       (or (== thr->sub->stat TASK-HOME-DONE)
                    (== thr->sub->stat TASK-HOME-EXCEPTION)
@@ -695,6 +729,7 @@
             (if (!= tx->stat TASK-NONE)
                 (inc thr->w-none))
             (return 0)))
+        ))
       (if (!= tx->stat TASK-ALLOCATED) (break))
       ;; Wait for tx->stat or thr->sub->stat being changed
       ;; NOTE: BUSYWAIT does not work now
@@ -715,7 +750,7 @@
               (let ((t-until (struct timespec))
                     (now (struct timeval)))
                 (csym::gettimeofday (ptr now) 0)
-                (csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) delay)
+                (csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) 0 delay)
                 (csym::pthread-cond-timedwait (ptr thr->cond-r)
                                               (ptr thr->mut)
                                               (ptr t-until))
@@ -823,16 +858,13 @@
 	(csym::pthread-mutex-lock (ptr thr->rack-mut))
 
         (%if* OUTER_TREQ-ANY_THRESHOLD (begin
-          (if (not initedOuterTaskMutex)
-            (begin
-              (= initedOuterTaskMutex 1)
-              (csym::pthread_mutex_init (ptr outerTaskMutex) NULL)))
           (if (and (== tx->rslt-to OUTSIDE) (== thr->task-top->next NULL))
             (begin
               (csym::pthread_mutex_lock (ptr outerTaskMutex))
               (dec numTaskFromOutside)
               (csym::pthread_mutex_unlock (ptr outerTaskMutex))
-              (csym::fprintf stderr "sent_rslt_to_outside: %d~%" numTaskFromOutside)))))
+              (csym::fprintf stderr "sent_rslt_to_outside: %d~%" numTaskFromOutside)
+              ))))
 
 	(inc thr->w-rack) ; Increase w-rack counter. This is decreased when the worker
 	                  ; receives a rack message as a reply to the rslt. While this
@@ -953,6 +985,7 @@
   (= tx->task-no task-no)               ; the kind of the task
   (= tx->body body)                     ; task object
   (= tx->stat TASK-INITIALIZED)         ; TASK-ALLOCATED => TASK-INITIALIZED
+  (DEBUG-PRINT 1 "(%d): (Thread %d) initialize %d<%p> (body=%p).~%" (csym::get-universal-real-time) thr->id tx->task-no tx tx->body)
 
   ;; Awake the worker thread sleeping to waiting for the task
   (csym::pthread-cond-broadcast (ptr thr->cond))
@@ -981,16 +1014,13 @@
     (begin 
       (= thr->task-top->stat TASK-NONE) ; TASK-ALLOCATED => TASK-NONE
       (%if* OUTER_TREQ-ANY_THRESHOLD (begin
-        (if (not initedOuterTaskMutex)
-          (begin
-            (= initedOuterTaskMutex 1)
-            (csym::pthread_mutex_init (ptr outerTaskMutex) NULL)))
         (if (and (== pcmd->node OUTSIDE) (== thr->task-top->next NULL))
           (begin
             (csym::pthread_mutex_lock (ptr outerTaskMutex))
             (dec numTaskFromOutside)
             (csym::pthread_mutex_unlock (ptr outerTaskMutex))
-            (csym::fprintf stderr "could_not_receive_a_task_from_outside: %d~%" numTaskFromOutside)))))))
+            (csym::fprintf stderr "could_not_receive_a_task_from_outside: %d~%" numTaskFromOutside)
+            ))))))
 
   ;; Awake the worker thread sleeping to waiting for the task
   (csym::pthread-cond-broadcast (ptr thr->cond))
@@ -1328,14 +1358,17 @@
                                   (exps (csym::serialize-arg buf1 (aref pcmd->v 0)) buf1) dst0))))
    )
   ;; The following is executed when no worker accepted the request
-  (if (and (== dst0 ANY)                 ; <recipient> is "ANY"
-           (== pcmd->node INSIDE)        ; internal treq
-           (== (aref pcmd->v 0 0) 0))    ; treq from 0-th worker
+  (%ifndef* ENABLE-TAU (begin
+    (if (and (== dst0 ANY)                 ; <recipient> is "ANY"
+             (== pcmd->node INSIDE)        ; internal treq
+             (== (aref pcmd->v 0 0) 0))    ; treq from 0-th worker
       ;; Forward the treq to external nodes and return
       (begin
-	(= pcmd->node OUTSIDE)
-	(csym::send-command pcmd 0 0)
-	(return)))
+        (= pcmd->node OUTSIDE)
+        (csym::send-command pcmd 0 0)
+        (return)))
+    ))
+
   ;; Reply with a none message
   (= rcmd.c 1)
   (= rcmd.node pcmd->node)              ; internal or external
@@ -1899,6 +1932,25 @@
 ;;; No arguments
 (def (csym::recv-exit pcmd) (csym::fn void (ptr (struct cmd)))
   (csym::fprintf stderr "Received \"exit\"... terminate.~%")
+
+  (PROF-CODE
+    (let ((i int) (thr (ptr (struct thread-data))) (fp (ptr FILE)))
+      (for ((= i 0) (< i num-thrs) (inc i))
+        (= thr (+ threads i))
+        (csym::tcounter-change-state thr TCOUNTER-INIT OBJ-NULL 0)
+        (if thr->fp-tc
+          (begin
+            (= fp thr->fp-tc)
+            (= thr->fp-tc 0)
+            (csym::fflush fp)
+            (csym::fclose fp)
+            ))))
+     (csym::show-counters))
+  ;(csym::sleep 10)
+
+  (%ifdef* USEMPI (begin
+    (csym::MPI_Finalize)))
+
   (csym::exit 0))
 
 
@@ -2022,6 +2074,8 @@
   (= hx->id (if-exp hx->next            ; the subtask ID (= height_of_the_stack + 1)
                     (+  hx->next->id 1)
                     0))
+  (if (< thr->maxSubtaskStackEntry (+ hx->id 1))
+    (= thr->maxSubtaskStackEntry (+ hx->id 1)))
   (= hx->owner thr->task-top)           ; the parent task (= current top of the task stack)
   (= hx->eldest (if-exp eldest-p hx hx->next->eldest))
   (= hx->msg-cncl 0)                    ; initialize flag to be cancelled
@@ -2076,7 +2130,7 @@
 	(let ((now (struct timeval))
 	      (t-until (struct timespec)))
 	  (csym::gettimeofday (ptr now) 0)
-	  (csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) WAIT-STBACK-INSIDE)
+	  (csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) WAIT-STBACK-INSIDE-SEC WAIT-STBACK-INSIDE-NSEC)
 	  (csym::pthread-cond-timedwait (ptr thr->cond-r) (ptr thr->mut)
 					(ptr t-until))
 	  ))
@@ -2087,7 +2141,7 @@
 	(let ((now (struct timeval))
 	      (t-until (struct timespec)))
 	  (csym::gettimeofday (ptr now) 0)
-	  (csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) WAIT-STBACK-OUTSIDE)
+	  (csym::timeval-plus-nsec-to-timespec (ptr t-until) (ptr now) WAIT-STBACK-OUTSIDE-SEC WAIT-STBACK-OUTSIDE-NSEC)
 	  (csym::pthread-cond-timedwait (ptr thr->cond-r) (ptr thr->mut)
 					(ptr t-until))
 	  ))
@@ -2103,13 +2157,16 @@
 	  (PROF-CODE
 	   (csym::tcounter-change-state thr TCOUNTER-TREQ-BK
 					OBJ-ADDR sub->task-head))
-	  (recv-exec-send thr sub->task-head sub->req-from)
+           (recv-exec-send thr sub->task-head sub->req-from)
+           ;(recv-exec-send thr (init (array (enum addr) 2) (array ANY TERM)) INSIDE)
 	  (PROF-CODE
 	   (csym::tcounter-change-state thr tcnt-stat-w
 					OBJ-NULL 0))
 	  )
       ;; Just wait for the subtask finishing
-      (csym::pthread-cond-wait (ptr thr->cond-r) (ptr thr->mut)))
+      (begin
+        (csym::pthread-cond-wait (ptr thr->cond-r) (ptr thr->mut))
+      ))
     )
   ;; When the subtask has thrown an exception, propagate it
   (if (== sub->stat TASK-HOME-EXCEPTION)
@@ -2472,7 +2529,10 @@
 		     (aref tcounter-strings j) (aref thr->tcnt j)))
     (for ((= j 0) (< j NKIND-EV) (inc j))
          (csym::fprintf stderr "%s: %ld~%"
-                        (aref ev-strings j) (aref thr->ev-cnt j))))
+                        (aref ev-strings j) (aref thr->ev-cnt j)))
+    (csym::fprintf stderr "max task & subtask stack size, %d, %d~%" thr->maxTaskStackEntry thr->maxSubtaskStackEntry)
+    (csym::fprintf stderr "max call stack size: %d~%" thr->maxCallStackSize)
+    )
   (return))
 
 )                                       ; end PROF-CODE
@@ -2515,6 +2575,11 @@
   ;; Initialize data-mut/data-cond (lock/condition variable for on-demand data)
   (csym::pthread-mutex-init (ptr data-mutex) (ptr m-attr))
   (csym::pthread-cond-init (ptr data-cond) 0)
+
+  ;; 
+  (%if* OUTER_TREQ-ANY-THRESHOLD (begin
+    (csym::pthread_mutex_init (ptr outerTaskMutex) NULL)
+    (csym::pthread_mutex_init (ptr tryingTreqMutex) NULL)))
   
   ;; Initialize thread-data objects (workers)
   (= num-thrs option.num-thrs)
@@ -2548,6 +2613,14 @@
       (csym::pthread-cond-init (ptr thr->cond) 0)
       (csym::pthread-cond-init (ptr thr->cond-r) 0)
 
+      (= thr->numTaskStackEntry 0)
+      (= thr->maxTaskStackEntry 0)
+      (= thr->maxSubtaskStackEntry 0)
+      (%if* DEBUG-TRACEBACK (begin
+        (= thr->traceCallStackSize 10000000)
+        (= thr->traceCallStack (csym::malloc thr->traceCallStackSize))))
+      (= thr->maxCallStackSize 0)
+
       ;; Initialize a task stack
       (= tx (cast (ptr (struct task))
               (csym::malloc (* (sizeof (struct task)) TASK-LIST-LENGTH))))
@@ -2574,6 +2647,7 @@
 	     (csym::free fname))
 	 (= thr->fp-tc 0)))
       ))
+  ;(csym::sleep 10)
   
   ;; Create and run worker threads
   (for ((= i 0) (< i num-thrs) (inc i))
@@ -2619,8 +2693,5 @@
       (begin
         (while 1
           (csym::sleep 2147483647)))))
-
-  (%ifdef* USEMPI
-    (csym::MPI_Finalize))
 
   (csym::exit 0))

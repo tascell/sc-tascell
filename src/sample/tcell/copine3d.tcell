@@ -43,11 +43,12 @@
 (c-exp "#include <stdint.h>")
 ;(c-exp "#include <pthread.h>")
 (c-exp "#include <inttypes.h>")
+(c-exp "#include <execinfo.h>")
 (c-exp "#include <sys/time.h>")
 (c-exp "#include <sys/resource.h>")
 (c-exp "#include <unistd.h>")
 (c-exp "#include <signal.h>")
-(c-exp "#include <nmmintrin.h>")
+;(c-exp "#include <nmmintrin.h>")
 
 (c-exp "#define  __USE_GNU")
 (c-exp "#include <search.h>")
@@ -68,14 +69,14 @@
 (%defconstant USE-SSE 0)
 
 ;;; Max # of workers
-(%defconstant NUM-WORKERS 32)
+(%defconstant NUM-WORKERS 36)
 (%defconstant NUM-NODES 2)
 
 ;;; Constants
 (%defconstant E-SIZE 500000)               ; # of edges
 (%defconstant V-SIZE 15500)                ; # of vertices
-(%defconstant BIT-LEN 32)                  ; bit length of bitset
-(%defconstant BIT-ITEM 5)                  ; # of items = BIT-ITEM * BIT-LEN
+(%defconstant BIT-LEN 64)                  ; bit length of bitset
+(%defconstant BIT-ITEM 3)                  ; # of items = BIT-ITEM * BIT-LEN
 (%defconstant BIT-EDGE 8125)               ; # of edges = BIT-EDGE * BIT-LEN
 (%defconstant BIT-VERTEX 625)              ; # of vertices = BIT-VERTEX * BIT-LEN
 (%defconstant I-SIZE (* BIT-LEN BIT-ITEM)) ; 
@@ -90,9 +91,10 @@
 (%defconstant DEBUG-TIME 0) ; flag to output time file
 (%defconstant DEBUG-LOCK 0) ; flag to output lock file
 (%defconstant DEBUG-COPY 0) ; flag to output copy file
+(%defconstant DEBUG-TRCE 0) ; flag to use backtrace
 
 ;;; Typedef
-(deftype set uint32_t)        ; bitset
+(deftype set uint64_t)        ; bitset
 (deftype vtx uint32_t)        ; vertex
 (deftype task-id __uint128_t) ; task ID
 
@@ -153,6 +155,8 @@
 (decl fpTask (ptr FILE))
 (decl fpLock (ptr FILE))
 (decl fpCopy (ptr FILE))
+(def timeTableReference (volatile double) 0.0)
+(def timeMutexLocked (volatile double) 0.0)
 (def inited int 0)
 (def commTimeStamp int 0)
 ;(%defconstant CUT-OFF 1000000)
@@ -167,6 +171,8 @@
 (decl taskRequest (array int NUM-WORKERS))
 (decl seqTaskRequest (array int NUM-WORKERS))
 (decl tableReference (array uint64_t NUM-WORKERS))
+(decl tableMutexTrylock (array uint64_t NUM-WORKERS))
+(decl tableMutexLocked (array uint64_t NUM-WORKERS))
 
 ;;; Item Table
 (decl vItemTable (ptr ITlist))
@@ -178,13 +184,14 @@
 (%defconstant USEMPI 1)
 (%ifdef* USEMPI (c-exp "#include <mpi.h>"))
 (%defconstant MCW MPI_COMM_WORLD)
-;(decl np int)
-;(decl me int)
-(decl ITdatatype MPI_Datatype)
+(decl rootNode int)
+(def doneComm int 0)
 (%defconstant MPI-INT-LEN 64)
 (%defconstant MPI-IT_NODE (+ (* (/ TASK-LEN MPI-INT-LEN) 2) BIT-ITEM))
-(%defconstant BCAST-INTERVAL-SEC 5)
-(%defconstant BCAST-COMPONENT 10)
+(%defconstant BCAST-INTERVAL-SEC 0)
+(%defconstant BCAST-INTERVAL-NSEC 500000000)
+(%defconstant BCAST-COMPONENT 10) ; vertex, minID (64bit * 2), maxID (64bit * 2), itemset (64bit * BIT-ITEM)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -373,9 +380,10 @@
   (= (fref list -> crnt) NULL)
   (= (fref list -> head) NULL))
 
-;;; Function: shareItemTable - 
-(def (csym::shareItemTable) (fn (ptr void))
+;;; Function: shareItemsetTable - 
+(def (csym::shareItemsetTable) (fn (ptr void))
   (defs int i j v m)
+  (def numTrial int 0)
   (decl np int)
   (decl me int)
   (decl ITminID task-id)
@@ -383,6 +391,7 @@
   (decl ITitem (array set BIT-ITEM))
   (decl ITptr (ptr ITnode))
   (decl ITflag int)
+  (decl addTime long)
   (decl vITsendNum int)
   (decl vITrecvNum int)
   (decl vITrecvNumTemp int)
@@ -390,31 +399,58 @@
   (decl vITrecvSize int)
   (decl vITsendBuff (ptr uint64_t))
   (decl vITrecvBuff (ptr uint64_t))
-  (decl c pthread_cond_t)
-  (decl mtx pthread_mutex_t)
-  (decl t-until (struct timespec))
+  (decl t-wait (struct timespec))
   (decl t-now (struct timeval))
+  (decl tp (array (struct timeval) 2))
+  (decl numMutexTrylock uint64_t)
+  (decl numMutexLocked uint64_t)
+  (decl locked int)
+  (decl tpl (array (struct timeval) 2))
 
   (csym::MPI_Comm_size MCW (ptr np))
   (csym::MPI_Comm_rank MCW (ptr me))
-  (csym::pthread_cond_init (ptr c) NULL)
-  (csym::pthread_mutex_init (ptr mtx) NULL)
+  (= (fref t-wait tv-sec) BCAST-INTERVAL-SEC)
+  (= (fref t-wait tv-nsec) BCAST-INTERVAL-NSEC)
+  (decl vITrecvNumCount (array int np))
+  (decl vITrecvNumDispls (array int np))
 
   (while 1
+    (inc numTrial)
+    (= numMutexTrylock 0)
+    (= numMutexLocked 0)
     (= vITsendNum 0)
     (= vITrecvNum 0)
-    (= vITrecvNumTemp 0)
     (= vITsendSize 1000)
-    (= vITrecvSize 1000)
     (= vITsendBuff (cast (ptr uint64_t) (csym::malloc (* (* BCAST-COMPONENT vITsendSize) (sizeof uint64_t)))))
-    (= vITrecvBuff (cast (ptr uint64_t) (csym::malloc (* (* BCAST-COMPONENT vITrecvSize) (sizeof uint64_t)))))
+    (for ((= i 0) (< i np) (inc i))
+      (= (aref vITrecvNumDispls i) 0))
     (csym::gettimeofday (ptr t-now) 0)
-    (= (fref t-until tv-nsec) (fref t-now tv-usec))
-    (= (fref t-until tv-sec) (+ (fref t-now tv-sec) BCAST-INTERVAL-SEC))
-    (csym::pthread-cond-timedwait (ptr c) (ptr mtx) (ptr t-until))
+    (csym::nanosleep (ptr t-wait) NULL)
 
+    ;(csym::MPI_Bcast (ptr doneComm) 1 MPI_INT rootNode MCW)
+    ;(if doneComm
+    ;  (begin
+    ;    (csym::fprintf stderr "Exit shareItemsetTable()~%")
+    ;    (csym::MPI_Finalize)
+    ;    (csym::pthread_exit 0)))
+
+    (csym::gettimeofday tp 0)
     (for ((= i 0) (< i V-SIZE) (inc i))
-      (csym::pthread_mutex_lock (ptr (aref mutex i)))
+      (%if* DEBUG-LOCK (begin
+        (= locked 0)))
+      (inc numMutexTrylock)
+      (if (!= (csym::pthread_mutex_trylock (ptr (aref mutex i))) 0)
+        (begin
+          (inc numMutexLocked)
+          (%if* DEBUG-LOCK (begin
+            (= locked 1)
+            (csym::gettimeofday tpl 0)))
+          (csym::pthread_mutex_lock (ptr (aref mutex i)))))
+      (%if* DEBUG-LOCK (begin
+        (if locked
+          (begin
+            (csym::gettimeofday (+ tpl 1) 0)
+              (csym::fprintf fpLock "%f, %d~%" (csym::elapsedTime tpl (+ tpl 1)) locked)))))
       (= ITptr (fref (fref (aref vItemTable i) head) -> next))
       (while (!= ITptr (fref (aref vItemTable i) head))
         (if (<= commTimeStamp (fref ITptr -> timeStamp))
@@ -434,36 +470,54 @@
           (begin
             (break))))
     (csym::pthread_mutex_unlock (ptr (aref mutex i))))
+    (csym::gettimeofday (+ tp 1) 0)
+    (csym::fprintf stderr "shareItemsetTable (package) - %d: %f, %f, %d~%" numTrial (csym::elapsedTime (ptr t0) (+ tp 1)) (csym::elapsedTime tp (+ tp 1)) vITsendNum)
 
-;(csym::fprintf stderr "%f[sec]: shareItemTable! - %d~%" (csym::elapsedTime (ptr t0) (ptr t-now)) vITsendNum)
+    (csym::gettimeofday tp 0)
+    (csym::MPI_Allgather (ptr vITsendNum) 1 MPI_INT vITrecvNumCount 1 MPI_INT MCW)
+    (= vITrecvNum (aref vITrecvNumCount 0))
+    (*= (aref vITrecvNumCount 0) BCAST-COMPONENT)
+    (for ((= i 1) (< i np) (inc i))
+      (+= vITrecvNum (aref vITrecvNumCount i))
+      (*= (aref vITrecvNumCount i) BCAST-COMPONENT)
+      (= (aref vITrecvNumDispls i) (+ (aref vITrecvNumDispls (- i 1)) (aref vITrecvNumCount (- i 1)))))
+    (= vITrecvBuff (cast (ptr uint64_t) (csym::malloc (* (* BCAST-COMPONENT vITrecvNum) (sizeof uint64_t)))))
+    (csym::MPI_Allgatherv vITsendBuff (* BCAST-COMPONENT vITsendNum) MPI_UNSIGNED_LONG_LONG vITrecvBuff vITrecvNumCount vITrecvNumDispls MPI_UNSIGNED_LONG_LONG MCW)
+    (csym::gettimeofday (+ tp 1) 0)
+    (csym::fprintf stderr "shareItemsetTable (comm) - %d: %f, %f, %d~%" numTrial (csym::elapsedTime (ptr t0) (+ tp 1)) (csym::elapsedTime tp (+ tp 1)) vITrecvNum)
 
-    (for ((= i 0) (< i np) (inc i))
-      ; # of elements
-      (if (== i me)
-        ; send
-        (begin
-          (csym::MPI_Bcast (ptr vITsendNum) 1 MPI_INT i MCW))
-        ; recv
-        (begin
-          (csym::MPI_Bcast (ptr vITrecvNumTemp) 1 MPI_INT i MCW)
-          (if (> (+ vITrecvNum vITrecvNumTemp) vITrecvSize)
-            (begin
-              (+= vITrecvSize (+ vITrecvNum vITrecvNumTemp))
-              (= vITrecvBuff (cast (ptr uint64_t) (csym::realloc vITrecvBuff (* (* BCAST-COMPONENT vITrecvSize) (sizeof uint64_t)))))))))
+    ;(for ((= i 0) (< i np) (inc i))
+    ;  ; # of elements
+    ;  (if (== i me)
+    ;    ; send
+    ;    (begin
+    ;      (csym::MPI_Bcast (ptr vITsendNum) 1 MPI_INT i MCW))
+    ;    ; recv
+    ;    (begin
+    ;      (csym::MPI_Bcast (ptr vITrecvNumTemp) 1 MPI_INT i MCW)
+    ;      (if (> (+ vITrecvNum vITrecvNumTemp) vITrecvSize)
+    ;        (begin
+    ;          (+= vITrecvSize (+ vITrecvNum vITrecvNumTemp))
+    ;          (= vITrecvBuff (cast (ptr uint64_t) (csym::realloc vITrecvBuff (* (* BCAST-COMPONENT vITrecvSize) (sizeof uint64_t)))))))))
+    ;
+    ;  ; Itemset Table
+    ;  (if (== i me)
+    ;    ; send
+    ;    (begin
+    ;      (csym::gettimeofday tp 0)
+    ;      (csym::MPI_Bcast vITsendBuff (* BCAST-COMPONENT vITsendNum) MPI_UNSIGNED_LONG_LONG i MCW)
+    ;      (csym::gettimeofday (+ tp 1) 0)
+    ;      (csym::fprintf stderr "shareItemsetTable (send from %d) - %d: %f, %f, %d~%" i numTrial (csym::elapsedTime (ptr t0) (+ tp 1)) (csym::elapsedTime tp (+ tp 1)) vITsendNum))
+    ;    ; recv
+    ;    (begin
+    ;      (csym::gettimeofday tp 0)
+    ;      (csym::MPI_Bcast (+ vITrecvBuff (* BCAST-COMPONENT vITrecvNum)) (* BCAST-COMPONENT vITrecvNumTemp) MPI_UNSIGNED_LONG_LONG i MCW)
+    ;      (csym::gettimeofday (+ tp 1) 0)
+    ;      (csym::fprintf stderr "shareItemsetTable (recv from %d) - %d: %f, %f, %d~%" i numTrial (csym::elapsedTime (ptr t0) (+ tp 1)) (csym::elapsedTime tp (+ tp 1)) vITrecvNumTemp)
+    ;      (+= vITrecvNum vITrecvNumTemp))))
 
-;(csym::fprintf stderr "i = %d, vITsendNum = %d, vITrecvNumTemp = %d, vITsendSize = %d, vITrecvSize = %d~%" i vITsendNum vITrecvNumTemp vITsendSize vITrecvSize)
-
-      ; Itemset Table
-      (if (== i me)
-        ; send
-        (begin
-          (csym::MPI_Bcast vITsendBuff (* BCAST-COMPONENT vITsendNum) MPI_UNSIGNED_LONG_LONG i MCW))
-        ; recv
-        (begin
-          (csym::MPI_Bcast (+ vITrecvBuff (* BCAST-COMPONENT vITrecvNum)) (* BCAST-COMPONENT vITrecvNumTemp) MPI_UNSIGNED_LONG_LONG i MCW)
-          ;(csym::MPI_Bcast vITrecvBuff (* BCAST-COMPONENT vITrecvNumTemp) MPI_UNSIGNED_LONG_LONG i MCW)
-          (+= vITrecvNum vITrecvNumTemp))))
-
+    (= vITrecvNumTemp 0)
+    (csym::gettimeofday tp 0)
     (for ((= i 0) (< i vITrecvNum) (inc i))
       (= v (aref vITrecvBuff (+ (* BCAST-COMPONENT i) 0)))
       (= ITminID 0)
@@ -474,7 +528,21 @@
       (for ((= j 0) (< j BIT-ITEM) (inc j))
         (= (aref ITitem j) (cast set (aref vITrecvBuff (+ (* BCAST-COMPONENT i) (+ 5 j))))))
       (= ITflag 1)
-      (csym::pthread_mutex_lock (ptr (aref mutex v)))
+      (%if* DEBUG-LOCK (begin
+        (= locked 0)))
+      (inc numMutexTrylock)
+      (if (!= (csym::pthread_mutex_trylock (ptr (aref mutex v))) 0)
+        (begin
+          (inc numMutexLocked)
+          (%if* DEBUG-LOCK (begin
+            (= locked 1)
+            (csym::gettimeofday tpl 0)))
+          (csym::pthread_mutex_lock (ptr (aref mutex v)))))
+      (%if* DEBUG-LOCK (begin
+        (if locked
+          (begin
+            (csym::gettimeofday (+ tpl 1) 0)
+              (csym::fprintf fpLock "%f, %d~%" (csym::elapsedTime tpl (+ tpl 1)) locked)))))
       (= ITptr (fref (fref (aref vItemTable v) head) -> next))
       (while (!= ITptr (fref (aref vItemTable v) head))
         (if (<= (fref ITptr -> minID) ITminID)
@@ -498,8 +566,13 @@
         (= ITptr (fref ITptr -> next)))
       (if (== 1 ITflag)
         (begin
-          (csym::insertITnodeAfter (ptr (aref vItemTable v)) (fref (fref (aref vItemTable v) head) -> prev) -1 ITminID ITmaxID ITitem)))
+          (csym::insertITnodeAfter (ptr (aref vItemTable v)) (fref (fref (aref vItemTable v) head) -> prev) -1 ITminID ITmaxID ITitem)
+          (inc vITrecvNumTemp)))
       (csym::pthread_mutex_unlock (ptr (aref mutex v))))
+    (csym::gettimeofday (+ tp 1) 0)
+    (csym::fprintf stderr "shareItemsetTable (store) - %d: %f, %f, %d~%" numTrial (csym::elapsedTime (ptr t0) (+ tp 1)) (csym::elapsedTime tp (+ tp 1)) vITrecvNumTemp)
+
+    (csym::fprintf stderr "ITmutex - %d, %llu, %llu~%" numTrial numMutexTrylock numMutexLocked)
 
     (inc commTimeStamp)
     (csym::free vITsendBuff)
@@ -528,7 +601,7 @@
   (def numSubgraph int)
   (def numSearch uint64_t)
   (def numThreshold uint64_t)
-  (def numPruning int)
+  (def numPruning uint64_t)
   (def numTableReference uint64_t)
   (def numMutexTrylock uint64_t)
   (def numMutexLocked uint64_t))
@@ -543,6 +616,7 @@
   (csym::gettimeofday tp 0)
   (csym::send-int th)
   (csym::send-int spawnSize)
+  ;(csym::send-int rootNode)
   (csym::send-int (fref this minC))
   (csym::send-int (fref this maxC))
   (for ((= i 0) (< i (/ TASK-LEN COMM-LEN)) (inc i))
@@ -550,7 +624,8 @@
     (csym::send-uint32 (cast uint32_t (>> (fref this maxID) (* COMM-LEN i)))))
   (csym::send-int (fref this v))
   (for ((= i 0) (< i BIT-ITEM) (inc i))
-    (csym::send-uint32 (aref (fref this itemSet) i)))
+    (for ((= j 0) (< j (/ BIT-LEN COMM-LEN))(inc j))
+      (csym::send-uint32 (cast uint32_t (>> (aref (fref this itemSet) i) (* COMM-LEN j))))))
   (for ((= i 0) (< i V-SIZE) (inc i))
     (csym::send-int (aref (fref this vTraversed) i)))
   (csym::send-int (fref this numC))
@@ -605,6 +680,7 @@
   (csym::gettimeofday tp 0)
   (= th (csym::recv-int))
   (= spawnSize (csym::recv-int))
+  ;(= rootNode (csym::recv-int))
   (= (fref this minC) (csym::recv-int))
   (= (fref this maxC) (csym::recv-int))
   (= (fref this minID) 0)
@@ -614,7 +690,9 @@
     (= (fref this maxID) (bit-or (fref this maxID) (<< (cast task-id (csym::recv-uint32)) (* COMM_LEN i)))))
   (= (fref this v) (csym::recv-int))
   (for ((= i 0) (< i BIT-ITEM) (inc i))
-    (= (aref (fref this itemSet) i) (cast set (csym::recv-uint32))))
+    (= (aref (fref this itemSet) i) 0)
+    (for ((= j 0) (< j (/ BIT-LEN COMM-LEN)) (inc j))
+      (= (aref (fref this itemSet) i) (bit-or (aref (fref this itemSet) i) (<< (cast set (csym::recv-uint32)) (* COMM-LEN j))))))
   (for ((= i 0) (< i V-SIZE) (inc i))
     (= (aref (fref this vTraversed) i) (csym::recv-int)))
   (= (fref this numC) (csym::recv-int))
@@ -815,12 +893,22 @@
   (decl vv int)                          ; vertex whice is searched next time
   (def numC int (fref pTsk -> numC))     ; 
   (decl commonNum int)                   ; # of common itemset
-  (decl commonItem (array set BIT-ITEM)) ; common itemset
+  ;(decl commonItem (array set BIT-ITEM)) ; common itemset
+  (decl commonItem (ptr set))            ; 
   (def closed int 1)                     ; flag which denotes subgraph is closed
   (decl pruning int)                     ; flag to prune
   (decl ITptr (ptr ITnode))              ; pointer to the ITnode
   (decl locked int)                      ; 
   (decl tp (array (struct timeval) 2))   ;
+  (decl callStackSize int)               ; 
+
+  (= commonItem (cast (ptr set) (csym::malloc (* BIT-ITEM (sizeof set)))))
+
+  ;; backtrace
+  (%if* DEBUG-TRCE (begin
+    (= callStackSize (csym::backtrace (fref -thr -> traceCallStack) (fref -thr -> traceCallStackSize)))
+    (if (> callStackSize (fref -thr -> maxCallStackSize))
+      (= (fref -thr -> maxCallStackSize) callStackSize))))
 
   ;; DFS
   (for ((= i minC) (< i maxC) (inc i))
@@ -833,8 +921,8 @@
         (for ((= k 0) (= m 0) (= commonNum 0) (< k BIT-ITEM) (inc k))
           (= (aref commonItem k) (cast set (bit-and (aref itemSet k) (aref vItem vv k))))
           ;(+= commonNum (csym::countBits32 (aref commonItem k)))
-          ;(+= commonNum (csym::countBits64 (aref commonItem k)))
-          (+= commonNum (csym::_mm_popcnt_u32 (aref commonItem k)))
+          (+= commonNum (csym::countBits64 (aref commonItem k)))
+          ;(+= commonNum (csym::_mm_popcnt_u32 (aref commonItem k)))
           ;(+= commonNum (csym::_mm_popcnt_u64 (aref commonItem k)))
           (if (== (aref commonItem k) (aref itemSet k))
             (inc m)))
@@ -875,7 +963,7 @@
                       (= pruning 1)
                       (break)))))
               (= ITptr (fref ITptr -> next)))
-            (csym::pthread_mutex_unlock (ptr (aref mutex vv)))
+            ;(csym::pthread_mutex_unlock (ptr (aref mutex vv)))
 
             ;; if common-itemset is not subset of item table, then
             (if (not pruning)
@@ -883,21 +971,21 @@
                 (inc (fref pTsk -> numTraversed))
                 (+= (fref pTsk -> treeDepth) (+ (fref pTsk -> numT) 1))
 
-                (%if* DEBUG-LOCK (begin
-                  (= locked 0)))
-                (inc (fref pTsk -> numMutexTrylock))
-                (if (!= (csym::pthread_mutex_trylock (ptr (aref mutex vv))) 0)
-                  (begin
-                    (inc (fref pTsk -> numMutexLocked))
-                    (%if* DEBUG-LOCK (begin
-                      (= locked 1)
-                      (csym::gettimeofday tp 0)))
-                    (csym::pthread_mutex_lock (ptr (aref mutex vv)))))
-                (%if* DEBUG-LOCK (begin
-                  (if locked
-                    (begin
-                      (csym::gettimeofday (+ tp 1) 0)
-                      (csym::fprintf fpLock "%f, %d~%" (csym::elapsedTime tp (+ tp 1)) locked)))))
+                ;(%if* DEBUG-LOCK (begin
+                ;  (= locked 0)))
+                ;(inc (fref pTsk -> numMutexTrylock))
+                ;(if (!= (csym::pthread_mutex_trylock (ptr (aref mutex vv))) 0)
+                ;  (begin
+                ;    (inc (fref pTsk -> numMutexLocked))
+                ;    (%if* DEBUG-LOCK (begin
+                ;      (= locked 1)
+                ;      (csym::gettimeofday tp 0)))
+                ;    (csym::pthread_mutex_lock (ptr (aref mutex vv)))))
+                ;(%if* DEBUG-LOCK (begin
+                ;  (if locked
+                ;    (begin
+                ;      (csym::gettimeofday (+ tp 1) 0)
+                ;      (csym::fprintf fpLock "%f, %d~%" (csym::elapsedTime tp (+ tp 1)) locked)))))
                 (= ITptr (fref (fref (aref vItemTable vv) head) -> next))
                 (while (!= ITptr (fref (aref vItemTable vv) head))
                   (inc (fref pTsk -> numTableReference))
@@ -928,7 +1016,7 @@
                       (inc cc))))
 
                 ;; update vertices of CCIG
-                (if (== (+ (fref pTsk -> numT) 1) (fref pTsk -> sizeOfT))
+                (if (>= (+ (fref pTsk -> numT) 1) (fref pTsk -> sizeOfT))
                   (begin
                     (*= (fref pTsk -> sizeOfT) 2)
                     (= (fref pTsk -> T) (cast (ptr vtx) (csym::realloc (fref pTsk -> T) (* (fref pTsk ->  sizeOfT) (sizeof vtx)))))))
@@ -955,6 +1043,7 @@
                 (dec (fref pTsk -> numT))
                 (= (fref -thr -> treeDepth) (fref pTsk -> numT)))
               (begin
+                (csym::pthread_mutex_unlock (ptr (aref mutex vv)))
                 (inc (fref pTsk -> numPruning))
                 (%if* DEBUG-SHOW (begin
                   (begin
@@ -971,6 +1060,8 @@
                   (csym::fprintf stderr " %d -" (aref (fref pTsk -> T) l)))
                 (csym::fprintf stderr "> %d~%" vv)))))))))
 
+  (csym::free commonItem)
+
   (if closed
     ;; output common-itemset subgraph
     (begin
@@ -985,13 +1076,23 @@
   (decl vv int)                          ; vertex whice is searched next time
   (def numC int (fref pTsk -> numC))     ; 
   (decl commonNum int)                   ; # of common itemset
-  (decl commonItem (array set BIT-ITEM)) ; common itemset
+  ;(decl commonItem (array set BIT-ITEM)) ; common itemset
+  (decl commonItem (ptr set))            ; 
   (def closed int 1)                     ; flag which denotes subgraph is closed
   (decl pruning int)                     ; flag to prune
   (decl ITptr (ptr ITnode))              ; pointer to the ITnode
   (decl locked int)                      ; 
   (decl tp (array (struct timeval) 2))   ;
   (decl tpc (array (struct timeval) 4))  ;
+  (decl callStackSize int)               ; 
+
+  (= commonItem (cast (ptr set) (csym::malloc (* BIT-ITEM (sizeof set)))))
+
+  ;; backtrace
+  (%if* DEBUG-TRCE (begin
+    (= callStackSize (csym::backtrace (fref -thr -> traceCallStack) (fref -thr -> traceCallStackSize)))
+    (if (> callStackSize (fref -thr -> maxCallStackSize))
+      (= (fref -thr -> maxCallStackSize) callStackSize))))
 
   ;; DFS
   (do-many for i from minC to maxC
@@ -1004,8 +1105,8 @@
         (for ((= k 0) (= m 0) (= commonNum 0) (< k BIT-ITEM) (inc k))
           (= (aref commonItem k) (cast set (bit-and (aref itemSet k) (aref vItem vv k))))
           ;(+= commonNum (csym::countBits32 (aref commonItem k)))
-          ;(+= commonNum (csym::countBits64 (aref commonItem k)))
-          (+= commonNum (csym::_mm_popcnt_u32 (aref commonItem k)))
+          (+= commonNum (csym::countBits64 (aref commonItem k)))
+          ;(+= commonNum (csym::_mm_popcnt_u32 (aref commonItem k)))
           ;(+= commonNum (csym::_mm_popcnt_u64 (aref commonItem k)))
           (if (== (aref commonItem k) (aref itemSet k))
             (inc m)))
@@ -1046,7 +1147,7 @@
                       (= pruning 1)
                       (break)))))
               (= ITptr (fref ITptr -> next)))
-            (csym::pthread_mutex_unlock (ptr (aref mutex vv)))
+            ;(csym::pthread_mutex_unlock (ptr (aref mutex vv)))
 
             ;; if common-itemset is not subset of item table, then
             (if (not pruning)
@@ -1054,21 +1155,21 @@
                 (inc (fref pTsk -> numTraversed))
                 (+= (fref pTsk -> treeDepth) (+ (fref pTsk -> numT) 1))
 
-                (%if* DEBUG-LOCK (begin
-                  (= locked 0)))
-                (inc (fref pTsk -> numMutexTrylock))
-                (if (!= (csym::pthread_mutex_trylock (ptr (aref mutex vv))) 0)
-                  (begin
-                    (inc (fref pTsk -> numMutexLocked))
-                    (%if* DEBUG-LOCK (begin
-                      (= locked 1)
-                      (csym::gettimeofday tp 0)))
-                    (csym::pthread_mutex_lock (ptr (aref mutex vv)))))
-                (%if* DEBUG-LOCK (begin
-                  (if locked
-                    (begin
-                      (csym::gettimeofday (+ tp 1) 0)
-                      (csym::fprintf fpLock "%f, %d~%" (csym::elapsedTime tp (+ tp 1)) locked)))))
+                ;(%if* DEBUG-LOCK (begin
+                ;  (= locked 0)))
+                ;(inc (fref pTsk -> numMutexTrylock))
+                ;(if (!= (csym::pthread_mutex_trylock (ptr (aref mutex vv))) 0)
+                ;  (begin
+                ;    (inc (fref pTsk -> numMutexLocked))
+                ;    (%if* DEBUG-LOCK (begin
+                ;      (= locked 1)
+                ;      (csym::gettimeofday tp 0)))
+                ;    (csym::pthread_mutex_lock (ptr (aref mutex vv)))))
+                ;(%if* DEBUG-LOCK (begin
+                ;  (if locked
+                ;    (begin
+                ;      (csym::gettimeofday (+ tp 1) 0)
+                ;      (csym::fprintf fpLock "%f, %d~%" (csym::elapsedTime tp (+ tp 1)) locked)))))
                 (= ITptr (fref (fref (aref vItemTable vv) head) -> next))
                 (while (!= ITptr (fref (aref vItemTable vv) head))
                   (inc (fref pTsk -> numTableReference))
@@ -1099,7 +1200,7 @@
                       (inc cc))))
 
                 ;; update vertices of CCIG
-                (if (== (+ (fref pTsk -> numT) 1) (fref pTsk -> sizeOfT))
+                (if (>= (+ (fref pTsk -> numT) 1) (fref pTsk -> sizeOfT))
                   (begin
                     (*= (fref pTsk -> sizeOfT) 2)
                     (= (fref pTsk -> T) (cast (ptr vtx) (csym::realloc (fref pTsk -> T) (* (fref pTsk ->  sizeOfT) (sizeof vtx)))))))
@@ -1153,6 +1254,7 @@
                     (dec (fref pTsk -> numT))
                     (= (fref -thr -> treeDepth) (fref pTsk -> numT)))))
               (begin
+                (csym::pthread_mutex_unlock (ptr (aref mutex vv)))
                 (inc (fref pTsk -> numPruning))
                 (%if* DEBUG-SHOW (begin
                   (begin
@@ -1214,13 +1316,13 @@
           (= (fref (fref (fref (fref this subgraph) head) -> prev) -> next) (fref (fref pTsk -> subgraph) head))
           (= (fref (fref (fref pTsk -> subgraph) head) -> prev) (fref (fref (fref this subgraph) head) -> prev))))
         (+= (fref pTsk -> treeDepth) (fref this treeDepth))
-        (+= (fref pTsk -> numMutexTrylock) (fref this numMutexTrylock))
-        (+= (fref pTsk -> numMutexLocked) (fref this numMutexLocked))
         (+= (fref pTsk -> numTraversed) (fref this numTraversed))
         (+= (fref pTsk -> numSubgraph) (fref this numSubgraph))
         (%if* DEBUG-COPY (begin
           (csym::gettimeofday (+ tpc 3) 0)
           (csym::fprintf fpCopy "exploreCCIG, %f, %f, %f~%" (csym::elapsedTime (ptr t0) tpc) (csym::elapsedTime tpc (+ tpc 1)) (csym::elapsedTime (+ tpc 2) (+ tpc 3))))))))
+
+  (csym::free commonItem)
 
   (if closed
     ;; output common-itemset subgraph
@@ -1269,6 +1371,8 @@
   (+= (aref thresholdPruning (fref -thr -> id)) (fref this numThreshold))
   (+= (aref inclusivePruning (fref -thr -> id)) (fref this numPruning))
   (+= (aref tableReference (fref -thr -> id)) (fref this numTableReference))
+  (+= (aref tableMutexTrylock (fref -thr -> id)) (fref this numMutexTrylock))
+  (+= (aref tableMutexLocked (fref -thr -> id)) (fref this numMutexLocked))
   (csym::fprintf stderr "end: task-body_exploreCCIG(%d - %d), %f, %llu, %llu, %llu, %d, %llu, %llu, %llu, %d, %d~%" (fref this minC) (fref this maxC) (csym::elapsedTime tp (+ tp 1)) (+ (fref this numSearch) (+ (fref this numThreshold) (fref this numPruning))) (fref this numSearch) (fref this numThreshold) (fref this numPruning) (fref this numTableReference) (fref this numMutexTrylock) (fref this numMutexLocked) (fref -thr -> id) seq)
   (%if* DEBUG-TASK (begin
     (csym::fprintf fpTask "%f, %f, %f, %llu, %d, %d~%" (csym::elapsedTime (ptr t0) tp) (csym::elapsedTime tp (+ tp 1)) (csym::elapsedTime (ptr t0) (+ tp 1)) (fref this numSearch) seq (fref -thr -> id))))
@@ -1292,6 +1396,7 @@
   (csym::gettimeofday tp 0)
   (csym::send-int th)
   (csym::send-int spawnSize)
+  ;(csym::send-int rootNode)
   (for ((= i 0) (< i (/ TASK-LEN COMM-LEN)) (inc i))
     (csym::send-uint32 (cast uint32_t (>> (fref (fref this tsk) minID) (* COMM-LEN i))))
     (csym::send-uint32 (cast uint32_t (>> (fref (fref this tsk) maxID) (* COMM-LEN i)))))
@@ -1341,6 +1446,7 @@
   (csym::gettimeofday tp 0)
   (= th (csym::recv-int))
   (= spawnSize (csym::recv-int))
+  ;(= rootNode (csym::recv-int))
   (= (fref (fref this tsk) minID) 0)
   (= (fref (fref this tsk) maxID) 0)
   (for ((= i 0) (< i (/ TASK-LEN COMM-LEN)) (inc i))
@@ -1496,11 +1602,18 @@
 
 ;;; Function: enumCCIG2 - enumerate CCIG 
 (def (enumCCIG2 minVertex maxVertex pTsk) (wfn void int int (ptr (struct T-exploreCCIG)))
-  (defs int i j k)          ; temporary variable
-  (decl visiting int)       ; flag to search
-  (decl ITptr (ptr ITnode)) ; 
-  (decl locked int) 
-  (decl tp (array (struct timeval) 2))
+  (defs int i j k)                     ; temporary variable
+  (decl visiting int)                  ; flag to search
+  (decl ITptr (ptr ITnode))            ; 
+  (decl locked int)                    ; 
+  (decl tp (array (struct timeval) 2)) ; 
+  (decl callStackSize int)             ; 
+
+  ;; backtrace
+  (%if* DEBUG-TRCE (begin
+    (= callStackSize (csym::backtrace (fref -thr -> traceCallStack) (fref -thr -> traceCallStackSize)))
+    (if (> callStackSize (fref -thr -> maxCallStackSize))
+      (= (fref -thr -> maxCallStackSize) callStackSize))))
 
   (for ((= i minVertex) (< i maxVertex) (inc i))
     (%if* DEBUG-TIME (begin
@@ -1540,7 +1653,7 @@
                   (break)))))
           (begin
             (= visiting 1)))
-        (csym::pthread_mutex_unlock (ptr (aref mutex i)))
+        ;(csym::pthread_mutex_unlock (ptr (aref mutex i)))
 
         ;; if search the CCIG whose starting point is 'i', then
         (if visiting
@@ -1548,21 +1661,21 @@
             (%if* DEBUG-SHOW (begin
               (csym::fprintf stderr "+++ Allons-y! +++~%")))
 
-            (%if* DEBUG-LOCK (begin
-              (= locked 0)))
-            (inc (fref pTsk -> numMutexTrylock))
-            (if (!= (csym::pthread_mutex_trylock (ptr (aref mutex i))) 0)
-              (begin
-                (inc (fref pTsk -> numMutexLocked))
-                (%if* DEBUG-LOCK (begin
-                  (= locked 1)
-                  (csym::gettimeofday tp 0)))
-                (csym::pthread_mutex_lock (ptr (aref mutex i)))))
-            (%if* DEBUG-LOCK (begin
-              (if locked
-                (begin
-                  (csym::gettimeofday (+ tp 1) 0)
-                  (csym::fprintf fpLock "%f, %d~%" (csym::elapsedTime tp (+ tp 1)) locked)))))
+            ;(%if* DEBUG-LOCK (begin
+            ;  (= locked 0)))
+            ;(inc (fref pTsk -> numMutexTrylock))
+            ;(if (!= (csym::pthread_mutex_trylock (ptr (aref mutex i))) 0)
+            ;  (begin
+            ;    (inc (fref pTsk -> numMutexLocked))
+            ;    (%if* DEBUG-LOCK (begin
+            ;      (= locked 1)
+            ;      (csym::gettimeofday tp 0)))
+            ;    (csym::pthread_mutex_lock (ptr (aref mutex i)))))
+            ;(%if* DEBUG-LOCK (begin
+            ;  (if locked
+            ;    (begin
+            ;      (csym::gettimeofday (+ tp 1) 0)
+            ;      (csym::fprintf fpLock "%f, %d~%" (csym::elapsedTime tp (+ tp 1)) locked)))))
             (csym::clearITlist (ptr (aref vItemTable i)))
             (csym::insertITnodeAfter (ptr (aref vItemTable i)) (fref (aref vItemTable i) head) commTimeStamp (fref pTsk -> minID) (fref pTsk -> maxID) (aref vItem i))
             (csym::pthread_mutex_unlock (ptr (aref mutex i)))
@@ -1593,6 +1706,7 @@
             (%if* DEBUG-SHOW (begin
               (csym::fprintf stderr "~%"))))
           (begin
+            (csym::pthread_mutex_unlock (ptr (aref mutex i)))
             (inc (fref pTsk -> numPruning))
 
             (%if* DEBUG-SHOW (begin
@@ -1604,12 +1718,19 @@
 
 ;;; Function: enumCCIG - enumerate CCIG
 (def (enumCCIG minVertex maxVertex pTsk) (wfn void int int (ptr (struct T-exploreCCIG)))
-  (defs int i j k)          ; temporary variable
-  (decl visiting int)       ; flag to search
-  (decl ITptr (ptr ITnode)) ; 
-  (decl locked int) 
-  (decl tp (array (struct timeval) 2))
-  (decl tpc (array (struct timeval) 4))
+  (defs int i j k)                      ; temporary variable
+  (decl visiting int)                   ; flag to search
+  (decl ITptr (ptr ITnode))             ; 
+  (decl locked int)                     ; 
+  (decl tp (array (struct timeval) 2))  ; 
+  (decl tpc (array (struct timeval) 4)) ; 
+  (decl callStackSize int)              ; 
+
+  ;; backtrace
+  (%if* DEBUG-TRCE (begin
+    (= callStackSize (csym::backtrace (fref -thr -> traceCallStack) (fref -thr -> traceCallStackSize)))
+    (if (> callStackSize (fref -thr -> maxCallStackSize))
+      (= (fref -thr -> maxCallStackSize) callStackSize))))
 
   (do-many for i from minVertex to maxVertex
     (%if* DEBUG-TIME (begin
@@ -1649,7 +1770,7 @@
                   (break)))))
           (begin
             (= visiting 1)))
-        (csym::pthread_mutex_unlock (ptr (aref mutex i)))
+        ;(csym::pthread_mutex_unlock (ptr (aref mutex i)))
 
         ;; if search the CCIG whose starting point is 'i', then
         (if visiting
@@ -1657,21 +1778,21 @@
             (%if* DEBUG-SHOW (begin
               (csym::fprintf stderr "+++ Allons-y! +++~%")))
 
-            (%if* DEBUG-LOCK (begin
-              (= locked 0)))
-            (inc (fref pTsk -> numMutexTrylock))
-            (if (!= (csym::pthread_mutex_trylock (ptr (aref mutex i))) 0)
-              (begin
-                (inc (fref pTsk -> numMutexLocked))
-                (%if* DEBUG-LOCK (begin
-                  (= locked 1)
-                  (csym::gettimeofday tp 0)))
-                (csym::pthread_mutex_lock (ptr (aref mutex i)))))
-            (%if* DEBUG-LOCK (begin
-              (if locked
-                (begin
-                  (csym::gettimeofday (+ tp 1) 0)
-                  (csym::fprintf fpLock "%f, %d~%" (csym::elapsedTime tp (+ tp 1)) locked)))))
+            ;(%if* DEBUG-LOCK (begin
+            ;  (= locked 0)))
+            ;(inc (fref pTsk -> numMutexTrylock))
+            ;(if (!= (csym::pthread_mutex_trylock (ptr (aref mutex i))) 0)
+            ;  (begin
+            ;    (inc (fref pTsk -> numMutexLocked))
+            ;    (%if* DEBUG-LOCK (begin
+            ;      (= locked 1)
+            ;      (csym::gettimeofday tp 0)))
+            ;    (csym::pthread_mutex_lock (ptr (aref mutex i)))))
+            ;(%if* DEBUG-LOCK (begin
+            ;  (if locked
+            ;    (begin
+            ;      (csym::gettimeofday (+ tp 1) 0)
+            ;      (csym::fprintf fpLock "%f, %d~%" (csym::elapsedTime tp (+ tp 1)) locked)))))
             (csym::clearITlist (ptr (aref vItemTable i)))
             (csym::insertITnodeAfter (ptr (aref vItemTable i)) (fref (aref vItemTable i) head) commTimeStamp (fref pTsk -> minID) (fref pTsk -> maxID) (aref vItem i))
             (csym::pthread_mutex_unlock (ptr (aref mutex i)))
@@ -1717,6 +1838,7 @@
             (%if* DEBUG-SHOW (begin
               (csym::fprintf stderr "~%"))))
           (begin
+            (csym::pthread_mutex_unlock (ptr (aref mutex i)))
             (inc (fref pTsk -> numPruning))
 
             (%if* DEBUG-SHOW (begin
@@ -1762,8 +1884,6 @@
           (= (fref (fref (fref (fref (fref this tsk) subgraph) head) -> prev) -> next) (fref (fref pTsk -> subgraph) head))
           (= (fref (fref (fref pTsk -> subgraph) head) -> prev) (fref (fref (fref (fref this tsk) subgraph) head) -> prev))))
         (+= (fref pTsk -> treeDepth) (fref (fref this tsk) treeDepth))
-        (+= (fref pTsk -> numMutexTrylock) (fref (fref this tsk) numMutexTrylock))
-        (+= (fref pTsk -> numMutexLocked) (fref (fref this tsk) numMutexLocked))
         (+= (fref pTsk -> numTraversed) (fref (fref this tsk) numTraversed))
         (+= (fref pTsk -> numSubgraph) (fref (fref this tsk) numSubgraph))
         (csym::free (fref (fref this tsk) vTraversed))
@@ -1802,6 +1922,8 @@
   (+= (aref thresholdPruning (fref -thr -> id)) (fref (fref this tsk) numThreshold))
   (+= (aref inclusivePruning (fref -thr -> id)) (fref (fref this tsk) numPruning))
   (+= (aref tableReference (fref -thr -> id)) (fref (fref this tsk) numTableReference))
+  (+= (aref tableMutexTrylock (fref -thr -> id)) (fref (fref this tsk) numMutexTrylock))
+  (+= (aref tableMutexLocked (fref -thr -> id)) (fref (fref this tsk) numMutexLocked))
   (csym::fprintf stderr "end: task-body_enumCCIG(%d - %d), %f, %llu, %llu, %llu, %d, %llu, %llu, %llu, %d, %d~%" (fref this minVertex) (fref this maxVertex) (csym::elapsedTime tp (+ tp 1)) (+ (fref (fref this tsk) numSearch) (+ (fref (fref this tsk) numThreshold) (fref (fref this tsk) numPruning))) (fref (fref this tsk) numSearch) (fref (fref this tsk) numThreshold) (fref (fref this tsk) numPruning) (fref (fref this tsk) numTableReference) (fref (fref this tsk) numMutexTrylock) (fref (fref this tsk) numMutexLocked) (fref -thr -> id) seq)
   (%if* DEBUG-TASK (begin
     (csym::fprintf fpTask "%f, %f, %f, %llu, %d, %d~%" (csym::elapsedTime (ptr t0) tp) (csym::elapsedTime tp (+ tp 1)) (csym::elapsedTime (ptr t0) (+ tp 1)) (fref (fref this tsk) numSearch) seq (fref -thr -> id)))))
@@ -1847,8 +1969,9 @@
   (decl v int)                    ; vertex number
   (def v0 int 1)                  ; 
   (decl item (ptr char))          ; 
-  (decl buff (array char 256))    ; buffer
+  (decl buff (array char 256))    ; 
   (decl temp (array char 256))    ;
+  (decl vTemp (ptr char))         ; 
   (decl he (struct entry))        ;
   (decl hep (ptr (struct entry))) ; 
   (decl fp (ptr FILE))            ; file pointer
@@ -1864,10 +1987,14 @@
     ;; skip a comment line
     (if (!= (csym::strncmp buff "#" 1) 0)
       (begin
-        (= v (csym::atoi (csym::strtok buff "~|11|")))
+        ;(= v (csym::atoi (csym::strtok buff "~|11|")))
+        (= vTemp (csym::strtok buff "~|11|"))
 
         ;; enter v to eHash
-        (csym::sprintf temp "%d" v)
+        ;(csym::sprintf temp "%d" v)
+        (if (!= NULL vTemp)
+          (begin
+            (csym::strcpy temp vTemp)))
         (= (fref he key) temp)
         (csym::hsearch_r he FIND (ptr hep) eHash)
         (if (== hep NULL)
@@ -1952,6 +2079,8 @@
   (decl empty (ptr char))         ; 
   (decl buff (array char 256))    ; buffer
   (decl temp (array char 256))    ;
+  (decl v1Temp (ptr char))        ; 
+  (decl v2Temp (ptr char))        ; 
   (decl he (struct entry))        ;
   (decl hep (ptr (struct entry))) ; 
   (decl fp (ptr FILE))            ; file pointer
@@ -1967,13 +2096,18 @@
     ;; skip a comment line
     (if (!= (csym::strncmp buff "#" 1) 0)
       (begin
-        (= v1 (csym::atoi (csym::strtok buff "~|11|")))
+        ;(= v1 (csym::atoi (csym::strtok buff "~|11|")))
+        (= v1Temp (csym::strtok buff "~|11|"))
         (= eLabel (csym::strtok NULL "~|11|"))
-        (= v2 (csym::atoi (csym::strtok NULL "~|11|")))
+        ;(= v2 (csym::atoi (csym::strtok NULL "~|11|")))
+        (= v2Temp (csym::strtok NULL "~|11|~%"))
         (= empty (csym::strtok NULL "~|11|"))
 
         ;; find v1 from eHash
-        (csym::sprintf temp "%d" v1)
+        ;(csym::sprintf temp "%d" v1)
+        (if (!= NULL v1Temp)
+          (begin
+            (csym::strcpy temp v1Temp)))
         (= (fref he key) temp)
         (csym::hsearch_r he FIND (ptr hep) eHash)
         (if (== hep NULL)
@@ -1981,7 +2115,10 @@
         (= v1 (cast int (fref hep -> data)))
 
         ;; find v2 from eHash
-        (csym::sprintf temp "%d" v2)
+        ;(csym::sprintf temp "%d" v2)
+        (if (!= NULL v2Temp)
+          (begin
+            (csym::strcpy temp v2Temp)))
         (= (fref he key) temp)
         (csym::hsearch_r he FIND (ptr hep) eHash)
         (if (== hep NULL)
@@ -2033,7 +2170,9 @@
     (= (aref inclusivePruning i) 0)
     (= (aref taskRequest i) 0)
     (= (aref seqTaskRequest i) 0)
-    (= (aref tableReference i) 0))
+    (= (aref tableReference i) 0)
+    (= (aref tableMutexTrylock i) 0)
+    (= (aref tableMutexLocked i) 0))
 
   (for ((= i 0) (< i V-SIZE) (inc i))
     (= (aref doneID i) 0))
@@ -2058,7 +2197,8 @@
   (decl attr pthread_attr_t)
   (csym::pthread_attr_init (ptr attr))
   (csym::pthread_attr_setdetachstate (ptr attr) PTHREAD_CREATE_DETACHED)
-  (csym::pthread_create (ptr commThread) (ptr attr) shareItemTable NULL)
+  (csym::pthread_attr_setscope (ptr attr) PTHREAD_SCOPE_SYSTEM)
+  (csym::pthread_create (ptr commThread) (ptr attr) shareItemsetTable NULL)
   )
 
 ;;; Task Object (T-startCCIG)
@@ -2124,6 +2264,12 @@
   (def numTableReference uint64_t 0)              ; 
   (def avgTableReference double 0.0)              ; 
   (def tableReferenceSD double 0.0)               ; 
+  (def numTableMutexTrylock uint64_t 0)           ; 
+  (def avgTableMutexTrylock double 0.0)           ; 
+  (def tableMutexTrylockSD double 0.0)            ; 
+  (def numTableMutexLocked uint64_t 0)            ; 
+  (def avgTableMutexLocked double 0.0)            ; 
+  (def tableMutexLockedSD double 0.0)             ; 
   (def avgSizeSubgraph uint64_t 0)                ; 
   (def maxSizeSubgraph int 0)                     ; 
 
@@ -2161,6 +2307,9 @@
   ;; init pthread
   ;(csym::pthread_attr_init (ptr attr))
   ;(csym::pthread_attr_setdetachstate (ptr attr) PTHREAD_CREATE_JOINABLE)
+
+  ;; Which computing node is root?
+  ;(csym::MPI_Comm_rank MCW (ptr rootNode))
 
   ;; initialize Edge Data & Vertex Data & Debug Data
   (initData (ptr edgeMax) (ptr minVertex) (ptr maxVertex) (ptr maxNumItems) (ptr eHash) (ptr iHash))
@@ -2259,12 +2408,14 @@
   (csym::gettimeofday (+ tp 1) 0)
   (= t2 (csym::getrusageSec))
 
+  ;(= doneComm 1)
+
   ;; dispose of pthread & mutex & item table & hash tables
   ;(csym::pthread_attr_destroy (ptr attr))
-  (for ((= i 0) (< i V-SIZE) (inc i))
-    (csym::pthread_mutex_destroy (ptr (aref mutex i)))
-    (csym::termITlist (ptr (aref vItemTable i))))
-  (csym::free vItemTable)
+  ;(for ((= i 0) (< i V-SIZE) (inc i))
+  ;  (csym::pthread_mutex_destroy (ptr (aref mutex i)))
+  ;  (csym::termITlist (ptr (aref vItemTable i))))
+  ;(csym::free vItemTable)
   (csym::hdestroy_r (ptr eHash))
   (csym::hdestroy_r (ptr iHash))
 
@@ -2285,6 +2436,8 @@
   (+= (aref thresholdPruning (fref -thr -> id)) (fref tsk numThreshold))
   (+= (aref inclusivePruning (fref -thr -> id)) (fref tsk numPruning))
   (+= (aref tableReference (fref -thr -> id)) (fref tsk numTableReference))
+  (+= (aref tableMutexTrylock (fref -thr -> id)) (fref tsk numMutexTrylock))
+  (+= (aref tableMutexLocked (fref -thr -> id)) (fref tsk numMutexLocked))
 
   (%if* DEBUG-TIME (begin
     ;; open time file
@@ -2384,13 +2537,17 @@ aref inclusivePruning j)))
     (+= numSeqTaskRequest (aref seqTaskRequest j))
     (+= numAllTaskRequest (aref taskRequest j))
     (+= numAllTaskRequest (aref seqTaskRequest j))
-    (+= numTableReference (aref tableReference j)))
+    (+= numTableReference (aref tableReference j))
+    (+= numTableMutexTrylock (aref tableMutexTrylock j))
+    (+= numTableMutexLocked (aref tableMutexLocked j)))
   (= avgWorkerSearch (/ (cast double numSearch) (cast double (fref option num-thrs))))
   (= avgWorkerSearchPerSec (/ avgWorkerSearchPerSec (cast double (fref option num-thrs))))
   (= avgTaskRequest (/ (cast double numTaskRequest) (cast double (fref option num-thrs))))
   (= avgSeqTaskRequest (/ (cast double numSeqTaskRequest) (cast double (fref option num-thrs))))
   (= avgAllTaskRequest (/ (cast double (+ numTaskRequest numSeqTaskRequest)) (cast double (fref option num-thrs))))
   (= avgTableReference (/ (cast double numTableReference) (cast double (fref option num-thrs))))
+  (= avgTableMutexTrylock (/ (cast double numTableMutexTrylock) (cast double (fref option num-thrs))))
+  (= avgTableMutexLocked (/ (cast double numTableMutexLocked) (cast double (fref option num-thrs))))
 
   (for ((= j 0) (< j (fref option num-thrs)) (inc j))
     (+= workerSearchSD (csym::pow (- (aref searchSpace j) avgWorkerSearch) 2.0))
@@ -2398,19 +2555,25 @@ aref inclusivePruning j)))
     (+= taskRequestSD (csym::pow (- (aref taskRequest j) avgTaskRequest) 2.0))
     (+= seqTaskRequestSD (csym::pow (- (aref seqTaskRequest j) avgSeqTaskRequest) 2.0))
     (+= allTaskRequestSD (csym::pow (- (+ (aref taskRequest j) (aref seqTaskRequest j)) avgAllTaskRequest) 2.0))
-    (+= tableReferenceSD (csym::pow (- (aref tableReference j) avgTableReference) 2.0)))
+    (+= tableReferenceSD (csym::pow (- (aref tableReference j) avgTableReference) 2.0))
+    (+= tableMutexTrylockSD (csym::pow (- (aref tableMutexTrylock j) avgTableMutexTrylock) 2.0))
+    (+= tableMutexLockedSD (csym::pow (- (aref tableMutexLocked j) avgTableMutexLocked) 2.0)))
   (/= workerSearchSD (fref option num-thrs))
   (/= workerSearchPerSecSD (fref option num-thrs))
   (/= taskRequestSD (fref option num-thrs))
   (/= seqTaskRequestSD (fref option num-thrs))
   (/= allTaskRequestSD (fref option num-thrs))
   (/= tableReferenceSD (fref option num-thrs))
+  (/= tableMutexTrylockSD (fref option num-thrs))
+  (/= tableMutexLockedSD (fref option num-thrs))
   (= workerSearchSD (csym::sqrt workerSearchSD))
   (= workerSearchPerSecSD (csym::sqrt workerSearchPerSecSD))
   (= taskRequestSD (csym::sqrt taskRequestSD))
   (= seqTaskRequestSD (csym::sqrt seqTaskRequestSD))
   (= allTaskRequestSD (csym::sqrt allTaskRequestSD))
   (= tableReferenceSD (csym::sqrt tableReferenceSD))
+  (= tableMutexTrylockSD (csym::sqrt tableMutexTrylockSD))
+  (= tableMutexLockedSD (csym::sqrt tableMutexLockedSD))
 
   (csym::fprintf stderr "# of searches = %llu, Min = %llu, Max = %llu, Avg. = %.1f, S.D. = %.1f~%" numSearch minWorkerSearch maxWorkerSearch avgWorkerSearch workerSearchSD)
   (csym::fprintf stderr "# of task requests = %d, Avg. = %.1f, S.D. = %.1f~%" numTaskRequest avgTaskRequest taskRequestSD)
@@ -2418,5 +2581,5 @@ aref inclusivePruning j)))
   (csym::fprintf stderr "# of all task requests = %d, Avg. = %.1f, S.D. = %.1f~%" numAllTaskRequest avgAllTaskRequest allTaskRequestSD)
   (csym::fprintf stderr "# of searches / sec = %.1f, Avg. = %.1f, S.D. = %.1f~%" (/ numSearch (csym::elapsedTime tp (+ tp 1))) avgWorkerSearchPerSec workerSearchPerSecSD)
   (csym::fprintf stderr "# of table references = %llu, Avg. = %.1f, S.D. = %.1f~%" numTableReference avgTableReference tableReferenceSD)
-  (csym::fprintf stderr "# of ITmutex trylock = %llu, " (fref tsk numMutexTrylock))
-  (csym::fprintf stderr "# of ITmutex locked = %llu(%.3f%%)~%" (fref tsk numMutexLocked) (* (/ (cast double (fref tsk numMutexLocked)) (cast double (fref tsk numMutexTrylock))) 100.0)))
+  (csym::fprintf stderr "# of ITmutex trylock = %llu, Avg. = %.1f, S.D. = %.1f~%" numTableMutexTrylock avgTableMutexTrylock tableMutexTrylockSD)
+  (csym::fprintf stderr "# of ITmutex locked = %llu (%.3f%%, %f[s]), Avg. = %.1f, S.D. = %.1f~%" numTableMutexLocked (* (/ (cast double numTableMutexLocked) (cast double numTableMutexTrylock)) 100.0) timeMutexLocked avgTableMutexLocked tableMutexLockedSD))
