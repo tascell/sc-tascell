@@ -125,9 +125,11 @@
 
 
 (define-derived-mode sc-mode lisp-mode "SC"
-  (setf (car font-lock-defaults)
-	(list 'sc-font-lock-keywords
-	      'sc-font-lock-keywords-1 'sc-font-lock-keywords-2))
+  (setq font-lock-defaults
+	(cons
+	 (list 'sc-font-lock-keywords
+	       'sc-font-lock-keywords-1 'sc-font-lock-keywords-2)
+	 (cdr font-lock-defaults)))
   (let ((tag 'lisp-indent-function))
     ;; SC constructs
     (put 'def tag 2)

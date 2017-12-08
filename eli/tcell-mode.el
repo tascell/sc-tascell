@@ -122,9 +122,11 @@
   "Default expressions to highlight in Tascell mode.")
 
 (define-derived-mode tcell-mode sc-mode "Tascell"
-  (setf (car font-lock-defaults)
-	(list 'tcell-font-lock-keywords
-	      'tcell-font-lock-keywords-1 'tcell-font-lock-keywords-2))
+  (setq font-lock-defaults
+	(cons
+	 (list 'tcell-font-lock-keywords
+	       'tcell-font-lock-keywords-1 'tcell-font-lock-keywords-2)
+	 (cdr font-lock-defaults)))
   (let ((tag 'lisp-indent-function))
     ;; Tascell constructs
     (put 'do-two tag 2)
