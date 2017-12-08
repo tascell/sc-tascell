@@ -5,6 +5,7 @@ Usage:
 Copy sc-mode.el and tcell-mode.el to your emacs library path
 and add the following code into your .emacs file.
 
+(require 'cl)
 (require 'tcell-mode) ; recursively requires sc-mode
 (add-to-list 'auto-mode-alist (cons "\\.sc$" 'sc-mode))
 (add-to-list 'auto-mode-alist (cons "\\.tcell$" 'tcell-mode))
