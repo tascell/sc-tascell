@@ -1294,7 +1294,7 @@
   (declare (ignore cmd))
   (warn "Leav message from parent is unexpected."))
 
-;;; cncl: tell that the result to the task is no longer accepted.
+;;; cncl: set a cancellation flag to the recipient task
 ;; The message is just forwarded.
 (defgeneric proc-cncl (sv from cmd))
 (defmethod proc-cncl ((sv tcell-server) (from host) cmd)
