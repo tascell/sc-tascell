@@ -1,4 +1,4 @@
-;;; Copyright (c) 2009-2011 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; Copyright (c) 2009-2016 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -84,10 +84,10 @@
 ;;; コマンドに続いてデータをともなうコマンド
 ;;; These constants are referred to in compile time with #. reader macros.
 (eval-when (:execute :load-toplevel :compile-toplevel)
-  (defparameter *commands* '("treq" "task" "none" "rslt" "rack" "bcst" "bcak" "dreq" "data"
-                             "leav" "lack" "abrt" "cncl"
+  (defparameter *commands* '("treq" "task" "none" "rslt" "rack" "bcst" "bcak"
+                             "leav" "cncl"
                              "log"  "stat" "verb" "eval" "exit"))
-  (defparameter *commands-with-data* '("task" "rslt" "data"))
+  (defparameter *commands-with-data* '("task" "rslt"))
   (defparameter *commands-broadcast* '("bcst"))
   (defparameter *commands-without-data* (set-difference
                                          (set-difference *commands*
@@ -193,7 +193,7 @@
                                         ; この数のchildが接続するまでメッセージ処理を行わない
    (child-next-id :accessor ts-child-next-id :type fixnum :initform 0)
    (socket-format :accessor ts-socket-format :type symbol :initform *socket-format* :initarg :socket-format)
-   (bcst-receipants :accessor ts-bcst-receipants :type list :initform ())
+   (bcst-recipients :accessor ts-bcst-recipients :type list :initform ())
 					; (<bcak返信先> . <bcstをforwardしたhostのリスト>)のリスト
    (exit-gate :accessor ts-exit-gate :initform (mp:make-gate nil))
    (treq-any-list :accessor ts-talist :type list :initform '()) ;; treq-anyを出せていないリスト
@@ -353,11 +353,11 @@
                   ,@(mapcar #'(lambda (host)
                                 (list (hostid host) (host-unreplied-treqs host)))
                             (cons (ts-parent sv) (ts-children sv))))
-                `(:bcst-receipants
+                `(:bcst-recipients
                   ,@(mapcar #'(lambda (rcp-entry)
                                 (cons (car rcp-entry)
                                       (mapcar #'hostid (cdr rcp-entry))))
-                            (ts-bcst-receipants sv)))
+                            (ts-bcst-recipients sv)))
                 )
           *error-output*)
   (terpri *error-output*)
@@ -573,7 +573,7 @@
           (values (cons hst msg) eof-p))
         )))
 
-;;; "task", "rslt", "bcst", "data" のbody部を読み込み，リストにして返す
+;;; "task", "rslt", "bcst" のbody部を読み込み，リストにして返す
 ;;; バイナリ部分はbufferに書き込み，読み出すための関数を用意する
 (defun read-body-into-buffer (stream buffer)
   (let ((ret '())
@@ -614,7 +614,7 @@
             ))))
     (nreverse ret)))
 
-;;; "task", "rslt", "bcst" "data" のbody部を読み込み，リストにして返す
+;;; "task", "rslt", "bcst" のbody部を読み込み，リストにして返す
 (defun read-body (stream)
   (let ((ret '()))
     (loop
@@ -903,15 +903,6 @@
                  task-no #\Newline
                  task-body #\Newline)))
 
-;; Reply in place of an invalid child.
-(defmethod send-task :around ((to child) 
-                              wsize-str rslt-head task-head task-no task-body)
-  (declare (ignore wsize-str task-head task-no task-body))
-  (if (child-valid to)
-      (call-next-method)
-    (proc-cmd (host-server to) to
-              (list "abrt" rslt-head))))
-
 ;;; counting messages between clusters (for SACSIS11)
 #+SACSIS11
 (progn
@@ -947,14 +938,6 @@
 		 rslt-rsn  #\Space
 		 rslt-excp #\Space
 		 #\Newline rslt-body #\Newline)))
-
-;; Reply in place of an invalid child.
-#+PENDING ; rsltだけではrackの返信先がわからない
-(defmethod send-rslt :around (to rslt-head rslt-rsn rslt-excp rslt-body)
-  (if (child-valid to)
-      (call-next-method)
-    (proc-cmd (host-server to) to
-              (list "rack")))) 
 
 (defmethod send-rslt :after ((to parent) rslt-head rslt-rsn rslt-excp rslt-body)
   (declare (ignore rslt-head rslt-rsn rslt-excp rslt-body))
@@ -1029,32 +1012,9 @@
 (defmethod send-bcak (to bcak-head)
   (send to (list "bcak " bcak-head #\Newline)))
 
-(defgeneric send-dreq (to data-head dreq-head range))
-(defmethod send-dreq (to data-head dreq-head range)
-  (send to (list "dreq " data-head #\Space dreq-head #\Space range #\Newline)))
-
-(defgeneric send-data (to data-head range data-body))
-(defmethod send-data (to data-head range data-body)
-  (send to (list "data " data-head #\Space range #\Newline data-body #\Newline)))
-
 (defgeneric send-leav (to))
 (defmethod send-leav (to)
   (send to (list "leav " #\Newline)))
-
-(defgeneric send-lack (to lack-head))
-(defmethod send-lack (to lack-head)
-  (send to (list "lack " lack-head #\Newline)))
-(defmethod send-lack :around ((to child) lack-head)
-  (declare (ignore lack-head))
-  (if (child-valid to)
-      (progn
-        (call-next-method)
-        (invalidate-child to))))
-
-
-(defgeneric send-abrt (to rslt-head))
-(defmethod send-abrt (to rslt-head)
-  (send to (list "abrt " rslt-head #\Newline)))
 
 (defgeneric send-cncl (to task-head cncl-head))
 (defmethod send-cncl (to task-head cncl-head)
@@ -1084,11 +1044,7 @@
     ("rack" (proc-rack sv from cmd))
     ("bcst" (proc-bcst sv from cmd))
     ("bcak" (proc-bcak sv from cmd))
-    ("dreq" (proc-dreq sv from cmd))
-    ("data" (proc-data sv from cmd))
     ("leav" (proc-leav sv from cmd))
-    ("lack" (proc-lack sv from cmd))
-    ("abrt" (proc-abrt sv from cmd))
     ("cncl" (proc-cncl sv from cmd))
     ("log"  (proc-log sv from cmd))
     ("stat" (proc-stat sv from cmd))
@@ -1289,12 +1245,12 @@
 	  (send-bcst to p-bcak-head task-no bcst-body)
 	  (push to recipients)))
       ;; (<bcak返信先> . <forward先のリスト>)を記憶する
-      (when (member p-bcak-head (ts-bcst-receipants sv)
+      (when (member p-bcak-head (ts-bcst-recipients sv)
 		    :key #'car :test #'string=)
 	(warn "Server received the same broadcast twice: ~S"
 	      p-bcak-head))
       (if recipients
-          (push (cons p-bcak-head recipients) (ts-bcst-receipants sv))
+          (push (cons p-bcak-head recipients) (ts-bcst-recipients sv))
         ;; broadcast先がいなければ即座にbcakを返す
         (send-bcak from (second cmd)))
       )))
@@ -1305,77 +1261,40 @@
   (let ((bcak-head (second cmd)))
     (destructuring-bind (to s-bcak-head) ; bcak送信先
 	(head-shift sv bcak-head)
-      (let ((receipants-entry		
-	     (car (member bcak-head (ts-bcst-receipants sv)
+      (let ((recipients-entry		
+	     (car (member bcak-head (ts-bcst-recipients sv)
 			  :key #'car :test #'string=))))
-	(if (null receipants-entry)	; bcak-headからのbcstがあったかチェック
+	(if (null recipients-entry)	; bcak-headからのbcstがあったかチェック
 	    (warn "No bcst from ~S is remenbered." bcak-head)
-	  (if (not (member from (cdr receipants-entry) :test #'eq))
+	  (if (not (member from (cdr recipients-entry) :test #'eq))
 					; fromがbcak待ちリストにあるかチェック
 	      (warn "No bcst from ~S to ~S is remembered."
 		    bcak-head (hostinfo from))
 	    (progn
 	      ;; bcak待ちからfromを削除
-	      (rplacd receipants-entry
-		      (delete from (cdr receipants-entry) :test #'eq))
+	      (rplacd recipients-entry
+		      (delete from (cdr recipients-entry) :test #'eq))
 	      ;; 待ちリストが空になっていたらbcakを返す
-	      (when (null (cdr receipants-entry))
+	      (when (null (cdr recipients-entry))
 		(send-bcak to s-bcak-head)
-                (setf (ts-bcst-receipants sv)
-                  (delete receipants-entry (ts-bcst-receipants sv) :test #'eq)))
+                (setf (ts-bcst-recipients sv)
+                  (delete recipients-entry (ts-bcst-recipients sv) :test #'eq)))
 	      )))))))
 
-;;; dreq
-(defgeneric proc-dreq (sv from cmd))
-(defmethod proc-dreq ((sv tcell-server) (from host) cmd)
-  (let ((p-data-head (head-push from (second cmd))) ; データ要求者
-        (range (fourth cmd)))           ; データ要求範囲
-    (destructuring-bind (hst0 s-dreq-head) ; データ要求先
-        (head-shift sv (third cmd))
-      (send-dreq hst0 p-data-head s-dreq-head range))))
-
-;;; data
-(defgeneric proc-data (sv from cmd))
-(defmethod proc-data ((sv tcell-server) (from host) cmd)
-  (destructuring-bind (to s-data-head)  ; data送信先
-      (head-shift sv (second cmd))
-    (let ((range (third cmd))           ; データ要求範囲
-          (data-body (cdddr cmd)))      ; データ本体
-      (send-data to s-data-head range data-body))))
-
 ;;; leav: the computation node want to drop out
-;; 子から->lackを返す（invalidateはsend-lackにて）
+;; 子から->invalidate
 ;; 親から->無視
 (defgeneric proc-leav (sv from cmd))
 (defmethod proc-leav ((sv tcell-server) (from child) cmd)
   (declare (ignore cmd))
-  (send-lack from "0")                  ; "0" is a dummy argument
+  (invalidate-child from)
   )
 
 (defmethod proc-leav ((sv tcell-server) (from parent) cmd)
   (declare (ignore cmd))
   (warn "Leav message from parent is unexpected."))
 
-;;; lack: tell that the computation node is marked as invalidated
-;; 子から->無視．親から->転送
-(defgeneric proc-lack (sv from cmd))
-(defmethod proc-lack ((sv tcell-server) (from child) cmd)
-  (declare (ignore cmd))
-  (warn "Lack message from child is unexpected."))
-(defmethod proc-lack ((sv tcell-server) (from parent) cmd)
-  (destructuring-bind (to s-lack-head)
-      (head-shift sv (second cmd))      ; lack送信先
-    (send-lack to s-lack-head)))
-
-;;; abrt: tell that the result to the task is no longer returned.
-;; The message is just forwarded.
-(defgeneric proc-abrt (sv from cmd))
-(defmethod proc-abrt ((sv tcell-server) (from host) cmd)
-  (destructuring-bind (to s-rslt-head)
-      (head-shift sv (second cmd))      ; abrt送信先
-    (send-abrt to s-rslt-head)))
-
-;;; cncl: tell that the result to the task is no longer accepted.
+;;; cncl: set a cancellation flag to the recipient task
 ;; The message is just forwarded.
 (defgeneric proc-cncl (sv from cmd))
 (defmethod proc-cncl ((sv tcell-server) (from host) cmd)
