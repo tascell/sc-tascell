@@ -25,7 +25,7 @@
 ;;; Find all the solutions of Pentomino puzzle
 ;;; An example and benchmark of aborting tasks by a "throw" statement.
 ;;; This is based on pen6x17.tcell but aborts when the intermediate sum exceeds 
-;;; <threshold>.
+;;; <threshold>% * 1008576(The answer of Pen(15)).
 
 ;; task 0 0 0 1
 ;; <n>

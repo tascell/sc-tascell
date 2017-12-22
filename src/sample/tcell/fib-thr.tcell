@@ -25,7 +25,7 @@
 ;;; Fibonacci
 ;;; An example and benchmark of aborting tasks by a "throw" statement.
 ;;; This is based on fib.tcell but aborts when the intermediate sum exceeds 
-;;; <threshold>.
+;;; <threshold>% of the real answer.
 
 ;; task 0 0 0 1
 ;; <n>
