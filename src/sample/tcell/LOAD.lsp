@@ -38,10 +38,10 @@
 ;; (push :use-body-buffer *features*)
 
 #+mswindows
-(setq *locale* (find-locale "japan.UTF-8"))
+(setq *locale* (find-locale "japan.EUC"))
 
 #+sbcl
-(setq sb-impl::*default-external-format* :utf-8)
+(setq sb-impl::*default-external-format* :euc-jp)
 
 
 ;; The most debuggable (and yet reasonably fast) code, use
