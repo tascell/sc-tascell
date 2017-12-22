@@ -27,6 +27,9 @@
 (%defconstant VERBOSE 1)
 (%include "dprint.sh")
 
+;;; Support MPI?
+(%defconstant USEMPI 1)
+
 ;;; Implementation of nested functions
 (%ifndef* NF-TYPE
   (%defconstant NF-TYPE GCC))           ; one of GCC LW-SC CL-SC XCC XCCCL
@@ -77,6 +80,9 @@
 (static choose-strings (array (ptr char))
   (array "CHS-RANDOM" "CHS-ORDER"))
 (%defconstant NKIND-CHOOSE 2)           ; # of kinds of (enum choose)
+
+;; Kind of affinity
+(def (enum Affinity) COMPACT SCATTER SHAREDMEMORY)
 
 ;; A message transferred among workers.
 (def (struct cmd)
@@ -352,6 +358,7 @@
  (decl (csym::evcounter-count)
      (fn int (ptr (struct thread-data)) (enum event) (enum obj-type) (ptr void)))
  (decl (csym::show-counters) (fn void))
+ (decl (csym::finalize-tcounter) (fn void))
  )
 
 ;;;; Declarations of functions in cmd-serial.sc
@@ -370,12 +377,15 @@
   (def num-thrs int)                    ; # of workers
   (def sv-hostname (ptr char))          ; hostname of connecting Tascell server
                                         ; If the string is "", external messages are output to stdout
-  (def port unsigned-short)             ; port # used to connect to Tascell server
+  (def port int)                        ; port # used to connect to Tascell server
   (def node-name (ptr char))            ; node name (used for debugging only)
   (def initial-task (ptr char))         ; string for arguments of initial task
   (def auto-exit int)                   ; When true, the process exits after sending external rslt message
   (def affinity int)                    ; use sched_setaffinity to assign a physical core/thread to each worker
   (def always-flush-accepted-treq int)  ; flush stealing back (accepted) treq message
+  (def thread-affinity (enum Affinity)) ; worker-thread affinity
+  (def cpu-num int)                     ; # cores / physical node
+  (def thread-per-cpu int)              ; # threads / core
   (def verbose int)                     ; verbose level
   (PROF-CODE                            
    (def timechart-file (ptr char)))     ; postfix of timechart output file names

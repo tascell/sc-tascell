@@ -44,8 +44,9 @@
 (c-exp "#include<pthread.h>")
 (c-exp "#include<sys/time.h>")
 (c-exp "#include<unistd.h>")
+(c-exp "#include \"sock.h\"")
+;; (%cinclude "sock.h")
 (%ifdef* USEMPI (c-exp "#include <mpi.h>"))
-(%cinclude "sock.h")
 
 (%include "worker.sh")
 
@@ -68,6 +69,11 @@
 ;;;; Worker threads
 (def threads (array (struct thread-data) 128))
 (def num-thrs unsigned-int)
+
+(def my-rank int)    ; my MPI rank
+(def num-procs int)  ; # of MPI processes
+(def init-task (ptr char) NULL)  ; initial task
+
 ;;;; Random number generator
 (def random-seed1 double 0.2403703)
 (def random-seed2 double 3.638732)
@@ -133,14 +139,28 @@
   (def i int)
   (def buf (array char BUFSIZE))
   (csym::serialize-cmd buf pcmd)
-  (csym::fprintf stderr "(%d): %s> %s~%" (csym::get-universal-real-time) str buf))
+  (csym::fprintf stderr "RANK %d: (%d): %s> %s~%"
+		 my-rank (csym::get-universal-real-time) str buf)
+  )
 
 ;; The lock for the send channel to external nodes (Tascell server)
 (def send-mut pthread-mutex-t)
 
-;; The socket for communications with the Tascell server.
-;; sv-socket<0 indicates external communications are done via stdin/out
+;; Specifies how to communicate with external computing nodes.
+;; sv-socket>0: connects to Tascell server via TCP/IP connection
+;;              (the value of sv-socket is used as the port number)
+;; sv-socket=0: external messages are transferred to/from stdout/stdin
+;; sv-socket<0: communicates with external nodes directly using MPI
 (def sv-socket int)
+
+;; Generate a randonm rank ID excluding my ID.
+(def (csym::choose-rank) (csym::fn int void)
+  (def rank int)
+  (= rank (csym::my-random (- num-procs 1)
+			   (ptr random-seed1) (ptr random-seed2)))
+  (if (>= rank my-rank)
+      (inc rank))
+  (return rank))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Auxiliary functions for external input/output
@@ -149,82 +169,107 @@
 (def (csym::read-to-eol) (csym::fn void void)
   (def c int)
   (while (!= EOF (= c (csym::receive-char sv-socket)))
-                                        ;(!= EOF (= c (csym::getc stdin)))
     (if (== c #\Newline) (break))))
 
-(def (csym::write-eol) (csym::fn void void)
-  (csym::send-char #\Newline sv-socket))
-
 (def (csym::flush-send) (csym::fn void void)
-  (if (< sv-socket 0) (csym::fflush stdout)))
+  (if (== sv-socket 0) (csym::fflush stdout)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Receive an external message and store it into buf.
 ;;; Then interpret (deserizlize) the string and set the result to cmd-buf.
-
-;; the receive buffers
-(def buf (array char BUFSIZE))
-(def cmd-buf (struct cmd))
-
-(def (csym::read-command) (csym::fn (ptr (struct cmd)))
-  (def b (ptr char) buf)
+(def buf (array char BUFSIZE))  ; buffer for stdin/TCP receive
+(def cmd-buf (struct cmd))      ; buffer for stdin/TCP receive
+(def (csym::read-command buf cmd-buf)
+    (csym::fn int (ptr char) (ptr (struct cmd)))
   (def cp (ptr char) NULL)
 
-  (= cp (csym::receive-line b BUFSIZE sv-socket))
+  (= cp (csym::receive-line buf BUFSIZE sv-socket))
   (if cp
     (begin
-      (= cmd-buf.node OUTSIDE)
-      (DEBUG-PRINT 1 "(%d): RECEIVED> %s" (csym::get-universal-real-time) b)
-      (csym::deserialize-cmd (ptr cmd-buf) b)
-      (return (ptr cmd-buf)))
+      (= cmd-buf->node OUTSIDE)
+      (DEBUG-PRINT 1 "RANK %d: (%d): RECEIVED> %s"
+		   my-rank (csym::get-universal-real-time) buf)
+      (csym::deserialize-cmd cmd-buf buf)
+      (return 1))
     (begin
-      (DEBUG-PRINT 1 "(%d): RECEIVED> (failed)" (csym::get-universal-real-time))
-      (return NULL))))
+      (DEBUG-PRINT 1 "RANK %d: (%d): RECEIVED> (failed)"
+		   my-rank (csym::get-universal-real-time))
+      (return 0))))
 
 ;;; Send cmd to an external node (Tascell server)
 ;;; The body of task/rslt/bcst is also sent using task-senders[task-no]
 ;;; (task-senders[] are user-defined functinos)
-(def send-buf (array char BUFSIZE))
+(def send-buf (array char BUFSIZE)) ; buffer for stdout/TCP send
 (def (csym::send-out-command pcmd body task-no)
     (csym::fn void (ptr (struct cmd)) (ptr void) int)
   (def ret int)
   (def w (enum command))
+  (def dest-rank int)     ; rank ID of destination MPI proc
   (= w pcmd->w)
   ;; <--- sender-lock <---
   (csym::pthread-mutex-lock (ptr send-mut))
   ;; Send command string
-  (csym::serialize-cmd send-buf pcmd)
-  (csym::send-string send-buf sv-socket)
-  (csym::write-eol)
+  (if (>= sv-socket 0) 
+      (begin           ; stdout or TCP/IP
+	(csym::serialize-cmd send-buf pcmd)
+	(csym::send-string send-buf sv-socket)
+	(csym::send-char #\Newline sv-socket))
+    (begin             ; MPI
+      (csym::send-block-start) ; allocate mpisend-buf for initialization
+      (csym::serialize-cmd (mref mpisend-buf) pcmd)
+      (= (mref mpisend-buf-len) (csym::strlen (mref mpisend-buf)))
+      (csym::send-char #\Newline sv-socket)
+      ))
   ;; Send the body of task/rslt/bcst
   (cond
    (body
     (cond
      ((or (== w TASK) (== w BCST))
       ((aref task-senders task-no) body)
-      (csym::write-eol))
+      (csym::send-char #\Newline sv-socket))
      ((== w RSLT)
       ((aref rslt-senders task-no) body)
-      (csym::write-eol)
+      (csym::send-char #\Newline sv-socket)
       )))
    )
-
+  
+  ;; Note: In the MPI mode, calls of send-string, task-senders, and etc.
+  ;; above just write the message into the mpisend buffer. Then below,
+  ;; extracts the destination rank ID and request the messaging thread
+  ;; to send the message stored in the buffer.
+  (if (< sv-socket 0)
+      (begin
+	(switch w       ; extract destination rank ID
+	  (case TASK) (= dest-rank (aref pcmd->v 2 0)) (break)
+	  (case RSLT) (= dest-rank (aref pcmd->v 0 0)) (break)
+	  (case TREQ) (= dest-rank (aref pcmd->v 1 0)) (break)
+	  (case NONE) (= dest-rank (aref pcmd->v 0 0)) (break)
+	  (case RACK) (= dest-rank (aref pcmd->v 0 0)) (break)
+	  (default)
+	  (csym::fprintf stderr "Error: Invalid destination rank.~%")
+	  (break))
+	;; Exit if the destination rank of RSLT message is the pseudo rank (-1).
+	(if (and (== w RSLT) (== -1 dest-rank))
+	    (begin
+	      (csym::show-mpisend-buf sv-socket)
+	      (PROF-CODE
+	       (csym::finalize-tcounter)
+	       (csym::show-counters))
+	      (csym::MPI-Abort MPI-COMM-WORLD 0)
+	      (csym::exit 0)))
+        ;; End initialization of mpisend-buf and add it to the send buffer
+	(csym::send-block-end dest-rank)
+        ))
+  
   (csym::flush-send)
   (csym::pthread-mutex-unlock (ptr send-mut))
   ;; ---> sender-lock --->
-  (if (and (== w RSLT) option.auto-exit)
+  (if (and (== sv-socket 0)
+           (== w RSLT) option.auto-exit)
       (begin
 	(PROF-CODE
-	 (let ((i int) (thr (ptr (struct thread-data))) (fp (ptr FILE)))
-	   (for ((= i 0) (< i num-thrs) (inc i))
-	     (= thr (+ threads i))
-	     (csym::tcounter-change-state thr TCOUNTER-INIT OBJ-NULL 0)
-	     (if thr->fp-tc
-		 (begin
-		   (= fp thr->fp-tc)
-		   (= thr->fp-tc 0)
-		   (csym::fclose fp)))))
+	 (csym::finalize-tcounter)
 	 (csym::show-counters))
 	(csym::exit 0)))
   )
@@ -236,6 +281,7 @@
 (def (csym::proc-cmd pcmd body) (csym::fn void (ptr (struct cmd)) (ptr void))
   (def w (enum command))
   (= w pcmd->w)
+  ;; (csym::fprintf stderr "proc-cmd()~%")
   (switch w
    (case TASK) (csym::recv-task pcmd body) (break)
    (case RSLT) (csym::recv-rslt pcmd body) (break)
@@ -394,19 +440,21 @@
   (def rcmd (struct cmd))
   (def delay long 1000)     ; Waiting time after receiving none
   (def tx (ptr (struct task)) thr->task-top)
+  (def rank-p int (if-exp (< sv-socket 0) 1 0)) ; 1 if MPI rank is contained in addresses
 
   ;; treq command
   (= rcmd.c 2)
   (= rcmd.node req-to) ; internal (INSIDE) or external (OUTSIDE)
   (= rcmd.w TREQ)
-  (= (aref rcmd.v 0 0) thr->id)
+  (if rank-p (= (aref rcmd.v 0 0) my-rank))
+  (= (aref rcmd.v 0 (+ rank-p 0)) thr->id)
   (if (and (!= req-to ANY) thr->sub)
       (begin
 	;; If the task request is a stealing back, add the id of
 	;; task that causes the waiting status.
-	(= (aref rcmd.v 0 1) thr->sub->id)
-	(= (aref rcmd.v 0 2) TERM))
-    (= (aref rcmd.v 0 1) TERM))
+	(= (aref rcmd.v 0 (+ rank-p 1)) thr->sub->id)
+	(= (aref rcmd.v 0 (+ rank-p 2)) TERM))
+    (= (aref rcmd.v 0 (+ rank-p 1)) TERM))
   (csym::copy-address (aref rcmd.v 1) treq-head) ; Address of receipant
 
   ;; Send a treq message repeatedly until get a new task (task message)
@@ -419,6 +467,12 @@
     (= tx->stat TASK-ALLOCATED)
     (begin
      (csym::pthread-mutex-unlock (ptr thr->mut))
+     ;; Change the destination rank of "ANY" task request for an external process
+     ;; (MPI mode)
+     (if (and rank-p
+	      (== rcmd.node OUTSIDE)
+	      (== (aref rcmd.v 1 1) ANY))
+	 (= (aref rcmd.v 1 0) (csym::choose-rank)))
      (csym::send-command (ptr rcmd) 0 0) ; Send treq
      (csym::pthread-mutex-lock (ptr thr->mut)))
     ;; Wait for *tx being initialized in recv-task invoked by a sender worker thread
@@ -635,15 +689,44 @@
   (= thr->wdptr (csym::malloc (sizeof (struct thread-data))))
   (%ifdef* USE-AFFINITY
     (if option.affinity
-      (csym::worker-setaffinity thr->id)))
+	(switch option.thread-affinity
+	  (case SHAREDMEMORY)
+	  (csym::worker-setaffinity (+ (* my-rank num-thrs) thr->id))
+	  (break)
+	  (case COMPACT)
+	  (csym::worker-setaffinity thr->id)
+	  (break)
+	  (case SCATTER)
+	  (csym::worker-setaffinity
+	   (+ (* option.thread-per-cpu (% thr->id option.cpu-num)) (/ thr->id option.cpu-num)))
+	  (break))))
   (csym::worker-init thr)  ; initialize app-defined worker local storage
   (csym::pthread-mutex-lock (ptr thr->mut))
   (loop
     (PROF-CODE
      (if (!= thr->tcnt-stat TCOUNTER-INIT)
 	 (csym::tcounter-change-state thr TCOUNTER-TREQ-ANY OBJ-NULL 0)))
-    (recv-exec-send thr (init (array (enum addr) 2) (array ANY TERM)) INSIDE))
+    (if (< sv-socket 0)
+	;; MPI mode
+	(recv-exec-send thr (init (array (enum addr) 3) (array my-rank ANY TERM)) INSIDE)
+      ;; Tascell Server mode
+      (recv-exec-send thr (init (array (enum addr) 2) (array ANY TERM)) INSIDE)))
   (csym::pthread-mutex-unlock (ptr thr->mut)))
+
+;; The messaging thread's main function
+(def (csym::mpi-loop) (csym::fn void)
+  (csym::sendrecv))
+
+;; Read and handle an external message
+(def (csym::proc-msg) (fn void)
+  (def cmd (struct cmd))
+  (def buf (array char BUFSIZE))
+  (DEBUG-PRINT 1 "RANK %d: Waiting for an external message.~%" my-rank)
+  (if (csym::read-command buf (ptr cmd))
+    (begin
+      (DEBUG-PRINT 1 "RANK %d: Processing a %s command.~%" my-rank (aref cmd-strings cmd.w))
+      (csym::proc-cmd (ptr cmd) 0))))
+
 
 
 
@@ -657,6 +740,8 @@
   (def id (enum addr))
   (def task-no int)
   (def len size-t)
+  (def rank-p int (if-exp (< sv-socket 0) 1 0)) ; 1 if MPI rank is contained in addresses
+  ;;; (csym::fprintf stderr "recv-task()~%")
   ;; Chceck # of arguments
   (if (< pcmd->c 4)
       (csym::proto-error "wrong-task" pcmd))
@@ -669,7 +754,7 @@
        (= body ((aref task-receivers task-no)))
        (csym::read-to-eol)))
   ;; Determine the task recipient worker from <recipient>
-  (= id (aref pcmd->v 2 0))
+  (= id (aref pcmd->v 2 (+ rank-p 0)))
   (if (not (< id num-thrs))
       (csym::proto-error "wrong task-head" pcmd))
   (= thr (+ threads id))                ; thr: worker to that the task is sent
@@ -702,8 +787,9 @@
   (def thr (ptr (struct thread-data)))
   (def id (enum addr))
   (def len size-t)
+  (def rank-p int (if-exp (< sv-socket 0) 1 0)) ; 1 if MPI rank is contained in addresses
   (if (< pcmd->c 1) (csym::proto-error "Wrong none" pcmd))
-  (= id (aref pcmd->v 0 0))
+  (= id (aref pcmd->v 0 (+ rank-p 0)))
   (if (not (< id num-thrs))
       (csym::proto-error "Wrong task-head" pcmd))
   (= thr (+ threads id))
@@ -759,15 +845,16 @@
   (def sid int)
   (def reason int)
   (def exception-tag int)
+  (def rank-p int (if-exp (< sv-socket 0) 1 0)) ; 1 if MPI rank is contained in addresses
   ;; Check # of arguments
   (if (< pcmd->c 2)
       (csym::proto-error "Wrong rslt" pcmd))
   ;; Extract the recipient worker id and the task-home id from <recipient>
-  ;; <recipient> = <worker-id>:<task-home-id>
-  (= tid (aref pcmd->v 0 0))
+  ;; <recipient> = [<rank-id(MPI mode)>:]<worker-id>:<task-home-id> 
+  (= tid (aref pcmd->v 0 (+ rank-p 0)))
   (if (not (< tid num-thrs))
       (csym::proto-error "wrong rslt-head" pcmd))
-  (= sid (aref pcmd->v 0 1))
+  (= sid (aref pcmd->v 0 (+ rank-p 1)))
   (if (== TERM sid)
       (csym::proto-error "Wrong rslt-head (no task-home-id)" pcmd))
   (= thr (+ threads tid))
@@ -848,7 +935,8 @@
   (def thr (ptr (struct thread-data)))
   (def fail-reason int 0)
   (def avail int 0)
-
+  (def rank-p int (if-exp (< sv-socket 0) 1 0)) ; 1 if MPI rank is contained in addresses
+  
   (= thr (+ threads id))
 
   (csym::pthread-mutex-lock (ptr thr->mut))
@@ -860,7 +948,7 @@
     (= fail-reason 1))                  ; a task message and, if received, may break data structures)
    ((not thr->task-top)                 ; having no task
     (= fail-reason 2))
-   ((== (aref dest-addr 0) ANY)         ; * for 'any' request...
+   ((== (aref dest-addr (+ rank-p 0)) ANY)             ; * for 'any' request...
     (if (not (or (== thr->task-top->stat TASK-STARTED) ; the task is not prepared for being divided
                  (== thr->task-top->stat TASK-INITIALIZED)))
         (= fail-reason 3)))
@@ -868,7 +956,7 @@
     (if (not (csym::have-task thr from-addr pcmd->node))
                                         ; the task is already finished
         (= fail-reason 4))))
-  (if (and (not fail-reason) (== (aref dest-addr 0) ANY))
+  (if (and (not fail-reason) (== (aref dest-addr (+ rank-p 0)) ANY))
     (if (< thr->probability (csym::my-random-probability thr))
       (= fail-reason 5)))
   (= avail (not fail-reason))
@@ -908,7 +996,7 @@
 	(= thr->treq-free hx->next)      ; Allocate an entry
 	(= hx->next thr->treq-top)       ; Set the next of the new entry to the former top
 	(= hx->stat TASK-HOME-ALLOCATED) ; Set the status of the new entry
-	(if (== (aref dest-addr 0) ANY)
+	(if (== (aref dest-addr (+ rank-p 0)) ANY)
 	    (= (aref hx->waiting-head 0) TERM)
 	  (csym::copy-address hx->waiting-head from-addr))
 	(csym::copy-address hx->task-head (aref pcmd->v 0)) ; Set the address of the recipient of the result
@@ -947,9 +1035,9 @@
     (return 0))))
 
 ;;; treq: a message to request a new task
-;;; treq <sender> <recipient(or "ANY")> 
+;;; treq <sender> <recipient(or [<rank-id>:]"ANY")> 
 ;;; Check whether the recipient can spawn a new task
-;;; (If <recipient> is "ANY", find a worker that can spawn a task)
+;;; (If <recipient> includes "ANY", find a worker that can spawn a task)
 ;;; If a task can be spawned, add a task request entry to the worker's request queue.
 ;;; (The worker will detect the request by polling and send a task message)
 ;;; If a task cannot be spawned, send a none message, or for "ANY" message from
@@ -957,16 +1045,20 @@
 (def (csym::recv-treq pcmd) (csym::fn void (ptr (struct cmd)))
   (def rcmd (struct cmd))
   (def dst0 (enum addr))
+  (def sender (array char BUFSIZE))             ; <sender> string (only for printing debug info)
+  (def rank-p int (if-exp (< sv-socket 0) 1 0)) ; 1 if MPI rank is contained in addresses
   ;; Check # of arguments
   (if (< pcmd->c 2)
       (csym::proto-error "Wrong treq" pcmd))
+  ;; Serialize <sender>
+  (csym::serialize-arg sender (aref pcmd->v 0))
   ;; Extract <recipient> from the message
-  (= dst0 (aref pcmd->v 1 0))
+  (= dst0 (aref pcmd->v 1 (+ rank-p 0)))
   (cond
    ;; ANY
    ((== dst0 ANY)
     (let ((myid int) (start-id int) (d int) (id int))
-      (= myid (aref pcmd->v 0 0))           ; extract <sender>
+      (= myid (aref pcmd->v 0 (+ rank-p 0)))  ; extract worker ID or "PARENT" in <sender>
       (= start-id (csym::choose-treq myid)) ; choose the first candidate worker
       (for ((= d 0) (< d num-thrs) (inc d))
         (= id (% (+ d start-id) num-thrs))  ; the candidate worker id
@@ -975,13 +1067,13 @@
             (continue))                     ; skip the treq sender
         (if (csym::try-treq pcmd id)        ; try and handle request for the id-th worker
             (begin
-             (DEBUG-PRINT 2 "(%d): treq(any) %d->%d... accepted.~%"
-                          (csym::get-universal-real-time) myid id)
+             (DEBUG-PRINT 2 "(%d): treq(any) %s->%d... accepted.~%"
+                          (csym::get-universal-real-time) sender id)
              (break)))
-        (DEBUG-PRINT 4 "(%d): treq(any) %d->%d... refused.~%"
-                     (csym::get-universal-real-time) myid id)
+        (DEBUG-PRINT 4 "(%d): treq(any) %s->%d... refused.~%"
+                     (csym::get-universal-real-time) sender id)
         )
-      (if (< d num-thrs)                    ; Return if the treq is accepted
+      (if (< d num-thrs)                    ; Return if the treq is accepted (by d-th worker)
           (return))))
    ;; An arbitrary worker (= stealing back request)
    (else
@@ -989,27 +1081,36 @@
         (csym::proto-error "Wrong task-head" pcmd))
     (if (csym::try-treq pcmd dst0)          ; try and handle request for the dst0-th worker
         (begin
-         (DEBUG-STMTS 2
-                      (let ((buf1 (array char BUFSIZE)))
-                        (csym::fprintf stderr "(%d): treq %s->%d (stealing back)... accepted.~%"
-                                       (csym::get-universal-real-time)
-                                       (exps (csym::serialize-arg buf1 (aref pcmd->v 0)) buf1) dst0)))
-         (return)))                         ; Return if the treq is accepted
-    (DEBUG-STMTS 2
-                 (let ((buf1 (array char BUFSIZE)))
-                   (csym::fprintf stderr "(%d): treq %s->%d (stealing back)... refused.~%"
-                                  (csym::get-universal-real-time)
-                                  (exps (csym::serialize-arg buf1 (aref pcmd->v 0)) buf1) dst0))))
-   )
+	  (DEBUG-PRINT 2 "(%d): treq %s->%d (stealing back)... accepted.~%"
+		       (csym::get-universal-real-time) sender dst0)
+	  (return)))                         ; Return if the treq is accepted
+    (DEBUG-PRINT 2 "(%d): treq %s->%d (stealing back)... refused.~%"
+		 (csym::get-universal-real-time) sender dst0)
+    ))
   ;; The following is executed when no worker accepted the request
-  (if (and (== dst0 ANY)                 ; <recipient> is "ANY"
-           (== pcmd->node INSIDE)        ; internal treq
-           (== (aref pcmd->v 0 0) 0))    ; treq from 0-th worker
-      ;; Forward the treq to external nodes and return
-      (begin
-	(= pcmd->node OUTSIDE)
-	(csym::send-command pcmd 0 0)
-	(return)))
+  (if (and (== dst0 ANY)                         ; <recipient> is "ANY"
+           (== pcmd->node INSIDE)                ; internal treq
+           (== (aref pcmd->v 0 (+ rank-p 0)) 0)) ; treq from 0-th worker
+      ;; Submit initial task if exists
+      (if (and receive-buf
+	       (< sv-socket 0)
+	       (== my-rank 0))
+	  (begin
+	    (csym::pthread-mutex-lock (ptr send-mut))
+	    (csym::send-block-start)
+	    (csym::send-string receive-buf sv-socket)
+	    (csym::send-block-end my-rank)
+	    (csym::free receive-buf)
+	    (= receive-buf 0)
+	    (csym::pthread-mutex-unlock (ptr send-mut))
+	    (return))
+	;; Forward the treq to external nodes and return
+	(begin
+	  (= pcmd->node OUTSIDE)
+	  (if (< sv-socket 0)     ; set rank ID (MPI mode)
+	      (= (aref pcmd->v 1 0) (csym::choose-rank)))
+	  (csym::send-command pcmd 0 0)
+	  (return))))
   ;; Reply with a none message
   (= rcmd.c 1)
   (= rcmd.node pcmd->node)              ; internal or external
@@ -1024,11 +1125,12 @@
   (def tx (ptr (struct task)))
   (def thr (ptr (struct thread-data)))
   (def id (enum addr))
-  (def len size-t)
+  (def rank-p int (if-exp (< sv-socket 0) 1 0)) ; 1 if MPI rank is contained in addresses
   ;; Check # of arguments
   (if (< pcmd->c 1)
       (csym::proto-error "Wrong rack" pcmd))
-  (= id (aref pcmd->v 0 0))
+  ;; Extract recipient worker ID
+  (= id (aref pcmd->v 0 (+ rank-p 0)))
   (if (not (< id num-thrs))
       (csym::proto-error "Wrong task-head" pcmd))
   (= thr (+ threads id))
@@ -1074,13 +1176,14 @@
   (def dst0 (enum addr))               ; ID of recipient worker
   (def thr (ptr (struct thread-data))) ; recipient worker thread
   (def tx (ptr (struct task)))         ; task to be cancelled
+  (def rank-p int (if-exp (< sv-socket 0) 1 0)) ; 1 if MPI rank is contained in addresses
   ;; Check # of arguments
   (if (< pcmd->c 2)
       (csym::proto-error "Wrong cncl" pcmd))
   ;; Get <sender> from the message
   (= from-addr (aref pcmd->v 0))
   ;; Extract <recipient> from the message
-  (= dst0 (aref pcmd->v 1 0))
+  (= dst0 (aref pcmd->v 1 (+ rank-p 0)))
   (if (not (and (<= 0 dst0) (< dst0 num-thrs)))   ; Range check of <recipient>
       (csym::proto-error "Wrong cncl-head" pcmd))
   (= thr (+ threads dst0))
@@ -1094,16 +1197,18 @@
   (csym::pthread-mutex-unlock (ptr thr->mut))
 )
 
+
 ;;; bcak: ack message to bcst
 ;;; bcak <recipient>
 (def (csym::recv-bcak pcmd) (csym::fn void (ptr (struct cmd)))
   (def thr (ptr (struct thread-data)))
   (def id (enum addr))
+  (def rank-p int (if-exp (< sv-socket 0) 1 0)) ; 1 if MPI rank is contained in addresses
   ;; Check # of arguments
   (if (< pcmd->c 1)
     (csym::proto-error "wrong-task" pcmd))
   ;; extract <recipient> (= worker ID) from the 1st argument
-  (= id (aref pcmd->v 0 0))
+  (= id (aref pcmd->v 0 (+ rank-p 0)))
   (= thr (+ threads id))
   ;; decrease bcak counter and notify
   (csym::pthread-mutex-lock (ptr thr->mut))
@@ -1321,6 +1426,7 @@
     (csym::fn void (ptr (struct thread-data)) int (ptr void) int)
   (def tcmd (struct cmd))
   (def hx (ptr (struct task-home)) thr->treq-top)
+  (def rank-p int (if-exp (< sv-socket 0) 1 0)) ; 1 if MPI rank is contained in addresses
   ;; (csym::fprintf stderr "make-and-send-task(%d)~%" thr->id)
   ;; Pop a task-home entry from the worker's task request queue and push it to the worker's subtask stack
   (= thr->treq-top hx->next)            ; top of request queue <-- 2nd entry of the queue
@@ -1342,9 +1448,11 @@
   (= tcmd.w TASK)                       ; message kind = TASK
   (= (aref tcmd.v 0 0) (++ thr->ndiv))  ; # of task division
   (= (aref tcmd.v 0 1) TERM)
-  (= (aref tcmd.v 1 0) thr->id)         ; sender: <worker-id>
-  (= (aref tcmd.v 1 1) hx->id)          ; sender: <subtask-id>
-  (= (aref tcmd.v 1 2) TERM)
+  (if rank-p
+      (= (aref tcmd.v 1 0) my-rank))    ; sender: <rank-id> (MPI mode)
+  (= (aref tcmd.v 1 (+ rank-p 0)) thr->id)         ; sender: <worker-id>
+  (= (aref tcmd.v 1 (+ rank-p 1)) hx->id)          ; sender: <subtask-id>
+  (= (aref tcmd.v 1 (+ rank-p 2)) TERM)
   (csym::copy-address (aref tcmd.v 2) hx->task-head) ; recipient: use the information in the task request
   (= (aref tcmd.v 3 0) task-no)         ; the kind of task
   (= (aref tcmd.v 3 1) TERM)
@@ -1441,6 +1549,7 @@
 ;;; Send bcst (broadcast) message to the connected Tascell server.
 ;;; Called by worker thread after initializing the task object ("body")
 ;;; in a :put section.
+;;; !!! MPI mode not spported yet
 (def tcell-bcst-wait-bcak int 1)
 (def (csym::broadcast-task thr task-no body)
    (csym::fn void (ptr (struct thread-data)) int (ptr void))
@@ -1474,7 +1583,9 @@
 (def (csym::usage argc argv) (csym::fn void int (ptr (ptr char)))
   (csym::fprintf stderr
                  (%string
-                  "Usage: %s [-s hostname] [-p port-num] [-n n-threads] [-i initial-task-parms] [-a]"
+                  "Usage: %s [-s hostname] [-p port-num"
+		  (%if* USEMPI "(-1 for MPI mode)" %else "")
+		  "] [-n n-threads] [-i initial-task-parms] [-a]"
                   (%if* VERBOSE " [-v verbosity]" %else "")
                   (%if* PROFILE " [-T timechart-prefix]" %else "")
                   "~%")
@@ -1488,19 +1599,22 @@
   (decl command (ptr char))
   ;; Default values
   (= option.sv-hostname 0)
-  (= option.port 9865)
+  (= option.port (%ifdef* USEMPI -1 %else 9865))
   (= option.num-thrs 1)
   (= option.node-name 0)
   (= option.initial-task 0)
   (= option.auto-exit 0)
   (= option.affinity 0)
   (= option.always-flush-accepted-treq 0)
+  (= option.thread-affinity COMPACT)
+  (= option.cpu-num 0)
+  (= option.thread-per-cpu 0)
   (= option.verbose 0)
   (PROF-CODE
    (= option.timechart-file 0))
 
   ;; Parse and set options
-  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:N:i:xafP:v:T:h")))
+  (while (!= -1 (= ch (csym::getopt argc argv "n:s:p:N:i:xat:c:r:fP:v:T:h")))
     (switch ch
       (case #\n)                        ; number of threads
       (= option.num-thrs (csym::atoi optarg))
@@ -1511,11 +1625,11 @@
 	 (if-exp (csym::strcmp "stdout" optarg) optarg 0))
       (break)
 
-      (case #\p)                        ; connection port number
+      (case #\p)                        ; connection port numer (-1 for MPI)
       (= option.port (csym::atoi optarg))
       (break)
 
-      (case #\N)
+      (case #\N)                        ; Node name
       (if option.node-name (csym::free option.node-name))
       (= option.node-name
          (cast (ptr char) (csym::malloc (* (+ 1 (csym::strlen optarg))
@@ -1544,6 +1658,24 @@
       (= option.affinity 1)
       (%ifndef* USE-AFFINITY
         (csym::fprintf stderr "-a is ignored (invalidated in compile time)~%"))
+      (break)
+
+      (case #\t)                        ; thread affinity setting
+      (cond
+       ((== (csym::strcmp "compact" optarg) 0)
+         (= option.thread-affinity COMPACT))
+        ((== (csym::strcmp "scatter" optarg) 0)
+         (= option.thread-affinity SCATTER))
+        ((== (csym::strcmp "sharedmemory" optarg) 0)
+         (= option.thread-affinity SHAREDMEMORY)))
+      (break)
+      
+      (case #\c)                        ; # cores (used for affinity setting)
+      (= option.cpu-num (csym::atoi optarg))
+      (break)
+
+      (case #\r)                        ; # threads per core (used for affinity setting)
+      (= option.thread-per-cpu (csym::atoi optarg))
       (break)
 
       (case #\f)                        ; flush also stealing-back treq
@@ -1765,33 +1897,66 @@
                         (aref ev-strings j) (aref thr->ev-cnt j))))
   (return))
 
+;;; Finalize tcounter
+(def (csym::finalize-tcounter) (fn void)
+  (let ((i int) (thr (ptr (struct thread-data))) (fp (ptr FILE)))
+    (for ((= i 0) (< i num-thrs) (inc i))
+      (= thr (+ threads i))
+      (csym::tcounter-change-state thr TCOUNTER-INIT OBJ-NULL 0)
+      (if thr->fp-tc
+	  (begin
+	    (= fp thr->fp-tc)
+	    (= thr->fp-tc 0)
+	    (csym::fclose fp))))))
+
 )                                       ; end PROF-CODE
 
 
 ;; main (entry point)
 ;; Initialize and run all workers and wait for external messages.
 (def (main argc argv) (fn int int (ptr (ptr char)))
-  (defs int i j)
-  (def pcmd (ptr (struct cmd)))         ; external command received
-
-  (%ifdef* USEMPI
-    (csym::MPI_Init (ptr argc) (ptr argv)))
+  (def i int)
+  (def mpi-provided int)                ; MPI support level
 
   ;; Show compile-time option
   (fprintf stderr (%string "compile-time options: "
                            "VERBOSE=" VERBOSE " "
                            "PROFILE=" PROFILE " "
                            "NF-TYPE=" NF-TYPE " "
-                           "USE-AFFINITY=" USE-AFFINITY
+                           "USE-AFFINITY=" USE-AFFINITY " "
+			   "USEMPI=" (%ifdef* USEMPI "yes" %else "no")
                            "~%"))
+
+  (%ifdef* USEMPI
+    (csym::MPI-Init-thread (ptr argc) (ptr argv) MPI-THREAD-SERIALIZED (ptr mpi-provided))
+    (csym::MPI-Comm-rank MPI-COMM-WORLD (ptr my-rank))
+    (csym::MPI-Comm-size MPI-COMM-WORLD (ptr num-procs))
+    (if (== my-rank 0)
+	(begin
+	  (def provided-msg (ptr char))
+	  (switch mpi-provided
+	    (case MPI-THREAD-SINGLE)
+	    (= provided-msg "SINGLE")     (break)
+	    (case MPI-THREAD-FUNNELED)
+	    (= provided-msg "FUNNELED")   (break)
+	    (case MPI-THREAD-SERIALIZED)
+	    (= provided-msg "SERIALIZED") (break)
+	    (case MPI-THREAD-MULTIPLE)
+	    (= provided-msg "MULTIPLE")   (break))
+	  (csym::fprintf stderr "Available level of thread support %s~%" provided-msg)))
+    %else
+    (= my-rank 0)
+    (= num-procs 0))
   
   ;; Read command-line options to initialize the "option" global object.
   (csym::set-option argc argv)
 
-  ;; Connect to a Tascell server
-  (= sv-socket (if-exp option.sv-hostname
-		   (csym::connect-to option.sv-hostname option.port)
-		 -1))
+  ;; Set sv-socket and connect to the Tascell server if specified
+  (if (< option.port 0)
+      (= sv-socket -1)                                                  ; MPI
+    (= sv-socket (if-exp option.sv-hostname
+		     (csym::connect-to option.sv-hostname option.port)  ; TCP/IP
+		   0)))                                                 ; stdin/stdout
 
   ;; Initialized mutex attribute
   (def m-attr pthread-mutexattr-t)
@@ -1861,6 +2026,40 @@
 	 (= thr->fp-tc 0)))
       ))
   
+  ;; If option.initial-task is given, send a task to the 0-th worker
+  ;; as if this node received a "task" message as the first message.
+  ;; (only in the 0-th process in MPI mode)
+  (if (and option.initial-task
+	   (or (>= sv-socket 0) (== my-rank 0)))
+      (begin
+        (def p-src (ptr char))
+        (def p-dst (ptr char))
+        (def header (ptr char))
+        (= header (if-exp (< sv-socket 0)
+		      "task 0 -1:0 0:0 " ; message from process with pseudo rank -1.
+		    "task 0 0 0 "))    ; as if the message is from parent
+        (= receive-buf
+           (cast (ptr char) (csym::malloc (* (+ 3
+                                                (csym::strlen option.initial-task)
+                                                (csym::strlen header))
+                                             (sizeof char)))))
+        (= receive-buf-p receive-buf)
+        (csym::strcpy receive-buf header)
+        ;; Copy string argument of -i option to receive-buf, replacing #\Space by #\Newline
+        (for ((exps (= p-src option.initial-task)
+                    (= p-dst (+ receive-buf (csym::strlen header))))
+              (mref p-src)
+              (exps (inc p-src) (inc p-dst)))
+          (= (mref p-dst) (if-exp (== #\Space (mref p-src)) #\Newline (mref p-src))))
+        ;; Add two newlines and a null character
+        (= (mref (inc p-dst)) #\Newline)
+        (= (mref (inc p-dst)) #\Newline)
+        (= (mref p-dst) 0)
+        ;; Debug output
+        (if (>= option.verbose 1)
+            (csym::fprintf stderr "%s" receive-buf))
+        ))
+
   ;; Create and run worker threads
   (for ((= i 0) (< i num-thrs) (inc i))
     (let ((thr (ptr (struct thread-data)) (+ threads i)))
@@ -1869,40 +2068,23 @@
        (csym::initialize-tcounter thr))
       (systhr-create (ptr thr->pthr-id) worker thr)))
 
-  ;; If option.initial-task is given, send a task to the 0-th worker
-  ;; as if this node received a "task" message as the first message.
-  (if option.initial-task
-      (begin
-        (def p-src (ptr char))
-        (def p-dst (ptr char))
-        (def header (ptr char))
-        (= header "task 0 0 0 ")
-        (= receive-buf
-           (cast (ptr char) (csym::malloc (* (+ 3
-                                                (csym::strlen option.initial-task)
-                                                (csym::strlen header))
-                                             (sizeof char)))))
-        (= receive-buf-p receive-buf)
-        (csym::strcpy receive-buf header)
-        (for ((exps (= p-src option.initial-task)
-                    (= p-dst (+ receive-buf (csym::strlen header))))
-              (mref p-src)
-              (exps (inc p-src) (inc p-dst)))
-          (= (mref p-dst) (if-exp (== #\Space (mref p-src)) #\Newline (mref p-src))))
-        (= (mref (inc p-dst)) #\Newline)
-        (= (mref (inc p-dst)) #\Newline)
-        (= (mref p-dst) 0)
-        (csym::sleep 1)
-        (if (>= option.verbose 1)
-            (csym::fprintf stderr "%s" receive-buf))
-        ))
+  ;; Wait for workers being ready
+  (csym::sleep 1)
+
   ;; Loop for handling external messages
-  (while 1
-    (= pcmd (csym::read-command))
-    (if pcmd
+  (if (< sv-socket 0)
       (begin
-        (csym::proc-cmd pcmd 0))
-      (begin
-        (while 1
-          (csym::sleep 2147483647)))) )
-  (csym::exit 0))
+	(csym::mpi-loop) ; never returns
+	(%ifdef* USEMPI (csym::MPI-Finalize))
+	(csym::exit 0))
+    (begin
+     (def cmd (struct cmd))
+     (def buf (array char BUFSIZE))
+     (while 1
+       (if (csym::read-command buf (ptr cmd))
+           (csym::proc-cmd (ptr cmd) 0)
+         (break)))
+     (csym::sleep 2147483647)
+     (csym::exit 0)))
+  (return 0)
+  )
