@@ -74,6 +74,7 @@
                     (setq indent (if elm parm nil))))
                  ((#\D)                 ; predefinitions (constant only)
                   (destructuring-bind (symstr valstr) (split-string-1 parm '(#\=))
+                    (when (string= "" valstr) (setq valstr "1"))
                     (when (eq predefinitions default) (setq predefinitions nil))
                     (setq predefinitions
                       (append1 predefinitions

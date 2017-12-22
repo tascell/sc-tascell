@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008-2014 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; Copyright (c) 2008-2017 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@
   (ignore-cfunc t)
   (nestfunc-tag ~fn)
   (no-nestfunc nil)                     ; 入れ子関数を持たないコードを生成（比較評価用）
+  (no-exception nil)                    ; If t, invalidate exception support.
   (padding-size 1000)
   )
 
@@ -40,6 +41,7 @@
          (append
           (list ~(%include "rule/tcell.sh")
 		~(c-exp "#include \"sendrecv.h\"")
+		~(c-exp "#include <stdlib.h>")
                 ~(decl (handle-reqs) (fn void
 					 (ptr ,(tcell:nestfunc-type))
 					 (ptr (struct thread-data))))
@@ -476,7 +478,8 @@
 	  (e-exp (expression! exp))
           (b-body (tcell:with-new-bk bk-id (function-body body))))
      ~(begin
-	(def ,label-id __label__)
+	,.(unless (ruleset-param 'no-exception)
+            (list ~(def ,label-id __label__)))
 	(def ,catchval-id int)
         ,.(unless (ruleset-param 'no-nestfunc)
             (list
@@ -491,8 +494,9 @@
 		      (= -thr->exiting EXITING-NORMAL)
 		      (PROF-CODE
 		       (csym::tcounter-change-state -thr TCOUNTER-EXEC OBJ-NULL 0))
-		      (goto ,label-id))
-		  (,(tcell:latest-bk))))))
+                      ,(tcell:nonlocal-goto label-id)
+                      )
+                    (,(tcell:latest-bk))))))
 	(= ,catchval-id ,e-exp)	
         (begin ,@b-body)
 	(label ,label-id ())
