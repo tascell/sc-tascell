@@ -32,11 +32,19 @@ int send_string (char *str, int socket);
 int send_fmt_string (int socket, char *fmt_string, ...);
 int send_binary (void *src, unsigned long elm_size, unsigned long n_elm,
                  int socket);
+void show_mpisend_buf (int socket);
 
 int receive_char (int socket);
 char* receive_line (char *buf, int maxlen, int socket);
 int receive_binary (void *dst, unsigned long elm_size, unsigned long n_elm,
                     int socket);
+
+void send_block_start(void);
+void send_block_end(int rank);
+void sendrecv(void);
+
+extern char **mpisend_buf;             /* ptr to current send buffer for MPI */
+extern int *mpisend_buf_len;           /* ptr to length of the current buffer */
 
 extern char *receive_buf;
 extern char *receive_buf_p;
