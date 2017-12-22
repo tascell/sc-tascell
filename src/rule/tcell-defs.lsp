@@ -31,7 +31,7 @@
            :with-new-bk :latest-bk
            :task-id :task-cid :current-task :add-task
            :make-task-struct-id :task-struct-id :task-no
-           :task-body-function
+           :task-body-function :nonlocal-goto
            :set-task-send :set-task-recv :set-rslt-send :set-rslt-recv
            :task-add-field :task-add-input-var :task-add-output-var
            :task-field-p
@@ -165,7 +165,8 @@
 	(struct-id (task-struct-id task))
 	(label-id (generate-id (string+ (task-cid task) "_exit"))))
     ~(def (,id -thr pthis) ,(task-body-type ~(struct ,struct-id))
-       (def ,label-id __label__)
+       ,@(unless (ruleset-param 'rule::no-exception)
+           (list ~(def ,label-id __label__)))
        ,@(unless (ruleset-param 'rule::no-nestfunc)
 	   (list
 	    ;; Nested function
@@ -175,13 +176,20 @@
 	       (if (or (== -thr->exiting EXITING-EXCEPTION)
 		       (== -thr->exiting EXITING-CANCEL))
 		   (begin
-		     (goto ,label-id)))
+		     ,(nonlocal-goto label-id)))
 	       ;; * The terminal of temporary backtracking
 	       (return 0)) ))
        ,@body
        (label ,label-id (return))
        )
     ))
+
+(defun nonlocal-goto (label-id)
+  (if (not (ruleset-param 'rule::no-exception))
+      ~(goto ,label-id)
+      ~(begin
+         (csym::fprintf stderr "Error: Exception is thrown but this program is complied invalidating exception support.~%")
+         (csym::exit 99) )))
 
 ;;; task/rslt sender/receiver （変形済み）本体のset
 (defun set-task-send (body &optional (task *current-task*))
