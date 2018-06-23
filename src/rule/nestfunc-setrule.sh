@@ -26,11 +26,11 @@
 ;; ruleを自動設定，出力ファイル名変更
 
 (%ifndef* NF-TYPE
-  (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL RAWC)
+  (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC CL-SC2 XCC XCCCL RAWC)
 
 (%defconstant RULE-LWSC
               (:nestfunc-sc1 :nestfunc-rename :nestfunc-hoist :nestfunc-type :nestfunc-temp
-                             (:nestfunc :all-in-estack ALL-IN-ESTACK)
+                             (:nestfunc :stack-implementation STACK-IMPLEMENTATION)
                              :untype))
 
 ;; (%defconstant lw)
@@ -40,15 +40,21 @@
 %else
 (%if* (eq 'NF-TYPE 'LW-SC)
   (%defconstant NESTFN lightweight)
-  (%defconstant ALL-IN-ESTACK nil)
+  (%defconstant STACK-IMPLEMENTATION :lwsc)
   (%rule RULE-LWSC)
   (%output-file INPUTFILE-NAME "-lw")
 %else
 (%if* (eq 'NF-TYPE 'CL-SC)
   (%defconstant NESTFN lightweight)
-  (%defconstant ALL-IN-ESTACK t)
+  (%defconstant STACK-IMPLEMENTATION :clsc)
   (%rule RULE-LWSC)
   (%output-file INPUTFILE-NAME "-clos")
+%else
+(%if* (eq 'NF-TYPE 'CL-SC2)
+  (%defconstant NESTFN lightweight)
+  (%defconstant STACK-IMPLEMENTATION :clsc2)
+  (%rule RULE-LWSC)
+  (%output-file INPUTFILE-NAME "-clsc2")
 %else
 (%if* (eq 'NF-TYPE 'XCC)
   (%defconstant NESTFN lightweight)
@@ -63,6 +69,6 @@
   (%error "Unknown NF-TYPE!")
   (%defconstant NESTFN fn)
   (%output-file INPUTFILE-NAME "-gcc")
-  )))))
+  ))))))
 
 (%error "RULES: ~S" RULE)

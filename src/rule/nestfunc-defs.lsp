@@ -27,7 +27,7 @@
 
 (defpackage "NESTED-FUNCTION"
   (:nicknames "LW" "NESTFUNC")
-  (:export :*frame-alist* :*current-func* :*estack-size* :*all-in-estack*
+  (:export :*frame-alist* :*current-func* :*estack-size* :*stack-implementation*
            :make-finfo :top-level-p :finfo-name :finfo-parent-func :finfo-ret-type
            :finfo-argp :finfo-label-list :finfo-var-list :finfo-tmp-list
            :finfo-nf-list :finfo-estack-var
@@ -66,7 +66,8 @@
   var-list                              ;通常のローカル変数のリスト＋関数のポインタ保存用
   tmp-list                              ;一時変数のリスト（call時の引数，入れ子関数ポインタ保存用）
   nf-list                               ;定義された入れ子関数のリスト ( <orig-name> . <ext-name> )
-  ;; 明示的スタックを参照するローカル変数．list of <id(symbol)>
+  ;; :lwscでも，aliasを防ぐため常に明示的スタックに保管するローカル変数．list of <id(symbol)>
+  ;; ポインタを獲得される局所変数が該当
   ;; var-listと重複．入れ子関数は nf-listで管理するのでここには入れない
   ;; search-ptr での収集方針により，var-listでないものも入り得る．
   estack-var
@@ -94,17 +95,19 @@
 (defvar *current-func* nil)
 
 (defvar *estack-size* 65536)
-(defvar *all-in-estack* nil)
+(defvar *stack-implementation* :clsc2)
 
 ;;;; 環境設定
 (defmacro with-nestfunc-environment (&body body)
   `(let ((*global-funcs* '())
          (*estack-size* (ruleset-param 'rule::estack-size))
-         (*all-in-estack* (ruleset-param 'rule::all-in-estack))
+         (*stack-implementation* (ruleset-param 'rule::stack-implementation))
          (*frame-alist* '())
          (*current-func* nil))
+     (unless (member *stack-implementation* '(:lwsc :clsc :clsc2))
+       (warn "Unexpected value of *stack-implementation* (~S). Use :clsc2." *stack-implementation*)
+       (setq *stack-implementation* :clsc2))
      ,@body))
-
 
 ;;;; 関数
 
@@ -145,11 +148,12 @@
   (and *current-func*
        (assoc id (finfo-var-list finfo) :test #'eq)))
 
-;;; 現関数（親は含まない）の明示的スタックに値があるlocal-variableか？
+;;; 現関数（親は含まない）の明示的スタック（frame structure）に値があるlocal-variableか？
 (defun estack-variable-p (id &optional (finfo *current-func*)
                                        (skip-lv-check nil)) ; local-variable-p のチェックを省略
   (and (or skip-lv-check (local-variable-p id finfo))
-       (member id (finfo-estack-var finfo) :test #'eq)))
+       (or (eq *stack-implementation* :clsc2) ; clsc2では全てのローカル変数がframe structureに保存
+           (member id (finfo-estack-var finfo) :test #'eq))))
 
 ;;; 現関数（親は含まない）でstaticで定義されたlocal-variableか？
 ;;; そうなら，ext-idを返す．
@@ -186,9 +190,12 @@
          (member-defs (mapcar #'(lambda (x) ~(def ,(car x) ,(cdr x)))
                               member-list)))
     ~(def (struct ,frame-name)
-         (def tmp-esp (ptr char))       ; これは、絶対に先頭
-       (def argp (ptr char))
-       (def call-id int)
+       ,@(when (member *stack-implementation* '(:lwsc :clsc))
+           (list ~(def tmp-esp (ptr char))))       ; これは、絶対に先頭
+       ,@(when (eq *stack-implementation* :lwsc)
+           (list ~(def argp (ptr char))))
+       ,@(when (member *stack-implementation* '(:lwsc :clsc))
+           (list ~(def call-id int)))
        ,@member-defs)))
 
 ;;; 全ての関数フレーム構造体の宣言を作る
@@ -259,10 +266,10 @@
        (when (let ((ttexp (remove-type-qualifier texp)))
                (or (and (listp ttexp)
                         (eq ~array (car ttexp)))
-                   *all-in-estack*))
+                   (member *stack-implementation* '(:clsc :clsc2))))
          (pushnew id (finfo-estack-var finfo) :test #'eq))
        (push (cons id texp) (finfo-var-list finfo)))
-      ((:tmp)                           ; save/resume の対象にならない
+      ((:tmp)                           ; save/resumeの対象にならない(実質:systemと同じ？)
        (push (cons id texp) (finfo-tmp-list finfo)))
       ((:static)                        ; 外に出す．frameにも入れない．
        (let ((ext-id (generate-id
@@ -296,13 +303,15 @@
 
 ;;; 与えられた関数情報から復帰処理を行うstatementを作る
 (defun make-resume (fi)
+  (when (eq :clsc2 *stack-implementation*)
+    (return-from make-resume ~()))
   (unless (or (finfo-label-list fi)
               (finfo-local-label fi))
     (return-from make-resume
       (list ~(label LGOTO nil))))
   (let ((reconst-impossible (or (eq ~main (finfo-name fi))
                                 (finfo-parent-func fi)
-                                *all-in-estack*))
+                                (eq :clsc *stack-implementation*)))
                                         ; スタックの積み直し中に成り得ない
         (case-goto
          (append
@@ -344,22 +353,29 @@
 ;;; efp(xfp)の設定および espをフレームサイズ分移動させる
 (defun make-init-efp-esp (fi)
   (let ((frame-type  ~(struct ,(get-frame-name (finfo-name fi)))))
-    (list*
-     ~(= efp (cast (ptr ,frame-type) esp))
-     ~(= esp (aligned-add esp (sizeof ,frame-type)))
-     ~(= (mref-t (ptr char) esp) 0)
-     (when (and *all-in-estack* (finfo-parent-func fi))
+    (append
+     (ecase *stack-implementation*
+       ((:lwsc :clsc)
+        (list ~(= efp (cast (ptr ,frame-type) esp))
+              ~(= esp (aligned-add esp (sizeof ,frame-type)))
+              ~(= (mref-t (ptr char) esp) 0)))
+       ((:clsc2)
+        (list ~(= efp (ptr my-frame)))))
+     (when (and (member *stack-implementation* '(:clsc :clsc2))
+                (finfo-parent-func fi))
        (list ~(= (fref efp -> xfp) xfp) )))
     ))
 
 ;;; parmp の初期値
-(defun make-parmp-init (&optional (all-in-estack *all-in-estack*))
+(defun make-parmp-init (&optional (stack-implementation *stack-implementation*))
   ~(cast (ptr char)
-     ,(if all-in-estack
-          ~esp
-        ~(bit-xor (cast size-t esp) esp-flag))) )
+     ,(ecase stack-implementation
+        ((:clsc :clsc2)
+         ~esp)
+        ((:lwsc)
+         ~(bit-xor (cast size-t esp) esp-flag)))))
 
-;;; （*all-in-estack*時）引数の値をestackに保存
+;;; （:clsc,:clsc2）引数の値をestackに保存
 (defun save-args-into-estack (argid-list argtexp-list
                               &optional (finfo *current-func*))
   ;; ちょっと手抜きで型情報 (the)なし
@@ -429,7 +445,7 @@
         (t
          ~(return (SPECIAL ,(finfo-ret-type *current-func*))))))
 
-;;; 与えられたラベル名が、親関数の局所ラベルとして定義されているか調べる。
+;;; 与えられたラベル名が、自身あるいは親関数の局所ラベルとして定義されているか調べる。
 ;;; 定義されていなければ,返り値はnil。定義されていれば、
 ;;; (values <自分からみて何番目の親関数に定義されていたか>
 ;;;         <その定義 ( <label> . <復帰処理> )> 

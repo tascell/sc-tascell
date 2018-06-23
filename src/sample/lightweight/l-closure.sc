@@ -25,22 +25,25 @@
 ;;; LW-SC example
 
 (%ifndef* NF-TYPE
-  (%defconstant NF-TYPE LW-SC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
+  (%defconstant NF-TYPE CL-SC2)) ; one of (GCC LW-SC CL-SC CL-SC2 XCC XCCCL)
 (%include "rule/nestfunc-setrule.sh")
 
 (deftype size-t long)
 
-(def (h i g) (fn int int (ptr (lightweight int int)))
+(def (h i g) (fn int int (ptr (NESTFN int int)))
   (return (g (g i))))
 
 (def (foo a) (fn int int)
   (def x int 0)
   (def y int 0)
-  (def (g1 b) (lightweight int int)
+  (def (g1 b) (NESTFN int int)
     (inc x)
+    (csym::printf "g1_in_foo: a=%d b=%d x=%d y=%d~%" a b x y)
     (return (+ a b)))
+  (csym::printf "foo: a=%d x=%d y=%d~%" a x y)
   (= y (h 10 g1))
+  (csym::printf "foo: a=%d x=%d y=%d~%" a x y)
   (return (+ x y))) 
 
-(def (main) (fn int)
+(def (main) (fn int void)
   (return (foo 1)))

@@ -22,9 +22,9 @@
 ;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 ;;; SUCH DAMAGE.
 
-;;; Header file for LW-SC, automatically included by nestfunc.rule
-
-;; (c-exp "#include<stdio.h>")
+;;; Header file for LW-SC
+(c-exp "#include<stdio.h>")
+(c-exp "#include<pthread.h>")
 
 ;;; 追加する型、マクロ定義
 (deftype nestfn-t (ptr (fn (ptr char) (ptr char) (ptr void))))

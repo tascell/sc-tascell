@@ -893,7 +893,7 @@
   ((#?-)       (values "-" 2 ~0))
   ((#?bit-not) (values "~" 2))
   ((#?not)     (values "!" 2))
-  ((#?sizeof)  (values "sizeof" 2))
+  ((#?sizeof)  (values "sizeof " 2))
   )
 
 (defrule cast-operator sc2c
