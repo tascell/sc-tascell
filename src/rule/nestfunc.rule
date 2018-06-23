@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008-2015 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; Copyright (c) 2008-2018 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,10 @@
 (define-ruleset nestfunc (sc0t-to-sc0t)
   (thread-creator ~pthread-create)
   (estack-size #.(* 4 65536))           ; 明示的スタックのサイズ（sizeof char）
-  (all-in-estack nil)                   ; 局所変数などを全て明示的スタックに置く(= CL-SC)
+  (stack-implementation :clsc2)         ; one of (:lwsc :clsc clsc2)
+  ;; * lwsc: allocate structure chain outside execution stack, store values there only when temporary backtracking
+  ;; * clsc: allocate structure chain outside execution stack, store values always there
+  ;; * clsc2: allocate structure chain inside execution stack, store values always there
   (use-builtin-expect t)                ; GCCの __builtin_expectを使って最適化する
   )
 
@@ -46,6 +49,7 @@
        ~((%include "rule/nestfunc.sh")
          ,@(lw:make-all-frame-decls)
          ,@ret) )))
+
   )
 
 ;;; declaration
@@ -54,9 +58,12 @@
    (lw:with-external-decl
      (lw:with-new-block
        (with1 ret (call-next-rule)
-         ~(%splice ,.(lw:flush-frame-defs) ,. (lw:flush-static-var-defs) ,.(lw:flush-nestfunc-defs)
+         ~(%splice ,.(lw:flush-frame-defs) 
+                   ,.(lw:flush-static-var-defs)
+                   ,.(lw:flush-nestfunc-defs)
                    ,.(lw:flush-local-decls)
                    ,ret) )))))
+
 
 (extendrule inlined-declaration nestfunc
   ;; variable
@@ -87,17 +94,18 @@
              ~(%splice)
            decl-ret ))))))
   ;; function(top-level)
-  ;; ・main以外の第一引数にespを追加
-  ;; ・esp,estack(main), new-espの付加。call-idの追加
-  ;; ・入れ子関数(closure-t)を呼ぶ関数ではargpを付加
-  ;; ・復帰処理の挿入
-  ;; ・efp, esp, new-expの初期化;
-  ;; ・関数の引数の保存用変数を付加
-  ;; ・関数の結果の保存用変数を付加 (<- tmp.ruleで)
+  ;; ・main以外の第一引数にespを追加 (:lwsc,:clsc)
+  ;; ・esp, new-espの付加 (new-espは:lwscのみ)
+  ;; ・main関数ではestackを追加 (:lwsc,:clsc,:clsc2．:clsc2では入れ子関数の引数置き場としてのみ使う）
+  ;; ・call-idの追加 (:lwsc,:clsc)
+  ;; ・入れ子関数を呼ぶ関数ではargpを付加 (:lwsc,:clsc,:clsc2)
+  ;; ・復帰処理の挿入 (:lwsc,:clsc)
+  ;; ・efp, esp, new-espの初期化 (new-espは:lwscのみ)
+  ;; ・関数の引数の保存用変数を付加 (:lwsc)
+  ;; ・関数の結果の保存用変数を付加 (<- temp.ruleで)
   ;; ・フレーム情報構造体を付加して構造体の定義を外に出す
-  ;; ・tmp_esp, argp, call-id, その他ローカル変数の追加
-  ;; ・入れ子関数の定義を外に出して、関数内ではclosure-t型に
-  ;; ・関数呼び出しをwhile( tmp-res = ... ){ <保存>,return,<復帰> } に変える。
+  ;; ・入れ子関数の定義を外に出す．入れ子関数の型はclosure-t型(nestfunc.shで定義）に変換
+  ;; ・関数呼び出しをwhile( tmp-res = ... ){ <保存>,return,<復帰> } に変える (:lwsc, :clsc)
   ;;   mainとその他では{ ... } のとこの処理が違う
   (#?(,scs[storage-class-specifier] (,fid[identifier] ,@id-list)
           (,fn-tag[function-tag] ,@texp-list) ,@body)
@@ -107,11 +115,16 @@
      ;; Cの関数ならなにもしない
      (when (or (cid-p fid) (eq 'csym::fn fn-tag))
        (return-from inlined-declaration x))
-     (let* ((thr-orig-p (lw:thread-origin-p fid)) ; mainや生成されたスレッドの最初の関数には追加引数なし
-            (add-arg-p (not thr-orig-p))
-            (new-id-list (if add-arg-p (cons ~esp id-list) id-list)) ; 追加引数 esp
+     (let* ((thr-orig-p (lw:thread-origin-p fid)) ; mainまたは生成されたスレッドの最初の関数か？
+            (add-arg-p (not thr-orig-p))          ; argp（入れ子関数呼出時の作業ポインタ）の定義有無
+            (add-esp-p add-arg-p)                 ; 追加引数esp（estack上のスタックポインタ）の有無
+            (new-id-list (if add-esp-p            ; 変換後の引数名リスト
+                             (cons ~esp id-list)
+                             id-list))
             (texp-rets (mapcar #'type-expression! texp-list))
-            (new-texp-list (if add-arg-p (insert1 ~(ptr char) texp-rets 1) texp-rets))) ; 追加引数
+            (new-texp-list (if add-esp-p 
+                               (insert1 ~(ptr char) texp-rets 1)
+                               texp-rets))) ; 追加引数
        ;; 関数ポインタを局所変数として登録
        (unless (lw:top-level-p)
          (lw:finfo-add-local fid ~(ptr (,fn-tag ,@new-texp-list)) :var))
@@ -128,7 +141,6 @@
          (loop for argid in id-list
              as argtype in (cdr texp-rets)
              do (lw:finfo-add-local argid argtype :var))
-
          ;; 先頭の宣言の追加
          (progn
            ;; estack: 明示的スタック
@@ -140,18 +152,27 @@
            ;; esp-flag: espの下位2ビットのフラグ部分
            ;;   最下位 -- スタック積み直し中フラグ
            ;;   下から2つめ -- 未使用
-           (when (and (not thr-orig-p) (not lw:*all-in-estack*))
+           (when (and (not thr-orig-p)
+                      (eq lw:*stack-implementation* :lwsc))
              (push (lw:finfo-add-local ~esp-flag ~size-t :system
                                        :init ~(bit-and (cast size-t esp) 3))
                    add-decl-list))
-           ;; new-esp: espにフラグを追加したりして関数呼出しの引数にする
-           (unless lw:*all-in-estack*
+           ;; new-esp: espにフラグを追加したりして関数呼出しの追加引数となる値
+           (when (eq lw:*stack-implementation* :lwsc)
              (push (lw:finfo-add-local ~new-esp ~(ptr char) :system) add-decl-list))
            ;; efp: 明示的スタックフレームポインタ
-           (push (lw:finfo-add-local ~efp ~(ptr (struct ,(lw:get-frame-name fid))) :system)
-                 add-decl-list))
-
-         (with* (body-ret (function-body body)
+           (ecase lw:*stack-implementation*
+             ((:lwsc :clsc)   ; estack上へのポインタ
+              (push (lw:finfo-add-local ~efp ~(ptr (struct ,(lw:get-frame-name fid))) :system)
+                    add-decl-list))
+             ((:clsc2)        ; 実行スタック上にframe structureを確保
+              (pushs (lw:finfo-add-local ~my-frame ~(struct ,(lw:get-frame-name fid)) :system)
+                     (lw:finfo-add-local ~efp ~(ptr (struct ,(lw:get-frame-name fid))) :system)
+                     add-decl-list))))
+         
+         ;; ここでbodyの解析・変換を行う．
+         ;; 変換結果を宣言部（body-ret-decl）と本体（body-ret-body）に分離
+         (with* (body-ret (function-body body)   
                  (body-ret-decl body-ret-body) (list-until body-ret ~%%stat :key #'car))
            ;; 入れ子関数callが存在した場合，
            ;; argp (入れ子関数call時のestack上にある引数へのポインタ)の宣言を追加
@@ -159,23 +180,25 @@
              (push (lw:finfo-add-local ~argp ~(ptr char) :system) add-decl-list))
            ;; 最終的に必要な宣言を追加
            (setq body-ret-decl
-             (nconc body-ret-decl
-                    (nreverse add-decl-list)
-                    ;; スタック積み直し時用の復帰処理
-                    (lw:make-resume lw:*current-func*) 
-                    ;; estackフレームポインタ初期化
-                    (lw:make-init-efp-esp lw:*current-func*) 
-                    (when lw:*all-in-estack*
-                      (nconc
-                       ;; CL-SC時，引数の値をestackに保存
-                       (lw:save-args-into-estack id-list (cdr texp-rets))
-                       ;; CL-SC時，入れ子関数をここで初期化（LW-SCと違って遅延されない）
-                       (lw:make-normalize-nf)))))
+             (append body-ret-decl
+                     (nreverse add-decl-list)
+                     ;; スタック積み直し時および非局所goto時用の復帰処理
+                     (lw:make-resume lw:*current-func*) 
+                     ;; estackフレームポインタ初期化
+                     (lw:make-init-efp-esp lw:*current-func*) 
+                     (when (member lw:*stack-implementation* '(:clsc :clsc2))
+                       (append
+                        ;; (:clsc,:clsc2) 引数の値をestackに保存
+                        (lw:save-args-into-estack id-list (cdr texp-rets))
+                        ;; (:clsc,:clsc2) 入れ子関数をここで初期化（:lwscではBT時に遅延初期化）
+                        (lw:make-normalize-nf)))))
+           ;;; !!!入れ子関数から参照されない変数の最適化をやるならここ!!!
            ;; フレーム構造体の定義を作って登録
            (lw:add-frame-def (lw:make-frame-def lw:*current-func*))
            ;; 関数定義の変換結果
            ~(,scs (,fid ,@new-id-list) (,fn-tag ,@new-texp-list)
-                  ,.body-ret-decl ,@body-ret-body) )))))
+                  ,.body-ret-decl ,@body-ret-body) )
+         ))))
 
   ;; lightweightの関数宣言
   ;; ・引数と返り値の型を変更。
@@ -200,19 +223,25 @@
          (lw:get-frame extid)
          ;; 先頭の宣言の追加
          (progn
-           ;; new-esp: esp + 呼出し先の関数に渡す下位2ビットフラグ
-           (unless lw:*all-in-estack*   ; LW-SCのみ
+           ;; new-esp: esp + 呼出し先の関数に渡す下位2ビットフラグ (:lwsc)
+           (when (eq lw:*stack-implementation* :lwsc)
              (push (lw:finfo-add-local ~new-esp ~(ptr char) :system) add-decl-list) )
-           ;; efp: etack上のフレームポインタ
-           (push (lw:finfo-add-local ~efp ~(ptr (struct ,(lw:get-frame-name extid))) :system)
-                 add-decl-list)
-           ;; xfp: 親関数のetack上のフレームポインタ
+           ;; efp: frame structureへのポインタ
+           (ecase lw:*stack-implementation*
+             ((:lwsc :clsc)   ; estack上へのポインタ
+              (push (lw:finfo-add-local ~efp ~(ptr (struct ,(lw:get-frame-name extid))) :system)
+                    add-decl-list))
+             ((:clsc2)        ; 実行スタック上にframe structureを確保
+              (pushs (lw:finfo-add-local ~my-frame ~(struct ,(lw:get-frame-name extid)) :system)
+                     (lw:finfo-add-local ~efp ~(ptr (struct ,(lw:get-frame-name extid))) :system)
+                     add-decl-list)))
+           ;; xfp: 親関数のframe structureへのポインタ
            (push (lw:finfo-add-local ~xfp
                                      ~(ptr (struct ,(lw:get-frame-name parent-name)))
                                      :var :init ~xfp0)
                  add-decl-list)
-           ;; esp-flag: espの下位2ビットフラグ
-           (unless lw:*all-in-estack*   ; LW-SCのみ
+           ;; esp-flag: espの下位2ビットフラグ (:lwsc)
+           (when (eq lw:*stack-implementation* :lwsc)
              (push (lw:finfo-add-local ~esp-flag ~size-t :system
                                        :init ~(bit-and (cast size-t esp) 3))
                    add-decl-list) )
@@ -225,10 +254,13 @@
              for argid in id-list
              as argtp in (cdr texp-rets)
              do (with1 decl (lw:finfo-add-local argid argtp :var)
-                  (unless lw:*all-in-estack* ; CL-SCではestackを直接参照するので不要
+                  (when (eq lw:*stack-implementation* :lwsc) ; :clsc[2]では後でframe structureに直接保存
                     (push ~(,@decl (pop-arg ,argtp parmp))
                           add-decl-list) )))
 
+
+         ;; ここでbodyの解析・変換を行う．
+         ;; 変換結果を宣言部（body-ret-decl）と本体（body-ret-body）に分離
          (with1 body-ret (function-body body)
            (multiple-value-bind (body-ret-decl body-ret-body)
                (list-until body-ret ~%%stat :key #'car)
@@ -244,18 +276,19 @@
                       (lw:make-resume lw:*current-func*)
                       ;; estackフレームポインタ初期化
                       (lw:make-init-efp-esp lw:*current-func*)
-                      (when lw:*all-in-estack*
-                        (nconc
-                         ;; CL-SC時，引数の値をestackに保存
+                      (when (member lw:*stack-implementation* '(:clsc :clsc2))
+                        (append
+                         ;; (:clsc,:clsc2) 引数の値をestackに保存
                          (lw:save-args-into-estack id-list (cdr texp-rets))
-                         ;; CL-SC時，入れ子関数をここで初期化（LW-SCと違って遅延されない）
-                         (lw:make-normalize-nf)))) )
+                         ;; (:clsc,:clsc2) 入れ子関数をここで初期化（:lwscではBT時に遅延初期化）
+                         (lw:make-normalize-nf)))))
              ;; フレーム構造体定義を作って登録
              (lw:add-frame-def (lw:make-frame-def lw:*current-func*))
              ;; 関数定義をトップレベルに
              (lw:add-nestfunc-def
               ~(,scs (,extid esp xfp0) (fn (ptr char) (ptr char) (ptr void))
-                     ,.body-ret-decl ,@body-ret-body (return 0))) )))
+                     ,.body-ret-decl ,@body-ret-body (return 0))) ))
+         )
        ;; 入れ子関数はestack内のものを参照するので親関数内での宣言は不要
        ~(%splice) )))
   )
@@ -268,17 +301,16 @@
 
 ;;; Function body & block item:
 ;;; * with-new-blockの追加
-;;; * 各block-itemにdeclかstatかを識別できるタグを付与
+;;; * 各block-itemにdeclかstatかを識別できるタグ(%%decl/%%stat)を付与
 (defrule function-body nestfunc
   (#?({:attr ,f-attr} { ,r-decl[register-declarator] } ,@bi-list)
-
    (lw:with-new-block
        (with* (attr-ret (if-pattern-variable f-attr (list ~(:attr ,(function-attribute! f-attr))))
                regdecl-ret (if-pattern-variable r-decl (list (get-retval r-decl)))
                body-ret (loop for bi in bi-list
                             nconc (with1 (bi-ret tag) (block-item bi)
                                     (list tag bi-ret))))
-         ~(,.(lw:flush-local-decls) ,.attr-ret ,.regdecl-ret ,@body-ret) )))
+         ~(,@(lw:flush-local-decls) ,@attr-ret ,@regdecl-ret ,@body-ret) )))
   )
 
 (defrule block-item nestfunc
@@ -290,11 +322,12 @@
   ;; label
   (#?(label ,id ,stat)
    ;; 局所ラベルとして宣言済のラベルに対して、
-   ;; 入れ子関数からgotoで脱出してきたとき用の復帰情報を付与
-   (multiple-value-bind (lab-level llab-info)
-       (lw:finfo-find-local-label id)
-     (when (and lab-level (= lab-level 0))
-       (rplacd llab-info (lw:make-frame-resume lw:*current-func*))))
+   ;; 入れ子関数からgotoで脱出してきたとき用の復帰情報を付与 (:lwsc,:clsc)
+   (when (member lw:*stack-implementation* '(:lwsc :clsc))
+     (multiple-value-bind (lab-level llab-info)
+         (lw:finfo-find-local-label id)
+       (when (and lab-level (= lab-level 0))
+         (rplacd llab-info (lw:make-frame-resume lw:*current-func*)))))
    (call-next-rule))
   ;; goto
   (#?(goto ,id)
@@ -326,9 +359,14 @@
    (with1 exp-ret (expression! exp)
      (if (lw:finfo-parent-func lw:*current-func*) ; 入れ子関数の場合
          ~(begin
-           (= (mref-t ,(lw:finfo-ret-type lw:*current-func*) efp) ,exp-ret)
-           (return 0))             ; return自体の返り値は正常終了を示す0
-       ~(return ,exp-ret) )))           ; 入れ子関数でなければ普通にreturn
+            ;; estack上の関数フレームの先頭(:lwsc,:clsc)あるいはestackの先頭(:clsc2)に返り値をセット
+            ,(ecase lw:*stack-implementation*
+               ((:lwsc :clsc)
+                ~(= (mref-t ,(lw:finfo-ret-type lw:*current-func*) efp) ,exp-ret))
+               ((:clsc2)
+                ~(= (mref-t ,(lw:finfo-ret-type lw:*current-func*) esp) ,exp-ret)) )
+            (return 0))             ; return自体の返り値は正常終了を示す0
+         ~(return ,exp-ret) )))           ; 入れ子関数でなければ普通にreturn
   )
 
 ;;; expression (with type-info)
@@ -346,8 +384,8 @@
 
 (extendrule expression nestfunc
   ;; thread-create (typically pthread-create)
-  ;; thread-origin 関数を中継してstart-routineを呼びだす．
-  ;; thread-origin は新しいestackなどを用意するライブラリ関数．
+  ;; thread-origin関数(nestfunc.scで定義)を中継してstart-routineを呼びだす．
+  ;; thread-originでは新しいestackを用意するなどの処理
   ((#?#1=(the ,texp (call (the ,texp-p ,exp-f[thread-creator])
                           ,thread ,attr ,start-routine ,arg))
     #?(the ,texp0 (= (the ,texp1 ,id) #1#)) )
@@ -382,6 +420,14 @@
          (return-from expression (if-pattern-variable id
                                                       ~(= ,id-ret ,r-exp)
                                                       r-exp)) ))
+     ;; :clsc2 なら引数espの追加のみを行う
+     (when (eq lw:*stack-implementation* :clsc2)
+       (with1 r-exp ~(the ,texp (call ,fexp-ret esp ,@exp-rets))
+         (return-from expression (if-pattern-variable id
+                                                      ~(= ,id-ret ,r-exp)
+                                                      r-exp)) ))
+     
+     (assert (member lw:*stack-implementation* '(:lwsc :clsc)))
      (let* ((decl-prev-tmpid-list
              ;; 副作用を何回も起こさないように関数ポインタと引数の値を一時変数に保存
              ;; そのために必要な宣言，先行の式，一時変数名をcollect
@@ -392,14 +438,17 @@
                  else
                  collect (with (id-tmp (generate-id "nf_tmp")
                                 type-tmp (array2ptr (gettype exp-ret)))
-                           (list (lw:finfo-add-local id-tmp type-tmp :var)
+                           (list (lw:finfo-add-local id-tmp type-tmp
+                                                     (if (eq lw:*stack-implementation* :lwsc)
+                                                         :var
+                                                         :tmp))
                                  ~(= ,id-tmp ,fexp-ret)
                                  id-tmp)) ))
             (decl-list (remove nil (mapcar #'first decl-prev-tmpid-list)))
             (prev-list (remove nil (mapcar #'second decl-prev-tmpid-list)))
             (tmpid-list (mapcar #'third decl-prev-tmpid-list))
             (fcall-exp ~(call ,(car tmpid-list)
-                              ,(if lw:*all-in-estack* ~esp ~new-esp) ; 追加引数
+                              ,(if (eq lw:*stack-implementation* :lwsc) ~new-esp ~esp) ; 追加引数
                               ,@(cdr tmpid-list)))
             (eq-exp (if-pattern-variable id ; 返り値による正常終了判定
                         ~(== (= ,id-ret ,fcall-exp) (SPECIAL ,rettype-ret))))
@@ -407,7 +456,8 @@
                              (mref-t (ptr char) esp))
                           0)))
        (declare (ignorable eq-exp))
-       (unless lw:*all-in-estack* (push ~(= new-esp esp) prev-list))
+       (when (eq lw:*stack-implementation* :lwsc)
+         (push ~(= new-esp esp) prev-list))
        (dolist (decl decl-list) (lw:add-local-decl decl))
        ;; 以下が返り値（変換結果）
        ~(begin
@@ -425,7 +475,7 @@
            ;; 以下が実行される
            ,@(cond
               ;; CL-SC時: gotoによる非局所脱出の面倒を見る
-              (lw:*all-in-estack*
+              ((eq lw:*stack-implementation* :clsc)
                ~((if (< (cast (ptr char) (fref efp -> tmp-esp))
                         (cast (ptr char) efp))
                      ,(if (lw:finfo-parent-func lw:*current-func*)
@@ -468,17 +518,19 @@
                    ,@(lw:make-frame-resume)
                    ) ))
            ;; LW-SC時，main/main以外共通（Cスタック積み直しフラグを立てる）
-           ,@(unless lw:*all-in-estack*
+           ,@(when (eq lw:*stack-implementation* :lwsc)
                ~((= new-esp (+ esp 1)))))) )))
   ;; lightweightのfunction-call
   ;; * argp (estack上の引数の場所へのポインタ)をpush
   ;; * 引数の値も順にpush
   ;; * フレーム情報の保存．resume用のラベル設置，およびresume処理．
   ((#?#3=(the ,texp (call (the (ptr (lightweight ,@texp-list)) ,fexp) ,@exp-list))
-    #?(the ,texp0 (= (the ,texp1 ,id) #3#)) )
-   (with* (return-p (not (or (lw:thread-origin-p (lw:finfo-name lw:*current-func*))
-                              (lw:finfo-parent-func lw:*current-func*)
-                              lw:*all-in-estack*))
+         #?(the ,texp0 (= (the ,texp1 ,id) #3#)) )
+   (with* (;; return-p が t ならバックトラックを開始する
+           ;; nilならこの場で入れ子関数を呼び出す
+           return-p (not (or (lw:thread-origin-p (lw:finfo-name lw:*current-func*))
+                             (lw:finfo-parent-func lw:*current-func*)
+                             (member lw:*stack-implementation* '(:clsc :clsc2))))
            fexp-ret (expression! ~(the (ptr (lightweight ,@texp-list)) ,fexp))
            exp-rets (mapcar #'expression! exp-list)
            id-ret  (if-pattern-variable id (expression! ~(the ,texp1 ,id)))
@@ -486,11 +538,11 @@
            ;; （global化した）入れ子関数ポインタの値を求めて一時変数に保存
            (if (lw:simple-exp-p fexp-ret t) ; 副作用がないことが明らかな場合
                (values nil nil fexp-ret)
-             (with* (fp-type (type-expression! ~(ptr (lightweight ,@texp-list)))
-                     new-id (generate-id "nf_tmp_fp"))
-               (values (lw:finfo-add-local new-id fp-type :system)
-                       ~(= ,new-id ,fexp-ret)
-                       new-id))))
+               (with* (fp-type (type-expression! ~(ptr (lightweight ,@texp-list)))
+                               new-id (generate-id "nf_tmp_fp"))
+                      (values (lw:finfo-add-local new-id fp-type :system)
+                              ~(= ,new-id ,fexp-ret)
+                              new-id))))
      (declare (ignorable id-ret))
      ;; 関数内に入れ子関数が存在する（argpが必要である）フラグ
      (setf (lw:finfo-argp lw:*current-func*) t)
@@ -498,57 +550,64 @@
      (when fp-decl (lw:add-local-decl fp-decl))
      ;; 返り値
      ~(begin
-       ,.(unless return-p
+       ,.(when (and (not return-p)
+                    (not (eq lw:*stack-implementation* :clsc2)))
            (list ~(def goto-fr (ptr char)) ))
        ,.(when fp-prev (list fp-prev))
        (= argp (aligned-add esp (sizeof (ptr char))))
        ;; 引数を順にpush（先頭の引数がtopにくるように）
        ,.(loop for exp-ret in (reverse exp-rets)
              collect (with1 type (gettype exp-ret) ~(push-arg ,type ,exp-ret argp)))
-       ;; 入れ子関数へのポインタをargpに置く
+       ;; 入れ子関数(closure-t構造体)へのポインタをargpに置く
        (= (mref-t (ptr closure-t) argp) ,fp-id)
        ;; 入れ子関数の正規化（CL-SCでは関数の先頭ですでにやっている）
-       ,@(unless lw:*all-in-estack* (lw:make-normalize-nf))
+       ,@(when (eq lw:*stack-implementation* :lwsc) (lw:make-normalize-nf))
        ;; フレーム情報（今実行中の関数の局所変数や引数）の保存
        ,@(lw:make-frame-save)
        ,@(when return-p
            ~((= (fref efp -> argp) argp) ; 後で返り値を獲得するため
              (= (fref efp -> tmp-esp) argp))) ; returnしながら伝えるため
-       ,@(if return-p
-             ;; LW-SC時，main以外の関数
-             ~(;; call-idの更新．入れ子関数実行後この場所に戻ってこれるように
-               (= (fref efp -> call-id) ,(lw:finfo-next-call-id))
-               ;; return文（Cスタックの巻き戻し開始）
-               ,(lw:make-suspend-return)
-               ;; 復帰位置のラベル．入れ子関数の実行後，ここにgotoで跳んでくる．
-               (label ,(lw:finfo-add-resume-label) nil)
-               ;; Cフレーム情報の復元
-               ,@(lw:make-frame-resume))
-             ;; CL-SC時，またはLW-SC時のmainおよび入れ子関数
-             ~((= goto-fr (lw-call argp))
-               (if goto-fr              ; 正常終了 or gotoによる非局所脱出のチェック
+       ,@(cond 
+           ;; LW-SC時，main以外の関数
+           (return-p
+            ~(;; call-idの更新．入れ子関数実行後この場所に戻ってこれるように
+              (= (fref efp -> call-id) ,(lw:finfo-next-call-id))
+              ;; return文（Cスタックの巻き戻し開始）
+              ,(lw:make-suspend-return)
+              ;; 復帰位置のラベル．入れ子関数の実行後，ここにgotoで跳んでくる．
+              (label ,(lw:finfo-add-resume-label) nil)
+              ;; Cフレーム情報の復元
+              ,@(lw:make-frame-resume)) )
+           ;; CL-SC2時
+           ((eq lw:*stack-implementation* :clsc2)
+            (list ~(lw-call argp)) )
+           ;; CL-SC時，またはLW-SC時のmainおよび入れ子関数
+           (t
+            ~((= goto-fr (lw-call argp))
+              (if goto-fr              ; 正常終了 or gotoによる非局所脱出のチェック
                                         ; gotoなら，goto-frにはジャンプ先関数のestack上のフレームポインタ
-                   (if (< (cast (ptr char) goto-fr)
-                          (cast (ptr char) efp))
-                       ;; 自分より前の関数がジャンプ先
-                       ,(if (lw:finfo-parent-func lw:*current-func*)
-                            ~(return goto-fr)
-                            ~(begin
+                  (if (< (cast (ptr char) goto-fr)
+                         (cast (ptr char) efp))
+                      ;; 自分より前の関数がジャンプ先
+                      ,(if (lw:finfo-parent-func lw:*current-func*)
+                           ~(return goto-fr)
+                           ~(begin
                               (= (fref efp -> tmp-esp) goto-fr)
                               ,(lw:make-suspend-return)))
-                     ;; 自分がジャンプ先
-                     ;; -> 関数の先頭にある swtich-case-gotoによって所望の場所にジャンプ
-                     (begin
-                      (= (fref efp -> tmp-esp) 0)
-                      (goto LGOTO))))
-               ;; 正常終了なら続きをやる．
-               ;; LW-SCでもmainのフレームは潰されていないが，
-               ;; 入れ子関数によって書き換えられているかもしれないのでresumeは必要．
-               ,@(unless lw:*all-in-estack* (lw:make-frame-resume)))
-             )
+                      ;; 自分がジャンプ先
+                      ;; -> 関数の先頭にある swtich-case-gotoによって所望の場所にジャンプ
+                      (begin
+                        (= (fref efp -> tmp-esp) 0)
+                        (goto LGOTO))))
+              ;; 正常終了なら続きをやる．
+              ;; LW-SCでもmainのフレームは潰されていないが，
+              ;; 入れ子関数によって書き換えられているかもしれないのでresumeは必要．
+              ,@(when (eq lw:*stack-implementation* :lwsc) (lw:make-frame-resume)))
+            ) )
        ;; 返り値をestackから獲得
        ,@(if-pattern-variable id
-             ~((= ,id-ret (mref-t ,texp1 ,(if return-p ~(fref efp -> argp) ~argp)) ))))))
+           ~((= ,id-ret (mref-t ,texp1 ,(if return-p ~(fref efp -> argp) ~argp)) ))) )))
+   
   ;; 識別子：
   ;; ＊ 入れ子関数内における親関数の変数への参照は xfp->idの形に置き換える
   ;; ＊ ポインタを獲得しているローカル変数への参照は efp->id に置き換える
