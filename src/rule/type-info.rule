@@ -179,7 +179,7 @@
 (defrule expression type-info
   ;; identifier
   ((#?,id[identifier])
-   ~(the ,(type:assoc-vartype id :variable) ,id) )
+   ~(the ,(type-expression (type:assoc-vartype id :variable)) ,id) )
   ;; constant
   ((#?,num[#'integerp])
    ~(the int ,num) )
@@ -215,7 +215,7 @@
             (t
              (ierror "~S: ~S is not struct or union"
                      x ~(fref ,exp1 ,@(ldiff id-list id-rem))))))
-     ~(the ,ret-type
+     ~(the ,(type-expression ret-type)
            (fref ,exp1-with-type ,@id-list))))
   ;; compound literal
   ((#?(init ,texp ,cmpd-init))
@@ -238,7 +238,7 @@
    (multiple-value-bind (datum kind) (type:assoc-vartype id)
      ~(the int (sizeof ,(if (eq :typename kind)
                             (type-expression! id)
-                          ~(the ,datum ,id))))) )
+                          ~(the ,(type-expression datum) ,id))))) )
   (#?(sizeof ,texp[type-expression])
    ~(the int (sizeof ,(get-retval texp))) )
   (#?(sizeof ,exp[expression])
@@ -303,8 +303,8 @@
          (type:add-flow-printed fexp)
          (iformat "-> ~S~%" fexp)))
      ;; これが変換結果
-     ~(the ,(second (second fn-type))
-           (call (the ,fn-type ,(third fexp-with-type))
+     ~(the ,(type-expression (second (second fn-type)))
+           (call (the ,(type-expression fn-type) ,(third fexp-with-type))
                  ,@(mapcar #'expression! arg-list))) ))
   ;;
   )
