@@ -48,7 +48,10 @@
   (#?(,@declaration-list)
    (lw:with-nestfunc-environment
      (with1 ret (call-next-rule)
-       (lw:evaluate-all-promises        ; 未確定の変換結果（関数）を確定させる
+       ;; この規則セットでは，コードの走査時に変換結果を確定できないものについて
+       ;; 変換結果を無引数関数としている．evaluate-allpromisesで関数をその実行結果に
+       ;; 置き換えることで変換結果を確定させる
+       (lw:evaluate-all-promises
         ~((%include "rule/nestfunc.sh")
           ,@(lw:make-all-frame-decls)
           ,@ret) ))))
