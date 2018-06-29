@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; Copyright (c) 2008-2018 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -33,17 +33,17 @@
 (def (h i g) (fn int int (ptr (NESTFN int int)))
   (return (g (g i))))
 
-(def (foo a) (fn int int)
+(def (foo a b) (fn int int int)
   (def x int 0)
   (def y int 0)
   (def (g1 b) (NESTFN int int)
     (inc x)
-    (csym::printf "g1_in_foo: a=%d b=%d x=%d y=%d~%" a b x y)
+    (csym::printf "g1_in_foo: a=%d g1_in_foo:b=%d x=%d y=%d~%" a b x y)
     (return (+ a b)))
-  (csym::printf "foo: a=%d x=%d y=%d~%" a x y)
+  (csym::printf "foo: a=%d foo:b=%d x=%d y=%d~%" a b x y)
   (= y (h 10 g1))
-  (csym::printf "foo: a=%d x=%d y=%d~%" a x y)
+  (csym::printf "foo: a=%d foo:b=%d x=%d y=%d~%" a b x y)
   (return (+ x y))) 
 
 (def (main) (fn int void)
-  (return (foo 1)))
+  (return (foo 1 10)))

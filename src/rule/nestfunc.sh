@@ -34,7 +34,7 @@
   (def fr (ptr void)))
 
 (%defmacro SPECIAL (tp)
-  `(- (cast ,tp 0) 1))
+  `(cast ,tp (cast long -1)))
 
 ;; (deftype size-t unsigned-int)
 (deftype Align-t double)

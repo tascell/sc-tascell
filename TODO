@@ -1,3 +1,4 @@
 CL-SC2:
 * マルチスレッド対応がまだ
-* 入れ子関数から参照されない変数はframe structureに置かないようにしたい
+* non-local goto
+* estackを使わない入れ子関数呼出し

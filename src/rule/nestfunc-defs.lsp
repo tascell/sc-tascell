@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; Copyright (c) 2008-2018 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -30,22 +30,26 @@
   (:export :*frame-alist* :*current-func* :*estack-size* :*stack-implementation*
            :make-finfo :top-level-p :finfo-name :finfo-parent-func :finfo-ret-type
            :finfo-argp :finfo-label-list :finfo-var-list :finfo-tmp-list
-           :finfo-nf-list :finfo-estack-var
+           :finfo-nf-list :finfo-ptr-var
            :with-nestfunc-environment
            :add-global-func
            :thread-origin-p :get-frame :get-frame-name
-           :estack-variable-p :static-variable-p :howmany-outer
+           :where-local-var :where-nf-object
+           :static-variable-p :howmany-outer
            :make-frame-def :make-all-frame-decls
            :with-external-decl :add-static-var-def :flush-static-var-defs
            :add-frame-def :add-nestfunc-def :flush-frame-defs :flush-nestfunc-defs
            :with-new-block :add-local-decl :flush-local-decls
            :with-block-item :add-precedent :flush-precedents
-           :finfo-add-local-label :finfo-add-local :finfo-next-call-id :finfo-add-resume-label
+           :finfo-add-local-label :finfo-add-local
+           :finfo-add-ref-by-nestfunc-var :mark-ref-by-nestfunc-xfp
+           :finfo-next-call-id :finfo-add-resume-label
            :finfo-add-nestfunc
-           :make-resume :make-init-efp-esp :make-parmp-init :save-args-into-estack :make-extid
+           :make-resume :make-init-efp-esp :make-parmp-init
+           :get-args-from-estack  :save-args-into-estack :make-extid
            :make-normalize-nf :make-frame-save :make-frame-resume
            :make-suspend-return :finfo-find-local-label :combine-ret-list
-           :simple-exp-p)
+           :simple-exp-p :evaluate-all-promises)
   (:use "RULE" "CL" "SC-MISC")
   (:shadow cl:declaration))
 (in-package "NESTED-FUNCTION")
@@ -66,11 +70,17 @@
   var-list                              ;通常のローカル変数のリスト＋関数のポインタ保存用
   tmp-list                              ;一時変数のリスト（call時の引数，入れ子関数ポインタ保存用）
   nf-list                               ;定義された入れ子関数のリスト ( <orig-name> . <ext-name> )
-  ;; :lwscでも，aliasを防ぐため常に明示的スタックに保管するローカル変数．list of <id(symbol)>
-  ;; ポインタを獲得される局所変数が該当
+  ;; ポインタを獲得された局所変数．list of <id(symbol)>
+  ;; :lwscでは，aliasを防ぐため常に明示的スタックに保管する．
   ;; var-listと重複．入れ子関数は nf-listで管理するのでここには入れない
   ;; search-ptr での収集方針により，var-listでないものも入り得る．
-  estack-var
+  ptr-var
+  ;; 型がarrayである局所変数．list of <id(symbol)>
+  ;; var-listと重複
+  array-var
+  ;; 入れ子関数から参照されている変数．list of <id(symbol)>
+  ;; var-list，nf-listと重複
+  ref-by-nestfunc-var
   ;; staticで定義された変数 (<orig-name> . <ext-name>)．var-listと重複．
   static-var
   ;; 局所ラベルのリスト(def ,id __label__)で定義。入れ子関数脱出用
@@ -148,12 +158,37 @@
   (and *current-func*
        (assoc id (finfo-var-list finfo) :test #'eq)))
 
-;;; 現関数（親は含まない）の明示的スタック（frame structure）に値があるlocal-variableか？
-(defun estack-variable-p (id &optional (finfo *current-func*)
-                                       (skip-lv-check nil)) ; local-variable-p のチェックを省略
-  (and (or skip-lv-check (local-variable-p id finfo))
-       (or (eq *stack-implementation* :clsc2) ; clsc2では全てのローカル変数がframe structureに保存
-           (member id (finfo-estack-var finfo) :test #'eq))))
+;;; local-variableがどこに保存されるかを以下の3種類の中から返す
+;;; :cstack -- Cの実行スタック
+;;; :estack -- 明示的スタックのframe structure
+;;; :either -- どちらか（通常cstackで，一時的に関数を抜けるときにestackに退避）
+(defun where-local-var (id finfo)
+  (ecase *stack-implementation*
+    ((:lwsc)
+     (if (or (member id (finfo-ptr-var finfo) :test #'eq)
+             (member id (finfo-array-var finfo) :test #'eq))
+         :estack
+         :either))
+    ((:clsc :clsc2)
+     (if (or (not (ruleset-param 'rule::opt-ref-by-nestfunc-var))
+             (member id (finfo-ref-by-nestfunc-var finfo) :test #'eq))
+         :estack
+         :cstack))
+    ))
+
+;;; 入れ子関数に相当するclosure-tオブジェクトがどこに保存されるかを以下の2種類の中から返す
+;;; :cstack -- Cの実行スタック
+;;; :estack -- 明示的スタックのframe structure
+(defun where-nf-object (id finfo)
+  (assert (member id (finfo-nf-list finfo) :test #'eq :key #'car))
+  (ecase *stack-implementation*
+    ((:lwsc) :estack)
+    ((:clsc :clsc2)
+     (if (or (not (ruleset-param 'rule::opt-ref-by-nestfunc-var))
+             (member id (finfo-ref-by-nestfunc-var finfo) :test #'eq))
+         :estack
+         :cstack))
+    ))
 
 ;;; 現関数（親は含まない）でstaticで定義されたlocal-variableか？
 ;;; そうなら，ext-idを返す．
@@ -173,9 +208,9 @@
               ((null curfunc)
                -1)
               ((local-variable-p id curfunc)
-               (values acc :var finfo it))
+               (values acc :var curfunc it))
               ((nestfunc-extid id curfunc)
-               (values acc :nestfunc finfo it))
+               (values acc :nestfunc curfunc it))
               (t (rec (finfo-parent-func curfunc) (1+ acc))) )))
     (rec finfo 0)))
 
@@ -183,12 +218,25 @@
 (defun make-frame-def (fi)
   (let* ((frm-info (get-frame (finfo-name fi)))
          (frame-name (frame-struct-info-name frm-info))
-         (member-list (append (finfo-var-list fi)
-                             ;; (finfo-tmp-list fi)
-                             (mapcar #'(lambda (x) (cons (car x) ~closure-t))
-                                     (finfo-nf-list fi))))
-         (member-defs (mapcar #'(lambda (x) ~(def ,(car x) ,(cdr x)))
-                              member-list)))
+         ;; 入れ子関数定義に相当するメンバー
+         (member-defs-nf (mapcar #'(lambda (x) 
+                                      ;; frame structureに入れるかの判断を保留
+                                      ;; （実際に呼び出される時点では保留しなくていいかもしれないが）
+                                     (let ((id (car x)))
+                                       #'(lambda ()
+                                           (ecase (where-nf-object id fi)
+                                             ((:cstack) ~(%splice))
+                                             ((:estack) ~(def ,id closure-t))))))
+                                 (finfo-nf-list fi)))
+         ;; 局所変数に相当するメンバー
+         (member-defs-var (mapcar #'(lambda (x)
+                                      ;; frame structureに入れるかの判断を保留
+                                      (let ((id (car x)) (texp (cdr x)))
+                                        #'(lambda ()
+                                            (ecase (where-local-var id fi)
+                                              ((:estack :either) ~(def ,id ,texp))
+                                              ((:cstack) ~(%splice))))))
+                                  (finfo-var-list fi))))
     ~(def (struct ,frame-name)
        ,@(when (member *stack-implementation* '(:lwsc :clsc))
            (list ~(def tmp-esp (ptr char))))       ; これは、絶対に先頭
@@ -196,7 +244,8 @@
            (list ~(def argp (ptr char))))
        ,@(when (member *stack-implementation* '(:lwsc :clsc))
            (list ~(def call-id int)))
-       ,@member-defs)))
+       ,@member-defs-nf
+       ,@member-defs-var)))
 
 ;;; 全ての関数フレーム構造体の宣言を作る
 (defun make-all-frame-decls ()
@@ -262,12 +311,11 @@
   ;; mode： :var or :temp
   (when finfo
     (case mode
-      ((:var)                           ; （estack-varでなければ）save/resume の対象
+      ((:var)                           ; 通常の局所変数
        (when (let ((ttexp (remove-type-qualifier texp)))
-               (or (and (listp ttexp)
-                        (eq ~array (car ttexp)))
-                   (member *stack-implementation* '(:clsc :clsc2))))
-         (pushnew id (finfo-estack-var finfo) :test #'eq))
+               (and (listp ttexp)
+                    (eq ~array (car ttexp))))
+         (pushnew id (finfo-array-var finfo) :test #'eq))
        (push (cons id texp) (finfo-var-list finfo)))
       ((:tmp)                           ; save/resumeの対象にならない(実質:systemと同じ？)
        (push (cons id texp) (finfo-tmp-list finfo)))
@@ -285,6 +333,18 @@
   (if init
       ~(def ,id ,texp ,init)
     ~(def ,id ,texp)))
+
+;;; *current-func* に入れ子関数から参照があった変数を追加
+(defun finfo-add-ref-by-nestfunc-var (id &optional (finfo *current-func*))
+  (pushnew id (finfo-ref-by-nestfunc-var finfo) :test #'eq))
+
+;;; （自分を含まない）n-up世代分の祖先のxfpにadd-ref-by-nestfunc-varを適用
+(defun mark-ref-by-nestfunc-xfp (n-up &optional (finfo *current-func*))
+  (let ((cur-finfo (finfo-parent-func finfo)))
+    (loop for i from 1 to n-up
+       do 
+         (finfo-add-ref-by-nestfunc-var ~xfp finfo)
+         (setq cur-finfo (finfo-parent-func finfo)))))
 
 ;;; *current-func* に入れ子関数情報を追加
 (defun finfo-add-nestfunc (id extid &optional (finfo *current-func*))
@@ -363,7 +423,12 @@
         (list ~(= efp (ptr my-frame)))))
      (when (and (member *stack-implementation* '(:clsc :clsc2))
                 (finfo-parent-func fi))
-       (list ~(= (fref efp -> xfp) xfp) )))
+       ;; xfpが（さらにネストした）入れ子関数から参照されているときのみ
+       ;; frame structureにxfpの値をコピー
+       (list #'(lambda ()
+                 (ecase (where-local-var ~xfp fi)
+                   ((:cstack) ~(%splice))
+                   ((:estack) ~(= (fref efp -> xfp) xfp)))))))
     ))
 
 ;;; parmp の初期値
@@ -375,16 +440,26 @@
         ((:lwsc)
          ~(bit-xor (cast size-t esp) esp-flag)))))
 
-;;; （:clsc,:clsc2）引数の値をestackに保存
+;;; 明示的スタック上にある入れ子関数の引数の値を獲得
+(defun get-args-from-estack (argid-list argtexp-list
+                             &optional (finfo *current-func*))
+  (mapcar #'(lambda (id texp)
+              ;; 保存先が局所変数かestack上かの判断は保留
+              ;; （expressionルールでpromiseを生成）
+              ~(= ,(expression! ~(the ,texp ,id)) (pop-arg ,texp parmp)))
+          argid-list
+          argtexp-list))
+
+;;; トップレベル関数の引数の値をframe structureに移動
 (defun save-args-into-estack (argid-list argtexp-list
                               &optional (finfo *current-func*))
-  ;; ちょっと手抜きで型情報 (the)なし
   (mapcar #'(lambda (id texp)
-              (if (finfo-parent-func finfo)
-                  ~(= (fref efp -> ,id) (pop-arg ,texp parmp)) 
-                ~(= (fref efp -> ,id) ,id) ))
+              #'(lambda ()
+                  (ecase (where-local-var id finfo)
+                    ((:cstack :either) ~(%splice))
+                    ((:estack) ~(= (fref efp -> ,id) ,id) ))))
           argid-list
-          argtexp-list) )
+          argtexp-list))
 
 ;;; 入れ子関数のid -> トップレベルに移した関数のid
 (defun make-extid (id &optional (pfinfo *current-func*))
@@ -394,7 +469,7 @@
 ;;; idが現在の関数（親は除く）内で定義された入れ子関数か？
 ;;; もしそうなら，ext-name を返す
 (defun nestfunc-extid (id &optional (finfo *current-func*))
-  (and *current-func*
+  (and finfo
        (cdr (assoc id (finfo-nf-list finfo) :test #'eq))))
 
 ;;; 入れ子関数の参照 -> etackへの参照
@@ -406,34 +481,41 @@
 ;;; 与えられた関数情報から入れ子関数を正規化するコードを作る
 (defun make-normalize-nf (&optional (fi *current-func*))
   (let ((nf-list (finfo-nf-list fi)))
-    (apply #'nconc
-           (mapcar
-            #'(lambda (x) 
-                ~( (= (fref efp -> ,(car x) fun)
-                      ,(cdr x))
-                   (= (fref efp -> ,(car x) fr)
-                      (cast (ptr void) efp)) ))
-            nf-list))))
+    (mapcar #'(lambda (x)
+                ;; closure-t構造体がcstack,estackのどちらにあるかの判断は保留
+                (let ((id (car x)) (extid (cdr x)))
+                  #'(lambda ()
+                      (let ((clobj
+                             (ecase (where-nf-object id fi)
+                               ((:cstack) id)
+                               ((:estack) ~(fref efp -> ,id)))))
+                        ~(%splice
+                          (= (fref ,clobj fun) ,extid)
+                          (= (fref ,clobj fr)
+                             (cast (ptr void) efp)) )))))
+            nf-list)))
 
 ;;; 与えられた関数情報からフレーム情報を保存するコードを作る
 (defun make-frame-save (&optional (fi *current-func*))
   (mapcar
    #'(lambda (x)
-       ~(= (fref efp -> ,(car x)) ,(car x)))
-   (remove-if #'(lambda (x)
-                  (or (estack-variable-p (car x) fi t)
-                      (eq ~closure-t (cdr x))))
-              (finfo-var-list fi))))
+       (let ((id (car x)) #+comment(texp (cdr x)))
+         #'(lambda ()
+             (ecase (where-local-var id fi)
+               ((:either)  ~(= (fref efp -> ,id) ,id))
+               ((:cstack :estack) ~(%splice))))))
+   (finfo-var-list fi)))
 
 ;;; 与えられた関数情報からフレーム情報を復活するコードを作る
 (defun make-frame-resume (&optional (fi *current-func*))
   (mapcar
-   #'(lambda (x) 
-       ~(= ,(car x) (fref efp -> ,(car x))))
-   (remove-if #'(lambda (x)
-                  (or (estack-variable-p (car x) fi t)
-                      (eq ~closure-t (cdr x))))
-              (finfo-var-list fi))))
+   #'(lambda (x)
+       (let ((id (car x)) #+comment(texp (cdr x)))
+         #'(lambda ()
+             (ecase (where-local-var id fi)
+               ((:either) ~(= ,id (fref efp -> ,id)))
+               ((:cstack :estack) ~(%splice))))))
+   (finfo-var-list fi)))
 
 ;;; 与えられた関数情報から関数中断用のreturnを生成するコードを作る
 (defun make-suspend-return (&optional (fi *current-func*))
@@ -497,3 +579,9 @@
         (sc-number exp)
         (sc-character exp)
         (sc-string exp))))
+
+;; 変換結果が関数の形で保留になっている箇所を確定する
+(defun evaluate-all-promises (x)
+  (map-all-atoms
+   #'(lambda (atm) (if (functionp atm) (evaluate-all-promises (funcall atm)) atm))
+   x))
