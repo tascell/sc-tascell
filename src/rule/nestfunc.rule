@@ -38,6 +38,8 @@
   ;; * clsc: allocate structure chain outside execution stack, store values always there
   ;; * clsc2: allocate structure chain inside execution stack, store values always there
   (use-builtin-expect t)                ; GCCの __builtin_expectを使って最適化する
+  (opt-ref-by-nestfunc-var t)           ; 入れ子関数から参照されない変数はframe structureに入れない最適化
+                                        ; (available only in :clsc,:clsc2)
   )
 
 (scr:require "NESTFUNC-DEFS")
@@ -46,10 +48,10 @@
   (#?(,@declaration-list)
    (lw:with-nestfunc-environment
      (with1 ret (call-next-rule)
-       ~((%include "rule/nestfunc.sh")
-         ,@(lw:make-all-frame-decls)
-         ,@ret) )))
-
+       (lw:evaluate-all-promises        ; 未確定の変換結果（関数）を確定させる
+        ~((%include "rule/nestfunc.sh")
+          ,@(lw:make-all-frame-decls)
+          ,@ret) ))))
   )
 
 ;;; declaration
@@ -86,13 +88,15 @@
        ~(%splice) )
       (t
        ;; local variable:
-       ;; 常にestack上で扱う変数は宣言せず，フレーム構造体への登録のみ行う
+       ;; 宣言を残すかどうかの判断を保留（値をframe structureへの参照とする場合は残さない）
        (with* (init-ret (if-pattern-variable init (initializer! init))
                decl-ret (lw:finfo-add-local id texp-ret :var :init init-ret))
-         ;; 例外（初期値が文字列 or 配列）
-         (if (lw:estack-variable-p id)
-             ~(%splice)
-           decl-ret ))))))
+         (let ((finfo lw:*current-func*))
+           #'(lambda ()
+               (ecase (lw:where-local-var id finfo)
+                 ((:estack) ~(%splice))
+                 ((:cstack :either) decl-ret))) )))
+      )))
   ;; function(top-level)
   ;; ・main以外の第一引数にespを追加 (:lwsc,:clsc)
   ;; ・esp, new-espの付加 (new-espは:lwscのみ)
@@ -133,11 +137,11 @@
          (return-from inlined-declaration ~(,scs (,fid ,@new-id-list) (,fn-tag ,@new-texp-list)) ))
        (let ((lw:*current-func* (lw:make-finfo
                                  :name fid :ret-type (car texp-rets)
-                                 :estack-var (search-ptr body)))
+                                 :ptr-var (search-ptr body)))
              (add-decl-list ()))        ;追加する宣言のリスト
-         ;; frame構造体を新規登録
+         ;; frame structureを新規登録
          (lw:get-frame fid)
-         ;; 引数をframeに追加
+         ;; 引数をframe情報に追加
          (loop for argid in id-list
              as argtype in (cdr texp-rets)
              do (lw:finfo-add-local argid argtype :var))
@@ -146,8 +150,8 @@
            ;; estack: 明示的スタック
            ;; esp (main以外では追加引数): 明示的スタックポインタ+下位2ビットフラグ
            (when thr-orig-p
-             (pushs (lw:finfo-add-local ~estack ~(array char ,lw:*estack-size*) :system)
-                    (lw:finfo-add-local ~esp ~(ptr char) :system :init ~estack)
+             (pushs (lw:finfo-add-local ~estack ~(array double ,lw:*estack-size*) :system)
+                    (lw:finfo-add-local ~esp ~(volatile (ptr char)) :system :init ~estack)
                     add-decl-list))
            ;; esp-flag: espの下位2ビットのフラグ部分
            ;;   最下位 -- スタック積み直し中フラグ
@@ -161,14 +165,18 @@
            (when (eq lw:*stack-implementation* :lwsc)
              (push (lw:finfo-add-local ~new-esp ~(ptr char) :system) add-decl-list))
            ;; efp: 明示的スタックフレームポインタ
-           (ecase lw:*stack-implementation*
-             ((:lwsc :clsc)   ; estack上へのポインタ
-              (push (lw:finfo-add-local ~efp ~(ptr (struct ,(lw:get-frame-name fid))) :system)
-                    add-decl-list))
-             ((:clsc2)        ; 実行スタック上にframe structureを確保
-              (pushs (lw:finfo-add-local ~my-frame ~(struct ,(lw:get-frame-name fid)) :system)
-                     (lw:finfo-add-local ~efp ~(ptr (struct ,(lw:get-frame-name fid))) :system)
-                     add-decl-list))))
+           (let* ((ef-type ~(struct ,(lw:get-frame-name fid)))
+                  (efp-type0 ~(ptr ,ef-type))
+                  (efp-type (if thr-orig-p ~(volatile ,efp-type0) efp-type0)))
+             (ecase lw:*stack-implementation*
+               ((:lwsc :clsc)   ; estack上へのポインタ
+                (push (lw:finfo-add-local ~efp efp-type :system)
+                      add-decl-list))
+               ((:clsc2)        ; 実行スタック上にframe structureを確保
+                (pushs (lw:finfo-add-local ~my-frame ef-type :system)
+                       (lw:finfo-add-local ~efp efp-type :system)
+                       add-decl-list))
+               )))
          
          ;; ここでbodyの解析・変換を行う．
          ;; 変換結果を宣言部（body-ret-decl）と本体（body-ret-body）に分離
@@ -192,7 +200,6 @@
                         (lw:save-args-into-estack id-list (cdr texp-rets))
                         ;; (:clsc,:clsc2) 入れ子関数をここで初期化（:lwscではBT時に遅延初期化）
                         (lw:make-normalize-nf)))))
-           ;;; !!!入れ子関数から参照されない変数の最適化をやるならここ!!!
            ;; フレーム構造体の定義を作って登録
            (lw:add-frame-def (lw:make-frame-def lw:*current-func*))
            ;; 関数定義の変換結果
@@ -217,7 +224,7 @@
        (let ((lw:*current-func* (lw:make-finfo :name extid
                                                :parent-func parent-func
                                                :ret-type (car texp-rets)
-                                               :estack-var (search-ptr body)))
+                                               :ptr-var (search-ptr body)))
              (add-decl-list nil))       ;追加の変数定義
          ;; frame構造体を新規登録
          (lw:get-frame extid)
@@ -249,15 +256,18 @@
            (push (lw:finfo-add-local ~parmp ~(ptr char) :system :init (lw:make-parmp-init))
                  add-decl-list) )
 
-         ;; 引数を明示的スタックのトップからpopしながら獲得
+         ;; 本来の仮引数に相当する局所変数を登録
          (loop
              for argid in id-list
              as argtp in (cdr texp-rets)
-             do (with1 decl (lw:finfo-add-local argid argtp :var)
-                  (when (eq lw:*stack-implementation* :lwsc) ; :clsc[2]では後でframe structureに直接保存
-                    (push ~(,@decl (pop-arg ,argtp parmp))
-                          add-decl-list) )))
-
+             do (let ((decl (lw:finfo-add-local argid argtp :var))
+                      (id argid) (texp argtp) (finfo lw:*current-func*))
+                  ;; 変数宣言を登録するかの判断は保留
+                  (push #'(lambda ()
+                            (ecase (lw:where-local-var id finfo)
+                              ((:cstack :either) decl)
+                              ((:estack) ~(%splice))))
+                        add-decl-list)))
 
          ;; ここでbodyの解析・変換を行う．
          ;; 変換結果を宣言部（body-ret-decl）と本体（body-ret-body）に分離
@@ -276,12 +286,11 @@
                       (lw:make-resume lw:*current-func*)
                       ;; estackフレームポインタ初期化
                       (lw:make-init-efp-esp lw:*current-func*)
+                      ;; 明示的スタックのトップからpopしながら実引数を獲得
+                      (lw:get-args-from-estack id-list (cdr texp-rets))
                       (when (member lw:*stack-implementation* '(:clsc :clsc2))
-                        (append
-                         ;; (:clsc,:clsc2) 引数の値をestackに保存
-                         (lw:save-args-into-estack id-list (cdr texp-rets))
-                         ;; (:clsc,:clsc2) 入れ子関数をここで初期化（:lwscではBT時に遅延初期化）
-                         (lw:make-normalize-nf)))))
+                        ;; (:clsc,:clsc2) 入れ子関数をここで初期化（:lwscではBT時に遅延初期化）
+                        (lw:make-normalize-nf))))
              ;; フレーム構造体定義を作って登録
              (lw:add-frame-def (lw:make-frame-def lw:*current-func*))
              ;; 関数定義をトップレベルに
@@ -289,8 +298,12 @@
               ~(,scs (,extid esp xfp0) (fn (ptr char) (ptr char) (ptr void))
                      ,.body-ret-decl ,@body-ret-body (return 0))) ))
          )
-       ;; 入れ子関数はestack内のものを参照するので親関数内での宣言は不要
-       ~(%splice) )))
+       ;; 変換結果：入れ子関数オブジェクトがcstack内にあるなら宣言を追加
+       (let ((finfo lw:*current-func*)) ; このfinfoは親関数
+         #'(lambda ()
+             (ecase (lw:where-nf-object fid finfo)
+               ((:cstack) ~(def ,fid closure-t))
+               ((:estack) ~(%splice)))) ))))
   )
 
 (extendrule type-expression nestfunc
@@ -346,6 +359,9 @@
                                    (make-list lab-level
                                               :initial-element ~(xfp ->))))))
               (callid-exp ~(,@xfp-exp -> call-id)))
+         ;; 現関数とジャンプ先関数の間の関数のxfpについて，入れ子関数からの参照をマーク
+         (lw:mark-ref-by-nestfunc-xfp (1- lab-level))
+         ;; 変換結果
          ~(begin
            (= ,callid-exp ,(- labnum))  ; goto先のcall-id書き換え
            (return (cast (ptr char) ,xfp-exp))) )))) ; goto先のefpをreturn
@@ -432,18 +448,19 @@
              ;; 副作用を何回も起こさないように関数ポインタと引数の値を一時変数に保存
              ;; そのために必要な宣言，先行の式，一時変数名をcollect
              (loop
-                 for exp-ret in (cons fexp-ret exp-rets)
-                 if (lw:simple-exp-p exp-ret)
-                 collect (list nil nil exp-ret)
-                 else
-                 collect (with (id-tmp (generate-id "nf_tmp")
-                                type-tmp (array2ptr (gettype exp-ret)))
-                           (list (lw:finfo-add-local id-tmp type-tmp
-                                                     (if (eq lw:*stack-implementation* :lwsc)
-                                                         :var
-                                                         :tmp))
-                                 ~(= ,id-tmp ,fexp-ret)
-                                 id-tmp)) ))
+                for exp in (cons fexp exp-list)
+                as exp-ret in (cons fexp-ret exp-rets)
+                if (lw:simple-exp-p exp)
+                collect (list nil nil exp-ret)
+                else
+                collect (with (id-tmp (generate-id "nf_tmp")
+                               type-tmp (array2ptr (gettype exp-ret)))
+                          (list (lw:finfo-add-local id-tmp type-tmp
+                                                    (if (eq lw:*stack-implementation* :lwsc)
+                                                        :var
+                                                        :tmp))
+                                ~(= ,id-tmp ,exp-ret)
+                                id-tmp)) ))
             (decl-list (remove nil (mapcar #'first decl-prev-tmpid-list)))
             (prev-list (remove nil (mapcar #'second decl-prev-tmpid-list)))
             (tmpid-list (mapcar #'third decl-prev-tmpid-list))
@@ -531,12 +548,13 @@
            return-p (not (or (lw:thread-origin-p (lw:finfo-name lw:*current-func*))
                              (lw:finfo-parent-func lw:*current-func*)
                              (member lw:*stack-implementation* '(:clsc :clsc2))))
-           fexp-ret (expression! ~(the (ptr (lightweight ,@texp-list)) ,fexp))
+           the-fexp ~(the (ptr (lightweight ,@texp-list)) ,fexp)
+           fexp-ret (expression! the-fexp)
            exp-rets (mapcar #'expression! exp-list)
            id-ret  (if-pattern-variable id (expression! ~(the ,texp1 ,id)))
            (fp-decl fp-prev fp-id)
            ;; （global化した）入れ子関数ポインタの値を求めて一時変数に保存
-           (if (lw:simple-exp-p fexp-ret t) ; 副作用がないことが明らかな場合
+           (if (lw:simple-exp-p the-fexp t) ; 副作用がないことが明らかな場合
                (values nil nil fexp-ret)
                (with* (fp-type (type-expression! ~(ptr (lightweight ,@texp-list)))
                                new-id (generate-id "nf_tmp_fp"))
@@ -619,27 +637,45 @@
         (acond 
          ;; 親関数のid -- "xfp->..."
          ((> n-up 0)
+          ;; 現関数とジャンプ先関数の間の関数のxfpについて，入れ子関数からの参照をマーク
+          (lw:mark-ref-by-nestfunc-xfp (1- n-up))
+          ;; 入れ子関数からの参照があったことを，親関数に登録
+          (lw:finfo-add-ref-by-nestfunc-var id find-finfo)
           ~(fref 
             ,@(apply #'append
                      (make-list n-up :initial-element ~(xfp ->)) )
             ,id))
-         ;; 明示的スタックの現在のフレームに置かれたもの -- "efp->... "
-         ((and (= n-up 0) (lw:estack-variable-p id find-finfo t))
-          ~(the ,texp (fref efp -> ,id)) )
          ;; static定義されたlocal変数 -> 名前をext-idに変更
          ((and (= n-up 0) (lw:static-variable-p id find-finfo t))
           ~(the ,texp ,it))
+         ;; 一般の局所変数：frame structureあるいは局所変数へのどちらへのアクセスにするかの判断を保留
+         ((= n-up 0)
+          #'(lambda ()
+              (ecase (lw:where-local-var id find-finfo)
+                ((:estack) ~(the ,texp (fref efp -> ,id)))
+                ((:cstack :either) ~(the ,texp ,id)))) )
          ;; その他．処理不要
          (t ~(the ,texp ,id)) ))
        ((:nestfunc)
         (cond
-         ((> n-up 0)
-          ~(ptr (fref
-                 ,@(apply #'append
-                          (make-list n-up :initial-element ~(xfp ->)) )
-                 ,id)) )
-         (t
-          ~(ptr (fref efp -> ,id))) ))
+          ;; 祖先関数で定義されている入れ子関数
+          ((> n-up 0)
+           ;; 現関数とジャンプ先関数の間の関数のxfpについて，入れ子関数からの参照をマーク
+           (lw:mark-ref-by-nestfunc-xfp (1- n-up))
+           ;; 入れ子関数への（そのさらに）入れ子関数からの参照があったことを登録
+           (lw:finfo-add-ref-by-nestfunc-var id find-finfo)
+           ;; 変換結果
+           ~(ptr (fref
+                  ,@(apply #'append
+                           (make-list n-up :initial-element ~(xfp ->)) )
+                  ,id)) )
+          ;; 自関数で定義されている入れ子関数
+          (t
+           ;; closure-tオブジェクトがcstackかestackのどちらにあるかによって変換結果が変わる
+           #'(lambda ()
+               (ecase (lw:where-nf-object id find-finfo)
+                 ((:cstack) ~(ptr ,id))
+                 ((:estack) ~(ptr (fref efp -> ,id))))) )))
        ((nil)                           ; 処理不要
         ~(the ,texp ,id) )
        (otherwise
@@ -648,6 +684,11 @@
 
 ;;; expression-with-typeinfo からtype-expressionを得る。
 (defrule gettype nestfunc
+  ;; promiseの場合，とりあえず展開してから型を獲得
+  ((#?,promise)
+   (if (functionp promise)
+       (gettype (funcall promise))
+       (next-pattern)))
   ((#?(the ,texp ,exp))
    texp)
   (otherwise
