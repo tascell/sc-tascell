@@ -59,6 +59,7 @@
   name                                  ;関数名
   parent-func                           ;親関数のfinfo構造体（非nil iff 入れ子関数）
   ret-type                              ;返り値の型
+  arg-types                             ;引数の型リスト
   argp                                  ;argpの要/不要 (=入れ子関数呼び出しの有無)
   ;; (<復帰位置を示すラベル名> . <フレーム復帰用コード>) のリスト(逆順)
   label-list
@@ -490,7 +491,7 @@
                                ((:cstack) id)
                                ((:estack) ~(fref efp -> ,id)))))
                         ~(%splice
-                          (= (fref ,clobj fun) ,extid)
+                          (= (fref ,clobj fun) (cast nestfn-t ,extid))
                           (= (fref ,clobj fr)
                              (cast (ptr void) efp)) )))))
             nf-list)))
