@@ -46,4 +46,4 @@
   (return (+ x y))) 
 
 (def (main) (fn int void)
-  (return (foo 1 10)))
+  (return (foo 1 3)))

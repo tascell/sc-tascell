@@ -1,4 +1,3 @@
 CL-SC2:
 * マルチスレッド対応がまだ
 * non-local goto
-* estackを使わない入れ子関数呼出し
