@@ -569,7 +569,8 @@
 	;; Execute the task
 	(PROF-CODE
 	 (csym::tcounter-change-state thr TCOUNTER-EXEC OBJ-NULL 0)
-         (csym::evcounter-count thr EV-STRT-TASK OBJ-PADDR tx->rslt-head) 
+         (csym::evcounter-count thr (if-exp (== tx->rslt-to INSIDE) EV-STRT-TASK-INSIDE EV-STRT-TASK-OUTSIDE)
+                                OBJ-PADDR tx->rslt-head)
          )
 	(= tx->stat TASK-STARTED) ; TASK-INITIALIZED => TASK-STARTED
 	(= tx->cancellation 0)    ; initialize # of cancellation flags
@@ -590,7 +591,8 @@
 		       (csym::get-universal-real-time)
 		       thr->id tx->task-no tx tx->body)
           (PROF-CODE
-           (csym::evcounter-count thr EV-RSLT-TASK OBJ-PADDR tx->rslt-head))
+           (csym::evcounter-count thr (if-exp (== tx->rslt-to INSIDE) EV-RSLT-TASK-INSIDE EV-RSLT-TASK-OUTSIDE)
+                                  OBJ-PADDR tx->rslt-head))
 	  (= reason 0)
 	  (break)
 	  (case EXITING-EXCEPTION)
@@ -598,7 +600,8 @@
 		       (csym::get-universal-real-time)
 		       thr->id tx->task-no tx tx->body thr->exception-tag)
           (PROF-CODE
-           (csym::evcounter-count thr EV-EXCP-TASK OBJ-PADDR tx->rslt-head))
+           (csym::evcounter-count thr (if-exp (== tx->rslt-to INSIDE) EV-EXCP-TASK-INSIDE EV-EXCP-TASK-OUTSIDE)
+                                  OBJ-PADDR tx->rslt-head))
 	  (= reason 1)
 	  (break)
 	  (case EXITING-CANCEL)
@@ -606,7 +609,8 @@
 		       (csym::get-universal-real-time)
 		       thr->id tx->task-no tx tx->body)
           (PROF-CODE
-           (csym::evcounter-count thr EV-ABRT-TASK OBJ-PADDR tx->rslt-head))
+           (csym::evcounter-count thr (if-exp (== tx->rslt-to INSIDE) EV-ABRT-TASK-INSIDE EV-ABRT-TASK-OUTSIDE)
+                                  OBJ-PADDR tx->rslt-head))
 	  (= reason 2)
 	  (break)
 	  (default)
@@ -1356,7 +1360,8 @@
 	  (csym::send-command (ptr rcmd) 0 0)
 	  (= cur->msg-cncl 2)
 	  (PROF-CODE
-	   (csym::evcounter-count thr EV-SEND-CNCL OBJ-PADDR cur->task-head))
+	   (csym::evcounter-count thr (if-exp (== rcmd.node INSIDE) EV-SEND-CNCL-INSIDE EV-SEND-CNCL-OUTSIDE)
+                                  OBJ-PADDR cur->task-head))
 	  (inc count) )))
   (return count) )
 
@@ -1457,7 +1462,9 @@
   (= (aref tcmd.v 3 0) task-no)         ; the kind of task
   (= (aref tcmd.v 3 1) TERM)
   (PROF-CODE
-   (csym::evcounter-count thr EV-SEND-TASK OBJ-PADDR hx->task-head))
+   (csym::evcounter-count thr 
+                          (if-exp (== tcmd.node INSIDE) EV-SEND-TASK-INSIDE EV-SEND-TASK-OUTSIDE)
+                          OBJ-PADDR hx->task-head))
   (csym::send-command (ptr tcmd) body task-no))
 
 ;;; Wait for the result of the subtask thr->sub, remove it from the worker's subtask list,
