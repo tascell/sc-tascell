@@ -188,17 +188,35 @@
 	 "TCOUNTER-TREQ-BK" "TCOUNTER-TREQ-ANY"))
 
 ;;; Kinds of events (for profiling)
-(%defconstant NKIND-EV 6)
+(%defconstant NKIND-EV 12)
 (def (enum event)
-  EV-SEND-TASK                          ; task send (aux: recipient)
-  EV-STRT-TASK                          ; task start (aux: task sender)
-  EV-RSLT-TASK                          ; task finished normally (aux: rslt recipient)
-  EV-EXCP-TASK                          ; task finished with an exce[tion (aux: rslt recipient)
-  EV-ABRT-TASK                          ; task aborted (aux: rslt recipient)
-  EV-SEND-CNCL                          ; send cncl (aux: recipient)
+  EV-SEND-TASK-INSIDE                   ; task send to a worker in the same node (aux: recipient)
+  EV-SEND-TASK-OUTSIDE                  ; task send to a worker in an external node (aux: recipient)
+  EV-STRT-TASK-INSIDE                   ; start task from the same node (aux: task sender)
+  EV-STRT-TASK-OUTSIDE                  ; start task from an exernal node (aux: task sender)
+  EV-RSLT-TASK-INSIDE                   ; normally finish task from the same node (aux: task sender)
+  EV-RSLT-TASK-OUTSIDE                  ; normally finish task from an external node (aux: rslt recipient)
+  EV-EXCP-TASK-INSIDE                   ; finish task from the same node with an exception (aux: task sender)
+  EV-EXCP-TASK-OUTSIDE                  ; finish task from an external node with an exception (aux: task sender)
+  EV-ABRT-TASK-INSIDE                   ; aborted task from the same node (aux: rslt recipient)
+  EV-ABRT-TASK-OUTSIDE                  ; aborted task from an external node (aux: rslt recipient)
+  EV-SEND-CNCL-INSIDE                   ; send cncl to a worker in the same node (aux: recipient)
+  EV-SEND-CNCL-OUTSIDE                  ; send cncl to a worker in an external node (aux: recipient)
   )
 (static ev-strings (array (ptr char))
-  (array "EV-SEND-TASK" "EV-STRT-TASK" "EV-RSLT-TASK" "EV-EXCP-TASK" "EV-ABRT-TASK" "EV-SEND-CNCL"))
+  (array "EV-SEND-TASK-INSIDE"
+         "EV-SEND-TASK-OUTSIDE"
+         "EV-STRT-TASK-INSIDE"
+         "EV-STRT-TASK-OUTSIDE"
+         "EV-RSLT-TASK-INSIDE"
+         "EV-RSLT-TASK-OUTSIDE"
+         "EV-EXCP-TASK-INSIDE"
+         "EV-EXCP-TASK-OUTSIDE"
+         "EV-ABRT-TASK-INSIDE"
+         "EV-ABRT-TASK-OUTSIDE"
+         "EV-SEND-CNCL-INSIDE"
+         "EV-SEND-CNCL-OUTSIDE"
+         ))
 
 ;;; Obj types of auxiliary data
 (def (enum obj-type)
