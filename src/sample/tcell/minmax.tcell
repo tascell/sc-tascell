@@ -1,0 +1,147 @@
+;;; Copyright (c) 2019 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; All rights reserved.
+
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+;;; 1. Redistributions of source code must retain the above copyright
+;;;    notice, this list of conditions and the following disclaimer.
+;;; 2. Redistributions in binary form must reproduce the above copyright
+;;;    notice, this list of conditions and the following disclaimer in the
+;;;    documentation and/or other materials provided with the distribution.
+
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE
+;;; FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+;;; OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+;;; LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+;;; SUCH DAMAGE.
+
+;;; MinMax (<n>: Size of array,  <ch>: check-interval)
+;; task 0 0 0 0
+;; <n>
+;; <ch>
+
+(c-exp "#include<sys/time.h>")
+
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
+(%include "rule/tcell-setrule.sh")
+(%include "clib.sh")
+
+(def Check-interval long)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (csym::elapsed-time tp) 
+    (fn double (array (struct timeval) 2))
+  (return (+ (- (fref (aref tp 1) tv-sec)
+                (fref (aref tp 0) tv-sec))
+             (* 0.000001
+                (- (fref (aref tp 1) tv-usec)
+                   (fref (aref tp 0) tv-usec))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (task minmax-start)
+  (def n long :in)
+  (def ch long :in)
+  (def arr (ptr (array double 3))))
+
+(def (task minmax)
+  (def i1 long :in)
+  (def i2 long :in)
+  (def arr (ptr (array double 3)) :in)
+  (def minx double)
+  (def maxx double)
+  (def miny double)
+  (def maxy double)
+  (def minz double)
+  (def maxz double))
+
+(decl (minmax i1 i2 arr tsk) (wfn void long long (ptr (array double 3)) (ptr (struct minmax))))
+
+;;;
+(def (csym::uni-random) (csym::fn double)
+  (return (/ (cast double (csym::rand)) (cast double RAND-MAX))))
+
+(def (task-body minmax-start)
+  (decl tp (array (struct timeval) 2))
+  (= Check-interval this.ch)
+  (csym::fprintf stderr "minmax(%ld)~%" this.n)
+  (csym::fprintf stderr "Initializing array...~%")
+  (csym::srand 0)
+  (def arr (ptr (array double 3)))
+  (def tsk (struct minmax))
+  (= arr (csym::malloc (* 3 this.n (sizeof double))))
+  (for ((def i long 0) (< i this.n) (inc i))
+    (= (aref arr i 0) (csym::uni-random))
+    (= (aref arr i 1) (csym::uni-random))
+    (= (aref arr i 2) (csym::uni-random)))
+  (csym::fprintf stderr "Start~%")
+  (csym::gettimeofday tp 0)
+  (minmax 0 this.n arr (ptr tsk))
+  (csym::gettimeofday (+ tp 1) 0)
+  (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp))
+  (csym::fprintf stderr "minx = %lf~%" tsk.minx)
+  (csym::fprintf stderr "miny = %lf~%" tsk.miny)
+  (csym::fprintf stderr "minx = %lf~%" tsk.minz)
+  (csym::fprintf stderr "maxx = %lf~%" tsk.maxx)
+  (csym::fprintf stderr "maxy = %lf~%" tsk.maxy)
+  (csym::fprintf stderr "maxz = %lf~%" tsk.maxz)
+  )
+
+(def (task-body minmax)
+  ;; (csym::fprintf stderr "Worker %ld start (%ld,%ld)~%" WORKER-ID this.i1 this.i2)
+  (minmax this.i1 this.i2 this.arr (ptr this)))
+
+(def (minmax i1 i2 arr tsk) (wfn void long long (ptr (array double 3)) (ptr (struct minmax)))
+  (def il long)
+  (def minx double)
+  (def miny double)
+  (def minz double)
+  (def maxx double)
+  (def maxy double)
+  (def maxz double)
+
+  (= minx (aref (aref arr i1) 0))
+  (= miny (aref (aref arr i1) 1))
+  (= minz (aref (aref arr i1) 2))
+  (= maxx minx)
+  (= maxy miny)
+  (= maxz minz)
+  (do-many for il from (+ i1 1) to i2
+    (def zg double)
+    (if (== 0 (% (- i1 il 1) Check-interval))
+        TCELL-CHECK-REQ)
+    (= zg (aref (aref arr il) 0))
+    (if (< zg minx) (begin (= minx zg))
+      (if (< maxx zg) (begin (= maxx zg))))
+    (= zg (aref (aref arr il) 1))
+    (if (< zg miny) (begin (= miny zg))
+      (if (< maxy zg) (begin (= maxy zg))))
+    (= zg (aref (aref arr il) 2))
+    (if (< zg minz) (begin (= minz zg))
+      (if (< maxz zg) (begin (= maxz zg))))
+    (handles minmax
+      (:put from j1 to j2
+            (= this.i1 j1)
+            (= this.i2 j2)
+            (= this.arr arr))
+      (:get
+        (if (< this.minx minx) (begin (= minx this.minx)))
+        (if (< maxx this.maxx) (begin (= maxx this.maxx)))
+        (if (< this.miny miny) (begin (= miny this.miny)))
+        (if (< maxy this.maxy) (begin (= maxy this.maxy)))
+        (if (< this.minz minz) (begin (= minz this.minz)))
+        (if (< maxz this.maxz) (begin (= maxz this.maxz))))))
+  (= (fref tsk -> minx) minx)
+  (= (fref tsk -> maxx) maxx)
+  (= (fref tsk -> miny) miny)
+  (= (fref tsk -> maxy) maxy)
+  (= (fref tsk -> minz) minz)
+  (= (fref tsk -> maxz) maxz)
+)
