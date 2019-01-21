@@ -51,6 +51,7 @@
   )
 
 (extendrule statement tcell-sc1
+  (#?TCELL-CHECK-REQ x)
   ((#?(do-two ,stat1 ,stat2 ({handles} ,id
                              {(:guard ,@guard-body ,guard-exp)}
                              (:put ,@put-body) (:get ,@get-body))))
