@@ -82,6 +82,7 @@
   )
 
 (extendrule statement tcell-type
+  (#?TCELL-CHECK-REQ x)
   ((#?(do-two ,stat1 ,stat2
         ({handles} ,id[identifier]
 	 {(:guard ,@guard-body ,guard-exp)}

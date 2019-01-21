@@ -190,6 +190,13 @@
 
 (extendrule statement tcell
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; Explicitly check task/exception/cancel request
+  (#?TCELL-CHECK-REQ
+   ~(if (or -thr->req-cncl
+            -thr->task-top->cancellation
+            -thr->req)
+        ,(wfn-add-argids ~(handle-reqs))) )
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; do-two
   ;; * stat1->stat2 の順に実行
   ;; * stat2 実行中に仕事の要求がきたら，:put以下を実行してsendする．
