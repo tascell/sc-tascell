@@ -152,15 +152,15 @@
 ;; sv-socket=0: external messages are transferred to/from stdout/stdin
 ;; sv-socket<0: communicates with external nodes directly using MPI
 (def sv-socket int)
-
 ;; Generate a randonm rank ID excluding my ID.
 (def (csym::choose-rank) (csym::fn int void)
   (def rank int)
   (= rank (csym::my-random (- num-procs 1)
-			   (ptr random-seed1) (ptr random-seed2)))
+    (ptr random-seed1) (ptr random-seed2)))
   (if (>= rank my-rank)
-      (inc rank))
-  (return rank))
+    (inc rank))
+  (return rank)
+)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Auxiliary functions for external input/output
@@ -207,20 +207,12 @@
   (def w (enum command))
   (def dest-rank int)     ; rank ID of destination MPI proc
   (= w pcmd->w)
-  ;; <--- sender-lock <---
-  (csym::pthread-mutex-lock (ptr send-mut))
+  
   ;; Send command string
-  (if (>= sv-socket 0) 
-      (begin           ; stdout or TCP/IP
-	(csym::serialize-cmd send-buf pcmd)
-	(csym::send-string send-buf sv-socket)
-	(csym::send-char #\Newline sv-socket))
-    (begin             ; MPI
-      (csym::send-block-start) ; allocate mpisend-buf for initialization
-      (csym::serialize-cmd (mref mpisend-buf) pcmd)
-      (= (mref mpisend-buf-len) (csym::strlen (mref mpisend-buf)))
-      (csym::send-char #\Newline sv-socket)
-      ))
+  (csym::send-block-start) ; allocate mpisend-buf for initialization
+  (csym::serialize-cmd sq->buf pcmd)
+  (= sq->len (csym::strlen sq->buf))
+  (csym::send-char #\Newline sv-socket)
   ;; Send the body of task/rslt/bcst
   (cond
    (body
@@ -238,8 +230,6 @@
   ;; above just write the message into the mpisend buffer. Then below,
   ;; extracts the destination rank ID and request the messaging thread
   ;; to send the message stored in the buffer.
-  (if (< sv-socket 0)
-      (begin
 	(switch w       ; extract destination rank ID
 	  (case TASK) (= dest-rank (aref pcmd->v 2 0)) (break)
 	  (case RSLT) (= dest-rank (aref pcmd->v 0 0)) (break)
@@ -260,18 +250,6 @@
 	      (csym::exit 0)))
         ;; End initialization of mpisend-buf and add it to the send buffer
 	(csym::send-block-end dest-rank)
-        ))
-  
-  (csym::flush-send)
-  (csym::pthread-mutex-unlock (ptr send-mut))
-  ;; ---> sender-lock --->
-  (if (and (== sv-socket 0)
-           (== w RSLT) option.auto-exit)
-      (begin
-	(PROF-CODE
-	 (csym::finalize-tcounter)
-	 (csym::show-counters))
-	(csym::exit 0)))
   )
 
 ;;; Take cmd and call the function corresponding to its command name.
@@ -1100,7 +1078,6 @@
 	       (< sv-socket 0)
 	       (== my-rank 0))
 	  (begin
-	    (csym::pthread-mutex-lock (ptr send-mut))
 	    (csym::send-block-start)
 	    (csym::send-string receive-buf sv-socket)
 	    (csym::send-block-end my-rank)
@@ -1935,7 +1912,7 @@
                            "~%"))
 
   (%ifdef* USEMPI
-    (csym::MPI-Init-thread (ptr argc) (ptr argv) MPI-THREAD-SERIALIZED (ptr mpi-provided))
+    (csym::MPI-Init-thread (ptr argc) (ptr argv) MPI-THREAD-MULTIPLE (ptr mpi-provided))
     (csym::MPI-Comm-rank MPI-COMM-WORLD (ptr my-rank))
     (csym::MPI-Comm-size MPI-COMM-WORLD (ptr num-procs))
     (if (== my-rank 0)
