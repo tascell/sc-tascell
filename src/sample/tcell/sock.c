@@ -51,24 +51,32 @@ static char *mpirecv_buf = NULL;
 static int mpirecv_buf_size = 0;
 static int mpirecv_buf_len = 0;
 static int mpirecv_buf_start = 0;
-char **mpisend_buf;             /* ptr to current send buffer for MPI */
 int *mpisend_buf_len;           /* ptr to length of the current buffer */
 static int *mpisend_buf_size;   /* ptr to capacity of the current buffer */
 
 struct send_block
 {
-    char *buf; // ‘—M‚·‚éƒf[ƒ^
-    int len;   // buf‚É“ü‚Á‚Ä‚¢‚éƒf[ƒ^‚Ì‘å‚«‚³
-    int size;  // buf‚ÉŠm•Û‚³‚ê‚½ƒq[ƒvƒTƒCƒY
-    int rank;  // ‘—Mærank
-    struct send_block *next;
+    char *buf; // ï¿½ï¿½ï¿½Mï¿½ï¿½ï¿½ï¿½fï¿½[ï¿½^
+    int len;   // bufï¿½É“ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½fï¿½[ï¿½^ï¿½Ì‘å‚«ï¿½ï¿½
+    int size;  // bufï¿½ÉŠmï¿½Û‚ï¿½ï¿½ê‚½ï¿½qï¿½[ï¿½vï¿½Tï¿½Cï¿½Y
+    int rank;  // ï¿½ï¿½ï¿½Mï¿½ï¿½rank
 };
 
-static struct send_block *send_queue_head = NULL;
-static struct send_block *send_queue_tail = NULL;
-static struct send_block *send_queue_temp = NULL;
+__thread struct send_block *sq = NULL;
 static pthread_mutex_t send_lock;
 
+struct recv_block
+{
+    char *buf; // ï¿½ï¿½ï¿½Mï¿½ï¿½ï¿½ï¿½fï¿½[ï¿½^
+    int len;   // bufï¿½É“ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½fï¿½[ï¿½^ï¿½Ì‘å‚«ï¿½ï¿½
+    int size;  // bufï¿½ÉŠmï¿½Û‚ï¿½ï¿½ê‚½ï¿½qï¿½[ï¿½vï¿½Tï¿½Cï¿½Y
+    struct recv_block *next;
+};
+// recieve queue
+static struct recv_block *recv_queue_head = NULL;
+static struct recv_block *recv_queue_tail = NULL;
+static struct recv_block *recv_queue_temp = NULL;
+static pthread_mutex_t recv_lock = PTHREAD_MUTEX_INITIALIZER;
 /* SunOS does not support vasprintf() */
 #ifdef NO_VASPRINTF
 #define VSNPRINTF_LEN 1000
@@ -126,48 +134,37 @@ int dbg_printf (char *fmt_string, ...)
 // Prepare for adding a message to the send queue.
 void send_block_start (void)
 {
-  struct send_block *sq = (struct send_block*)malloc(sizeof(struct send_block));
-  sq->buf = malloc(sizeof(char)*32768);
-  sq->len = 0;
-  sq->size = 32768;
-  sq->next = NULL;
-  mpisend_buf = &(sq->buf);
-  mpisend_buf_size = &(sq->size);
-  mpisend_buf_len = &(sq->len);
-  send_queue_temp = sq;
+    sq = (struct send_block*)malloc(sizeof(struct send_block));
+    sq->buf = malloc(sizeof(char)*32768);
+    sq->len = 0;
+    sq->size = 32768;
 }
 
 // Finish adding the message to the send queue.
 void send_block_end(int rank)
 {
-  send_queue_temp->rank = rank;
-  pthread_mutex_lock(&send_lock);
-  {
-    if (send_queue_head == NULL) send_queue_head = send_queue_temp;
-    if (send_queue_tail != NULL) send_queue_tail->next = send_queue_temp;
-    send_queue_tail = send_queue_temp;
-    send_queue_temp = NULL;
-  }
-  pthread_mutex_unlock(&send_lock);
+    MPI_Send(sq->buf, sq->len, MPI_CHAR, rank, 0, MPI_COMM_WORLD);
+    free(sq->buf);
+    free(sq);
 }
 
 // Append contents in buf whose length is len to *mpisend_buf
 int
 append_to_mpisend_buf(const void *buf, int len)
 {
-    int ns = len + *mpisend_buf_len;
-    if (ns > *mpisend_buf_size)
+    int ns = len + sq->len;
+    if (ns > sq->size)
     {
-        *mpisend_buf = realloc(*mpisend_buf, ns+1);
-        if (*mpisend_buf == NULL)
+        sq->buf = realloc(sq->buf, ns+1);
+        if (sq->buf == NULL)
         {
             fprintf(stderr, "Error: Not enough memory.\n");
             exit(1);
         }
-        *mpisend_buf_size = ns+1;
+        sq->size = ns+1;
     }
-    memcpy((*mpisend_buf)+(*mpisend_buf_len), buf, len);
-    *mpisend_buf_len = ns;
+    memcpy(sq->buf+sq->len, buf, len);
+    sq->len = ns;
 }
 
 /* send */
@@ -176,29 +173,16 @@ int send_char (char ch, int socket)
 #ifdef DEBUG
   dbg_printf ("send_char: '%s' (%d)", (char[]){ch,0}, ch);
 #endif
-  if (socket<0) {           // MPI
-    append_to_mpisend_buf ((char[]){ch,0}, 1);
-    return 0;
-  } else if (socket == 0) { // stdout
-    return putc (ch, stdout);
-  } else {                  // TCP/IP
-    return send (socket, &ch, 1, 0);
-  }
+  append_to_mpisend_buf ((char[]){ch,0}, 1);
 }
 
 int send_string (char *str, int socket)
 {
 #ifdef DEBUG
   dbg_printf ("send_string: %s", str);
-#endif
-  if (socket<0) {           // MPI
-    append_to_mpisend_buf (str, strlen(str));
-    return 0;
-  } else if (socket == 0) { // stdout
-    return fputs (str, stdout);
-  } else {                  // TCP/IP
-    return send (socket, str, strlen(str), 0);
-  }
+#endif           // MPI
+  append_to_mpisend_buf (str, strlen(str));
+  return 0;
 }
 int send_fmt_string (int socket, char *fmt_string, ...)
 {
@@ -251,40 +235,15 @@ int send_fmt_string (int socket, char *fmt_string, ...)
 int send_binary (void *src, unsigned long elm_size, unsigned long n_elm,
                  int socket)
 {
-  if (socket < 0)     // MPI
-    {
-      append_to_mpisend_buf (src, elm_size*n_elm);
-      return 0;
-    }
-  else if (socket==0) // stdout
-    {
-      return fwrite (src, elm_size, n_elm, stdout);
-    }
-  else                // TCP/IP
-    {
-      unsigned long rest=elm_size*n_elm;
-      unsigned long ret;
-      while (rest>0) {
-	ret = send (socket, src,
-		    (rest>SEND_MAX)?SEND_MAX:rest,
-		    0);
-	if (ret<0)
-	  { perror ("send_binary"); exit (1); }
-	rest -= ret;
-	src += ret;
-#ifdef DEBUG
-	dbg_printf ("send_binary: %ld bytes", ret);
-#endif
-      }
-      return n_elm;
-    }
+  append_to_mpisend_buf (src, elm_size*n_elm);
+  return 0;
 }
 
 /* Print contents of *mpisend_buf to stderr */
 void show_mpisend_buf (int socket) {
   if (socket < 0) { // MPI
-    (*mpisend_buf)[*mpisend_buf_len-1] = 0;
-    fprintf (stderr, "%s\n", *mpisend_buf);
+    sq->buf[sq->len-1] = 0;
+    fprintf (stderr, "%s\n", sq->buf);
   }
   /* do nothing unless MPI mode */
 }
@@ -332,15 +291,7 @@ int receive_char (int socket)
 {
   char buf;
   int ret;
-  
-  if (receive_buf) {
-    if ( *receive_buf_p )
-      return ( *(receive_buf_p++) );
-    else {
-      /* Finished reading receive_buf */
-      receive_buf = 0;
-    }
-  } 
+   
   if (socket<0)       // MPI
     {
       get_from_mpirecv_buf (&buf, sizeof(char));
@@ -367,27 +318,6 @@ char* receive_line (char *buf, int maxlen, int socket)
     int ret;
     int i;
 
-    if (receive_buf) {
-      if ( *receive_buf_p ) {
-        for (i=0 ; i<maxlen-1 ; i++) {
-          if ( *receive_buf_p == '\n' ) {
-            receive_buf_p++;
-            break;
-          } else if ( *receive_buf_p == 0 ) {
-            break;
-          } else {
-            buf[i] = *receive_buf_p;
-            receive_buf_p++;
-          }
-        }
-        buf[i] = '\0';
-        return buf;
-      }
-      else {
-        /* Finished reading receive_buf */
-        receive_buf = 0;
-      }
-    } 
     if (socket<0)  // MPI
       {
 	for (i = 0; i < maxlen-1; i++)
@@ -437,9 +367,7 @@ char* receive_line (char *buf, int maxlen, int socket)
 int receive_binary (void *dst, unsigned long elm_size, unsigned long n_elm,
                     int socket)
 {
-    if (receive_buf) {
-      perror ("receive_binary from receive_buf");
-    }
+
     if (socket<0)  // MPI
       {
 	get_from_mpirecv_buf (dst, n_elm*elm_size);
@@ -511,6 +439,33 @@ void close_socket (int socket)
     close (socket);
 }
 
+// message processing thread func
+void msg_func()
+{
+    struct recv_block *rq = NULL;
+    for(;;)
+    {
+        pthread_mutex_lock(&recv_lock);
+        if (recv_queue_head != NULL)
+        {
+            rq = recv_queue_head;
+            recv_queue_head = rq->next;
+            if (rq->next == NULL) recv_queue_tail = NULL;
+            pthread_mutex_unlock(&recv_lock);
+            mpirecv_buf_len = rq->len;
+            mpirecv_buf = rq->buf;
+            mpirecv_buf_start = 0;
+            proc_msg();
+            free(rq->buf);
+            free(rq);
+        }
+        else {
+            pthread_mutex_unlock(&recv_lock);
+        }
+        // usleep(20);
+    }
+}
+
 // Infinite loop for messaging thread in MPI mode
 void sendrecv()
 {
@@ -519,68 +474,34 @@ void sendrecv()
     int sflag, rflag;
     int sent;
     int readlen;
+    pthread_t msg_thread;
+    pthread_create(&msg_thread, NULL, (void *)msg_func, NULL);
 
     for (sent = 0;;)
     {
-        MPI_Iprobe(MPI_ANY_SOURCE, DATA_TAG, MPI_COMM_WORLD,
-                &rflag, &recv_status);
+        MPI_Iprobe(MPI_ANY_SOURCE, DATA_TAG, MPI_COMM_WORLD, &rflag, &recv_status);
         if (rflag)
         {
             MPI_Get_count(&recv_status, DATA_TYPE, &readlen);
-            if (readlen > mpirecv_buf_size)
-            {
-                mpirecv_buf = realloc(mpirecv_buf, readlen);
-                if (mpirecv_buf == NULL)
-                {
-                    fprintf(stderr, "Error: Not enough memory.\n");
-                    exit(1);
-                }
-                mpirecv_buf_size = readlen;
-            }
-            MPI_Recv(mpirecv_buf, readlen, DATA_TYPE, recv_status.MPI_SOURCE,
+            recv_queue_temp = (struct recv_block *) malloc(sizeof(struct recv_block));
+            recv_queue_temp->buf = (char *) malloc(sizeof(char) * readlen);
+            recv_queue_temp->len = readlen;
+            recv_queue_temp->next = NULL;
+            MPI_Recv(recv_queue_temp->buf, recv_queue_temp->len, DATA_TYPE, recv_status.MPI_SOURCE,
                     DATA_TAG, MPI_COMM_WORLD, &recv_status);
-            mpirecv_buf_len = readlen;
-            mpirecv_buf_start = 0;
-            proc_msg();
-        }
-
-        usleep(20);
-        sched_yield();
-
-        if (sent)
-        {
-            MPI_Test(&req, &sflag, &send_status);
-            if (sflag)
+            
+            // recv queueã«å…¥ã‚Œã‚‹
+            pthread_mutex_lock(&recv_lock);
             {
-                pthread_mutex_lock(&send_lock);
-                {
-                    struct send_block *sq = send_queue_head;
-                    free(sq->buf);
-                    send_queue_head = sq->next;
-                    if (sq->next == NULL) send_queue_tail = NULL;
-                    free(sq);
-                    sent = 0;
-                }
-                pthread_mutex_unlock(&send_lock);
+              if (recv_queue_head == NULL) recv_queue_head = recv_queue_temp;
+              if (recv_queue_tail != NULL) recv_queue_tail->next = recv_queue_temp;
+              recv_queue_tail = recv_queue_temp;
             }
-        }
-        else
-        {
-            pthread_mutex_lock(&send_lock);
-            {
-                if (send_queue_head != NULL)
-                {
-                    struct send_block *sq = send_queue_head;
-                    MPI_Issend(sq->buf, sq->len, DATA_TYPE, sq->rank,
-                            DATA_TAG, MPI_COMM_WORLD, &req);
-                    sent = 1;
-                }
-            }
-            pthread_mutex_unlock(&send_lock);
+            pthread_mutex_unlock(&recv_lock);
+            sched_yield();
         }
     }
 }
-
 /* test */
 #ifdef TEST
 int main (int argc, char **argv)
