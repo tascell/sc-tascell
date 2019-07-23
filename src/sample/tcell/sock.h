@@ -43,8 +43,6 @@ void send_block_start(void);
 void send_block_end(int rank);
 void sendrecv(void);
 
-extern char **mpisend_buf;             /* ptr to current send buffer for MPI */
-extern int *mpisend_buf_len;           /* ptr to length of the current buffer */
-
 extern char *receive_buf;
 extern char *receive_buf_p;
+extern __thread struct send_block *sq;
