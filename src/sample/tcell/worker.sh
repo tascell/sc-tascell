@@ -57,7 +57,8 @@
 ;; (%defconstant BUSYWAIT)
 
 ;; Declarations for external communication functionalities
-(%cinclude "sock.h" (:macro))
+;;(%cinclude "sock.h" (:macro))
+(c-exp "#include \"sock.h\"")
 
 ;;;; Declarations
 ;; Special elements for address.
@@ -83,6 +84,13 @@
 
 ;; Kind of affinity
 (def (enum Affinity) COMPACT SCATTER SHAREDMEMORY)
+
+;; A send msg struct
+(def (struct send-block)
+  (def buf (ptr char))
+  (def len int)
+  (def size int)
+  (def rank int))
 
 ;; A message transferred among workers.
 (def (struct cmd)
