@@ -77,6 +77,7 @@ static struct recv_block *recv_queue_head = NULL;
 static struct recv_block *recv_queue_tail = NULL;
 static struct recv_block *recv_queue_temp = NULL;
 static pthread_mutex_t recv_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t recv_cond;
 /* SunOS does not support vasprintf() */
 #ifdef NO_VASPRINTF
 #define VSNPRINTF_LEN 1000
@@ -446,23 +447,24 @@ void msg_func()
     for(;;)
     {
         pthread_mutex_lock(&recv_lock);
-        if (recv_queue_head != NULL)
-        {
-            rq = recv_queue_head;
-            recv_queue_head = rq->next;
-            if (rq->next == NULL) recv_queue_tail = NULL;
-            pthread_mutex_unlock(&recv_lock);
-            mpirecv_buf_len = rq->len;
-            mpirecv_buf = rq->buf;
-            mpirecv_buf_start = 0;
-            proc_msg();
-            free(rq->buf);
-            free(rq);
-        }
-        else {
-            pthread_mutex_unlock(&recv_lock);
-        }
-        // usleep(20);
+        pthread_cond_wait(&recv_cond, &recv_lock);
+        do{
+            if (recv_queue_head != NULL)
+            {
+                rq = recv_queue_head;
+                recv_queue_head = rq->next;
+                if (rq->next == NULL) recv_queue_tail = NULL;
+                mpirecv_buf_len = rq->len;
+                mpirecv_buf = rq->buf;
+                mpirecv_buf_start = 0;
+                proc_msg();
+                free(rq->buf);
+                free(rq);
+            } else{
+                pthread_mutex_unlock(&recv_lock);
+                break;
+            }
+        }while(1);
     }
 }
 
@@ -497,8 +499,9 @@ void sendrecv()
               if (recv_queue_tail != NULL) recv_queue_tail->next = recv_queue_temp;
               recv_queue_tail = recv_queue_temp;
             }
+            pthread_cond_signal(&recv_cond);
             pthread_mutex_unlock(&recv_lock);
-            sched_yield();
+            // sched_yield();
         }
     }
 }
