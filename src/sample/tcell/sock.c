@@ -481,28 +481,24 @@ void sendrecv()
 
     for (sent = 0;;)
     {
-        MPI_Iprobe(MPI_ANY_SOURCE, DATA_TAG, MPI_COMM_WORLD, &rflag, &recv_status);
-        if (rflag)
+        MPI_Probe(MPI_ANY_SOURCE, DATA_TAG, MPI_COMM_WORLD, &recv_status);
+        MPI_Get_count(&recv_status, DATA_TYPE, &readlen);
+        recv_queue_temp = (struct recv_block *) malloc(sizeof(struct recv_block));
+        recv_queue_temp->buf = (char *) malloc(sizeof(char) * readlen);
+        recv_queue_temp->len = readlen;
+        recv_queue_temp->next = NULL;
+        MPI_Recv(recv_queue_temp->buf, recv_queue_temp->len, DATA_TYPE, recv_status.MPI_SOURCE,
+                DATA_TAG, MPI_COMM_WORLD, &recv_status);
+        
+        // recv queueに入れる
+        pthread_mutex_lock(&recv_lock);
         {
-            MPI_Get_count(&recv_status, DATA_TYPE, &readlen);
-            recv_queue_temp = (struct recv_block *) malloc(sizeof(struct recv_block));
-            recv_queue_temp->buf = (char *) malloc(sizeof(char) * readlen);
-            recv_queue_temp->len = readlen;
-            recv_queue_temp->next = NULL;
-            MPI_Recv(recv_queue_temp->buf, recv_queue_temp->len, DATA_TYPE, recv_status.MPI_SOURCE,
-                    DATA_TAG, MPI_COMM_WORLD, &recv_status);
-            
-            // recv queueに入れる
-            pthread_mutex_lock(&recv_lock);
-            {
-              if (recv_queue_head == NULL) recv_queue_head = recv_queue_temp;
-              if (recv_queue_tail != NULL) recv_queue_tail->next = recv_queue_temp;
-              recv_queue_tail = recv_queue_temp;
-            }
-            pthread_cond_signal(&recv_cond);
-            pthread_mutex_unlock(&recv_lock);
-            // sched_yield();
+          if (recv_queue_head == NULL) recv_queue_head = recv_queue_temp;
+          if (recv_queue_tail != NULL) recv_queue_tail->next = recv_queue_temp;
+          recv_queue_tail = recv_queue_temp;
         }
+        pthread_cond_signal(&recv_cond);
+        pthread_mutex_unlock(&recv_lock);
     }
 }
 /* test */
