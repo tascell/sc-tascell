@@ -1083,7 +1083,6 @@
 	    (csym::send-block-end my-rank)
 	    (csym::free receive-buf)
 	    (= receive-buf 0)
-	    (csym::pthread-mutex-unlock (ptr send-mut))
 	    (return))
 	;; Forward the treq to external nodes and return
 	(begin

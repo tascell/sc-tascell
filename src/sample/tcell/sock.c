@@ -457,9 +457,11 @@ void msg_func()
                 mpirecv_buf_len = rq->len;
                 mpirecv_buf = rq->buf;
                 mpirecv_buf_start = 0;
+                pthread_mutex_unlock(&recv_lock);
                 proc_msg();
                 free(rq->buf);
                 free(rq);
+                pthread_mutex_lock(&recv_lock);
             } else{
                 pthread_mutex_unlock(&recv_lock);
                 break;
