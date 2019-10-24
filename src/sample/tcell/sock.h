@@ -24,6 +24,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGE.
 */
 
+#include <mpi.h>
 int connect_to (char *hostname, unsigned short port);
 void close_socket (int socket);
 
@@ -42,7 +43,8 @@ int receive_binary (void *dst, unsigned long elm_size, unsigned long n_elm,
 void send_block_start(void);
 void send_block_end(int rank);
 void sendrecv(void);
-
+void setup_win();
 extern char *receive_buf;
 extern char *receive_buf_p;
 extern __thread struct send_block *sq;
+extern MPI_Win win;
