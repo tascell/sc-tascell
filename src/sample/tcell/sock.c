@@ -47,6 +47,11 @@ SUCH DAMAGE.
 #define DATA_TYPE MPI_CHAR
 #define DATA_TAG  0
 
+// MPI WIN
+MPI_Win win;
+char *recv_msg;
+pthread_mutex_t win_lock = PTHREAD_MUTEX_INITIALIZER;
+
 static char *mpirecv_buf = NULL;
 static int mpirecv_buf_size = 0;
 static int mpirecv_buf_len = 0;
@@ -141,10 +146,18 @@ void send_block_start (void)
     sq->size = 32768;
 }
 
+MPI_Status st;
 // Finish adding the message to the send queue.
 void send_block_end(int rank)
 {
-    MPI_Send(sq->buf, sq->len, MPI_CHAR, rank, 0, MPI_COMM_WORLD);
+    pthread_mutex_lock(&win_lock);
+    MPI_Ssend(&sq->len, 1, MPI_INT, rank, 1, MPI_COMM_WORLD);
+    MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, win);
+    MPI_Put(sq->buf, sq->len, MPI_CHAR, rank, 0, sq->len, MPI_CHAR, win);
+    MPI_Win_flush(rank, win);
+    MPI_Send(NULL, 0, MPI_INT, rank, 2, MPI_COMM_WORLD);
+    MPI_Win_unlock(rank, win);
+    pthread_mutex_unlock(&win_lock);
     free(sq->buf);
     free(sq);
 }
@@ -473,25 +486,20 @@ void msg_func()
 // Infinite loop for messaging thread in MPI mode
 void sendrecv()
 {
-    MPI_Status send_status, recv_status;
-    MPI_Request req;
-    int sflag, rflag;
+    MPI_Status recv_status;
     int sent;
-    int readlen;
     pthread_t msg_thread;
     pthread_create(&msg_thread, NULL, (void *)msg_func, NULL);
 
     for (sent = 0;;)
     {
-        MPI_Probe(MPI_ANY_SOURCE, DATA_TAG, MPI_COMM_WORLD, &recv_status);
-        MPI_Get_count(&recv_status, DATA_TYPE, &readlen);
         recv_queue_temp = (struct recv_block *) malloc(sizeof(struct recv_block));
-        recv_queue_temp->buf = (char *) malloc(sizeof(char) * readlen);
-        recv_queue_temp->len = readlen;
+        MPI_Recv(&recv_queue_temp->len, 1, MPI_INT, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, &recv_status);
+        recv_queue_temp->buf = (char *) malloc(sizeof(char) * recv_queue_temp->len);
+        MPI_Recv(NULL, 0, MPI_INT, recv_status.MPI_SOURCE, 2, MPI_COMM_WORLD, &recv_status);
+        memcpy(recv_queue_temp->buf, recv_msg, recv_queue_temp->len);
         recv_queue_temp->next = NULL;
-        MPI_Recv(recv_queue_temp->buf, recv_queue_temp->len, DATA_TYPE, recv_status.MPI_SOURCE,
-                DATA_TAG, MPI_COMM_WORLD, &recv_status);
-        
+        recv_msg[0] = '\0';
         // recv queueに入れる
         pthread_mutex_lock(&recv_lock);
         {
@@ -503,6 +511,13 @@ void sendrecv()
         pthread_mutex_unlock(&recv_lock);
     }
 }
+
+void setup_win() {
+    recv_msg = (char *) malloc(sizeof(char) * 1000000);
+    MPI_Win_create(recv_msg, sizeof(char) * 1000000, sizeof(char), MPI_INFO_NULL, MPI_COMM_WORLD, &win);
+    MPI_Barrier(MPI_COMM_WORLD);
+}
+
 /* test */
 #ifdef TEST
 int main (int argc, char **argv)
