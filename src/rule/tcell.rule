@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008-2017 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; Copyright (c) 2008-2019 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,11 @@
   (no-nestfunc nil)                     ; 入れ子関数を持たないコードを生成（比較評価用）
   (no-exception nil)                    ; If t, invalidate exception support.
   (padding-size 1000)
+  (check-baf-compatibility t)           ; Check back-and-forth compatibility of dynamic-wind statements
   )
 
 (scr:require "TCELL-DEFS")
+(scr:require "TCELL-BAF-COMPAT")
 
 (defrule sc-program tcell
   ((#?(,@decl-list))
@@ -443,6 +445,7 @@
       (:before ,@bef-body)
       (:body ,@body)
       (:after ,@aft-body))
+   (tcell-baf:baf-compatible-p bef-body aft-body)
    (let* ((bk-id (generate-id "dwind_bk"))
           (b-bef-body (function-body bef-body))
           (b-body (tcell:with-new-bk bk-id (function-body body)))
