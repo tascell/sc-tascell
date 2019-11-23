@@ -207,25 +207,6 @@
   (def w (enum command))
   (def dest-rank int)     ; rank ID of destination MPI proc
   (= w pcmd->w)
-  
-  ;; Send command string
-  (csym::send-block-start) ; allocate mpisend-buf for initialization
-  (csym::serialize-cmd sq->buf pcmd)
-  (= sq->len (csym::strlen sq->buf))
-  (csym::send-char #\Newline sv-socket)
-  ;; Send the body of task/rslt/bcst
-  (cond
-   (body
-    (cond
-     ((or (== w TASK) (== w BCST))
-      ((aref task-senders task-no) body)
-      (csym::send-char #\Newline sv-socket))
-     ((== w RSLT)
-      ((aref rslt-senders task-no) body)
-      (csym::send-char #\Newline sv-socket)
-      )))
-   )
-  
   ;; Note: In the MPI mode, calls of send-string, task-senders, and etc.
   ;; above just write the message into the mpisend buffer. Then below,
   ;; extracts the destination rank ID and request the messaging thread
@@ -242,14 +223,38 @@
 	;; Exit if the destination rank of RSLT message is the pseudo rank (-1).
 	(if (and (== w RSLT) (== -1 dest-rank))
 	    (begin
+        ;; Send command string
+        (csym::send-block-start dest-rank) ; allocate mpisend-buf for initialization
+        (csym::serialize-cmd sq->buf pcmd)
+        (= sq->len (csym::strlen sq->buf))
+        ((aref rslt-senders task-no) body)
 	      (csym::show-mpisend-buf sv-socket)
 	      (PROF-CODE
 	       (csym::finalize-tcounter)
 	       (csym::show-counters))
 	      (csym::MPI-Abort MPI-COMM-WORLD 0)
 	      (csym::exit 0)))
+    ;; Send command string
+  (csym::send-block-start dest-rank) ; allocate mpisend-buf for initialization
+  (csym::serialize-cmd-send pcmd)
+  (csym::send-char #\Newline sv-socket)
+  ;; Send the body of task/rslt/bcst
+  (cond
+   (body
+    (cond
+     ((or (== w TASK) (== w BCST))
+      ((aref task-senders task-no) body)
+      (csym::send-char #\Newline sv-socket)
+      )
+     ((== w RSLT)
+      ((aref rslt-senders task-no) body)
+      (csym::send-char #\Newline sv-socket)
+      )
+      
+      ))
+   )
         ;; End initialization of mpisend-buf and add it to the send buffer
-	(csym::send-block-end dest-rank)
+	(csym::send-block-end)
   )
 
 ;;; Take cmd and call the function corresponding to its command name.
@@ -1078,9 +1083,9 @@
 	       (< sv-socket 0)
 	       (== my-rank 0))
 	  (begin
-	    (csym::send-block-start)
+	    (csym::send-block-start my-rank)
 	    (csym::send-string receive-buf sv-socket)
-	    (csym::send-block-end my-rank)
+	    (csym::send-block-end)
 	    (csym::free receive-buf)
 	    (= receive-buf 0)
 	    (return))

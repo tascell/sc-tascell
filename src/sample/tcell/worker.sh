@@ -394,6 +394,7 @@
 (decl (csym::deserialize-addr str) (fn (enum addr) (ptr char)))
 (decl (csym::deserialize-arg buf str) (fn int (ptr (enum addr)) (ptr char)))
 (decl (csym::serialize-cmd buf pcmd) (fn int (ptr char) (ptr (struct cmd))))
+(decl (csym::serialize-cmd-send pcmd) (fn void (ptr (struct cmd))))
 (decl (csym::deserialize-cmd pcmd str) (fn int (ptr (struct cmd)) (ptr char)))
 (decl (csym::copy-address dst src) (fn int (ptr (enum addr)) (ptr (enum addr))))
 (decl (csym::address-equal adr1 adr2) (fn int (ptr (enum addr)) (ptr (enum addr))))
