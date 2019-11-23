@@ -200,7 +200,7 @@
   ;; コマンド名
   (if (not (= ret (csym::serialize-cmdname p pcmd->w)))
       (begin
-       (csym::fprintf stderr "Serialize-cmd failed.~%")
+       (csym::fprintf stderr "Serialize-cmd failed!!.~%")
        (csym::print-cmd pcmd)
        (csym::exit 1)))
   (+= p ret) (= (mref (inc p)) #\Space)
@@ -209,8 +209,37 @@
     (+= p (csym::serialize-arg p (aref pcmd->v i)))
     (= (mref (inc p)) #\Space))
   ;;
-  (= (mref (-- p)) #\NULL)
+  (= (mref (-- p)) #\Newline)
   (return (- p buf)))
+
+;; ;; コマンド->文字列 (return 書いた文字数)
+(def (csym::serialize-cmd-send pcmd) (fn void (ptr (struct cmd)))
+  (def buf (ptr char))
+  (= buf (csym::malloc (* (sizeof char) 100)))
+  (def p (ptr char))
+  (= p buf)
+  (def ret int)
+  (def i int)
+  ;; コマンド名
+  (if (not (= ret (csym::serialize-cmdname p pcmd->w)))
+      (begin
+       (csym::fprintf stderr "Serialize-cmd-send failed.~%")
+       (csym::print-cmd pcmd)
+       (csym::exit 1)))
+  (+= p ret) (= (mref (inc p)) #\Space)
+  ;; 引数
+  (for ((= i 0) (< i pcmd->c) (inc i))
+    (+= p (csym::serialize-arg p (aref pcmd->v i)))
+    (if (< i (- pcmd->c 1))
+      (= (mref (inc p)) #\Space)
+    )
+  )
+  ;;
+  ;; (= (mref (-- p)) #\Newline)
+  ;; (csym::fprintf stderr "Serialize-cmd-send: %s" buf)
+  (csym::send-string buf -1)
+  (free buf)
+)
 
 ;; 文字列->コマンド (return 読んだ文字数)
 (def (csym::deserialize-cmd pcmd str) (fn int (ptr (struct cmd)) (ptr char))
