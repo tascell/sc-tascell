@@ -67,7 +67,9 @@ struct send_block
     int rank;  // ���M��rank
 };
 
-__thread struct send_block *sq = NULL;
+__thread int send_lenght = 0;
+struct send_block *sq = NULL;
+__thread int rank = 0;
 static pthread_mutex_t send_lock;
 
 struct recv_block
@@ -138,47 +140,61 @@ int dbg_printf (char *fmt_string, ...)
 #endif
 
 // Prepare for adding a message to the send queue.
-void send_block_start (void)
+void send_block_start (int dest)
 {
-    sq = (struct send_block*)malloc(sizeof(struct send_block));
-    sq->buf = malloc(sizeof(char)*32768);
-    sq->len = 0;
-    sq->size = 32768;
+    pthread_mutex_lock(&win_lock);
+    rank = dest;
+    if (rank == -1) {
+      sq = (struct send_block*)malloc(sizeof(struct send_block));
+      sq->buf = malloc(sizeof(char)*32768);
+      sq->len = 0;
+      sq->size = 32768;
+    }
+    send_lenght = 0;
+    MPI_Ssend(NULL, 0, MPI_INT, rank, 1, MPI_COMM_WORLD);
+    MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, win);
 }
 
 MPI_Status st;
 // Finish adding the message to the send queue.
-void send_block_end(int rank)
+void send_block_end()
 {
-    pthread_mutex_lock(&win_lock);
-    MPI_Ssend(&sq->len, 1, MPI_INT, rank, 1, MPI_COMM_WORLD);
-    MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank, 0, win);
-    MPI_Put(sq->buf, sq->len, MPI_CHAR, rank, 0, sq->len, MPI_CHAR, win);
-    MPI_Win_flush(rank, win);
-    MPI_Send(NULL, 0, MPI_INT, rank, 2, MPI_COMM_WORLD);
+    // MPI_Win_flush(rank, win);
     MPI_Win_unlock(rank, win);
+    if (rank == -1) {
+        MPI_Send(&sq->len, 1, MPI_INT, rank, 2, MPI_COMM_WORLD);
+        sq->len = 0;
+        free(sq->buf);
+        free(sq);
+    } else {
+        MPI_Send(&send_lenght, 1, MPI_INT, rank, 2, MPI_COMM_WORLD);
+    }
     pthread_mutex_unlock(&win_lock);
-    free(sq->buf);
-    free(sq);
 }
 
 // Append contents in buf whose length is len to *mpisend_buf
 int
 append_to_mpisend_buf(const void *buf, int len)
 {
-    int ns = len + sq->len;
-    if (ns > sq->size)
-    {
-        sq->buf = realloc(sq->buf, ns+1);
-        if (sq->buf == NULL)
+    if(rank == -1) {
+        int ns = len + sq->len;
+        if (ns > sq->size)
         {
-            fprintf(stderr, "Error: Not enough memory.\n");
-            exit(1);
+            sq->buf = realloc(sq->buf, ns+1);
+            if (sq->buf == NULL)
+            {
+                fprintf(stderr, "Error: Not enough memory.\n");
+                exit(1);
+            }
+            sq->size = ns+1;
         }
-        sq->size = ns+1;
+        memcpy(sq->buf+sq->len, buf, len);
+        sq->len = ns;
+    } else {
+      MPI_Put(buf, len, MPI_CHAR, rank, send_lenght, len, MPI_CHAR, win);
+      send_lenght += len;
+      MPI_Win_flush_local(rank, win);
     }
-    memcpy(sq->buf+sq->len, buf, len);
-    sq->len = ns;
 }
 
 /* send */
@@ -494,9 +510,9 @@ void sendrecv()
     for (sent = 0;;)
     {
         recv_queue_temp = (struct recv_block *) malloc(sizeof(struct recv_block));
-        MPI_Recv(&recv_queue_temp->len, 1, MPI_INT, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, &recv_status);
+        MPI_Recv(NULL, 0, MPI_INT, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, &recv_status);
+        MPI_Recv(&recv_queue_temp->len, 1, MPI_INT, recv_status.MPI_SOURCE, 2, MPI_COMM_WORLD, &recv_status);
         recv_queue_temp->buf = (char *) malloc(sizeof(char) * recv_queue_temp->len);
-        MPI_Recv(NULL, 0, MPI_INT, recv_status.MPI_SOURCE, 2, MPI_COMM_WORLD, &recv_status);
         memcpy(recv_queue_temp->buf, recv_msg, recv_queue_temp->len);
         recv_queue_temp->next = NULL;
         recv_msg[0] = '\0';
