@@ -33,8 +33,9 @@
   (check-baf-compatibility t)           ; Check back-and-forth compatibility of dynamic-wind statements
   )
 
+(require-ruleset "SC-INTERPRET")
 (scr:require "TCELL-DEFS")
-(scr:require "TCELL-BAF-COMPAT")
+(scr:require "TCELL-BAF-DEFS")
 
 (defrule sc-program tcell
   ((#?(,@decl-list))

@@ -154,7 +154,7 @@
                  (progn
                    (temp:add-precedent call-exp)
                    ~(the int 0))
-               (let* ((tmp-id (generate-id "tmp"))
+               (let* ((tmp-id (generate-id "_sctmp"))
                       (tmp-exp ~(the ,texp ,tmp-id)))
                  (temp:add-add-decl tmp-id texp)
                  (temp:add-precedent ~(the ,texp (= ,tmp-exp ,call-exp)))

@@ -23,41 +23,257 @@
 ;;; SUCH DAMAGE.
 
 ;;;; SC simple interpreter for checking back-forth compatibility of Tascell programs
-(scr:require "TCELL-BAF-COMPAT")
+(require-ruleset :sc2c)
+(scr:require "TCELL-BAF-DEFS")
 
-(define-ruleset sc2c ()
-  (entry 'sc-program)
+(define-ruleset sc-interpret ()
+  (entry 'interpret-start))
+
+(defrule interpret-start sc-interpret
+  ((#?(,@statements))
+   (catch :undefined-behavior
+     (loop for stat in statements
+	   do (statement stat))
+     t))
   )
 
-(defpackage "TCELL-BAF"
-  (:shadow cl:declaration)
-  (:use "RULE" "CL" "SC-MISC")
-  (:export :baf-compatible-p))
-(in-package "TCELL-BAF")
+(defrule statement sc-interpret
+  ((#?,stat[compound-statement]
+    #?,stat[selection-statement]
+    #?,stat[iteration-statement]
+    #?,stat[jump-statement]
+    #?,stat[labeled-statement]
+    #?,stat[expression-statement])
+   (get-retval stat))
+  ((#?()) ; null-statement
+   t)
+  (otherwise
+   (throw :undefined-behavior (cons :undefined x)))
+  )
 
-;; Initial value of Location specifier
-(defparameter *init* (list))
-;; Current value of Location specifier
-(defparameter *env* (list))
+(defrule compound-statement sc-interpret
+  ((#?(begin ,@statements))
+   (loop for stat in statements
+	 do (statement stat))
+   t))
 
-(defun env-equal-p (env1 env2)
-  (every #'(lambda (loc-val)
-             (aand (find (car loc-val) env2 :key #'car :test #'equal)
-                   (equal (cdr loc-val) (cdr it))))
-         env1))
-    
-(defun baf-compatible-p (before after)
-  (let ((bef (apply-rule before :untype))
-        (aft (apply-rule after :untype)))
-    (and (let ((*init* *init*)
-               (*env* *env*))
-           (mapcar #'interpret bef)
-           (mapcar #'interpret aft)
-           (env-equal-p *init* *env*))
-         (let ((*init* *init*)
-               (*env* *env*))
-           (mapcar #'interpret aft)
-           (mapcar #'interpret bef)
-           (env-equal-p *init* *env*)))))
+(defrule labeled-statement sc-interpret
+  ((#?(label ,id ,stat))
+   ;; Ignore the label
+   (statement stat))
+  ((#?(case ,exp))
+   ;; Ignore
+   t)
+  ((#?(default))
+   ;; Ignore
+   t)
+  )
 
-         
+(defrule expression-statement sc-interpret
+  ((#?,exp-stat[expression])
+   t)
+  )
+
+(defrule selection-statement sc-interpret
+  ((#?(if ,exp[expression] ,stat1 {,stat2}))
+   (if (tcell-baf:poly-true-p (get-retval exp))
+       (statement stat1)
+     (if-pattern-variable stat2
+			  (statement stat2)
+			  t)))
+  ((#?(switch ,exp ,@bi-list))
+   (throw :undefined-behavior (cons :undefined x)))
+  )
+
+(defrule iteration-statement sc-interpret
+  ((#?(do-while ,exp ,@statements))
+   (do ((exp-ret (expression 1) (expression exp)))
+       ((not (tcell-baf:poly-true-p exp-ret)) t)
+     (loop for stat in statements
+	   do (statement stat))))
+  )
+
+(defrule jump-statement sc-interpret
+  ((#?(goto ,id[identifier])
+    #?(continue)
+    #?(break)
+    #?(return {,exp}))
+   (throw :undefined-behavior (cons :undefined x)))
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; 5.Expressions
+
+(defrule identifier sc-interpret
+  (otherwise
+   (identifier x :sc2c)))
+
+;; This rule returns two values: <value> and <location>
+(defrule expression sc-interpret
+  ;; number, character, string-literal
+  ((#?,id[identifier])
+   (values (tcell-baf:ref-value (get-retval id))
+	   (get-retval id)))
+  ((#?,num[#'numberp])
+   (values (list (cons nil x))
+	   nil))
+  ((#?,char[#'characterp])
+   (values (list (cons nil (char-code x)))
+	   nil))
+  ((#?,str[#'stringp])
+   (values x nil))
+  ;; compound-literal
+  ((#?(init ,texp ,cmp-init))
+   (throw :undefined-behavior (cons :undefined x)))
+  ;; aref
+  ((#?(aref ,exp1 ,@exp-list))
+   (cond ((null exp-list)
+	  (expression exp1))
+	 ((cdr exp-list)
+	  (expression ~(aref (aref ,exp1 ,(car exp-list))
+			     ,@(cdr exp-list))))
+	 (t
+	  (let* ((exp-rets (loop for exp in (cons exp1 exp-list)
+				 collect (expression exp)))
+		 (loc ~(aref ,@(mapcar #'tcell-baf:print-friendly-poly exp-rets))))
+	    (values (tcell-baf:ref-value loc)
+		    loc)))))
+  ;; fref
+  ((#?(fref ,exp ,@fi-list))
+   (cond ((null fi-list)
+	  (expression exp))
+	 ((cdr fi-list)
+	  (expression ~(fref (fref ,exp ,(car fi-list))
+			     ,@(cdr fi-list))))
+	 (t
+	  (let* ((exp-ret (expression exp))
+		 (loc ~(fref ,(tcell-baf:print-friendly-poly exp-ret) ,@fi-list)))
+	    (values (tcell-baf:ref-value loc)
+		    loc)))))
+  ;; inc,dec
+  ((#?(inc ,exp))
+   (multiple-value-bind (val loc) (expression exp)
+     (tcell-baf:set-value loc (tcell-baf:poly-plus val (list (cons nil 1))))
+     (values val nil)))
+  ((#?(dec ,exp))
+   (multiple-value-bind (val loc) (expression exp)
+     (tcell-baf:set-value loc (tcell-baf:poly-plus val (list (cons nil -1))))
+     (values val nil)))
+  ((#?(++ ,exp))
+   (multiple-value-bind (val loc) (expression exp)
+     (let ((new-val (tcell-baf:poly-plus val (list (cons nil 1)))))
+       (tcell-baf:set-value loc new-val)
+       (values new-val nil))))
+  ((#?(-- ,exp))
+   (multiple-value-bind (val loc) (expression exp)
+     (let ((new-val (tcell-baf:poly-plus val (list (cons nil -1)))))
+       (tcell-baf:set-value loc new-val)
+       (values new-val nil))))
+  ;; unary +/-
+  ((#?(+ ,exp))
+   (values (expression exp) nil))
+  ((#?(- ,exp))
+   (values (tcell-baf:poly-unary-minus (expression exp)) nil))
+  ((#?(/ ,exp))
+   (throw :undefined-behavior (cons :undefined x)))
+  ;; unary mref, ptr
+  ((#?(mref ,exp))
+   (multiple-value-bind (val loc) (expression exp)
+     (let ((new-loc (if (and (consp loc)
+			     (eq ~ptr (car loc)))
+			(cadr loc)
+		      ~(mref ,(tcell-baf:print-friendly-poly val)))))
+       (values (tcell-baf:ref-value new-loc)
+	       new-loc))))
+  ((#?(ptr ,exp))
+   (multiple-value-bind (val loc) (expression exp)
+     (let ((new-loc (if (and (consp loc)
+			     (eq ~mref (car loc)))
+			(cadr loc)
+		      ~(ptr ,(tcell-baf:print-friendly-poly val)))))
+       (values (tcell-baf:ref-value new-loc)
+	       new-loc))))
+  ;; cast
+  ((#?(cast ,texp ,exp))
+   (throw :undefined-behavior (cons :undefined x)))
+  ;; arithmetic operator
+  ((#?(+ ,exp1 ,exp2 ,@exp-list))
+   (if exp-list
+       (expression ~(+ (+ ,exp1 ,exp2) ,@exp-list))
+     (values (tcell-baf:poly-plus (expression exp1) (expression exp2))
+	     nil)))
+  ((#?(- ,exp1 ,exp2 ,@exp-list))
+   (if exp-list
+       (expression ~(- (- ,exp1 ,exp2) ,@exp-list))
+     (values (tcell-baf:poly-minus (expression exp1) (expression exp2))
+	     nil)))
+  ;; logical operator
+  ((#?(and ,exp1 ,exp2))
+   (let ((val1 (expression exp1)))
+     (if (tcell-baf:poly-true-p val1)
+	 (expression exp2)
+       (expression 0))))
+  ((#?(or ,exp1 ,exp2))
+   (let ((val1 (expression exp1)))
+     (if (tcell-baf:poly-true-p val1)
+	 val1
+       (expression exp2))))
+  ;; comparator
+  ((#?(,comp[comparator] ,exp1 ,exp2))
+   (let ((val1 (expression exp1))
+	 (val2 (expression exp2)))
+     (let* ((diff (tcell-baf:poly-minus val1 val2))
+	    (pred (case comp
+		    (sc::< (tcell-baf:poly-negative-p diff))
+		    (sc::> (tcell-baf:poly-positive-p diff))
+		    (sc::<= (or (tcell-baf:poly-zerop diff)
+			       (tcell-baf:poly-negative-p diff)))
+		    (sc::>= (or (tcell-baf:poly-zerop diff)
+				(tcell-baf:poly-positive-p diff)))
+		    (sc::== (tcell-baf:poly-zerop diff))
+		    (sc::!= (not (tcell-baf:poly-zerop diff)))
+		   (otherwise (throw :undefined-behavior (cons :undefined x))))))
+       (if pred
+	   (list (cons nil 1))
+	 (list (cons nil 0))))))
+  ;; if-exp
+  ((#?(if-exp ,exp1 ,exp2 ,exp3))
+   (let ((val1 (expression exp1)))
+     (if (tcell-baf:poly-true-p val1)
+	 (expression exp2)
+       (expression exp3))))
+  ;; assignment-operator
+  ((#?(= ,exp1 ,exp2))
+   (multiple-value-bind (val1 loc1) (expression exp1)
+     (declare (ignore val1))
+     (unless loc1 (throw :undefined-behevior (cons :undefined x)))
+     (let ((val2 (expression exp2)))
+       (tcell-baf:set-value loc1 val2)
+       val2)))
+  ;; assignment-operator
+  ((#?(+= ,exp1 ,exp2))
+   (multiple-value-bind (val1 loc1) (expression exp1)
+     (let* ((val2 (expression exp2))
+	    (new-val (tcell-baf:poly-plus val1 val2)))
+       (tcell-baf:set-value loc1 (tcell-baf:poly-plus val1 val2))
+       new-val)))
+  ((#?(-= ,exp1 ,exp2))
+   (multiple-value-bind (val1 loc1) (expression exp1)
+     (let* ((val2 (expression exp2))
+	    (new-val (tcell-baf:poly-minus val1 val2)))
+       (tcell-baf:set-value loc1 (tcell-baf:poly-plus val1 val2))
+       new-val)))
+  ;; exps
+  ((#?(exps ,@exp-list))
+   (if (null exp-list)
+       (expression 0)
+     (progn
+       (loop for exp in (butlast exp-list)
+	     do (expression exp))
+       (expression (car (last exp-list))))))
+  )
+
+(defrule comparator sc-interpret
+  (#?,op[~(< > <= >= == !=)]
+   x)
+  )
