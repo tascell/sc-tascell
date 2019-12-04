@@ -6,7 +6,7 @@ SC2C_OPT=
 # SC2C_OPT+=-m              # don't remove intermediate files
 # SC2C_OPT+=-D DEBUG=0      # invalidate debugging code
 SC2C_OPT+=-D USEMPI=1       # validate MPI
-SC2C_OPT+=-D NO-EXCEPTION # invalidate exception support
+SC2C_OPT+=-D NO-EXCEPTION   # invalidate exception support
 SC2C_OPT+=-D PROFILE        # validate profiling
 # Command for XC Cube (an extended GCC that supports L-Closures and Closures)
 XCC=xcc

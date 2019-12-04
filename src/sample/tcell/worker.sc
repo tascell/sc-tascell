@@ -66,6 +66,10 @@
     ))
 
 
+;;;; (argc,argv) for tcell-main function
+(def Argc-tcell int)
+(def Argv-tcell (ptr (ptr char)))
+
 ;;;; Worker threads
 (def threads (array (struct thread-data) 128))
 (def num-thrs unsigned-int)
@@ -1571,6 +1575,7 @@
 		  "] [-n n-threads] [-i initial-task-parms] [-a]"
                   (%if* VERBOSE " [-v verbosity]" %else "")
                   (%if* PROFILE " [-T timechart-prefix]" %else "")
+		  "[-- <application-specific-options>]"
                   "~%")
                  (aref argv 0))
   (csym::exit 1))
@@ -1697,6 +1702,17 @@
       (csym::fprintf stderr "Unknown option: %c~%" ch)
       (csym::usage argc argv)
       (break)))
+  ;; argv[0] and options after "--" are stored to Argv-tcell
+  (= Argc-tcell (- argc optind))
+  (= Argv-tcell (cast (ptr (ptr char)) (csym::malloc (* (sizeof (ptr char)) Argc-tcell))))
+  (= (aref Argv-tcell 0) (aref argv 0))
+  (let ((i int 1))
+    (while (< optind argc)
+      (= (aref Argv-tcell i) (aref argv optind))
+      (inc i)
+      (inc optind)))
+  ;; reset optind
+  (= optind 1)
   (return)
   )
 
