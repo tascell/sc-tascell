@@ -25,10 +25,11 @@
 (defpackage "TCELL-BAF"
   (:shadow cl:declaration)
   (:use "RULE" "CL" "SC-MISC")
-  (:export :baf-compatible-p :ref-value :set-value
-	   :poly-plus :poly-unary-minus :poly-minus :poly-positive-p :poly-negative-p :poly-zerop :poly-true-p
-	   :print-friendly-poly
-	   :*init* :*env*))
+  (:export :ref-value :set-value
+	   :poly-plus :poly-unary-minus :poly-minus :poly-positive-p :poly-negative-p
+	   :poly-zerop :poly-true-p :print-friendly-poly
+	   :baf-compatible-p
+	   ))
 (in-package "TCELL-BAF")
 
 ;; Initial value of Location specifier: list of (<loc> . <val>)
@@ -52,36 +53,12 @@
 		     (diff-env (cdr env1) (remove it env2)))))
 	   (cons `(:env1-only ,(cons loc1 (print-friendly-poly val1)))
 		 (diff-env (cdr env1) env2))))))
-    
-(defun baf-compatible-p (before after)
-  (let ((bef (apply-rule before :untype))
-        (aft (apply-rule after :untype)))
-    (with-package :sc
-      (format t "<<<back-and-forth compatibility test.>>>~%[before:] ~S~%[after:] ~S~%" bef aft))
-    (let ((*init* (list))
-	  (*env* (list)))
-      (format t "<<before => after>>~%")
-      (apply-rule bef :sc-interpret)
-      (apply-rule aft :sc-interpret)
-      (with-package :sc
-        (format t "[init:] ~S~%" (print-friendly-env *init*))
-	(format t "[env:] ~S~%"  (print-friendly-env *env*))
-	(format t "[diff:] ~S~%" (diff-env *init* *env*))))
-    (let ((*init* (list))
-	  (*env* (list)))
-      (format t "<<after => before>>~%")
-      (apply-rule aft :sc-interpret)
-      (apply-rule bef :sc-interpret)
-      (with-package :sc
-        (format t "[init:] ~S~%" (print-friendly-env *init*))
-	(format t "[env:] ~S~%"  (print-friendly-env *env*))
-	(format t "[diff:] ~S~%" (diff-env *init* *env*))))))
 
 (defun ref-value (loc)
   (aif (find loc *env* :key #'car :test #'equal)
        (cdr it)
        (let* ((isym (gensym (if (stringp loc) loc (format nil "~A" loc))))
-	      (ival (list (cons isym 1))))
+	      (ival (list (cons isym 1) (cons nil 0))))
 	 (push (cons loc ival) *init*)
 	 (push (cons loc ival) *env*)
 	 ival)))
@@ -90,10 +67,15 @@
   (aif (find loc *env* :key #'car :test #'equal)
        (rplacd it val)
        (let* ((isym (gensym (if (stringp loc) loc (format nil "~A" loc))))
-	      (ival (list (cons isym 1))))
+	      (ival (list (cons isym 1) (cons nil 0))))
 	 (push (cons loc ival) *init*)
 	 (push (cons loc val) *env*)
 	 val)))
+
+(defun print-friendly-env (env)
+  (loop for lv in env
+	collect (cons (car lv) (print-friendly-poly (cdr lv)))))
+
 
 ;; n元1次多項式の加減算
 ;; Polynominals are represented as a list of (<symbol> . <number>). <symbol> is nil for dimensionless value
@@ -169,8 +151,28 @@
       val
     (car val)))
 
-(defun print-friendly-env (env)
-  (loop for lv in env
-	collect (cons (car lv) (print-friendly-poly (cdr lv)))))
 
-
+
+(defun baf-compatible-p (before after)
+  (let ((bef (apply-rule before :untype))
+        (aft (apply-rule after :untype)))
+    (with-package :sc
+      (format t "<<<back-and-forth compatibility test>>>~%[before:] ~S~%[after:] ~S~%" bef aft))
+    (let ((*init* (list))
+	  (*env* (list)))
+      (format t "<<before => after>>~%")
+      (apply-rule bef :sc-interpret)
+      (apply-rule aft :sc-interpret)
+      (with-package :sc
+        (format t "[init:] ~S~%" (print-friendly-env *init*))
+	(format t "[env:] ~S~%"  (print-friendly-env *env*))
+	(format t "[diff:] ~S~%" (diff-env *init* *env*))))
+    (let ((*init* (list))
+	  (*env* (list)))
+      (format t "<<after => before>>~%")
+      (apply-rule aft :sc-interpret)
+      (apply-rule bef :sc-interpret)
+      (with-package :sc
+        (format t "[init:] ~S~%" (print-friendly-env *init*))
+	(format t "[env:] ~S~%"  (print-friendly-env *env*))
+	(format t "[diff:] ~S~%" (diff-env *init* *env*))))))
