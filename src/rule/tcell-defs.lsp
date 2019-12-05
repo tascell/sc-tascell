@@ -41,6 +41,7 @@
            :make-dummy-worker-data-if-needed
            :nestfunc-type
            :add-defined-func-name :func-name-exists-p
+	   :add-toplevel :additional-toplevel-declarations
            ))
 (in-package "TCELL")
 
@@ -367,11 +368,24 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 定義された関数名リスト
+(defvar *additional-toplevel-declarations* ())
+
+(defun add-toplevel (decl)
+  (push decl *additional-toplevel-declarations*))
+
+(defun additional-toplevel-declarations ()
+  (reverse *additional-toplevel-declarations*))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defmacro with-environment-bound (&body body)
   `(let ((*tasks* ())
          (*current-task* nil)
          (*latest-bk* nil)
          (*defined-func-names* ())
+	 (*additional-toplevel-declarations* ())
          (*worker-init-data* t) (*worker-init-body* t) (*wdata-accessible* nil))
      ,@body))
 
