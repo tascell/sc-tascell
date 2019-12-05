@@ -67,8 +67,8 @@
 
 
 ;;;; (argc,argv) for tcell-main function
-(def Argc-tcell int)
-(def Argv-tcell (ptr (ptr char)))
+(def Argc-tcell int 0)
+(def Argv-tcell (ptr (ptr char)) 0)
 
 ;;;; Worker threads
 (def threads (array (struct thread-data) 128))
@@ -219,41 +219,39 @@
   (csym::send-char #\Newline sv-socket)
   ;; Send the body of task/rslt/bcst
   (cond
-   (body
-    (cond
-     ((or (== w TASK) (== w BCST))
-      ((aref task-senders task-no) body)
-      (csym::send-char #\Newline sv-socket))
-     ((== w RSLT)
-      ((aref rslt-senders task-no) body)
-      (csym::send-char #\Newline sv-socket)
-      )))
-   )
+   ((or (== w TASK) (== w BCST))
+    ((aref task-senders task-no) body)
+    (csym::send-char #\Newline sv-socket))
+   ((== w RSLT)
+    (if (!= task-no -1)
+	((aref rslt-senders task-no) body))
+    (csym::send-char #\Newline sv-socket)
+    ))
   
   ;; Note: In the MPI mode, calls of send-string, task-senders, and etc.
   ;; above just write the message into the mpisend buffer. Then below,
   ;; extracts the destination rank ID and request the messaging thread
   ;; to send the message stored in the buffer.
-	(switch w       ; extract destination rank ID
-	  (case TASK) (= dest-rank (aref pcmd->v 2 0)) (break)
-	  (case RSLT) (= dest-rank (aref pcmd->v 0 0)) (break)
-	  (case TREQ) (= dest-rank (aref pcmd->v 1 0)) (break)
-	  (case NONE) (= dest-rank (aref pcmd->v 0 0)) (break)
-	  (case RACK) (= dest-rank (aref pcmd->v 0 0)) (break)
-	  (default)
-	  (csym::fprintf stderr "Error: Invalid destination rank.~%")
-	  (break))
-	;; Exit if the destination rank of RSLT message is the pseudo rank (-1).
-	(if (and (== w RSLT) (== -1 dest-rank))
-	    (begin
-	      (csym::show-mpisend-buf sv-socket)
-	      (PROF-CODE
-	       (csym::finalize-tcounter)
-	       (csym::show-counters))
-	      (csym::MPI-Abort MPI-COMM-WORLD 0)
-	      (csym::exit 0)))
-        ;; End initialization of mpisend-buf and add it to the send buffer
-	(csym::send-block-end dest-rank)
+  (switch w       ; extract destination rank ID
+    (case TASK) (= dest-rank (aref pcmd->v 2 0)) (break)
+    (case RSLT) (= dest-rank (aref pcmd->v 0 0)) (break)
+    (case TREQ) (= dest-rank (aref pcmd->v 1 0)) (break)
+    (case NONE) (= dest-rank (aref pcmd->v 0 0)) (break)
+    (case RACK) (= dest-rank (aref pcmd->v 0 0)) (break)
+    (default)
+    (csym::fprintf stderr "Error: Invalid destination rank.~%")
+    (break))
+  ;; Exit if the destination rank of RSLT message is the pseudo rank (-1).
+  (if (and (== w RSLT) (== -1 dest-rank))
+      (begin
+	(csym::show-mpisend-buf sv-socket)
+	(PROF-CODE
+	 (csym::finalize-tcounter)
+	 (csym::show-counters))
+	(csym::MPI-Abort MPI-COMM-WORLD 0)
+	(csym::exit 0)))
+  ;; End initialization of mpisend-buf and add it to the send buffer
+  (csym::send-block-end dest-rank)
   )
 
 ;;; Take cmd and call the function corresponding to its command name.
@@ -563,10 +561,12 @@
 	(csym::pthread-mutex-unlock (ptr thr->mut))
 	(DEBUG-PRINT 1 "(%d): (Thread %d) start %d<%p> (body=%p).~%"
 		     (csym::get-universal-real-time) thr->id tx->task-no tx tx->body)
-	((aref task-doers tx->task-no) thr tx->body) ; Invoke the task body method
+	(if (== tx->task-no -1)
+	    (tcell-main thr Argc-tcell Argv-tcell)      ; Execute tcell-main function
+	  ((aref task-doers tx->task-no) thr tx->body)) ; Invoke the task body method
 	(= rsn thr->exiting)
 	(= thr->exiting EXITING-NORMAL)
-	;; Set the reason for compliting the task
+	;; Set the reason for completing the task
 	(switch rsn
 	  (case EXITING-NORMAL)
 	  (DEBUG-PRINT 1 "(%d): (Thread %d) end %d<%p> (body=%p).~%" 
@@ -735,10 +735,12 @@
   ;; invoking the user-defined receiver method.
   ;; (For an internal task message, body is given as the argument)
   (= task-no (aref pcmd->v 3 0))
-  (if (== pcmd->node OUTSIDE)
-      (begin
-       (= body ((aref task-receivers task-no)))
-       (csym::read-to-eol)))
+  (if (== task-no -1)   ; do not execute receiver for the special task to execute tcell-main
+      (= body 0)
+    (if (== pcmd->node OUTSIDE)
+	(begin
+	  (= body ((aref task-receivers task-no)))
+	  (csym::read-to-eol))))
   ;; Determine the task recipient worker from <recipient>
   (= id (aref pcmd->v 2 (+ rank-p 0)))
   (if (not (< id num-thrs))
@@ -1585,12 +1587,13 @@
   (decl fp (ptr FILE))
   (decl buf (array char 256))
   (decl command (ptr char))
+  (def initial-task-set int 0)
   ;; Default values
   (= option.sv-hostname 0)
   (= option.port (%ifdef* USEMPI -1 %else 9865))
   (= option.num-thrs 1)
   (= option.node-name 0)
-  (= option.initial-task 0)
+  (= option.initial-task "-1") ; "-1" means the special task to execute tcell-main
   (= option.auto-exit 0)
   (= option.affinity 0)
   (= option.always-flush-accepted-treq 0)
@@ -1626,13 +1629,14 @@
       (break)
       
       (case #\i)                        ; initial task
-      (if option.initial-task
+      (if initial-task-set
           (csym::free option.initial-task))
       (= option.initial-task
          (cast (ptr char) (csym::malloc (* (+ 1 (csym::strlen optarg))
                                            (sizeof char)))))
       (csym::strcpy option.initial-task optarg)
       (= option.auto-exit 1)            ; auto-exit set automatically
+      (= initial-task-set 1)
       (break)
       
       (case #\x)                        ; auto exit
