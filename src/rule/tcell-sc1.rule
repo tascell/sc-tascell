@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008-2014 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; Copyright (c) 2008-2019 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -61,6 +61,12 @@
                             ,(expression guard-exp))))
        (:put ,@(function-body put-body))
        (:get ,@(function-body get-body)))) )
+  ((#?(do-two ,stat1 
+	 (ptask (:in ,@var-in-list) (:out ,@var-out-list) 
+		,stat2)))
+   ~(do-two (begin ,(statement stat1))
+	(ptask (:in ,@var-in-list) (:out ,@var-out-list)
+	       (begin ,(statement stat2)))))
   ((#?(do-many for ,var from ,from to ,to
 	,@body
 	({handles} ,id
