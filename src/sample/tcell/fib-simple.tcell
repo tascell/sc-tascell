@@ -58,7 +58,7 @@
   (decl tp (array (struct timeval) 2))
   (def r long)
   (def n long)
-  (= n (if-exp (> argc 1) (csym::atoi (aref argv 1) 40)))
+  (= n (if-exp (> argc 1) (csym::atoi (aref argv 1)) 40))
   (csym::fprintf stderr "start fib(%ld)~%" n)
   (csym::gettimeofday tp 0)
   (= r (fib n))
