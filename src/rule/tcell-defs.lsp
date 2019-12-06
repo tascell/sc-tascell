@@ -31,7 +31,7 @@
            :with-new-bk :latest-bk
            :task-id :task-cid :current-task :add-task
            :make-task-struct-id :task-struct-id :task-no
-           :task-body-function :nonlocal-goto
+           :task-body-function :add-backtrack-sentinel :nonlocal-goto
            :set-task-send :set-task-recv :set-rslt-send :set-rslt-recv
            :task-add-field :task-add-input-var :task-add-output-var
            :task-field-p
@@ -42,6 +42,7 @@
            :nestfunc-type
            :add-defined-func-name :func-name-exists-p
 	   :add-toplevel :additional-toplevel-declarations
+	   :set-tcell-main-defined :make-dummy-tcell-main-if-needed
            ))
 (in-package "TCELL")
 
@@ -163,27 +164,31 @@
 ;;; recv-exec-send() in "worker.sc".
 (defun task-body-function (body &optional (task *current-task*))
   (let ((id (do-task-id task))
-	(struct-id (task-struct-id task))
-	(label-id (generate-id (string+ (task-cid task) "_exit"))))
+	(struct-id (task-struct-id task)))
     ~(def (,id -thr pthis) ,(task-body-type ~(struct ,struct-id))
-       ,@(unless (ruleset-param 'rule::no-exception)
-           (list ~(def ,label-id __label__)))
-       ,@(unless (ruleset-param 'rule::no-nestfunc)
-	   (list
-	    ;; Nested function
-	    ~(def (-bk) ,(nestfunc-type)
-	       ;; * When worker is propagating an exception or cancelling the task,
-	       ;;   exit the task with returning an abort flag.
-	       (if (or (== -thr->exiting EXITING-EXCEPTION)
-		       (== -thr->exiting EXITING-CANCEL))
-		   (begin
-		     ,(nonlocal-goto label-id)))
-	       ;; * The terminal of temporary backtracking
-	       (return 0)) ))
-       ,@body
-       (label ,label-id (return))
-       )
+       ,@(add-backtrack-sentinel body))
     ))
+
+;; Take a function body and add a nested function for terminating temporarily backtrackings
+;; and a label definition for aborting a task.
+(defun add-backtrack-sentinel (body)
+  (let ((label-id (generate-id "task_exit")))
+    ~(,@(unless (ruleset-param 'rule::no-exception)
+	  (list ~(def ,label-id __label__)))
+      ,@(unless (ruleset-param 'rule::no-nestfunc)
+	  (list
+	   ;; Nested function
+	   ~(def (-bk) ,(nestfunc-type)
+		 ;; * When worker is propagating an exception or cancelling the task,
+		 ;;   exit the task with returning an abort flag.
+		 (if (or (== -thr->exiting EXITING-EXCEPTION)
+			 (== -thr->exiting EXITING-CANCEL))
+		     (begin
+		      ,(nonlocal-goto label-id)))
+		 ;; * The terminal of temporary backtracking
+		 (return 0)) ))
+      ,@body
+      (label ,label-id (return)))))
 
 (defun nonlocal-goto (label-id)
   (if (not (ruleset-param 'rule::no-exception))
@@ -369,7 +374,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 定義された関数名リスト
+;; トップレベルに追加すべき宣言のリスト
 (defvar *additional-toplevel-declarations* ())
 
 (defun add-toplevel (decl)
@@ -379,6 +384,20 @@
   (reverse *additional-toplevel-declarations*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; tcell-main関数の定義の有無および無い場合のダミー生成
+(defvar *defined-tcell-main-p* nil)
+
+(defun set-tcell-main-defined ()
+  (setq *defined-tcell-main-p* t))
+
+(defun make-dummy-tcell-main-if-needed ()
+  (if *defined-tcell-main-p*
+      ~(%splice)
+      ~(def (tcell-main -thr argc argv)
+	   (fn int (ptr (struct thread-data)) int (ptr (ptr char)))
+	 (csym::fprintf stderr "No tcell-main function defined.~%"))))
+  
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmacro with-environment-bound (&body body)
   `(let ((*tasks* ())
@@ -386,6 +405,7 @@
          (*latest-bk* nil)
          (*defined-func-names* ())
 	 (*additional-toplevel-declarations* ())
+	 (*defined-tcell-main-p* nil)
          (*worker-init-data* t) (*worker-init-body* t) (*wdata-accessible* nil))
      ,@body))
 
