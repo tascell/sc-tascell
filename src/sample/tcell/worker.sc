@@ -1919,7 +1919,7 @@
     (csym::MPI-Init-thread (ptr argc) (ptr argv) MPI-THREAD-MULTIPLE (ptr mpi-provided))
     (csym::MPI-Comm-rank MPI-COMM-WORLD (ptr my-rank))
     (csym::MPI-Comm-size MPI-COMM-WORLD (ptr num-procs))
-    (csym::setup-win)
+    (csym::setup-win my-rank)
     (if (== my-rank 0)
 	(begin
 	  (def provided-msg (ptr char))

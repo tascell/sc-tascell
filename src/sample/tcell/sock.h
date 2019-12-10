@@ -43,7 +43,7 @@ int receive_binary (void *dst, unsigned long elm_size, unsigned long n_elm,
 void send_block_start(int dest);
 void send_block_end(void);
 void sendrecv(void);
-void setup_win();
+void setup_win(int me);
 extern struct send_block *sq;
 extern char *receive_buf;
 extern char *receive_buf_p;
