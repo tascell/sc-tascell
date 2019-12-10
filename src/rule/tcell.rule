@@ -190,6 +190,13 @@
 
 (extendrule statement tcell
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; Explicitly check task/exception/cancel request
+  (#?TCELL-CHECK-REQ
+   ~(if (or -thr->req-cncl
+            -thr->task-top->cancellation
+            -thr->req)
+        ,(wfn-add-argids ~(handle-reqs))) )
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; do-two
   ;; * stat1->stat2 の順に実行
   ;; * stat2 実行中に仕事の要求がきたら，:put以下を実行してsendする．
@@ -267,6 +274,42 @@
 		    ,(wfn-add-argids ~(handle-exception -thr->exception-tag))))
 	    (begin ,b-stat2))
 	  ) )))
+
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; do-two拡張構文
+  (#?(do-two 
+        ,stat1 
+        (ptask (:in ,@var_in_list) (:out ,@var_out_list) ;var_in_list: list of (var_name, var_type)
+        ,stat2))
+    (let* ((taskname (generate-id "autotask_"))
+           (deftask ~(def (task ,taskname) 
+                       ,@(mapcar #'(lambda (x) `(def ,(car x) ,(cadr x) :in)) var_in_list)
+                       ,@(mapcar #'(lambda (x) `(def ,(car x) ,(cadr x) :out)) var_out_list)))
+           (deftask-transformed (inlined-declaration deftask))
+           (taskbody ~(def (task-body ,taskname) 
+                        ,@(mapcar #'(lambda (x) ~(def ,(car x) ,(cadr x) (fref this ,(car x)))) var_in_list) 
+                        ,@(mapcar #'(lambda (x) ~(def ,(car x) ,(cadr x) )) var_out_list) 
+                        ,(statement stat2)
+                        ,@(mapcar #'(lambda (x) ~(= (fref this ,(car x)) ,(car x))) var_out_list) ))
+           (taskbody-transformed (inlined-declaration taskbody))
+           (tcell:add-toplevel deftask-transfomred)
+           (tcell:add-toplevel taskbody-transfomred)
+           (statement
+            ~(do-two 
+                 ,stat1 
+               ,stat2
+               (handles ,taskname 
+                        (:put ,(mapcar #'(lambda (x) 
+                                           ~(= (the ,(cadr x)
+                                                    (fref (the (struct ,taskname) this) ,(car x))) 
+                                               (the ,(cadr x) ,(car x))))
+                                       var_in_list))
+                        (:get ,(mapcar #'(lambda (x) 
+                                           ~(= (the ,(cadr x) ,(car x))
+                                               (the ,(cadr x)
+                                                    (fref (the (struct ,taskname) this) ,(car x)))))
+                                       var_out_list) )))))))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; do-many
   ;; * ,var を制御変数として，,fromから ,toまでについて ,@bodyを実行
