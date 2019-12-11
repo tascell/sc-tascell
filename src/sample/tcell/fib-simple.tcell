@@ -50,7 +50,7 @@
       (def s2 long)
       (do-two
           (= s1 (fib (- n 1)))
-          (ptask (:in n) (:out r)
+          (ptask (:in n) (:out s2)
             (= s2 (fib (- n 2)))))
       (return (+ s1 s2)))))
 
@@ -59,8 +59,12 @@
   (def r long)
   (def n long)
   (= n (if-exp (> argc 1) (csym::atoi (aref argv 1)) 40))
+  (csym::fprintf stderr "argc-tcell=%d~%" argc)
+  (for ((def i int 0) (< i argc) (inc i))
+    (csym::fprintf stderr "argv-tcell[%d]=%s~%" i (aref argv i)))
   (csym::fprintf stderr "start fib(%ld)~%" n)
   (csym::gettimeofday tp 0)
   (= r (fib n))
   (csym::gettimeofday (+ tp 1) 0)
-  (csym::fprintf stderr "Result: %ld~%time: %lf~%" r (csym::elapsed-time tp)))
+  (csym::fprintf stderr "Result: %ld~%time: %lf~%" r (csym::elapsed-time tp))
+  (return 0))

@@ -1707,7 +1707,7 @@
       (csym::usage argc argv)
       (break)))
   ;; argv[0] and options after "--" are stored to Argv-tcell
-  (= Argc-tcell (- argc optind))
+  (= Argc-tcell (+ 1 (- argc optind)))
   (= Argv-tcell (cast (ptr (ptr char)) (csym::malloc (* (sizeof (ptr char)) Argc-tcell))))
   (= (aref Argv-tcell 0) (aref argv 0))
   (let ((i int 1))

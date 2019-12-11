@@ -50,7 +50,10 @@
 					      (ptr (struct thread-data))
 					      long))
 		)
+          (tcell:additional-toplevel-declarations-pre)
           pg
+          (tcell:additional-toplevel-declarations-post)
+          (tcell:make-dummy-tcell-main-if-needed)
           ;; sender/receiver関数およびその配列
           (tcell:sender-and-receiver-functions-all)
           (tcell:task-maps)
@@ -117,11 +120,22 @@
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; task-work用の関数定義/宣言
   (#?(,scs[storage-class-specifier] (,@id-list[identifier])
-          (wfn ,@texp-list) ,@body)
-   (tcell:with-worker-data
-       ~(,scs ,(wfn-add-argids-decl id-list)
-              ,(type-expression! ~(wfn ,@texp-list))
-              ,@(tcell:with-new-bk ~-bk (function-body! body))) ))
+                                    (wfn ,@texp-list) ,@body)
+     ;; tcell main function
+     (if (eq ~tcell-main (car id-list))
+         (progn
+           (tcell:set-tcell-main-defined)
+           ~(,scs (,(car id-list) -thr ,@(cdr id-list))
+                  (fn ,(car texp-list) (ptr (struct thread-data)) ,@(cdr texp-list))
+                  ,@(tcell:with-worker-data
+                     (tcell:add-backtrack-sentinel
+                      (tcell:with-new-bk ~-bk (function-body! body))
+                      0))))
+      ;; other functions
+      (tcell:with-worker-data
+          ~(,scs ,(wfn-add-argids-decl id-list)
+                 ,(type-expression! ~(wfn ,@texp-list))
+                 ,@(tcell:with-new-bk ~-bk (function-body! body))) )))
   ;; 通常の関数定義/宣言
   (#?(,scs[storage-class-specifier] (,fid[identifier] ,@id-list[identifier])
           (,fn-tag[function-tag] ,@texp-list) ,@body)
@@ -280,36 +294,45 @@
   ;; do-two拡張構文
   (#?(do-two 
         ,stat1 
-        (ptask (:in ,@var_in_list) (:out ,@var_out_list) ;var_in_list: list of (var_name, var_type)
+        (ptask (:in ,@var-in-list) (:out ,@var-out-list) ;var-in-list: list of (var_name, var_type)
         ,stat2))
-    (let* ((taskname (generate-id "autotask_"))
+    (let* ((taskname (generate-id "gentask"))
            (deftask ~(def (task ,taskname) 
-                       ,@(mapcar #'(lambda (x) `(def ,(car x) ,(cadr x) :in)) var_in_list)
-                       ,@(mapcar #'(lambda (x) `(def ,(car x) ,(cadr x) :out)) var_out_list)))
+                       ,@(mapcar #'(lambda (x) ~(def ,(car x) ,(cadr x) :in)) var-in-list)
+                       ,@(mapcar #'(lambda (x) ~(def ,(car x) ,(cadr x) :out)) var-out-list)))
            (deftask-transformed (inlined-declaration deftask))
            (taskbody ~(def (task-body ,taskname) 
-                        ,@(mapcar #'(lambda (x) ~(def ,(car x) ,(cadr x) (fref this ,(car x)))) var_in_list) 
-                        ,@(mapcar #'(lambda (x) ~(def ,(car x) ,(cadr x) )) var_out_list) 
-                        ,(statement stat2)
-                        ,@(mapcar #'(lambda (x) ~(= (fref this ,(car x)) ,(car x))) var_out_list) ))
-           (taskbody-transformed (inlined-declaration taskbody))
-           (tcell:add-toplevel deftask-transfomred)
-           (tcell:add-toplevel taskbody-transfomred)
-           (statement
-            ~(do-two 
-                 ,stat1 
-               ,stat2
-               (handles ,taskname 
-                        (:put ,(mapcar #'(lambda (x) 
-                                           ~(= (the ,(cadr x)
-                                                    (fref (the (struct ,taskname) this) ,(car x))) 
-                                               (the ,(cadr x) ,(car x))))
-                                       var_in_list))
-                        (:get ,(mapcar #'(lambda (x) 
-                                           ~(= (the ,(cadr x) ,(car x))
+                        ,@(mapcar #'(lambda (x) ~(def ,(car x) ,(cadr x) 
+                                                   (the ,(cadr x)
+                                                        (fref (the (struct ,taskname) this) ,(car x)))))
+                                  var-in-list)
+                        ,@(mapcar #'(lambda (x) ~(def ,(car x) ,(cadr x) )) var-out-list) 
+                        ,stat2
+                        ,@(mapcar #'(lambda (x) ~(the ,(cadr x)
+                                                      (= (the ,(cadr x)
+                                                              (fref (the (struct ,taskname) this) ,(car x))) 
+                                                         (the ,(cadr x) ,(car x)))))
+                                  var-out-list)))
+           (taskbody-transformed (inlined-declaration taskbody)))
+      (tcell:add-toplevel-pre deftask-transformed)
+      (tcell:add-toplevel-post taskbody-transformed)
+      (statement
+       ~(do-two 
+            ,stat1 
+          ,stat2
+          (handles ,taskname 
+                   (:put ,@(mapcar #'(lambda (x) 
+                                       ~(the ,(cadr x)
+                                             (= (the ,(cadr x)
+                                                     (fref (the (struct ,taskname) this) ,(car x))) 
+                                                (the ,(cadr x) ,(car x)))))
+                                   var-in-list))
+                   (:get ,@(mapcar #'(lambda (x)
+                                       ~(the ,(cadr x)
+                                             (= (the ,(cadr x) ,(car x))
                                                (the ,(cadr x)
-                                                    (fref (the (struct ,taskname) this) ,(car x)))))
-                                       var_out_list) )))))))
+                                                    (fref (the (struct ,taskname) this) ,(car x))))))
+                                   var-out-list) ))))))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; do-many
   ;; * ,var を制御変数として，,fromから ,toまでについて ,@bodyを実行

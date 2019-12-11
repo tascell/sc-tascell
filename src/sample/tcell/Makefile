@@ -6,7 +6,7 @@ SC2C_OPT=
 # SC2C_OPT+=-m              # don't remove intermediate files
 # SC2C_OPT+=-D DEBUG=0      # invalidate debugging code
 SC2C_OPT+=-D USEMPI=1       # validate MPI
-SC2C_OPT+=-D NO-EXCEPTION   # invalidate exception support
+SC2C_OPT+=-D NO-EXCEPTION=1 # invalidate exception support
 SC2C_OPT+=-D PROFILE        # validate profiling
 # Command for XC Cube (an extended GCC that supports L-Closures and Closures)
 XCC=xcc
@@ -42,16 +42,14 @@ ifeq ($(OS),SunOS)
 endif
 
 # Use vsnprintf() instead of vasprintf().
-ifeq ($(OS),SunOS)
-    OPT += -DNO_VASPRINTF
-endif
+OPT += -DNO_VASPRINTF
 
 # Set targets
 # The set of all targets (ALL_PROGS) is {(apps)-(imp) | (apps) is one of APPS and (imp) is one of c, gcc, lw, clos, xcc, xcccl,
 # icc-c, icc-lw, and icc-clos}
 # By default, this Makefile makes all ALL_PROGS. You can make just one of targets by specifying the target file name,
 # (e.g., "make fib-gcc")
-APPS=fib fib-guard fib-try fib-thr lu cmp pen pen-excep pen6x17 pen6x17-guard pen6x17-try pen6x17-thr nq nq-try nq-thr grav matmul spanning bcast copine0 copine1 copine2 copine3 copine4 copine0d copine1d copine3d
+APPS=fib fib-guard fib-simple fib-try fib-thr lu cmp pen pen-excep pen6x17 pen6x17-guard pen6x17-try pen6x17-thr nq nq-try nq-thr grav matmul spanning bcast copine0 copine1 copine2 copine3 copine4 copine0d copine1d copine3d
 
 C_PROGS=$(addsuffix -c,$(APPS))
 GCC_PROGS=$(addsuffix -gcc,$(APPS))

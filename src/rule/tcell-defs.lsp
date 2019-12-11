@@ -41,7 +41,8 @@
            :make-dummy-worker-data-if-needed
            :nestfunc-type
            :add-defined-func-name :func-name-exists-p
-	   :add-toplevel :additional-toplevel-declarations
+	   :add-toplevel-pre :additional-toplevel-declarations-pre
+	   :add-toplevel-post :additional-toplevel-declarations-post
 	   :set-tcell-main-defined :make-dummy-tcell-main-if-needed
            ))
 (in-package "TCELL")
@@ -171,7 +172,7 @@
 
 ;; Take a function body and add a nested function for terminating temporarily backtrackings
 ;; and a label definition for aborting a task.
-(defun add-backtrack-sentinel (body)
+(defun add-backtrack-sentinel (body &optional (return-value ~(%splice)))
   (let ((label-id (generate-id "task_exit")))
     ~(,@(unless (ruleset-param 'rule::no-exception)
 	  (list ~(def ,label-id __label__)))
@@ -188,7 +189,7 @@
 		 ;; * The terminal of temporary backtracking
 		 (return 0)) ))
       ,@body
-      (label ,label-id (return)))))
+      (label ,label-id (return ,return-value)))))
 
 (defun nonlocal-goto (label-id)
   (if (not (ruleset-param 'rule::no-exception))
@@ -375,13 +376,18 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; トップレベルに追加すべき宣言のリスト
-(defvar *additional-toplevel-declarations* ())
+(defvar *additional-toplevel-declarations-pre* ())
+(defvar *additional-toplevel-declarations-post* ())
 
-(defun add-toplevel (decl)
-  (push decl *additional-toplevel-declarations*))
+(defun add-toplevel-pre (decl)
+  (push decl *additional-toplevel-declarations-pre*))
+(defun additional-toplevel-declarations-pre ()
+  (reverse *additional-toplevel-declarations-pre*))
 
-(defun additional-toplevel-declarations ()
-  (reverse *additional-toplevel-declarations*))
+(defun add-toplevel-post (decl)
+  (push decl *additional-toplevel-declarations-post*))
+(defun additional-toplevel-declarations-post ()
+  (reverse *additional-toplevel-declarations-post*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; tcell-main関数の定義の有無および無い場合のダミー生成
@@ -392,10 +398,12 @@
 
 (defun make-dummy-tcell-main-if-needed ()
   (if *defined-tcell-main-p*
-      ~(%splice)
-      ~(def (tcell-main -thr argc argv)
-	   (fn int (ptr (struct thread-data)) int (ptr (ptr char)))
-	 (csym::fprintf stderr "No tcell-main function defined.~%"))))
+      (list 
+       ~(%splice))
+      (list
+       ~(def (tcell-main -thr argc argv)
+            (fn int (ptr (struct thread-data)) int (ptr (ptr char)))
+          (csym::fprintf stderr "No tcell-main function defined.~%") ))))
   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -404,7 +412,8 @@
          (*current-task* nil)
          (*latest-bk* nil)
          (*defined-func-names* ())
-	 (*additional-toplevel-declarations* ())
+	 (*additional-toplevel-declarations-pre* ())
+	 (*additional-toplevel-declarations-post* ())
 	 (*defined-tcell-main-p* nil)
          (*worker-init-data* t) (*worker-init-body* t) (*wdata-accessible* nil))
      ,@body))
