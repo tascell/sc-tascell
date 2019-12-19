@@ -62,10 +62,10 @@
        (:put ,@(function-body put-body))
        (:get ,@(function-body get-body)))) )
   ((#?(do-two ,stat1 
-	 (ptask (:in ,@var-in-list) (:out ,@var-out-list) 
+	 (ptask ,var-attr-params-list
 		,stat2)))
    ~(do-two (begin ,(statement stat1))
-	(ptask (:in ,@var-in-list) (:out ,@var-out-list)
+	(ptask ,var-attr-params-list
 	       (begin ,(statement stat2)))))
   ((#?(do-many for ,var from ,from to ,to
 	,@body

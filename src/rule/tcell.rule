@@ -294,26 +294,31 @@
   ;; do-two拡張構文
   (#?(do-two 
         ,stat1 
-        (ptask (:in ,@var-in-list) (:out ,@var-out-list) ;var-in-list: list of (var_name, var_type)
+        (ptask ,var-attr-params-list  ; list of ((,var_name ,var_type) ,attribute ,@params) 
         ,stat2))
     (let* ((taskname (generate-id "gentask"))
+
+           (var-in-list (remove-if-not #'(lambda (x) (eq :in (second x))) ,var-attr-params-list))
+           (var-out-list (remove-if-not #'(lambda (x) (eq :out (second x))) ,var-attr-params-list))
+           
            (deftask ~(def (task ,taskname) 
-                       ,@(mapcar #'(lambda (x) ~(def ,(car x) ,(cadr x) :in)) var-in-list)
-                       ,@(mapcar #'(lambda (x) ~(def ,(car x) ,(cadr x) :out)) var-out-list)))
+                       ,var-list))
            (deftask-transformed (inlined-declaration deftask))
            (taskbody ~(def (task-body ,taskname) 
-                        ,@(mapcar #'(lambda (x) ~(def ,(car x) ,(cadr x) 
-                                                   (the ,(cadr x)
-                                                        (fref (the (struct ,taskname) this) ,(car x)))))
+                        ,@(mapcar #'(lambda (x) ~(def ,(car (car x)) ,(cadr (car x)) 
+                                                   (the ,(cadr (car x))
+                                                        (fref (the (struct ,taskname) this) ,(car (car x))))))
                                   var-in-list)
-                        ,@(mapcar #'(lambda (x) ~(def ,(car x) ,(cadr x) )) var-out-list) 
+                        ,@(mapcar #'(lambda (x) ~(def ,(car (car x)) ,(cadr (car x)) )) var-out-list) 
                         ,stat2
-                        ,@(mapcar #'(lambda (x) ~(the ,(cadr x)
-                                                      (= (the ,(cadr x)
-                                                              (fref (the (struct ,taskname) this) ,(car x))) 
-                                                         (the ,(cadr x) ,(car x)))))
+                        ,@(mapcar #'(lambda (x) ~(the ,(cadr (car x))
+                                                      (= (the ,(cadr (car x))
+                                                              (fref (the (struct ,taskname) this) ,(car (car x)))) 
+                                                         (the ,(cadr (car x)) ,(car (car x))))))
                                   var-out-list)))
-           (taskbody-transformed (inlined-declaration taskbody)))
+           (taskbody-transformed (inlined-declaration taskbody))
+          )
+           
       (tcell:add-toplevel-pre deftask-transformed)
       (tcell:add-toplevel-post taskbody-transformed)
       (statement
@@ -322,16 +327,16 @@
           ,stat2
           (handles ,taskname 
                    (:put ,@(mapcar #'(lambda (x) 
-                                       ~(the ,(cadr x)
-                                             (= (the ,(cadr x)
-                                                     (fref (the (struct ,taskname) this) ,(car x))) 
-                                                (the ,(cadr x) ,(car x)))))
+                                       ~(the ,(cadr (car x))
+                                             (= (the ,(cadr (car x))
+                                                     (fref (the (struct ,taskname) this) ,(car (car x)))) 
+                                                (the ,(cadr (car x)) ,(car (car x))))))
                                    var-in-list))
                    (:get ,@(mapcar #'(lambda (x)
-                                       ~(the ,(cadr x)
-                                             (= (the ,(cadr x) ,(car x))
-                                               (the ,(cadr x)
-                                                    (fref (the (struct ,taskname) this) ,(car x))))))
+                                       ~(the ,(cadr (car x))
+                                             (= (the ,(cadr (car x)) ,(car (car x)))
+                                               (the ,(cadr (car x))
+                                                    (fref (the (struct ,taskname) this) ,(car (car x)))))))
                                    var-out-list) ))))))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; do-many

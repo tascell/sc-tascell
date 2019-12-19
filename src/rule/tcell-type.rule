@@ -97,13 +97,13 @@
 	    (:put ,@(type:with-new-environment (function-body put-body)))
 	    (:get ,@(type:with-new-environment (function-body get-body))))))  )
   ((#?(do-two ,stat1 
-	 (ptask (:in ,@var-in-list) (:out ,@var-out-list) 
+          (ptask ,var-attr-params-list ;; list of (,var ,attribute ,@params)
 		,stat2)))
    ~(do-two ,(statement stat1)
-	(ptask (:in ,@(mapcar #'(lambda (var) (list var (type:assoc-vartype var :variable)))
-			      var-in-list))
-	       (:out ,@(mapcar #'(lambda (var) (list var (type:assoc-vartype var :variable)))
-			       var-out-list))
+	(ptask ,(mapcar #'(lambda (var-attr-parms)
+                            (destructuring-bind (var attr &rest params) x
+                              ~(,(list var (type:assoc-vartype var :variable)) ,attr ,@params)))
+                        var-attr-parms-list)
 	       ,(statement stat2))))
   ((#?(do-many for ,var from ,from to ,to
 	,@body
