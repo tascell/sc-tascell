@@ -98,12 +98,12 @@
 	    (:get ,@(type:with-new-environment (function-body get-body))))))  )
   ((#?(do-two ,stat1 
           (ptask ,var-attr-params-list ;; list of (,var ,attribute ,@params)
-		,stat2)))
+		 ,stat2)))
    ~(do-two ,(statement stat1)
-	(ptask ,(mapcar #'(lambda (var-attr-parms)
-                            (destructuring-bind (var attr &rest params) x
-                              ~(,(list var (type:assoc-vartype var :variable)) ,attr ,@params)))
-                        var-attr-parms-list)
+	    (ptask ,(mapcar #'(lambda (var-attr-parms)
+				(destructuring-bind (var attr &rest params) var-attr-parms
+				  ~(,(list var (type:assoc-vartype var :variable)) ,attr ,@params)))
+			    var-attr-params-list)
 	       ,(statement stat2))))
   ((#?(do-many for ,var from ,from to ,to
 	,@body

@@ -44,6 +44,7 @@
 	   :add-toplevel-pre :additional-toplevel-declarations-pre
 	   :add-toplevel-post :additional-toplevel-declarations-post
 	   :set-tcell-main-defined :make-dummy-tcell-main-if-needed
+     :in-or-out :simple-syntax-addexpr
            ))
 (in-package "TCELL")
 
@@ -425,3 +426,47 @@
 
 (defun current-task ()
   *current-task*)
+
+(defun in-or-out (attr)
+  (case attr ((:in :copyin) :in) ((:out :copyout) :out))
+)
+
+(defun simple-syntax-addexpr (var-attr-params-list taskname)
+  (let ((before-stat2 ())
+         (after-stat2 ())
+         (fun-put ())
+         (fun-get ()))
+      (mapcar #'(lambda (x) (case (cadr x)
+                               ((:in)
+                                 (push  
+                                   ~(def ,(car (car x))
+                                         ,(cadr (car x)) 
+                                         (the ,(cadr (car x)) 
+                                              (fref (the (struct ,taskname) this) ,(car (car x)))))
+                                  before-stat2)                                          
+                                 (push 
+                                   ~(the ,(cadr (car x))
+                                         (= (the ,(cadr (car x))
+                                                 (fref (the (struct ,taskname) this) ,(car (car x)))) 
+                                            (the ,(cadr (car x)) ,(car (car x)))))
+                                    fun-put))
+                                
+                                ((:out)
+                                 (push 
+                                   ~(def ,(car (car x)) ,(cadr (car x)))
+                                   before-stat2 )
+                                 (push
+                                   ~(the ,(cadr (car x))
+                                         (= (the ,(cadr (car x)) 
+                                                 (fref (the (struct ,taskname) this) ,(car (car x)))) 
+                                            (the ,(cadr (car x)) ,(car (car x)))))
+                                  after-stat2)
+                                 (push 
+                                   ~(the ,(cadr (car x))
+                                             (= (the ,(cadr (car x)) ,(car (car x)))
+                                               (the ,(cadr (car x))
+                                                    (fref (the (struct ,taskname) this) ,(car (car x))))))
+                                    fun-get))))
+               var-attr-params-list)
+      (print before-stat2)
+      (list (reverse before-stat2) after-stat2 fun-put fun-get)))

@@ -50,7 +50,7 @@
       (def s2 long)
       (do-two
           (= s1 (fib (- n 1)))
-          (ptask (:in n) (:out s2)
+          (ptask ((n :in) (s2 :out))
             (= s2 (fib (- n 2)))))
       (return (+ s1 s2)))))
 
