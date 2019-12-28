@@ -46,8 +46,9 @@ SUCH DAMAGE.
 #define RECV_MAX 1024
 #define DATA_TYPE MPI_CHAR
 #define DATA_TAG  0
-#define MAX_WIN_SIZE 100000000
-#define MSG_SIZE 10000
+#define MAX_WIN_SIZE 0x40000000
+#define MSG_SIZE 0x100000
+#define MSG_MASK MAX_WIN_SIZE - 1
 
 // MPI WIN
 MPI_Win win;
@@ -160,18 +161,20 @@ void send_block_start (int dest)
       sq->len = 0;
       sq->size = 32768;
     } else {
-      // pthread_mutex_lock(&count_lock);
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, dest, 0, count_win);
       MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, win);
-      int size = MSG_SIZE;
-      MPI_Get_accumulate(&size, 1, MPI_INT, 
-        &send_position, 1, MPI_INT,
-        dest, 0, 1, MPI_INT,
-        MPI_SUM, count_win);
-      send_position = send_position % MAX_WIN_SIZE;
-      MPI_Win_flush_local(dest, count_win);
-      MPI_Win_unlock(dest, count_win);
-      // pthread_mutex_unlock(&count_lock);
+      pthread_mutex_lock(&count_lock);
+      {
+          MPI_Win_lock(MPI_LOCK_EXCLUSIVE, dest, 0, count_win);
+          int size = MSG_SIZE;
+          MPI_Fetch_and_op(&size,
+            &send_position, MPI_INT,
+            dest, 0,
+            MPI_SUM, count_win);
+          MPI_Win_flush(dest, count_win);
+          send_position = send_position & MSG_MASK;
+          MPI_Win_unlock(dest, count_win);
+      }
+      pthread_mutex_unlock(&count_lock);
     }
     send_lenght = 0;
 }
@@ -191,6 +194,7 @@ void send_block_end()
         free(sq);
     } else {
         MPI_Send(&send_position, 1, MPI_INT, rank, 1, MPI_COMM_WORLD);
+        MPI_Send(&send_lenght, 1, MPI_INT, rank, 2, MPI_COMM_WORLD);
     }
 }
 
@@ -502,9 +506,9 @@ void msg_func()
           mpirecv_buf = recv_msg + read_position;
           if (MSG_QUEUE[read_position/MSG_SIZE] > 0)
           {
+            mpirecv_buf_len = MSG_QUEUE[read_position/MSG_SIZE];
             MSG_QUEUE[read_position/MSG_SIZE] = 0;
             pthread_mutex_unlock(&recv_lock);
-            mpirecv_buf_len = strlen(mpirecv_buf);
             mpirecv_buf_start = 0;
             proc_msg();
             mpirecv_buf[0] = '\0';
@@ -535,9 +539,10 @@ void sendrecv()
     for (sent = 0;;)
     {
         MPI_Recv(&wq, 1, MPI_INT, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, &recv_status);
+        MPI_Recv(&size, 1, MPI_INT, recv_status.MPI_SOURCE, 2, MPI_COMM_WORLD, &recv_status);
         pthread_mutex_lock(&recv_lock);
         {
-          MSG_QUEUE[wq/MSG_SIZE] = 1; 
+          MSG_QUEUE[wq/MSG_SIZE] = size; 
         } 
         pthread_cond_signal(&recv_cond);
         pthread_mutex_unlock(&recv_lock);
