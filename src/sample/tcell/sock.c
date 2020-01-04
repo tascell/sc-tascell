@@ -161,7 +161,6 @@ void send_block_start (int dest)
       sq->len = 0;
       sq->size = 32768;
     } else {
-      MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, win);
       pthread_mutex_lock(&count_lock);
       {
           MPI_Win_lock(MPI_LOCK_EXCLUSIVE, dest, 0, count_win);
@@ -171,10 +170,11 @@ void send_block_start (int dest)
             dest, 0,
             MPI_SUM, count_win);
           MPI_Win_flush(dest, count_win);
-          send_position = send_position & MSG_MASK;
           MPI_Win_unlock(dest, count_win);
+          send_position = send_position & MSG_MASK;
       }
       pthread_mutex_unlock(&count_lock);
+      MPI_Win_lock(MPI_LOCK_SHARED, rank, 0, win);
     }
     send_lenght = 0;
 }
@@ -183,12 +183,10 @@ MPI_Status st;
 // Finish adding the message to the send queue.
 void send_block_end()
 {
-    // MPI_Put('?', 1, MPI_CHAR, rank, send_position + (MSG_SIZE - 1), 1, MPI_CHAR, win);
     MPI_Win_flush(rank, win);
     MPI_Win_unlock(rank, win);
     pthread_mutex_unlock(&win_lock);
     if (rank == -1) {
-        // MPI_Send(NULL, 0, MPI_INT, rank, 2, MPI_COMM_WORLD);
         sq->len = 0;
         free(sq->buf);
         free(sq);
@@ -513,10 +511,7 @@ void msg_func()
             proc_msg();
             mpirecv_buf[0] = '\0';
             read_position += MSG_SIZE;
-            if (read_position == MAX_WIN_SIZE)
-            {
-              read_position = 0;
-            }
+            read_position = read_position & MSG_MASK;
             pthread_mutex_lock(&recv_lock);
           }
           else{
