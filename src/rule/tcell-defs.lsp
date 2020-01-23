@@ -26,7 +26,7 @@
 
 (defpackage "TCELL"
   (:shadow cl:declaration)
-  (:use "RULE" "CL" "SC-MISC")
+  (:use "RULE" "CL" "SC-MISC" "TYPE")
   (:export :with-environment-bound :task-maps :with-task
            :with-new-bk :latest-bk
            :task-id :task-cid :current-task :add-task
@@ -44,7 +44,7 @@
 	   :add-toplevel-pre :additional-toplevel-declarations-pre
 	   :add-toplevel-post :additional-toplevel-declarations-post
 	   :set-tcell-main-defined :make-dummy-tcell-main-if-needed
-     :in-or-out :simple-syntax-addexpr
+     :in-or-out :with-type-info-ruleset :simple-syntax-addexpr
            ))
 (in-package "TCELL")
 
@@ -427,46 +427,99 @@
 (defun current-task ()
   *current-task*)
 
+
+
+
 (defun in-or-out (attr)
-  (case attr ((:in :copyin) :in) ((:out :copyout) :out))
-)
+  (case attr ((:in :copyin) :in) ((:out :copyout) :out)))
+
+(defmacro with-type-info-ruleset (&body body)
+  `(sct::with-ruleset (sct::ensure-ruleset-instance :type-info)
+     (type:with-new-environment ,@body)))
+
 
 (defun simple-syntax-addexpr (var-attr-params-list taskname)
   (let ((before-stat2 ())
-         (after-stat2 ())
-         (fun-put ())
-         (fun-get ()))
-      (mapcar #'(lambda (x) (case (cadr x)
+        (after-stat2 ())
+        (fun-put ())
+        (fun-get ()))
+      (mapcar #'(lambda (x)
+                        (let ((varname (car (car x))) 
+                              (vartype (cadr (car x)))
+                              (attribute (cadr x))
+                              (params (cddr x)))
+                          (case attribute
                                ((:in)
                                  (push  
-                                   ~(def ,(car (car x))
-                                         ,(cadr (car x)) 
-                                         (the ,(cadr (car x)) 
-                                              (fref (the (struct ,taskname) this) ,(car (car x)))))
-                                  before-stat2)                                          
+                                   ~(def ,varname
+                                         ,vartype 
+                                         (the ,vartype 
+                                              (fref (the (struct ,taskname) this) ,varname)))
+                                    before-stat2)                                          
                                  (push 
-                                   ~(the ,(cadr (car x))
-                                         (= (the ,(cadr (car x))
-                                                 (fref (the (struct ,taskname) this) ,(car (car x)))) 
-                                            (the ,(cadr (car x)) ,(car (car x)))))
+                                   ~(the ,vartype
+                                         (= (the ,vartype
+                                                 (fref (the (struct ,taskname) this) ,varname)) 
+                                            (the ,vartype ,varname)))
                                     fun-put))
-                                
+                               ((:copyin) ;;assert:vartype is array or pointer. params contains one integer(length of array)
+                                 (push ~(the (ptr ,(cadr vartype))
+                                             (= (the ,vartype (fref (the (struct ,taskname) this) ,varname))
+                                                (the (ptr ,(cadr vartype)) 
+                                                     (cast (ptr ,(cadr vartype)) 
+                                                           (the (ptr void) 
+                                                                (call (the (csym::fn (ptr void) size-t) csym::malloc)
+                                                                      (the int (* (the int ,(first params)) 
+                                                                                  (the int (sizeof ,(cadr vartype)))))))))))
+                                    fun-put)
+                                 (push
+                                   ~(the (ptr void) (call (the (ptr (fn (ptr void) (ptr void) (ptr void) size-t)) csym::memcpy)
+                                                          (the ,vartype (fref (the (struct ,taskname) this) ,varname))
+                                                          (the ,vartype ,varname)
+                                                          (the int (* (the int ,(first params)) 
+                                                                      (the int (sizeof ,(cadr vartype)))))))
+                                    fun-put)
+                                 (push ~(the void (call (the (ptr (fun void (ptr void))) csym::free) 
+                                                        (the (ptr ,(cadr vartype)) 
+                                                             (fref (the (struct ,taskname) this) ,varname)))) 
+                                    fun-get)
+                                 (push 
+                                   ~(def ,varname 
+                                         ,vartype
+                                         (the ,vartype 
+                                              (fref (the (struct ,taskname) this) ,varname)))
+                                    before-stat2))
                                 ((:out)
                                  (push 
-                                   ~(def ,(car (car x)) ,(cadr (car x)))
+                                   ~(def ,varname ,vartype)
                                    before-stat2 )
                                  (push
-                                   ~(the ,(cadr (car x))
-                                         (= (the ,(cadr (car x)) 
-                                                 (fref (the (struct ,taskname) this) ,(car (car x)))) 
-                                            (the ,(cadr (car x)) ,(car (car x)))))
-                                  after-stat2)
+                                   ~(the ,vartype
+                                         (= (the ,vartype 
+                                                 (fref (the (struct ,taskname) this) ,varname)) 
+                                            (the ,vartype ,varname)))
+                                    after-stat2)
                                  (push 
-                                   ~(the ,(cadr (car x))
-                                             (= (the ,(cadr (car x)) ,(car (car x)))
-                                               (the ,(cadr (car x))
-                                                    (fref (the (struct ,taskname) this) ,(car (car x))))))
-                                    fun-get))))
+                                   ~(the ,vartype
+                                             (= (the ,vartype ,varname)
+                                               (the ,vartype
+                                                    (fref (the (struct ,taskname) this) ,varname))))
+                                    fun-get))
+
+                                ((:copyout)　;;assert:vartype is array or pointer. params contains one integer(length of array)
+                                 (push 
+                                   ~(def ,varname ,vartype)
+                                   before-stat2 )
+                                 (push
+                                   ~(the ,vartype
+                                         (= (the ,vartype 
+                                                 (fref (the (struct ,taskname) this) ,varname)) 
+                                            (the ,vartype ,varname)))
+                                    after-stat2)
+                                 (push
+                                   ~(csym::memcpy (fref (the (struct ,taskname) this) ,varname)
+                                                  (the ,vartype ,varname)
+                                                  (the int ,(first params)))
+                                    fun-put)))))
                var-attr-params-list)
-      (print before-stat2)
-      (list (reverse before-stat2) after-stat2 fun-put fun-get)))
+      (list (reverse before-stat2) (reverse after-stat2) (reverse fun-put) (reverse fun-get))))

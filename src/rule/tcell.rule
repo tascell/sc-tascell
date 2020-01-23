@@ -32,6 +32,7 @@
   (padding-size 1000)
   )
 
+(scr:require "TYPE-DEFS")
 (scr:require "TCELL-DEFS")
 
 (defrule sc-program tcell
@@ -301,7 +302,7 @@
            (addexprs (tcell:simple-syntax-addexpr var-attr-params-list taskname))
            
            (deftask ~(def (task ,taskname) 
-                       ,@(mapcar #'(lambda (x) ~(def ,(car (car x)) ,(cadr (car x)) (tcell:in-or-out (cadr x)))) var-attr-params-list)))
+                       ,@(mapcar #'(lambda (x) ~(def ,(car (car x)) ,(cadr (car x)) ,(tcell:in-or-out (cadr x)))) var-attr-params-list)))
            (deftask-transformed (inlined-declaration deftask))
            (taskbody ~(def (task-body ,taskname) 
                         ,@(first addexprs)
