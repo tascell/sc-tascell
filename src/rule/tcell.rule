@@ -313,6 +313,13 @@
            
       (tcell:add-toplevel-pre deftask-transformed)
       (tcell:add-toplevel-post taskbody-transformed)
+      
+
+      (tcell:with-task taskname (tcell:set-task-send (fifth addexprs)))
+      (tcell:with-task taskname (tcell:set-task-recv (sixth addexprs)))
+      (tcell:with-task taskname (tcell:set-rslt-send (seventh addexprs)))
+      (tcell:with-task taskname (tcell:set-rslt-recv (eighth addexprs)))      
+
       (statement
        ~(do-two 
           ,stat1 

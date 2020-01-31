@@ -44,7 +44,7 @@
 	   :add-toplevel-pre :additional-toplevel-declarations-pre
 	   :add-toplevel-post :additional-toplevel-declarations-post
 	   :set-tcell-main-defined :make-dummy-tcell-main-if-needed
-     :in-or-out :with-type-info-ruleset :simple-syntax-addexpr
+     :in-or-out :with-type-info-ruleset :add-pthis :simple-syntax-addexpr
            ))
 (in-package "TCELL")
 
@@ -405,7 +405,7 @@
        ~(def (tcell-main -thr argc argv)
             (fn int (ptr (struct thread-data)) int (ptr (ptr char)))
           (csym::fprintf stderr "No tcell-main function defined.~%") ))))
-  
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmacro with-environment-bound (&body body)
@@ -437,17 +437,42 @@
   `(sct::with-ruleset (sct::ensure-ruleset-instance :type-info)
      (type:with-new-environment ,@body)))
 
+(defun add-pthis (varlist expr)
+  (print "<add-pthis>") (print varlist) (print expr)
+  (cond 
+    ((member expr varlist)
+     (print ~(fref (mref pthis) ,expr))
+     ~(fref (mref pthis) ,expr))
+    ((atom expr)
+     (print expr)
+     expr)
+    ((eq ~the (car expr)) 
+      (print ~(the ,(second expr) ,(add-pthis (third expr))))
+      ~(the ,(second expr) ,(add-pthis (third expr))))
+    ((eq ~cast (car expr)) 
+      (print ~(the ,(second expr) ,(add-pthis (third expr))))
+      ~(cast ,(second expr) ,(add-pthis (third expr))))
+    (t
+      (print (mapcar #'(lambda (x) (add-pthis varlist x)) expr))
+      (mapcar #'(lambda (x) (add-pthis varlist x)) expr)))
+)
 
 (defun simple-syntax-addexpr (var-attr-params-list taskname)
   (let ((before-stat2 ())
         (after-stat2 ())
         (fun-put ())
-        (fun-get ()))
+        (fun-get ())
+        (task-send ()) ;send-int32s
+        (task-recv ()) ;malloc -> recv-int32s
+        (rslt-send ()) ;free
+        (rslt-recv ());none
+        (checked-var ()))
       (mapcar #'(lambda (x)
                         (let ((varname (car (car x))) 
                               (vartype (cadr (car x)))
                               (attribute (cadr x))
                               (params (cddr x)))
+                          (print varname) (print vartype) (push varname checked-var)
                           (case attribute
                                ((:in)
                                  (push  
@@ -486,9 +511,109 @@
                                  (push 
                                    ~(def ,varname 
                                          ,vartype
+                                         (the ,vartype (fref (the (struct ,taskname) this) ,varname)))
+                                    before-stat2)
+                                 (if (eq (cadr vartype) ~INT32)
+                                     (push ~(the void (call (the (ptr (fun void (ptr ,(cadr vartype)) int)) csym::send-int32s)
+                                                            (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
+                                                            ,(add-pthis checked-var (first params))))
+                                           task-send))
+                                 (if (eq (cadr vartype) ~int)
+                                     (push ~(the void (call (the (ptr (fun void (ptr ,(cadr vartype)) int)) csym::send-int32s)
+                                                            (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
+                                                            ,(add-pthis checked-var (first params))))
+                                           task-send))
+                                 (if (eq (cadr vartype) ~double)
+                                     (push ~(the void (call (the (ptr (fun void (ptr double) int)) csym::send-doubles)
+                                                            (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
+                                                            ,(add-pthis checked-var (first params))))
+                                           task-send))
+                                 (push ~(the (ptr ,(cadr vartype))
+                                             (= (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
+                                                (the (ptr ,(cadr vartype)) 
+                                                     (cast (ptr ,(cadr vartype)) 
+                                                           (the (ptr void) 
+                                                                (call (the (csym::fn (ptr void) size-t) csym::malloc)
+                                                                      (the int (* ,(add-pthis checked-var (first params))
+                                                                                  (the int (sizeof ,(cadr vartype)))))))))))
+                                    task-recv)
+                                 (if (eq (cadr vartype) ~INT32)
+                                     (push ~(the int (call (the (ptr (fun int (ptr ,(cadr vartype)) int)) csym::recv-int32s)
+                                                           (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
+                                                           ,(add-pthis checked-var (first params))))
+                                           task-recv))
+                                 (if (eq (cadr vartype) ~int)
+                                     (push ~(the int (call (the (ptr (fun int (ptr ,(cadr vartype)) int)) csym::recv-int32s)
+                                                           (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
+                                                           ,(add-pthis checked-var (first params))))
+                                           task-recv))
+                                 (if (eq (cadr vartype) ~double)
+                                     (push ~(the int (call (the (ptr (fun int (ptr double) int)) csym::recv-doubles)
+                                                           (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
+                                                           ,(add-pthis checked-var (first params))))
+                                           task-recv))
+                                 (push ~(the void (call (the (ptr (fun void (ptr void))) csym::free) 
+                                                        (the (ptr ,(cadr vartype)) 
+                                                             (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))))
+                                       rslt-send))
+                                    
+                               ((:ecopyin) ;;assert:vartype is array or pointer. params contains one integer(length of array)
+                                 (push  
+                                   ~(def ,varname
+                                         ,vartype 
                                          (the ,vartype 
                                               (fref (the (struct ,taskname) this) ,varname)))
-                                    before-stat2))
+                                    before-stat2)                                          
+                                 (push 
+                                   ~(the ,vartype
+                                         (= (the ,vartype
+                                                 (fref (the (struct ,taskname) this) ,varname)) 
+                                            (the ,vartype ,varname)))
+                                    fun-put)
+                                 (if (eq (cadr vartype) ~INT32)
+                                     (push ~(the void (call (the (ptr (fun void (ptr ,(cadr vartype)) int)) csym::send-int32s)
+                                                            (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
+                                                            ,(add-pthis checked-var (first params))))
+                                           task-send))
+                                 (if (eq (cadr vartype) ~int)
+                                     (push ~(the void (call (the (ptr (fun void (ptr ,(cadr vartype)) int)) csym::send-int32s)
+                                                            (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
+                                                            ,(add-pthis checked-var (first params))))
+                                           task-send))
+                                 (if (eq (cadr vartype) ~double)
+                                     (push ~(the void (call (the (ptr (fun void (ptr double) int)) csym::send-doubles)
+                                                            (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
+                                                            ,(add-pthis checked-var (first params))))
+                                           task-send))
+                                 (push ~(the (ptr ,(cadr vartype))
+                                             (= (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
+                                                (the (ptr ,(cadr vartype)) 
+                                                     (cast (ptr ,(cadr vartype)) 
+                                                           (the (ptr void) 
+                                                                (call (the (csym::fn (ptr void) size-t) csym::malloc)
+                                                                      (the int (* ,(add-pthis checked-var (first params))
+                                                                                  (the int (sizeof ,(cadr vartype)))))))))))
+                                    task-recv)
+                                 (if (eq (cadr vartype) ~INT32)
+                                     (push ~(the int (call (the (ptr (fun int (ptr ,(cadr vartype)) int)) csym::recv-int32s)
+                                                           (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
+                                                           ,(add-pthis checked-var (first params))))
+                                           task-recv))
+                                 (if (eq (cadr vartype) ~int)
+                                     (push ~(the int (call (the (ptr (fun int (ptr ,(cadr vartype)) int)) csym::recv-int32s)
+                                                           (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
+                                                           ,(add-pthis checked-var (first params))))
+                                           task-recv))
+                                 (if (eq (cadr vartype) ~double)
+                                     (push ~(the int (call (the (ptr (fun int (ptr double) int)) csym::recv-doubles)
+                                                           (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
+                                                           ,(add-pthis checked-var (first params))))
+                                           task-recv))
+                                 (push ~(the void (call (the (ptr (fun void (ptr void))) csym::free) 
+                                                        (the (ptr ,(cadr vartype)) 
+                                                             (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))))
+                                       rslt-send))
+
                                 ((:out)
                                  (push 
                                    ~(def ,varname ,vartype)
@@ -509,7 +634,7 @@
                                 ((:copyout)　;;assert:vartype is array or pointer. params contains one integer(length of array)
                                  (push 
                                    ~(def ,varname ,vartype)
-                                   before-stat2 )
+                                   before-stat2)
                                  (push
                                    ~(the ,vartype
                                          (= (the ,vartype 
@@ -522,4 +647,16 @@
                                                   (the int ,(first params)))
                                     fun-put)))))
                var-attr-params-list)
-      (list (reverse before-stat2) (reverse after-stat2) (reverse fun-put) (reverse fun-get))))
+
+      (print (reverse task-send))
+      (print (reverse task-recv))
+      (print (reverse rslt-send))
+      (print (reverse rslt-recv))
+      (list (reverse before-stat2)
+            (reverse after-stat2) 
+            (reverse fun-put)
+            (reverse fun-get) 
+            (reverse task-send) 
+            (reverse task-recv) 
+            (reverse rslt-send) 
+            (reverse rslt-recv))))
