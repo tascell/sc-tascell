@@ -1,0 +1,156 @@
+;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; All rights reserved.
+
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+;;; 1. Redistributions of source code must retain the above copyright
+;;;    notice, this list of conditions and the following disclaimer.
+;;; 2. Redistributions in binary form must reproduce the above copyright
+;;;    notice, this list of conditions and the following disclaimer in the
+;;;    documentation and/or other materials provided with the distribution.
+
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE
+;;; FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+;;; OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+;;; LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+;;; SUCH DAMAGE.
+
+;;; Compares array elements a[i] and b[j] for all 0 <= i,j < n.
+
+;; task 0 0 0 0
+;; <n>
+;; -1
+
+(c-exp "#include<sys/time.h>")
+(c-exp "#include<stdint.h>")
+
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
+(%include "rule/tcell-setrule.sh")
+
+(%include "clib.sh")
+(%include "dprint.sh")
+(%cinclude "sendrecv.h" (:macro))
+
+(%defconstant USE-PROBABILITY 1)
+
+(%ifdef* USE-PROBABILITY
+  (c-exp "#if !defined(MIN)")
+  (c-exp "#define MIN(a, b) (((a) < (b)) ? (a) : (b))")
+  (c-exp "#endif")
+  (def N0 int 0)
+  (extern num-thrs unsigned-int)
+  (def (cmp-probability n)
+      (fn double int)
+    (return (csym::MIN 1.0 (* (cast double num-thrs) (/ (cast double n) (cast double N0))))))
+					; threshold based probability
+					; (if (<= n 512)
+					;     (return 0.0)
+					;     (return 1.0)))
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (csym::elapsed-time tp) 
+    (fn double (array (struct timeval) 2))
+  (return (+ (- (fref (aref tp 1) tv-sec)
+                (fref (aref tp 0) tv-sec))
+             (* 0.000001
+                (- (fref (aref tp 1) tv-usec)
+                   (fref (aref tp 0) tv-usec))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(%ifndef* INT32
+ (%defconstant INT32 int))
+
+
+(decl (cmp-1 n1 n2 d1 d2) (wfn int int int (ptr INT32) (ptr INT32)))
+
+(def (tcell-main argc argv) (wfn int int (ptr (ptr char)))
+  (decl tp (array (struct timeval) 2))
+  
+  (def i int)
+  (def n1 int (if-exp (> argc 1) (csym::atoi (aref argv 1)) 10000))
+  (def n2 int (if-exp (> argc 2) (csym::atoi (aref argv 2)) -1))
+  (def d1 (ptr INT32)) (def d2 (ptr INT32))
+  (csym::fprintf stderr "argc-tcell=%d~%" argc)
+  (for ((= i 0) (< i argc) (inc i))
+    (csym::fprintf stderr "argv-tcell[%d]=%s~%" i (aref argv i)))
+  (if (> 0 n2)
+     (begin
+       (= d1
+          (cast (ptr INT32)
+            (csym::malloc (* (sizeof INT32) n1))))
+       (= n2 n1)
+       (= d2
+          (cast (ptr INT32)
+            (csym::malloc (* (sizeof INT32) n2))))
+       (for ((= i 0) (< i n1) (inc i))
+         (= (aref d1 i) i))
+       (for ((= i 0) (< i n2) (inc i))
+         (= (aref d2 i) (- i))))
+     (begin
+       (= d1
+          (cast (ptr INT32)
+            (csym::malloc (* (sizeof INT32) n1))))
+       (= d2
+          (cast (ptr INT32)
+            (csym::malloc (* (sizeof INT32) n2))))
+       (for ((= i 0) (< i n1) (inc i))
+         (= (aref d1 i) (csym::atoi (aref argv (+ 3 i)))))
+       (for ((= i 0) (< i n2) (inc i))
+         (= (aref d2 i) (csym::atoi (aref argv (+ 3 n1 i)))))))
+  (csym::fprintf stderr "start cmp(%ld %ld)~%" n1 n2)
+  (csym::gettimeofday tp 0)
+  (def r int (cmp-1 n1 n2 d1 d2))
+  (csym::gettimeofday (+ tp 1) 0)
+  (csym::fprintf stderr "Result: %ld~%time: %lf~%" r (csym::elapsed-time tp))
+  (return 0)
+  )
+
+(def (csym::cmp-2 n1 n2 d1 d2)
+    (csym::fn int int int (ptr INT32) (ptr INT32))
+  (decl i int) (decl j int)
+  (def s int 0)
+  (for ((= i 0) (< i n1) (inc i))
+    (for ((= j 0) (< j n2) (inc j))
+      (if (== (bit-xor (aref d1 i) (aref d2 j)) (- 1)) (inc s))))
+  ;;(csym::fprintf stderr "d1==[%d...%d], d2==[%d...%d], ans+=%d\r\n" (aref d1 0) (aref d1 (- n1 1)) (aref d2 0) (aref d2 (- n2 1)) s)
+
+  (return s))
+
+(def (cmp-1 n1 n2 d1 d2) (wfn int int int (ptr INT32) (ptr INT32))
+  (decl s1 int) (decl s2 int)
+  (if (< n1 5) (return (csym::cmp-2 n1 n2 d1 d2)))
+  (if (> n1 n2)
+      (begin 
+       (def n1-1 int (/ n1 2))
+       (def n1-2 int (- n1 n1-1))
+       (def d1-2 (ptr INT32) (+ d1 n1-1))
+       (do-two
+           (= s1 (cmp-1 n1-1 n2 d1 d2))
+           (ptask ((s2 :out)
+                   (n1-2 :in)
+                   (n2 :in)
+                   (d1-2 :copyin n1-2)
+                   (d2 :copyin n2))
+                  (= s2 (cmp-1 n1-2 n2 d1-2 d2)))))
+      (begin 
+       (def n2-1 int (/ n2 2))
+       (def n2-2 int (- n2 n2-1))
+       (def d2-2 (ptr INT32) (+ d2 n2-1))
+       (do-two
+           (= s1 (cmp-1 n1 n2-1 d1 d2))
+           (ptask ((s2 :out)
+                   (n1 :in)
+                   (n2-2 :in)
+                   (d1 :copyin n1)
+                   (d2-2 :copyin n2-2))
+                  (= s2 (cmp-1 n1 n2-2 d1 d2-2))))))
+  (return (+ s1 s2)))

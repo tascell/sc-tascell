@@ -292,41 +292,34 @@
 
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;; do-two拡張構文
+  ;; do-two拡張構文 
   (#?(do-two 
         ,stat1 
         (ptask ,var-attr-params-list  ; list of ((,var_name ,var_type) ,attribute ,@params) 
         ,stat2))
-    (let* ((taskname (generate-id "gentask"))
-          
-           (addexprs (tcell:simple-syntax-addexpr var-attr-params-list taskname))
-           
+    (let* ((taskname (generate-id "gentask"))           
            (deftask ~(def (task ,taskname) 
-                       ,@(mapcar #'(lambda (x) ~(def ,(car (car x)) ,(cadr (car x)) ,(tcell:in-or-out (cadr x)))) var-attr-params-list)))
+                       ,@(mapcar #'(lambda (x) ~(def ,(car (car x)) ,(cadr (car x)))) var-attr-params-list)))
            (deftask-transformed (inlined-declaration deftask))
-           (taskbody ~(def (task-body ,taskname) 
-                        ,@(first addexprs)
-                        ,stat2
-                        ,@(second addexprs)))
+           (taskbody ~(def (task-body ,taskname) ,@(tcell:simple-dotwo-taskbody stat2 var-attr-params-list taskname)))
            (taskbody-transformed (inlined-declaration taskbody))
           )
            
       (tcell:add-toplevel-pre deftask-transformed)
-      (tcell:add-toplevel-post taskbody-transformed)
-      
-
-      (tcell:with-task taskname (tcell:set-task-send (fifth addexprs)))
-      (tcell:with-task taskname (tcell:set-task-recv (sixth addexprs)))
-      (tcell:with-task taskname (tcell:set-rslt-send (seventh addexprs)))
-      (tcell:with-task taskname (tcell:set-rslt-recv (eighth addexprs)))      
+      (tcell:add-toplevel-post taskbody-transformed)      
+      ;;add sender/receiver methods
+      (tcell:with-task taskname (tcell:set-task-send (tcell:simple-task-sender var-attr-params-list taskname)))
+      (tcell:with-task taskname (tcell:set-task-recv (tcell:simple-task-receiver var-attr-params-list taskname)))
+      (tcell:with-task taskname (tcell:set-rslt-send (tcell:simple-result-sender var-attr-params-list taskname)))
+      (tcell:with-task taskname (tcell:set-rslt-recv (tcell:simple-result-receiver var-attr-params-list taskname)))      
 
       (statement
        ~(do-two 
           ,stat1 
           ,stat2
           (handles ,taskname 
-                   (:put ,@(third addexprs))
-                   (:get ,@(fourth addexprs) ))))))
+                   (:put ,@(tcell:simple-put-statements var-attr-params-list taskname))
+                   (:get ,@(tcell:simple-get-statements var-attr-params-list taskname) ))))))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; do-many
   ;; * ,var を制御変数として，,fromから ,toまでについて ,@bodyを実行

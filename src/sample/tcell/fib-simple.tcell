@@ -30,6 +30,7 @@
 (%include "rule/tcell-setrule.sh")
 
 (%include "clib.sh")
+(%cinclude "sendrecv.h" (:macro))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (def (csym::elapsed-time tp) 
