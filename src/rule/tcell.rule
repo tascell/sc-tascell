@@ -471,6 +471,16 @@
         (begin
 	 (def BACKTRACKING (const int) 0)
 	 ,@b-aft-body))) ))
+  ((#?(dynamic-wind-r (:before ,@bef-body) (:body ,@body)) )
+   (let ((aft-body (reverse (mapcar #'r-statement bef-body))))
+     (statement
+       ~(dynamic-wind
+	 (:before ,@bef-body)
+	 (:body ,@body)
+	 (:after ,@aft-body)))))
+  ((#?(r-if ,exp1 ,stat1 ,stat2 ,exp2))
+   (statement
+    ~(if ,exp1 ,stat1 ,stat2)))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; throw: Common Lisp-like throw but no evaluation value (of catch)
   ;; is specified.
@@ -508,6 +518,22 @@
         (begin ,@b-body)
 	(label ,label-id ())
 	)))
+  )
+
+;; Take a statement in a :before block of a dynamic-wind-r statement
+;; and returns a statement that should be placed at the after block
+;; in the dynamic-wind statement after transformation from the dynamic-wind-r.
+(defrule r-statement tcell
+  ((#?(the ,texp (+= (the ,texp1 ,exp1) (the ,texp2 ,exp2))) )
+   ~(the ,texp (-= (the ,texp1 ,exp1) (the ,texp2 ,exp2))) )
+  ((#?(the ,texp (-= (the ,texp1 ,exp1) (the ,texp2 ,exp2))) )
+   ~(the ,texp (+= (the ,texp1 ,exp1) (the ,texp2 ,exp2))) )
+  ((#?(the ,texp (bit-xor= (the ,texp1 ,exp1) (the ,texp2 ,exp2))) )
+   x)
+  ((#?(begin ,@body) )
+   ~(begin ,@(reverse (mapcar #'r-statement body))))
+  ((#?(r-if ,exp1 ,stat1 ,stat2 ,exp2))
+   ~(r-if ,exp2 ,(r-statement ,stat1) ,(r-statement stat2) ,exp1))
   )
 
 (extendrule expression tcell

@@ -153,6 +153,16 @@
       (:after ,@(type:with-new-environment
 		 (type:add-variable ~BACKTRACKING ~int)
 		 (function-body aft-body)))) )
+  ((#?(dynamic-wind-r
+       (:before ,@bef-body)
+       (:body ,@body) ))
+    ~(dynamic-wind-r
+      (:before ,@(type:with-new-environment
+		  (type:add-variable ~BACKTRACKING ~int)
+		  (function-body bef-body)))
+      (:body ,@(type:with-new-environment (function-body body))) ))
+  ((#?(r-if ,exp1 ,stat1 ,stat2 ,exp2))
+   ~(r-if ,(expression! exp1) ,(statement! stat1) ,(statement! stat2) ,(expression! exp2)))
   ((#?(throw ,exp))
    ~(throw ,(expression! exp)))
   ((#?(catch ,exp ,@body))
