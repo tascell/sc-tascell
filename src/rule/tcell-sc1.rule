@@ -100,14 +100,19 @@
       (:before ,@(function-body bef-body))
       (:body ,@(function-body body))
       (:after ,@(function-body aft-body))) )
-  ((#?(dynamic-wind-r
+  ((#?(rdynamic-wind
        (:before ,@bef-body)
        (:body ,@body)) )
-   ~(dynamic-wind-r
+   ~(rdynamic-wind
       (:before ,@(function-body bef-body))
       (:body ,@(function-body body)) ))
   ((#?(r-if ,exp1 ,stat1 ,stat2 ,exp2))
    ~(r-if ,(expression exp1) ,(statement stat1) ,(statement stat2) ,(expression exp2)))
+  ((#?(swap ,id1 ,id2))
+   ~(begin
+      (bit-xor= ,id1 ,id2)
+      (bit-xor= ,id2 ,id1)
+      (bit-xor= ,id1 ,id2)))
   (#?(throw ,exp)
    ~(throw ,(expression! exp)))
   (#?(catch ,exp ,@body)
