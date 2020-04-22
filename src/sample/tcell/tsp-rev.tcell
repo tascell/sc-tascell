@@ -1,0 +1,197 @@
+;;; Copyright (c) 2020 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; All rights reserved.
+
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+;;; 1. Redistributions of source code must retain the above copyright
+;;;    notice, this list of conditions and the following disclaimer.
+;;; 2. Redistributions in binary form must reproduce the above copyright
+;;;    notice, this list of conditions and the following disclaimer in the
+;;;    documentation and/or other materials provided with the distribution.
+
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE
+;;; FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+;;; OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+;;; LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+;;; SUCH DAMAGE.
+
+;;; Solve the tranvelling salesman problem.
+
+;; task 0 0 0 1
+;; <n>
+
+(c-exp "#include<sys/time.h>")
+(c-exp "#include<string.h>")
+
+(%include "rule/tcell-setrule.sh")
+(%include "clib.sh")
+(%include "dprint.sh")
+(%cinclude "sendrecv.h" (:macro))
+
+(%defconstant INT-MAX 2147483647)
+
+(def (struct vertex)
+  (def ne int)            ; number of edges
+  (def edges (ptr int))   ; edges
+  (def costs (ptr int)))  ; cost of each edge
+  
+(def NV int)                   ; #V
+(def V (ptr (struct vertex)))  ; vertices
+
+(def (csym::print-graph) (csym::fn void)
+  (def i int)
+  (def j int)
+  (for ((= i 0) (< i NV) (inc i))
+    (def pv (ptr (struct vertex)) (ptr (aref V i)))
+    (csym::fprintf stderr "%d[%d]:" i pv->ne)
+    (for ((= j 0) (< j pv->ne) (inc j))
+      (csym::fprintf stderr " %d(%d)" (aref pv->edges j) (aref pv->costs j)))
+    (csym::fprintf stderr "~%")
+    ))
+
+(def (csym::print-int-array a n) (csym::fn void (ptr int) int)
+  (def i int 0)
+  (for ((= i 0) (< i n) (inc i))
+    (csym::fprintf stderr "%d " (aref a i)))
+  (csym::fprintf stderr "~%")
+  )
+
+(def (csym::make-graph-2d-torus n) (csym::fn void int)
+  (def i int)
+  (def j int)
+  (= NV (* n n))
+  (= V (csym::malloc (* NV (sizeof (struct vertex)))))
+  ;; Initialize V[0]--[n*n-1]
+  (for ((= i 0) (< i NV) (inc i))
+    (def pv (ptr (struct vertex)) (ptr (aref V i)))
+    (def x int (% i n))
+    (def y int (/ i n))
+    (def xr int (% (+ x 1) n))
+    (def xl int (% (+ x n -1) n))
+    (def yd int (% (+ y 1) n))
+    (def yu int (% (+ y n -1) n))
+    (csym::fprintf stderr "(%d,%d) -> (%d,%d) (%d,%d) (%d,%d) (%d,%d)~%"
+		   x y xr y xl y x yd x yu)
+    (= pv->ne 4)
+    (= pv->edges (cast (ptr int) (csym::malloc (* 4 (sizeof int)))))
+    (= pv->costs (cast (ptr int) (csym::malloc (* 4 (sizeof int)))))
+    (= (aref pv->edges 0) (+ (* y n) xr))
+    (= (aref pv->edges 1) (+ (* y n) xl))
+    (= (aref pv->edges 2) (+ (* yd n) x))
+    (= (aref pv->edges 3) (+ (* yu n) x))
+    (= (aref pv->costs 0) 1)
+    (= (aref pv->costs 1) 1)
+    (= (aref pv->costs 2) 100)
+    (= (aref pv->costs 3) 100)
+    )
+  )
+
+;; task definition
+(def (task tsp)
+  (def dis int :out) ; 解（（タスク内で探索した部分に関する）経路長）
+  (def t (ptr int))  ; t[i]: ID of i-th visited vertex
+  (def u (ptr int))  ; u[i]: non zero if the vertex V_i has been visited
+  (def k int :in)    ; # visited vertices
+  (def i1 int :in)   ; 探索範囲 start
+  (def i2 int :in)   ; 探索範囲 end
+  )
+
+(def (task tsp-start)
+  (def n int :in)   ; size of input graph (2d-torus)
+  )
+
+;; k: # vertices in current path (size of t[])
+;; i1--i2: search range
+;; t[i]: ID of i-th visited vertex
+;; u[i]: non zero if the vertex V_i has been visited
+(def (search k i1 i2 t u)
+    (wfn int int int int (ptr int) (ptr int))
+  (def dis int INT-MAX)
+  (def plastv (ptr (struct vertex)) (ptr (aref V (aref t (- k 1)))))
+  #+comment
+  (begin
+    (csym::fprintf stderr "(search k=%d i1=%d i2=%d t[] u[])~%" k i1 i2)
+    (csym::fprintf stderr "t[k=%d]: " k)
+    (csym::print-int-array t k)
+    (csym::fprintf stderr "u[NV=%d]: " NV)
+    (csym::print-int-array u NV))
+
+  ;; When all vertex have been visited
+  (if (== k NV) 
+      (let ((i int))
+	;; find edge linked to V[0] (start point)
+	(for ((= i 0) (< i plastv->ne) (inc i))
+	  (if (== (aref plastv->edges i) 0)
+	      (return (aref plastv->costs i))))
+	;; no link to V[0]
+	(return INT-MAX)))
+      
+  (do-many for i from i1 to i2
+    (def next int (aref plastv->edges i)) ; next vertex linked by the i-th edge
+    (if (== 0 (aref u next))              ; not already visited?
+	(rdynamic-wind
+	 (:before
+	   (+= (aref t k) next)
+	   (+= (aref u next) 1))
+	 (:body
+	   (def dis0 int)
+	   (def cost int (aref plastv->costs i))
+	   (= dis0 (search (+ k 1) 0 (fref (aref V next) ne) t u))
+	   (if (and (< dis0 INT-MAX)
+		    (< (+ dis0 cost) dis))
+	       (= dis (+ dis0 cost))))))
+    (handles tsp
+      (:put from j1 to j2
+	    (= this.k k)
+	    (= this.i1 j1)
+	    (= this.i2 j2)
+	    (= this.t (cast (ptr int) (csym::malloc (* NV (sizeof int)))))
+	    (csym::memcpy this.t t (* NV (sizeof int)))
+	    (= this.u (cast (ptr int) (csym::malloc (* NV (sizeof int)))))
+	    (csym::memcpy this.u u (* NV (sizeof int))))
+      (:get (csym::free this.t)
+	    (csym::free this.u)
+	    (if (< this.dis dis)
+		(= dis this.dis)))))
+  ;; (csym::fprintf stderr "~%")
+  (return dis))
+
+(def (csym::elapsed-time tp) 
+    (fn double (array (struct timeval) 2))
+  (return (+ (- (fref (aref tp 1) tv-sec)
+                (fref (aref tp 0) tv-sec))
+             (* 0.000001
+                (- (fref (aref tp 1) tv-usec)
+                   (fref (aref tp 0) tv-usec))))))
+
+(def (task-body tsp)
+  (= this.dis (search this.k this.i1 this.i2 this.t this.u)))
+
+(def (task-body tsp-start)
+  (def t (ptr int))
+  (def u (ptr int))
+  (def dis int)
+  (csym::make-graph-2d-torus this.n)
+  (csym::print-graph)
+  (= t (csym::calloc NV (sizeof int)))
+  (= u (csym::calloc NV (sizeof int)))
+  (decl tp (array (struct timeval) 2))
+  (if (> option.verbose 0) (csym::fprintf stderr "start %d~%" this.n))
+
+  (csym::gettimeofday tp 0)
+  ;; Visit V[0]
+  (+= (aref t 0) 0)  ; practically meaningless
+  (+= (aref u 0) 1)
+  (= dis (search 1 0 (fref (aref V 0) ne) t u))
+  (csym::gettimeofday (+ tp 1) 0)
+
+  (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp))
+  (csym::fprintf stderr "shortest distance: %d~%" dis)
+  )
