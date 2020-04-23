@@ -108,11 +108,13 @@
       (:body ,@(function-body body)) ))
   ((#?(r-if ,exp1 ,stat1 ,stat2 ,exp2))
    ~(r-if ,(expression exp1) ,(statement stat1) ,(statement stat2) ,(expression exp2)))
-  ((#?(swap ,id1 ,id2))
-   ~(begin
-      (bit-xor= ,id1 ,id2)
-      (bit-xor= ,id2 ,id1)
-      (bit-xor= ,id1 ,id2)))
+  ((#?(swap ,exp1[expression!] ,exp2[expression!]))
+   (let ((exp1-ret (get-retval exp1))
+	 (exp2-ret (get-retval exp2)))
+     ~(begin
+	(bit-xor= ,exp1-ret ,exp2-ret)
+	(bit-xor= ,exp2-ret ,exp1-ret)
+	(bit-xor= ,exp1-ret ,exp2-ret)) ))
   (#?(throw ,exp)
    ~(throw ,(expression! exp)))
   (#?(catch ,exp ,@body)
