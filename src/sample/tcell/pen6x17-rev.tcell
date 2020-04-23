@@ -223,18 +223,14 @@
         (if (or (>= (+= kk (aref pss l)) maxk)
                 (!= (aref (fref (mref tsk) b) kk) 0))
             (goto Ln)))
-      (dynamic-wind
+      (rdynamic-wind
         (:before
-          (= (aref tsk->b k) (+ p #\A))
-	  (= (aref tsk->b (+ k (aref pss 0))) (+ p #\A))
-	  (= (aref tsk->b (+ k (aref pss 0) (aref pss 1))) (+ p #\A))
-	  (= (aref tsk->b (+ k (aref pss 0) (aref pss 1) (aref pss 2))) (+ p #\A))
-	  (= (aref tsk->b (+ k (aref pss 0) (aref pss 1) (aref pss 2) (aref pss 3))) (+ p #\A))
-          (= (aref (fref (mref tsk) a) p)
-             (aref (fref (mref tsk) a) j0))
-          (= (aref (fref (mref tsk) a) j0) ap)
-          (DEBUG-STMTS 2
-                       (if BACKTRACKING (csym::fprintf stderr "(worker %d) redoing~%" WORKER-ID)))
+          (+= (aref tsk->b k) (+ p #\A))
+	  (+= (aref tsk->b (+ k (aref pss 0))) (+ p #\A))
+	  (+= (aref tsk->b (+ k (aref pss 0) (aref pss 1))) (+ p #\A))
+	  (+= (aref tsk->b (+ k (aref pss 0) (aref pss 1) (aref pss 2))) (+ p #\A))
+	  (+= (aref tsk->b (+ k (aref pss 0) (aref pss 1) (aref pss 2) (aref pss 3))) (+ p #\A))
+          (swap (aref (fref (mref tsk) a) p) (aref (fref (mref tsk) a) j0))
           )
         (:body
           (for ((= kk k) (< kk maxk) (inc kk))
@@ -249,6 +245,7 @@
                               (!= (aref (fref (mref tsk) b) (+ kk 2)) 0))))
                 ()
               (+= s (search kk (+ j0 1) (+ j0 1) maxp maxp maxk tsk)))))
+	#+comment
         (:after
           (= ap (aref (fref (mref tsk) a) j0))
           (= (aref (fref (mref tsk) a) j0) (aref (fref (mref tsk) a) p))
@@ -258,8 +255,6 @@
 	  (= (aref tsk->b (+ k (aref pss 0) (aref pss 1))) 0)
 	  (= (aref tsk->b (+ k (aref pss 0) (aref pss 1) (aref pss 2))) 0)
 	  (= (aref tsk->b (+ k (aref pss 0) (aref pss 1) (aref pss 2) (aref pss 3))) 0)
-          (DEBUG-STMTS 2
-                       (if BACKTRACKING (csym::fprintf stderr "(worker %d) temporary undoing~%" WORKER-ID)))
           )
         )
       (label Ln (continue))
