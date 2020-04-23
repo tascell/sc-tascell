@@ -479,8 +479,7 @@
 	 (:body ,@body)
 	 (:after ,@aft-body)))))
   ((#?(r-if ,exp1 ,stat1 ,stat2 ,exp2))
-   (statement
-    ~(if ,exp1 ,stat1 ,stat2)))
+   (statement ~(if ,exp1 ,stat1 ,stat2)))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; throw: Common Lisp-like throw but no evaluation value (of catch)
   ;; is specified.
@@ -532,8 +531,9 @@
    x)
   ((#?(begin ,@body) )
    ~(begin ,@(reverse (mapcar #'r-statement body))))
+  ((#?()) ~()) ; null statement
   ((#?(r-if ,exp1 ,stat1 ,stat2 ,exp2))
-   ~(r-if ,exp2 ,(r-statement ,stat1) ,(r-statement stat2) ,exp1))
+   ~(r-if ,exp2 ,(r-statement stat1) ,(r-statement stat2) ,exp1))
   )
 
 (extendrule expression tcell
