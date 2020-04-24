@@ -153,10 +153,10 @@
       (:after ,@(type:with-new-environment
 		 (type:add-variable ~BACKTRACKING ~int)
 		 (function-body aft-body)))) )
-  ((#?(rdynamic-wind
+  ((#?(r-dynamic-wind
        (:before ,@bef-body)
        (:body ,@body) ))
-    ~(rdynamic-wind
+    ~(r-dynamic-wind
       (:before ,@(type:with-new-environment
 		  (type:add-variable ~BACKTRACKING ~int)
 		  (function-body bef-body)))

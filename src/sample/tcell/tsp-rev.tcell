@@ -136,7 +136,7 @@
   (do-many for i from i1 to i2
     (def next int (aref plastv->edges i)) ; next vertex linked by the i-th edge
     (if (== 0 (aref u next))              ; not already visited?
-	(rdynamic-wind
+	(r-dynamic-wind
 	 (:before
 	   (+= (aref t k) next)
 	   (+= (aref u next) 1))

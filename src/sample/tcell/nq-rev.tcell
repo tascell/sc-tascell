@@ -120,7 +120,7 @@
     (if (not (or (aref tsk->lb (+ n -1 (- ai) k))
                  (aref tsk->rb (+ ai k))))
 	(if (== k (- n 1)) (inc s)
-	  (rdynamic-wind
+	  (r-dynamic-wind
 	   (:before
 	     (+= (aref tsk->lb (+ n -1 (- ai) k)) 1)
 	     (+= (aref tsk->rb (+ ai k)) 1)

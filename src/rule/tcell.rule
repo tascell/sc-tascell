@@ -471,7 +471,7 @@
         (begin
 	 (def BACKTRACKING (const int) 0)
 	 ,@b-aft-body))) ))
-  ((#?(rdynamic-wind (:before ,@bef-body) (:body ,@body)) )
+  ((#?(r-dynamic-wind (:before ,@bef-body) (:body ,@body)) )
    (let ((aft-body (reverse (mapcar #'r-statement bef-body))))
      (statement
        ~(dynamic-wind
@@ -519,9 +519,9 @@
 	)))
   )
 
-;; Take a statement in a :before block of a rdynamic-wind statement
+;; Take a statement in a :before block of a r-dynamic-wind statement
 ;; and returns a statement that should be placed at the after block
-;; in the dynamic-wind statement after transformation from the rdynamic-wind.
+;; in the dynamic-wind statement after transformation from the r-dynamic-wind.
 (defrule r-statement tcell
   ((#?(the ,texp (+= (the ,texp1 ,exp1) (the ,texp2 ,exp2))) )
    ~(the ,texp (-= (the ,texp1 ,exp1) (the ,texp2 ,exp2))) )

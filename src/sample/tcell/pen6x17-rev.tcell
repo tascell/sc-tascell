@@ -223,7 +223,7 @@
         (if (or (>= (+= kk (aref pss l)) maxk)
                 (!= (aref (fref (mref tsk) b) kk) 0))
             (goto Ln)))
-      (rdynamic-wind
+      (r-dynamic-wind
         (:before
           (+= (aref tsk->b k) (+ p #\A))
 	  (+= (aref tsk->b (+ k (aref pss 0))) (+ p #\A))

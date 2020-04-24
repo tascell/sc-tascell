@@ -100,10 +100,10 @@
       (:before ,@(function-body bef-body))
       (:body ,@(function-body body))
       (:after ,@(function-body aft-body))) )
-  ((#?(rdynamic-wind
+  ((#?(r-dynamic-wind
        (:before ,@bef-body)
        (:body ,@body)) )
-   ~(rdynamic-wind
+   ~(r-dynamic-wind
       (:before ,@(function-body bef-body))
       (:body ,@(function-body body)) ))
   ((#?(r-if ,exp1 ,stat1 ,stat2 ,exp2))
