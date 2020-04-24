@@ -77,7 +77,7 @@
 	      (,(concat
 		 "(" (regexp-opt
 		      '("do-two" "do-many*" ":guard" ":spawn-from" ":put" ":get"
-			"tcell-broadcast" "dynamic-wind"
+			"tcell-broadcast" "dynamic-wind" "r-dynamic-wind" "r-if"
 			":before" ":body" ":after"
 			"throw" "catch") t)
 		 "\\>")
@@ -134,6 +134,8 @@
     (put 'do-many* tag 1)
     (put 'handles tag 1)
     (put 'dynamic-wind tag 0)
+    (put 'r-dynamic-wind tag 0)
+    (put 'r-if tag 4)
     (put 'tcell-broadcast tag 1)
     (put :guard tag 0)
     (put :get tag 0)
