@@ -138,8 +138,8 @@
     (if (== 0 (aref u next))              ; not already visited?
 	(dynamic-wind
 	  (:before
-	    (+= (aref t k) next)
-	    (+= (aref u next) 1))
+	    (= (aref t k) next)
+	    (= (aref u next) 1))
 	  (:body
 	    (def dis0 int)
 	      (def cost int (aref plastv->costs i))
@@ -148,8 +148,8 @@
 		       (< (+ dis0 cost) dis))
 		  (= dis (+ dis0 cost))))
 	  (:after
-	    (-= (aref t k) next)
-	    (-= (aref u next) 1))))
+	    ;; (= (aref t k) 0)
+	    (= (aref u next) 0))))
     (handles tsp
       (:put from j1 to j2
 	    (= this.k k)
