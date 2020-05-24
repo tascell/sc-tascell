@@ -756,6 +756,7 @@
   (= tx->task-no task-no)               ; the kind of the task
   (= tx->body body)                     ; task object
   (= tx->stat TASK-INITIALIZED)         ; TASK-ALLOCATED => TASK-INITIALIZED
+  (= tx->progress 0)                    ; initialize progress to 0
 
   ;; Awake the worker thread sleeping to waiting for the task
   (csym::pthread-cond-broadcast (ptr thr->cond))
