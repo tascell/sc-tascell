@@ -234,9 +234,9 @@ int send_fmt_string (int socket, char *fmt_string, ...)
 }
 
 int send_binary (void *src, unsigned long elm_size, unsigned long n_elm,
-                 int socket)
+                 int socket, int destrank, int GID)
 {
-  append_to_mpisend_buf (src, elm_size*n_elm);
+  MPI_Send(src, n_elm, MPI_UNSIGNED_LONG, destrank, GID, MPI_COMM_WORLD);;
   return 0;
 }
 
