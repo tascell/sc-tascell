@@ -213,18 +213,6 @@
   (csym::serialize-cmd sq->buf pcmd)
   (= sq->len (csym::strlen sq->buf))
   (csym::send-char #\Newline sv-socket)
-  ;; Send the body of task/rslt/bcst
-  (cond
-   (body
-    (cond
-     ((or (== w TASK) (== w BCST))
-      ((aref task-senders task-no) body)
-      (csym::send-char #\Newline sv-socket))
-     ((== w RSLT)
-      ((aref rslt-senders task-no) body)
-      (csym::send-char #\Newline sv-socket)
-      )))
-   )
   
   ;; Note: In the MPI mode, calls of send-string, task-senders, and etc.
   ;; above just write the message into the mpisend buffer. Then below,
@@ -251,7 +239,19 @@
         ;; End initialization of mpisend-buf and add it to the send buffer
 	(csym::send-block-end dest-rank)
   )
-
+  ;; Send the body of task/rslt/bcst
+  (cond
+   (body
+    (cond
+     ((or (== w TASK) (== w BCST))
+      ((aref task-senders task-no) body)
+      (csym::send-char #\Newline sv-socket))
+     ((== w RSLT)
+      ((aref rslt-senders task-no) body)
+      (csym::send-char #\Newline sv-socket)
+      )))
+   )  
+			    
 ;;; Take cmd and call the function corresponding to its command name.
 ;;; For task/rslt command from a worker in the same node,
 ;;; the argument "body" is a pointer of task object.
