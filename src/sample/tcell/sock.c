@@ -366,12 +366,12 @@ char* receive_line (char *buf, int maxlen, int socket)
 }
 
 int receive_binary (void *dst, unsigned long elm_size, unsigned long n_elm,
-                    int socket)
+                    int socket, int srcrank, int GID)
 {
-
+    MPI_Status recv_status;
     if (socket<0)  // MPI
       {
-	get_from_mpirecv_buf (dst, n_elm*elm_size);
+	MPI_Recv(dst, n_elm, MPI_UNSIGNED_LONG, srcrank, GID, MPI_COMM_WORLD, &recv_status);
 	return n_elm;
       }
     if (socket==0) // stdin
