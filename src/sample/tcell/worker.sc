@@ -736,7 +736,6 @@
        (= body ((aref task-allocators task-no)))
        ((aref task-receivers task-no) body)
        (csym::read-to-eol)))
-       ...        ;;Create a thread and call task-receivers[task-no](body)
   ;; Determine the task recipient worker from <recipient>
   (= id (aref pcmd->v 2 (+ rank-p 0)))
   (if (not (< id num-thrs))
