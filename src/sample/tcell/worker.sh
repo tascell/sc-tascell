@@ -1,4 +1,4 @@
-;;; Copyright (c) 2009-2016 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; Copyright (c) 2009-2020 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -120,8 +120,10 @@
       (array (ptr (fn void (ptr (struct thread-data)) (ptr void))) TASK-MAX))
 (extern-decl task-senders
       (array (ptr (csym::fn void (ptr void))) TASK-MAX))
-(extern-decl task-receivers
+(extern-decl task-allocators
       (array (ptr (csym::fn (ptr void))) TASK-MAX))
+(extern-decl task-receivers
+      (array (ptr (csym::fn void (ptr void))) TASK-MAX))
 (extern-decl rslt-senders
       (array (ptr (csym::fn void (ptr void))) TASK-MAX))
 (extern-decl rslt-receivers

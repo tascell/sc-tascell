@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008-2014 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; Copyright (c) 2008-2020 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,7 @@
                               (struct-id (make-task-struct-id cid))
                               (do-task (make-do-task-id cid))
                               (task-send (make-task-send-id cid))
+                              (task-alloc (make-task-alloc-id cid))
                               (task-recv (make-task-recv-id cid))
                               (rslt-send (make-rslt-send-id cid))
                               (rslt-recv (make-rslt-recv-id cid)) )))
@@ -65,6 +66,7 @@
   (struct-id nil :type symbol)
   (do-task   nil :type symbol)
   (task-send nil :type symbol)  (task-send-body nil)
+  (task-alloc nil :type symbol)
   (task-recv nil :type symbol)  (task-recv-body nil)
   (rslt-send nil :type symbol)  (rslt-send-body nil)
   (rslt-recv nil :type symbol)  (rslt-recv-body nil)
@@ -89,6 +91,7 @@
         (len ~TASK-MAX)                 ; worker.sh で %defconstant
         (doer-type      ~(ptr ,(task-body-type ~void)))
         (tsender-type   ~(ptr ,(task-sender-type ~void)))
+        (tallocator-type ~(ptr ,(task-allocator-type ~void)))
         (treceiver-type ~(ptr ,(task-receiver-type ~void)))
         (rsender-type   ~(ptr ,(rslt-sender-type ~void)))
         (rreceiver-type ~(ptr ,(rslt-receiver-type ~void))))
@@ -98,6 +101,9 @@
                             rev-tasks)))
      ~(def task-senders (array ,tsender-type ,len)
            (array ,@(mapcar (compose (tagger ~cast tsender-type) #'task-send-id)
+                            rev-tasks)))
+     ~(def task-allocators (array ,tallocator-type ,len)
+           (array ,@(mapcar (compose (tagger ~cast tallocator-type) #'task-alloc-id)
                             rev-tasks)))
      ~(def task-receivers (array ,treceiver-type ,len)
            (array ,@(mapcar (compose (tagger ~cast treceiver-type) #'task-recv-id)
@@ -118,6 +124,8 @@
   (generate-id (string+ "do_" cid "_task")))
 (defun make-task-send-id (cid)
   (generate-id (string+ "send_" cid "_task")))
+(defun make-task-alloc-id (cid)
+  (generate-id (string+ "alloc_" cid "_task")))
 (defun make-task-recv-id (cid)
   (generate-id (string+ "recv_" cid "_task")))
 (defun make-rslt-send-id (cid)
@@ -138,6 +146,8 @@
   (task-info-do-task (get-task task-or-scid)))
 (defun task-send-id (&optional (task-or-scid *current-task*))
   (task-info-task-send (get-task task-or-scid)))
+(defun task-alloc-id (&optional (task-or-scid *current-task*))
+  (task-info-task-alloc (get-task task-or-scid)))
 (defun task-recv-id (&optional (task-or-scid *current-task*))
   (task-info-task-recv (get-task task-or-scid)))
 (defun rslt-send-id (&optional (task-or-scid *current-task*))
@@ -208,6 +218,7 @@
 (defun sender-and-receiver-functions (task)
   (mapcar #'(lambda (f) (funcall f task))
           (list #'task-send-function
+                #'task-alloc-function
                 #'task-recv-function
                 #'rslt-send-function
                 #'rslt-recv-function)))
@@ -220,15 +231,21 @@
           ,@(task-info-task-send-body task))
     ))
 
+(defun task-alloc-function (task)
+  (let ((id (task-alloc-id task))
+        (struct-id (task-struct-id task)))
+    ~(def (,id) ,(task-allocator-type ~(struct ,struct-id))
+          (def pthis (ptr (struct ,struct-id))
+            (csym::malloc (sizeof (struct ,struct-id))))
+          (return pthis))
+    ))
+
 (defun task-recv-function (task)
   (let ((id (task-recv-id task))
         (struct-id (task-struct-id task)))
-    ~(def (,id) ,(task-receiver-type ~(struct ,struct-id))
-          (def pthis (ptr (struct ,struct-id))
-            (csym::malloc (sizeof (struct ,struct-id))))
-          ,@(mapcar #'make-recv-var (reverse (task-info-input-vars task)))
-          ,@(task-info-task-recv-body task)
-          (return pthis))
+    ~(def (,id pthis) ,(task-receiver-type ~(struct ,struct-id))
+       ,@(mapcar #'make-recv-var (reverse (task-info-input-vars task)))
+       ,@(task-info-task-recv-body task) )
     ))
 
 (defun rslt-send-function (task)
@@ -333,8 +350,10 @@
   ~(fn void (ptr (struct thread-data)) (ptr ,data-type)) )
 (defun task-sender-type (data-type)
   ~(csym::fn void (ptr ,data-type)) )
+(defun task-allocator-type (data-type)
+  ~(csym::fn (ptr ,data-type) void))
 (defun task-receiver-type (data-type)
-  ~(csym::fn (ptr ,data-type) ))
+  ~(csym::fn void (ptr ,data-type)))
 (defun rslt-sender-type (data-type)
   ~(csym::fn void (ptr ,data-type)) )
 (defun rslt-receiver-type (data-type)
