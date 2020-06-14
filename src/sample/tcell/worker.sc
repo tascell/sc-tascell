@@ -1,4 +1,4 @@
-;;; Copyright (c) 2009-2016 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; Copyright (c) 2009-2020 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -734,6 +734,7 @@
   (if (== pcmd->node OUTSIDE)
       (begin
        (= body ((aref task-allocators task-no)))
+       ((aref task-receivers task-no) body)
        (csym::read-to-eol)))
        ...        ;;Create a thread and call task-receivers[task-no](body)
   ;; Determine the task recipient worker from <recipient>
@@ -1134,9 +1135,10 @@
       (csym::proto-error "wrong-task" pcmd))
   ;; Extract <data-kind>
   (= task-no (aref pcmd->v 1 0))
-  ;; (Allocate and) receive data body by invoking the user-defined 
-  ;; receiver method associated with the <data-kind> number
-  (= body ((aref task-receivers task-no)))
+  ;; Allocate and receive data body by invoking the allocator and
+  ;; (user-defined) receiver methods associated with the <data-kind> number
+  (= body ((aref task-allocators task-no)))
+  ((aref task-receivers task-no) body)
   (csym::read-to-eol)
   ;; NOTE: here the "body" object is deallocated immediately
   ;; after the receiver method finished. The data that need to be
