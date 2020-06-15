@@ -63,6 +63,8 @@ struct send_block
 };
 
 __thread struct send_block *sq = NULL;
+__thread int rank = 0;
+__thread int GID = 0;
 static pthread_mutex_t send_lock;
 
 struct recv_block
@@ -133,8 +135,14 @@ int dbg_printf (char *fmt_string, ...)
 #endif
 
 // Prepare for adding a message to the send queue.
-void send_block_start (void)
+void send_block_start (int dest, int num_thrs, struct thread_data *_thr)
 {
+    int Nw;
+    int wid;
+    rank = dest;
+    Nw = num_thrs;
+    wid = _thr->id;
+    GID = rank*Nw+ wid;
     sq = (struct send_block*)malloc(sizeof(struct send_block));
     sq->buf = malloc(sizeof(char)*32768);
     sq->len = 0;
