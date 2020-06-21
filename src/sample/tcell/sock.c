@@ -150,9 +150,9 @@ void send_block_start (int dest, int num_thrs, struct thread_data *_thr)
 }
 
 // Finish adding the message to the send queue.
-void send_block_end(int rank)
+void send_block_end(int dest)
 {
-    MPI_Send(sq->buf, sq->len, MPI_CHAR, rank, 0, MPI_COMM_WORLD);
+    MPI_Send(sq->buf, sq->len, MPI_CHAR, dest, 0, MPI_COMM_WORLD);
     free(sq->buf);
     free(sq);
 }
@@ -242,9 +242,9 @@ int send_fmt_string (int socket, char *fmt_string, ...)
 }
 
 int send_binary (void *src, unsigned long elm_size, unsigned long n_elm,
-                 int socket, int destrank, int GID)
+                 int socket)
 {
-  MPI_Send(src, n_elm, MPI_UNSIGNED_LONG, destrank, GID, MPI_COMM_WORLD);;
+  MPI_Send(src, n_elm, MPI_UNSIGNED_LONG, rank, GID, MPI_COMM_WORLD);;
   return 0;
 }
 
@@ -374,12 +374,12 @@ char* receive_line (char *buf, int maxlen, int socket)
 }
 
 int receive_binary (void *dst, unsigned long elm_size, unsigned long n_elm,
-                    int socket, int srcrank, int GID)
+                    int socket)
 {
     MPI_Status recv_status;
     if (socket<0)  // MPI
       {
-	MPI_Recv(dst, n_elm, MPI_UNSIGNED_LONG, srcrank, GID, MPI_COMM_WORLD, &recv_status);
+	MPI_Recv(dst, n_elm, MPI_UNSIGNED_LONG, rank, GID, MPI_COMM_WORLD, &recv_status);
 	return n_elm;
       }
     if (socket==0) // stdin

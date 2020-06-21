@@ -97,12 +97,21 @@
        (= this.d2
           (cast (ptr INT32)
             (csym::malloc (* (sizeof INT32) this.n2))))
-       (csym::recv-int32s this.d1 this.n1)
-       ;;        (for ((= i 0) (< i this.n1) (inc i))
-       ;;          (= (aref this.d1 i) (csym::recv-int)))
-       (csym::recv-int32s this.d2 this.n2)
-       ;;        (for ((= i 0) (< i this.n2) (inc i))
-       ;;          (= (aref this.d2 i) (csym::recv-int)))
+       (if (> this.n2 this.n1)
+           (begin
+            (csym::recv-int32s this.d1 this.n1)
+            (csym::recv-int32s this.d2 (/ this.n2 2))
+            (csym::set-progress 1)
+            (csym::recv-int32s (+ this.d2 (/ this.n2 2)) (/ this.n2 2))
+            (csym::set-progress 2)
+            )
+          (begin
+           (csym::recv-int32s this.d2 this.n2)
+           (csym::recv-int32s this.d1 (/ this.n1 2))
+           (csym::set-progress 1)
+           (csym::recv-int32s (+ this.d1 (/ this.n1 2)) (/ this.n1 2))
+           (csym::set-progress 2)
+            ))
        ))
   )
 
@@ -135,6 +144,7 @@
             (= N0 this.n1)
             (= PROBABILITY 1.0))
        (csym::gettimeofday tp 0)
+       (csym::wait-progress 1)
        (= this.r
           (cmp-1 this.n1 this.n2
                  this.d1 this.d2))
@@ -144,6 +154,7 @@
     (begin
       (%ifdef* USE-PROBABILITY
            (= PROBABILITY (cmp-probability (csym::MIN this.n1 this.n2))))
+      (csym::wait-progress 1)
       (= this.r
          (cmp-1 this.n1 this.n2
                 this.d1 this.d2)))))
@@ -166,7 +177,7 @@
        (def n1-2 int (- n1 n1-1))
        (do-two
            (= s1 (cmp-1 n1-1 n2 d1 d2))
-         (= s2 (cmp-1 n1-2 n2 (+ d1 n1-1) d2))
+         (csym::wait-progress 2)(= s2 (cmp-1 n1-2 n2 (+ d1 n1-1) d2))
          (handles cmp
           (:put 
            (%ifdef* USE-PROBABILITY
@@ -182,7 +193,7 @@
      (def n2-2 int (- n2 n2-1))
      (do-two
          (= s1 (cmp-1 n1 n2-1 d1 d2))
-       (= s2 (cmp-1 n1 n2-2 d1 (+ d2 n2-1)))
+       (csym::wait-progress 2)(= s2 (cmp-1 n1 n2-2 d1 (+ d2 n2-1)))
        (cmp
         (:put
          (%ifdef* USE-PROBABILITY
