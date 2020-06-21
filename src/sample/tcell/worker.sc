@@ -197,6 +197,17 @@
 		   my-rank (csym::get-universal-real-time))
       (return 0))))
 
+;;;latency hiding
+(def (csym::set-progress -thr n) (fn void (ptr (struct thread-data)) int)
+  (def tx (ptr (struct task)))
+  (= tx -thr->task_top)
+  (= tx->progress n))
+
+(def (csym::wait-progress -thr k) (fn void (ptr (struct thread-data)) int)
+  (def tx (ptr (struct task)))
+  (= tx -thr->task_top)
+  (while (< tx->progress k)))
+
 ;;; Send cmd to an external node (Tascell server)
 ;;; The body of task/rslt/bcst is also sent using task-senders[task-no]
 ;;; (task-senders[] are user-defined functinos)
@@ -209,7 +220,7 @@
   (= w pcmd->w)
   
   ;; Send command string
-  (csym::send-block-start) ; allocate mpisend-buf for initialization
+  (csym::send-block-start dest-rank num-thrs -thr) ; allocate mpisend-buf for initialization
   (csym::serialize-cmd sq->buf pcmd)
   (= sq->len (csym::strlen sq->buf))
   (csym::send-char #\Newline sv-socket)
@@ -1080,7 +1091,7 @@
 	       (< sv-socket 0)
 	       (== my-rank 0))
 	  (begin
-	    (csym::send-block-start)
+	    (csym::send-block-start my-rank num-thrs -thr)
 	    (csym::send-string receive-buf sv-socket)
 	    (csym::send-block-end my-rank)
 	    (csym::free receive-buf)
