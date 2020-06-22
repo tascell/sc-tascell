@@ -220,7 +220,7 @@
   (= w pcmd->w)
   
   ;; Send command string
-  (csym::send-block-start dest-rank num-thrs) ; allocate mpisend-buf for initialization
+  (csym::send-block-start dest-rank num-thrs -thr) ; allocate mpisend-buf for initialization
   (csym::serialize-cmd sq->buf pcmd)
   (= sq->len (csym::strlen sq->buf))
   (csym::send-char #\Newline sv-socket)
@@ -1091,7 +1091,7 @@
 	       (< sv-socket 0)
 	       (== my-rank 0))
 	  (begin
-	    (csym::send-block-start my-rank num-thrs)
+	    (csym::send-block-start my-rank num-thrs -thr)
 	    (csym::send-string receive-buf sv-socket)
 	    (csym::send-block-end my-rank)
 	    (csym::free receive-buf)

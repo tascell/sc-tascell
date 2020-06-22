@@ -1,0 +1,41 @@
+$(sc::%line 1 "/home/a/a0191119/sc-tascell/src/sample/tcell/cinclude_tmp.h")
+$(sc::%line 1 "sendrecv.h")
+$(sc::%line 32 "sendrecv.h")
+void send_int(int n);
+int recv_int(void);
+
+
+void send_long(long n);
+long recv_long(void);
+
+
+void send_longlong(long long int n);
+long long int recv_longlong(void);
+
+
+int send_binary_header (int elmsize,
+                        int nelm ) ;
+int recv_binary_header (int *pelmsize,
+                        int *pnelm) ;
+
+void send_binary_terminator (void);
+void recv_binary_terminator (void);
+
+
+void swap_int32s ( int  *a, int n);
+
+
+int send_int32s ( int  *a, int nelm);
+int recv_int32s ( int  *a, int nelm);
+
+
+void swap_doubles (double *a, int n);
+
+
+int send_double_seq (double *a, int nelm);
+int recv_double_seq (double *a, int nelm);
+
+
+int send_doubles (double *a, int nelm);
+int recv_doubles (double *a, int nelm);
+$(sc::%line 2 "/home/a/a0191119/sc-tascell/src/sample/tcell/cinclude_tmp.h")
