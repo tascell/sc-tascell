@@ -142,7 +142,7 @@ void send_block_start (int dest, int num_thrs, struct thread_data *_thr)
     rank = dest;
     Nw = num_thrs;
     wid = _thr->id;
-    GID = rank*Nw+ wid;
+    GID = rank * Nw + wid;
     sq = (struct send_block*)malloc(sizeof(struct send_block));
     sq->buf = malloc(sizeof(char)*32768);
     sq->len = 0;

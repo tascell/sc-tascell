@@ -39,7 +39,7 @@ char* receive_line (char *buf, int maxlen, int socket);
 int receive_binary (void *dst, unsigned long elm_size, unsigned long n_elm,
                     int socket);
 
-void send_block_start(void);
+void send_block_start(int dest, int num_thrs, struct thread_data *_thr);
 void send_block_end(int rank);
 void sendrecv(void);
 

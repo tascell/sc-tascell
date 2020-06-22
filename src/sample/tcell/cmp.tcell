@@ -144,7 +144,7 @@
             (= N0 this.n1)
             (= PROBABILITY 1.0))
        (csym::gettimeofday tp 0)
-       (csym::wait-progress 1)
+       (csym::wait-progress -thr 1)
        (= this.r
           (cmp-1 this.n1 this.n2
                  this.d1 this.d2))
@@ -154,7 +154,7 @@
     (begin
       (%ifdef* USE-PROBABILITY
            (= PROBABILITY (cmp-probability (csym::MIN this.n1 this.n2))))
-      (csym::wait-progress 1)
+      (csym::wait-progress -thr 1)
       (= this.r
          (cmp-1 this.n1 this.n2
                 this.d1 this.d2)))))
@@ -177,7 +177,8 @@
        (def n1-2 int (- n1 n1-1))
        (do-two
            (= s1 (cmp-1 n1-1 n2 d1 d2))
-         (csym::wait-progress 2)(= s2 (cmp-1 n1-2 n2 (+ d1 n1-1) d2))
+         (begin
+         (csym::wait-progress -thr 2)(= s2 (cmp-1 n1-2 n2 (+ d1 n1-1) d2)))
          (handles cmp
           (:put 
            (%ifdef* USE-PROBABILITY
@@ -193,7 +194,8 @@
      (def n2-2 int (- n2 n2-1))
      (do-two
          (= s1 (cmp-1 n1 n2-1 d1 d2))
-       (csym::wait-progress 2)(= s2 (cmp-1 n1 n2-2 d1 (+ d2 n2-1)))
+       (begin
+       (csym::wait-progress -thr 2)(= s2 (cmp-1 n1 n2-2 d1 (+ d2 n2-1))))
        (cmp
         (:put
          (%ifdef* USE-PROBABILITY
