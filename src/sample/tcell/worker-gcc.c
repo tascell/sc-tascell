@@ -124,7 +124,7 @@ struct task
   enum node rslt_to;
   enum addr rslt_head[16];
 };
-int volatile progress;
+int progress;
 
 struct task_home
 {
@@ -297,6 +297,7 @@ unsigned int num_thrs;
 int my_rank;
 int num_procs;
 char *init_task = NULL;
+int wid;
 double random_seed1 = 0.2403703;
 double random_seed2 = 3.638732;
 struct timeval tp_strt;
@@ -439,21 +440,25 @@ read_command (char *buf, struct cmd *cmd_buf)
 }
 
 void
-set_progress (struct thread_data *_thr, int n)
+set_progress (struct thread_data *thr, int n)
 {
-  struct task *tx;
-  tx = _thr->task_top;
+  struct task *tx = thr->task_top;
   tx->progress = n;
 }
 
 void
-wait_progress (struct thread_data *_thr, int k)
+wait_progress (struct thread_data *thr, int k)
 {
-  struct task *tx;
-  tx = _thr->task_top;
+  struct task *tx = thr->task_top;
   while (tx->progress < k)
     {
     }
+}
+
+void
+get_worker_id (struct thread_data *thr)
+{
+  wid = thr->id;
 }
 
 char send_buf[1280];
@@ -463,9 +468,11 @@ send_out_command (struct cmd *pcmd, void *body, int task_no)
 {
   int ret;
   enum command w;
+  struct thread_data *thr;
   int dest_rank;
   w = pcmd->w;
-  send_block_start (dest_rank, num_thrs);
+  get_worker_id (thr);
+  send_block_start (dest_rank, num_thrs, wid);
   serialize_cmd (sq->buf, pcmd);
   sq->len = strlen (sq->buf);
   send_char ('\n', sv_socket);
@@ -1296,6 +1303,7 @@ void
 recv_treq (struct cmd *pcmd)
 {
   struct cmd rcmd;
+  struct thread_data *thr;
   enum addr dst0;
   char sender[1280];
   int rank_p = sv_socket < 0 ? 1 : 0;
@@ -1360,7 +1368,8 @@ recv_treq (struct cmd *pcmd)
   if (dst0 == ANY && pcmd->node == INSIDE && (pcmd->v)[0][rank_p + 0] == 0)
     if (receive_buf && sv_socket < 0 && my_rank == 0)
       {
-        send_block_start (my_rank, num_thrs);
+        get_worker_id (thr);
+        send_block_start (my_rank, num_thrs, wid);
         send_string (receive_buf, sv_socket);
         send_block_end (my_rank);
         free (receive_buf);

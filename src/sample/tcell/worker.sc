@@ -73,6 +73,7 @@
 (def my-rank int)    ; my MPI rank
 (def num-procs int)  ; # of MPI processes
 (def init-task (ptr char) NULL)  ; initial task
+(def wid int)        ; worker's id
 
 ;;;; Random number generator
 (def random-seed1 double 0.2403703)
@@ -198,15 +199,16 @@
       (return 0))))
 
 ;;;latency hiding
-(def (csym::set-progress -thr n) (fn void (ptr (struct thread-data)) int)
-  (def tx (ptr (struct task)))
-  (= tx -thr->task_top)
+(def (csym::set-progress thr n) (fn void (ptr (struct thread-data)) int)
+  (def tx (ptr (struct task)) thr->task-top)
   (= tx->progress n))
 
-(def (csym::wait-progress -thr k) (fn void (ptr (struct thread-data)) int)
-  (def tx (ptr (struct task)))
-  (= tx -thr->task_top)
+(def (csym::wait-progress thr k) (fn void (ptr (struct thread-data)) int)
+  (def tx (ptr (struct task)) thr->task-top)
   (while (< tx->progress k)))
+
+(def (csym::get-worker-id thr) (fn void (ptr (struct thread-data)))
+  (= wid thr->id))
 
 ;;; Send cmd to an external node (Tascell server)
 ;;; The body of task/rslt/bcst is also sent using task-senders[task-no]
@@ -216,11 +218,13 @@
     (csym::fn void (ptr (struct cmd)) (ptr void) int)
   (def ret int)
   (def w (enum command))
+  (def thr (ptr (struct thread-data)))
   (def dest-rank int)     ; rank ID of destination MPI proc
   (= w pcmd->w)
   
   ;; Send command string
-  (csym::send-block-start dest-rank num-thrs -thr) ; allocate mpisend-buf for initialization
+  (csym::get-worker-id thr)
+  (csym::send-block-start dest-rank num-thrs wid) ; allocate mpisend-buf for initialization
   (csym::serialize-cmd sq->buf pcmd)
   (= sq->len (csym::strlen sq->buf))
   (csym::send-char #\Newline sv-socket)
@@ -1039,6 +1043,7 @@
 ;;; the 0-th worker in this node, forward the treq message to external nodes.
 (def (csym::recv-treq pcmd) (csym::fn void (ptr (struct cmd)))
   (def rcmd (struct cmd))
+  (def thr (ptr (struct thread-data)))
   (def dst0 (enum addr))
   (def sender (array char BUFSIZE))             ; <sender> string (only for printing debug info)
   (def rank-p int (if-exp (< sv-socket 0) 1 0)) ; 1 if MPI rank is contained in addresses
@@ -1091,7 +1096,8 @@
 	       (< sv-socket 0)
 	       (== my-rank 0))
 	  (begin
-	    (csym::send-block-start my-rank num-thrs -thr)
+      (csym::get-worker-id thr)
+	    (csym::send-block-start my-rank num-thrs wid)
 	    (csym::send-string receive-buf sv-socket)
 	    (csym::send-block-end my-rank)
 	    (csym::free receive-buf)
