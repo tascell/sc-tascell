@@ -123,8 +123,8 @@ struct task
   int cancellation;
   enum node rslt_to;
   enum addr rslt_head[16];
+  int volatile progress;
 };
-int progress;
 
 struct task_home
 {
