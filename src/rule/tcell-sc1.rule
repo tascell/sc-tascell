@@ -108,6 +108,7 @@
       (:body ,@(function-body body)) ))
   ((#?(r-if ,exp1 ,stat1 ,stat2 ,exp2))
    ~(r-if ,(expression exp1) ,(statement stat1) ,(statement stat2) ,(expression exp2)))
+  #+comment
   ((#?(swap ,exp1[expression!] ,exp2[expression!]))
    (let ((exp1-ret (get-retval exp1))
 	 (exp2-ret (get-retval exp2)))

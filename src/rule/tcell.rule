@@ -480,6 +480,8 @@
 	 (:after ,@aft-body)))))
   ((#?(r-if ,exp1 ,stat1 ,stat2 ,exp2))
    (statement ~(if ,exp1 ,stat1 ,stat2)))
+  ((#?(swap ,texp ,exp1 ,exp2))
+   (statement ~(if ,exp1 ,stat1 ,stat2)))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; throw: Common Lisp-like throw but no evaluation value (of catch)
   ;; is specified.
@@ -517,6 +519,15 @@
         (begin ,@b-body)
 	(label ,label-id ())
 	)))
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; swap: exhange the values
+  ((#?(swap (the ,texp1 ,exp1) (the ,texp2 ,exp2)) )
+   (let* ((tmp-id (generate-id "swp_tmp")))
+     ~(begin
+	(def ,tmp-id ,texp1)
+	(= ,tmp-id ,exp1)
+	(= ,exp1 ,exp2)
+	(= ,exp2 ,tmp-id))))
   )
 
 ;; Take a statement in a :before block of a r-dynamic-wind statement
@@ -534,6 +545,8 @@
   ((#?()) ~()) ; null statement
   ((#?(r-if ,exp1 ,stat1 ,stat2 ,exp2))
    ~(r-if ,exp2 ,(r-statement stat1) ,(r-statement stat2) ,exp1))
+  ((#?(swap ,exp1 ,exp2))
+   x)
   )
 
 (extendrule expression tcell

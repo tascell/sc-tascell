@@ -168,6 +168,8 @@
   ((#?(catch ,exp ,@body))
    ~(catch ,(expression! exp)
       ,@(type:with-new-environment (function-body body))) )
+  ((#?(swap ,exp1 ,exp2))
+     ~(swap ,(expression! exp1) ,(expression! exp2)))
   )
 
 (extendrule expression tcell-type
