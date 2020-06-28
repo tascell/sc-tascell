@@ -1,0 +1,175 @@
+;;; Copyright (c) 2020 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; All rights reserved.
+
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+;;; 1. Redistributions of source code must retain the above copyright
+;;;    notice, this list of conditions and the following disclaimer.
+;;; 2. Redistributions in binary form must reproduce the above copyright
+;;;    notice, this list of conditions and the following disclaimer in the
+;;;    documentation and/or other materials provided with the distribution.
+
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE
+;;; FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+;;; OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+;;; LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+;;; SUCH DAMAGE.
+
+;;; Find all the solutions of the n-queen problem
+
+;; task 0 0 0 0
+;; <n>
+;; -1
+
+(c-exp "#include<sys/time.h>")
+
+(%include "rule/tcell-setrule.sh")
+(%include "clib.sh")
+(%include "dprint.sh")
+(%cinclude "sendrecv.h" (:macro))
+
+;; Use "user defined spawned range"
+(%defconstant USE-SPN-RANGE 0)
+;; Use "Probability guard"
+(%defconstant USE-PROBGUARD 0)
+
+(def (csym::my-probability n k) (fn double int int)
+  (if (>= k 2)
+    (return (/ (cast double (- n (+ k 1))) (cast double (- n 2))))
+    (return 1.0)))
+  ; constant probability
+  ; (if (>= k 2)
+  ;   (return (/ 1.0 16.0))
+  ;   (return 1.0)))
+  ; threshold based probability
+  ; (if (>= k 2)
+  ;   (return 0.0)
+  ;   (return 1.0)))
+
+;;; thread local strogae
+(def (task nqueens)
+  (def r int :out)  ; （部分）解の数
+  (def n int :in)   ;  問題サイズ
+  (def k int :in)   ;  初期化->探索開始(-1) or 部分探索開始かのフラグ(>=0)
+  (def i1 int)  ;  探索範囲 start
+  (def i2 int)  ;  探索範囲 end
+  (def a (array int 20)) ; 使用済み行の管理
+  (def lb (array int 40)) ; 盤面情報1
+  (def rb (array int 40)) ; 盤面情報2
+  )
+
+(def (task-sender nqueens)
+  (def i int 0)
+  (if (>= this.k 0)
+      (begin
+       (csym::send-int this.i1)
+       (csym::send-int this.i2)
+       (for ((= i 0) (< i this.n) (inc i))
+            (csym::send-int (aref this.a i)))
+       (for ((= i 0) (< i (- (* 2 this.n) 1)) (inc i))
+            (csym::send-int (aref this.lb i)))
+       (for ((= i 0) (< i (- (* 2 this.n) 1)) (inc i))
+            (csym::send-int (aref this.rb i)))))
+  )
+
+(def (task-receiver nqueens)
+  (def i int 0)
+  (if (>= this.k 0)
+      (begin
+       (= this.i1 (csym::recv-int))
+       (= this.i2 (csym::recv-int))
+       (for ((= i 0) (< i this.n) (inc i))
+            (= (aref this.a i) (csym::recv-int)))
+       (for ((= i 0) (< i (- (* 2 this.n) 1)) (inc i))
+            (= (aref this.lb i) (csym::recv-int)))
+       (for ((= i 0) (< i (- (* 2 this.n) 1)) (inc i))
+            (= (aref this.rb i) (csym::recv-int)))
+  )))
+
+(def (csym::print-int-array a n) (csym::fn void (ptr int) int)
+  (def i int 0)
+  (for ((= i 0) (< i n) (inc i))
+    (csym::fprintf stderr "%d " (aref a i)))
+  (csym::fprintf stderr "~%")
+  )
+
+;; k: a[j] (0<k)までの行にはもう置いた
+;; ix, iy:  探索範囲
+(def (nqueens n k ix iy tsk)
+    (wfn int int int int int (ptr (struct nqueens)))
+  (def s int 0)
+  #+comment
+  (begin
+    (csym::fprintf stderr "(nqueens n=%d k=%d ix=%d iy=%d tsk)~%" n k ix iy)
+    (csym::fprintf stderr "tsk->a[]: ")
+    (csym::print-int-array tsk->a n)
+    (csym::fprintf stderr "tsk->lb[]: ")
+    (csym::print-int-array tsk->lb (* n 2))
+    (csym::fprintf stderr "tsk->rb[]: ")
+    (csym::print-int-array tsk->rb (* n 2)))
+  (do-many for i from ix to iy
+    (def ai int (aref tsk->a i))
+    ;; 駒が置けるかチェック
+    (if (not (or (aref tsk->lb (+ n -1 (- ai) k))
+                 (aref tsk->rb (+ ai k))))
+	(if (== k (- n 1)) (inc s)
+	  (r-dynamic-wind
+	   (:before
+	     (bit-xor= (aref tsk->lb (+ n -1 (- ai) k)) (bit-not 0))
+	     (bit-xor= (aref tsk->rb (+ ai k)) (bit-not 0))
+	     (swap (aref tsk->a i) (aref tsk->a k)))
+	   (:body
+	     (+= s (nqueens n (+ k 1) (+ k 1) n tsk))))))
+    (handles nqueens
+     (%if* USE-SPN-RANGE
+        (:spawn-from (+ i 3)))
+     (:put from i1 to i2
+           (%if* USE-PROBGUARD
+             (= PROBABILITY (csym::my-probability n k)))
+           (= this (mref tsk))
+           (= this.k k)
+           (= this.i1 i1)
+           (= this.i2 i2))
+     (:get (+= s this.r))))
+  (return s))
+
+
+(def (csym::elapsed-time tp) 
+    (fn double (array (struct timeval) 2))
+  (return (+ (- (fref (aref tp 1) tv-sec)
+                (fref (aref tp 0) tv-sec))
+             (* 0.000001
+                (- (fref (aref tp 1) tv-usec)
+                   (fref (aref tp 0) tv-usec))))))
+
+(def (task-body nqueens)
+  (def i int)
+  (def n int this.n)
+  (def k int this.k)
+  (decl tp (array (struct timeval) 2))
+  (if (> option.verbose 0) (csym::fprintf stderr "start %d %d %d %d~%" n k this.i1 this.i2))
+  (%if* USE-PROBGUARD
+    (= PROBABILITY (csym::my-probability n k)))
+  (if (< k 0)
+      (begin
+       (for ((= i 0) (< i n) (inc i))
+            (= (aref this.a i) i))
+       (for ((= i 0) (< i (- (* 2 n) 1)) (inc i))
+            (= (aref this.lb i) 0)
+            (= (aref this.rb i) 0))
+       (csym::gettimeofday tp 0)
+       (= this.r
+          (nqueens n 0 0 n (ptr this)))
+       (csym::gettimeofday (+ tp 1) 0)
+       (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp)))
+      (= this.r
+         (nqueens n k this.i1 this.i2 (ptr this))))
+  (DEBUG-PRINT 1 "end %d %d %d %d~%" k n this.i1 this.i2)
+  )
