@@ -240,7 +240,7 @@ int send_fmt_string (int socket, char *fmt_string, ...)
 int send_binary (void *src, unsigned long elm_size, unsigned long n_elm,
                  int socket)
 {
-  MPI_Send(src, n_elm, MPI_UNSIGNED_LONG, rank, GID, MPI_COMM_WORLD);;
+  MPI_Send(src, n_elm*elm_size, MPI_BYTE, rank, GID, MPI_COMM_WORLD);
   return 0;
 }
 
@@ -375,7 +375,7 @@ int receive_binary (void *dst, unsigned long elm_size, unsigned long n_elm,
     MPI_Status recv_status;
     if (socket<0)  // MPI
       {
-	MPI_Recv(dst, n_elm, MPI_UNSIGNED_LONG, rank, GID, MPI_COMM_WORLD, &recv_status);
+	    MPI_Recv(dst, n_elm*elm_size, MPI_BYTE, MPI_ANY_SOURCE, GID, MPI_COMM_WORLD, &recv_status);
 	return n_elm;
       }
     if (socket==0) // stdin
