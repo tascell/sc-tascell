@@ -223,6 +223,7 @@
   (= w pcmd->w)
   
   ;; Send command string
+  (DEBUG-PRINT 1 "startsend~%")
   (csym::get-worker-id thr)
   (csym::send-block-start dest-rank num-thrs wid) ; allocate mpisend-buf for initialization
   (csym::serialize-cmd sq->buf pcmd)
@@ -1922,7 +1923,7 @@
   (def mpi-provided int)                ; MPI support level
 
   ;; Show compile-time option
-  (DEBUG-PRINT 1 "start ~%" )
+  (DEBUG-PRINT 1 "start~%")
   (fprintf stderr (%string "compile-time options: "
                            "VERBOSE=" VERBOSE " "
                            "PROFILE=" PROFILE " "
