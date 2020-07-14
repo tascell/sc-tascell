@@ -135,10 +135,10 @@ int dbg_printf (char *fmt_string, ...)
 #endif
 
 // Prepare for adding a message to the send queue.
-void send_block_start (int dest, int Nw, int Wid)
+void send_block_start (int dest, int gid)
 {
     rank = dest;
-    GID = rank * Nw + Wid;
+    GID = gid;
     sq = (struct send_block*)malloc(sizeof(struct send_block));
     sq->buf = malloc(sizeof(char)*32768);
     sq->len = 0;
