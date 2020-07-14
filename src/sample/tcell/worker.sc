@@ -73,7 +73,7 @@
 (def my-rank int)    ; my MPI rank
 (def num-procs int)  ; # of MPI processes
 (def init-task (ptr char) NULL)  ; initial task
-(def wid int)        ; worker's id
+(def gid int)        ; global id(MPI)
 
 ;;;; Random number generator
 (def random-seed1 double 0.2403703)
@@ -207,8 +207,8 @@
   (def tx (ptr (struct task)) thr->task-top)
   (while (< tx->progress k)))
 
-(def (csym::get-worker-id thr) (fn void (ptr (struct thread-data)))
-  (= wid thr->id))
+(def (csym::get-gid thr dest-rank num-thrs) (fn void (ptr (struct thread-data)) int unsigned-int)
+  (= gid (+ (* dest-rank num-thrs) thr->id)))
 
 ;;; Send cmd to an external node (Tascell server)
 ;;; The body of task/rslt/bcst is also sent using task-senders[task-no]
@@ -217,19 +217,10 @@
 (def (csym::send-out-command pcmd body task-no)
     (csym::fn void (ptr (struct cmd)) (ptr void) int)
   (def ret int)
-  (def w (enum command))
   (def thr (ptr (struct thread-data)))
+  (def w (enum command))
   (def dest-rank int)     ; rank ID of destination MPI proc
   (= w pcmd->w)
-  
-  ;; Send command string
-  (DEBUG-PRINT 1 "startsend~%")
-  (csym::get-worker-id thr)
-  (csym::send-block-start dest-rank num-thrs wid) ; allocate mpisend-buf for initialization
-  (csym::serialize-cmd sq->buf pcmd)
-  (= sq->len (csym::strlen sq->buf))
-  (csym::send-char #\Newline sv-socket)
-  
   ;; Note: In the MPI mode, calls of send-string, task-senders, and etc.
   ;; above just write the message into the mpisend buffer. Then below,
   ;; extracts the destination rank ID and request the messaging thread
@@ -243,30 +234,42 @@
 	  (default)
 	  (csym::fprintf stderr "Error: Invalid destination rank.~%")
 	  (break))
+  (csym::get-gid thr dest-rank num-thrs)
 	;; Exit if the destination rank of RSLT message is the pseudo rank (-1).
 	(if (and (== w RSLT) (== -1 dest-rank))
 	    (begin
+        ;; Send command string
+        (csym::send-block-start dest-rank gid) ; allocate mpisend-buf for initialization
+        (csym::serialize-cmd sq->buf pcmd)
+        (= sq->len (csym::strlen sq->buf))
+        ((aref rslt-senders task-no) body)
 	      (csym::show-mpisend-buf sv-socket)
 	      (PROF-CODE
 	       (csym::finalize-tcounter)
 	       (csym::show-counters))
 	      (csym::MPI-Abort MPI-COMM-WORLD 0)
 	      (csym::exit 0)))
+    ;; Send command string
+  (csym::send-block-start dest-rank gid) ; allocate mpisend-buf for initialization
+  (csym::serialize-cmd sq->buf pcmd)
+  (= sq->len (csym::strlen sq->buf))
+  (csym::send-char #\Newline sv-socket)
         ;; End initialization of mpisend-buf and add it to the send buffer
 	(csym::send-block-end dest-rank)
-  )
-  ;; Send the body of task/rslt/bcst
+    ;; Send the body of task/rslt/bcst
   (cond
    (body
     (cond
      ((or (== w TASK) (== w BCST))
       ((aref task-senders task-no) body)
-      (csym::send-char #\Newline sv-socket))
+      (csym::send-char #\Newline sv-socket)
+      )
      ((== w RSLT)
       ((aref rslt-senders task-no) body)
       (csym::send-char #\Newline sv-socket)
       )))
-   )  
+   )
+  )
 			    
 ;;; Take cmd and call the function corresponding to its command name.
 ;;; For task/rslt command from a worker in the same node,
@@ -682,6 +685,7 @@
   )
 
 ;;; The worker's main function
+(DEBUG-PRINT 1 "The worker's main function.~%")
 (def (worker arg) (fn (ptr void) (ptr void))
   (def thr (ptr (struct thread-data)) arg)
   (= thr->wdptr (csym::malloc (sizeof (struct thread-data))))
@@ -761,6 +765,7 @@
   ;; Initialize the task.
   ;; The task entry has been allocated at the top of the task stack of the recipient
   ;; before it sends a treq message (see send-treq-to-initialize-task())
+  (DEBUG-PRINT 1 "Initialize the task~%")
   (csym::pthread-mutex-lock (ptr thr->mut))
   (= tx thr->task-top)                  ; tx: the top of the task stack
   (= tx->rslt-to pcmd->node)            ; set external/internal for the rslt message
@@ -1097,8 +1102,8 @@
 	       (< sv-socket 0)
 	       (== my-rank 0))
 	  (begin
-      (csym::get-worker-id thr)
-	    (csym::send-block-start my-rank num-thrs wid)
+      (csym::get-gid thr my-rank num-thrs)
+	    (csym::send-block-start my-rank gid)
 	    (csym::send-string receive-buf sv-socket)
 	    (csym::send-block-end my-rank)
 	    (csym::free receive-buf)
@@ -1923,7 +1928,6 @@
   (def mpi-provided int)                ; MPI support level
 
   ;; Show compile-time option
-  (DEBUG-PRINT 1 "start~%")
   (fprintf stderr (%string "compile-time options: "
                            "VERBOSE=" VERBOSE " "
                            "PROFILE=" PROFILE " "
@@ -1973,6 +1977,7 @@
   (csym::pthread-mutex-init (ptr send-mut) (ptr m-attr))
   
   ;; Initialize thread-data objects (workers)
+  (DEBUG-PRINT 1 "Initialize thread-data objects (workers)~%")
   (= num-thrs option.num-thrs)
   (for ((= i 0) (< i num-thrs) (inc i))
     (let ((thr (ptr (struct thread-data)) (+ threads i))
@@ -2005,6 +2010,7 @@
       (csym::pthread-cond-init (ptr thr->cond-r) 0)
 
       ;; Initialize a task stack
+      (DEBUG-PRINT 1 "Initialize a task stack~%")
       (= tx (cast (ptr (struct task))
               (csym::malloc (* (sizeof (struct task)) TASK-LIST-LENGTH))))
       (csym::initialize-task-list tx TASK-LIST-LENGTH
@@ -2066,6 +2072,7 @@
         ))
 
   ;; Create and run worker threads
+  (DEBUG-PRINT 1 "Create and run worker threads~%")
   (for ((= i 0) (< i num-thrs) (inc i))
     (let ((thr (ptr (struct thread-data)) (+ threads i)))
       (PROF-CODE                       ; initialize time counter
@@ -2074,9 +2081,12 @@
       (systhr-create (ptr thr->pthr-id) worker thr)))
 
   ;; Wait for workers being ready
+  (DEBUG-PRINT 1 "Wait for workers being ready~%")
   (csym::sleep 1)
+  (DEBUG-PRINT 1 "Wait for workers being ready(END)~%")
 
   ;; Loop for handling external messages
+  (DEBUG-PRINT 1 "Loop for handling external messages~%")
   (if (< sv-socket 0)
       (begin
 	(csym::mpi-loop) ; never returns
