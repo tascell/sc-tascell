@@ -207,9 +207,6 @@
   (def tx (ptr (struct task)) thr->task-top)
   (while (< tx->progress k)))
 
-(def (csym::get-gid thr dest-rank num-thrs) (fn void (ptr (struct thread-data)) int unsigned-int)
-  (= gid (+ (* dest-rank num-thrs) thr->id)))
-
 ;;; Send cmd to an external node (Tascell server)
 ;;; The body of task/rslt/bcst is also sent using task-senders[task-no]
 ;;; (task-senders[] are user-defined functinos)
@@ -217,7 +214,6 @@
 (def (csym::send-out-command pcmd body task-no)
     (csym::fn void (ptr (struct cmd)) (ptr void) int)
   (def ret int)
-  (def thr (ptr (struct thread-data)))
   (def w (enum command))
   (def dest-rank int)     ; rank ID of destination MPI proc
   (= w pcmd->w)
@@ -234,12 +230,13 @@
 	  (default)
 	  (csym::fprintf stderr "Error: Invalid destination rank.~%")
 	  (break))
-  (csym::get-gid thr dest-rank num-thrs)
+  (= gid (+ (* my-rank num-thrs) (aref pcmd->v 1 1)))
+  (csym::set-rank-and-gid dest-rank gid)
 	;; Exit if the destination rank of RSLT message is the pseudo rank (-1).
 	(if (and (== w RSLT) (== -1 dest-rank))
 	    (begin
         ;; Send command string
-        (csym::send-block-start dest-rank gid) ; allocate mpisend-buf for initialization
+        (csym::send-block-start) ; allocate mpisend-buf for initialization
         (csym::serialize-cmd sq->buf pcmd)
         (= sq->len (csym::strlen sq->buf))
         ((aref rslt-senders task-no) body)
@@ -250,7 +247,7 @@
 	      (csym::MPI-Abort MPI-COMM-WORLD 0)
 	      (csym::exit 0)))
     ;; Send command string
-  (csym::send-block-start dest-rank gid) ; allocate mpisend-buf for initialization
+  (csym::send-block-start) ; allocate mpisend-buf for initialization
   (csym::serialize-cmd sq->buf pcmd)
   (= sq->len (csym::strlen sq->buf))
   (csym::send-char #\Newline sv-socket)
@@ -751,6 +748,8 @@
   ;; invoking the user-defined receiver method.
   ;; (For an internal task message, body is given as the argument)
   (= task-no (aref pcmd->v 3 0))
+  (= gid (+ (* (aref pcmd->v 1 0) num-thrs) (aref pcmd->v 1 1)))
+  (csym::set-rank-and-gid (aref pcmd->v 1 0) gid)
   (if (== pcmd->node OUTSIDE)
       (begin
        (= body ((aref task-allocators task-no)))
@@ -1102,8 +1101,7 @@
 	       (< sv-socket 0)
 	       (== my-rank 0))
 	  (begin
-      (csym::get-gid thr my-rank num-thrs)
-	    (csym::send-block-start my-rank gid)
+	    (csym::send-block-start)
 	    (csym::send-string receive-buf sv-socket)
 	    (csym::send-block-end my-rank)
 	    (csym::free receive-buf)
