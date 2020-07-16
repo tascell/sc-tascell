@@ -377,10 +377,12 @@ char* receive_line (char *buf, int maxlen, int socket)
 int receive_binary (void *dst, unsigned long elm_size, unsigned long n_elm,
                     int socket)
 {
+  // fprintf (stderr, "receive_binary,RANK:%d,GID:%d\n", RANK, GID);
     MPI_Status recv_status;
     if (socket<0)  // MPI
       {
 	    MPI_Recv(dst, n_elm*elm_size, MPI_BYTE, RANK, GID, MPI_COMM_WORLD, &recv_status);
+      // fprintf (stderr, "receive_binary(end)\n");
 	return n_elm;
       }
     if (socket==0) // stdin
