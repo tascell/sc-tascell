@@ -73,7 +73,6 @@
 (def my-rank int)    ; my MPI rank
 (def num-procs int)  ; # of MPI processes
 (def init-task (ptr char) NULL)  ; initial task
-(def gid int)        ; global id(MPI)
 
 ;;;; Random number generator
 (def random-seed1 double 0.2403703)
@@ -222,7 +221,11 @@
   ;; extracts the destination rank ID and request the messaging thread
   ;; to send the message stored in the buffer.
 	(switch w       ; extract destination rank ID
-	  (case TASK) (= dest-rank (aref pcmd->v 2 0)) (break)
+	  (case TASK) 
+      (= dest-rank (aref pcmd->v 2 0))       
+      (csym::set-rank-and-gid dest-rank 
+                              (+ 1 (+ (* my-rank num-thrs) (aref pcmd->v 1 1))))
+      (break)
 	  (case RSLT) (= dest-rank (aref pcmd->v 0 0)) (break)
 	  (case TREQ) (= dest-rank (aref pcmd->v 1 0)) (break)
 	  (case NONE) (= dest-rank (aref pcmd->v 0 0)) (break)
@@ -230,8 +233,8 @@
 	  (default)
 	  (csym::fprintf stderr "Error: Invalid destination rank.~%")
 	  (break))
-  (= gid (+ (* my-rank num-thrs) (aref pcmd->v 1 1)))
-  (csym::set-rank-and-gid dest-rank gid)
+
+  (DEBUG-PRINT 1 "Send command string~%")
 	;; Exit if the destination rank of RSLT message is the pseudo rank (-1).
 	(if (and (== w RSLT) (== -1 dest-rank))
 	    (begin
@@ -254,16 +257,19 @@
         ;; End initialization of mpisend-buf and add it to the send buffer
 	(csym::send-block-end dest-rank)
     ;; Send the body of task/rslt/bcst
+  (DEBUG-PRINT 1 "Send the body of task/rslt/bcst~%")
+  (DEBUG-PRINT 1 "task-no: %d~%" task-no)
   (cond
    (body
     (cond
      ((or (== w TASK) (== w BCST))
+      (DEBUG-PRINT 1 "w == TASK~%")
       ((aref task-senders task-no) body)
-      (csym::send-char #\Newline sv-socket)
+      ;; (csym::send-char #\Newline sv-socket)
       )
      ((== w RSLT)
       ((aref rslt-senders task-no) body)
-      (csym::send-char #\Newline sv-socket)
+      ;; (csym::send-char #\Newline sv-socket)
       )))
    )
   )
@@ -620,6 +626,7 @@
 	(= (aref rcmd.v 1 0) reason) (= (aref rcmd.v 1 1) TERM) ;[1]:reason
         (= (aref rcmd.v 2 0) thr->exception-tag) (= (aref rcmd.v 2 1) TERM)
                              ; [2]:exception-tag (meaningful only when [1]==1)
+  (csym::set-rank-and-gid (aref rcmd.v 0 0) (+ 1 (+ (* my-rank num-thrs) thr->id)))                           
 	(csym::send-command (ptr rcmd) tx->body tx->task-no)
 	(csym::pthread-mutex-lock (ptr thr->rack-mut))
 	(inc thr->w-rack) ; Increase w-rack counter. This is decreased when the worker
@@ -748,13 +755,13 @@
   ;; invoking the user-defined receiver method.
   ;; (For an internal task message, body is given as the argument)
   (= task-no (aref pcmd->v 3 0))
-  (= gid (+ (* (aref pcmd->v 1 0) num-thrs) (aref pcmd->v 1 1)))
-  (csym::set-rank-and-gid (aref pcmd->v 1 0) gid)
+  (csym::set-rank-and-gid (aref pcmd->v 1 0) (+ 1 (+ (* (aref pcmd->v 1 0) num-thrs) (aref pcmd->v 1 1))))
   (if (== pcmd->node OUTSIDE)
       (begin
        (= body ((aref task-allocators task-no)))
        ((aref task-receivers task-no) body)
-       (csym::read-to-eol)))
+      ;;  (csym::read-to-eol)
+       ))
   ;; Determine the task recipient worker from <recipient>
   (= id (aref pcmd->v 2 (+ rank-p 0)))
   (if (not (< id num-thrs))
@@ -876,8 +883,10 @@
   ;; (for an internal rslt, the body is passed as the argument)
   (cond
    ((== pcmd->node OUTSIDE)
+    (csym::set-rank-and-gid (aref hx->task-head 0) (+ 1 (+ (* (aref hx->task-head 0) num-thrs) (aref hx->task-head 1))))   
     ((aref rslt-receivers hx->task-no) hx->body)
-    (csym::read-to-eol))
+    ;; (csym::read-to-eol)
+    )
    ((== pcmd->node INSIDE)
     (= hx->body body))
    (else

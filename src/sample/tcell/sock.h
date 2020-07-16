@@ -47,3 +47,4 @@ void sendrecv(void);
 extern char *receive_buf;
 extern char *receive_buf_p;
 extern __thread struct send_block *sq;
+extern __thread int RANK;
