@@ -38,11 +38,18 @@ extern int sv_socket;     /* defined in worker.sc */
 /**/
 void send_int(int n)
 {
-    // char buf[16];
-    // snprintf (buf, 16, "%d\n", n);
-    // send_string (buf, sv_socket);
-    send_int32s (&n, 1);
+    if(RANK < 0)
+        {
+            char buf[16];
+            snprintf (buf, 16, "%d\n", n);
+            send_string (buf, sv_socket);
+        }
+    else
+        {
+            send_int32s (&n, 1);
+        }
 }
+
 
 int recv_int(void)
 {
