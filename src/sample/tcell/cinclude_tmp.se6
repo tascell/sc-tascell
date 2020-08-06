@@ -1,0 +1,50 @@
+#define __x86_64__ \
+ 1
+#define __amd64__ \
+ 1
+#define __complex__ \
+ 1
+#define __const \
+ const
+#define __extension__ \
+
+#define __cdecl \
+
+#define __attribute__(x) \
+
+#define __inline \
+
+#define __inline__ \
+
+#define __asm(x) \
+
+#define __asm__(x) \
+
+#define __declspec(x) \
+
+#define __STDC_VERSION__ \
+ 199409L
+#define __LINE__ \
+ -1234567890
+#define __FILE__ \
+
+#define __DATE__ \
+ "Jun 22 2020"
+#define __TIME__ \
+ "16:10:52"
+#define __STDC_HOSTED__ \
+ 1
+#define __STDC__ \
+ 1
+#define unix \
+ 1
+#define __unix \
+ 1
+#define __unix__ \
+ 1
+#define __linux__ \
+ 1
+#define __MCPP \
+ 2
+#define INT32 \
+ int

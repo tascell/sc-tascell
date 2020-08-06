@@ -63,6 +63,8 @@ struct send_block
 };
 
 __thread struct send_block *sq = NULL;
+__thread int RANK = 0;
+__thread int GID = 0;
 static pthread_mutex_t send_lock;
 
 struct recv_block
@@ -132,6 +134,13 @@ int dbg_printf (char *fmt_string, ...)
 
 #endif
 
+// Set the rank and gid for MPI.
+void set_rank_and_gid (int rank, int gid)
+{
+    RANK = rank;
+    GID = gid;
+}
+
 // Prepare for adding a message to the send queue.
 void send_block_start (void)
 {
@@ -142,9 +151,9 @@ void send_block_start (void)
 }
 
 // Finish adding the message to the send queue.
-void send_block_end(int rank)
+void send_block_end(int dest)
 {
-    MPI_Send(sq->buf, sq->len, MPI_CHAR, rank, 0, MPI_COMM_WORLD);
+    MPI_Send(sq->buf, sq->len, MPI_CHAR, dest, 0, MPI_COMM_WORLD);
     free(sq->buf);
     free(sq);
 }
@@ -236,7 +245,7 @@ int send_fmt_string (int socket, char *fmt_string, ...)
 int send_binary (void *src, unsigned long elm_size, unsigned long n_elm,
                  int socket)
 {
-  append_to_mpisend_buf (src, elm_size*n_elm);
+  MPI_Send(src, n_elm*elm_size, MPI_BYTE, RANK, GID, MPI_COMM_WORLD);
   return 0;
 }
 
@@ -368,10 +377,12 @@ char* receive_line (char *buf, int maxlen, int socket)
 int receive_binary (void *dst, unsigned long elm_size, unsigned long n_elm,
                     int socket)
 {
-
+  // fprintf (stderr, "receive_binary,RANK:%d,GID:%d\n", RANK, GID);
+    MPI_Status recv_status;
     if (socket<0)  // MPI
       {
-	get_from_mpirecv_buf (dst, n_elm*elm_size);
+	    MPI_Recv(dst, n_elm*elm_size, MPI_BYTE, RANK, GID, MPI_COMM_WORLD, &recv_status);
+      // fprintf (stderr, "receive_binary(end)\n");
 	return n_elm;
       }
     if (socket==0) // stdin
