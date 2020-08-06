@@ -38,15 +38,33 @@ extern int sv_socket;     /* defined in worker.sc */
 /**/
 void send_int(int n)
 {
-    char buf[16];
-    snprintf (buf, 16, "%d\n", n);
-    send_string (buf, sv_socket);
+    if(RANK < 0)
+        {
+            char buf[16];
+            snprintf (buf, 16, "%d\n", n);
+            send_string (buf, sv_socket);
+        }
+    else
+        {
+            send_int32s (&n, 1);
+        }
 }
+
+
 int recv_int(void)
 {
-    char buf[16];
-    receive_line (buf, 16, sv_socket);
-    return atoi(buf);
+    if(RANK < 0)
+        {
+            char buf[16];
+            receive_line (buf, 16, sv_socket);
+            return atoi(buf);
+        }
+    else
+        {
+            int dst[1];
+            recv_int32s (dst, 1);
+            return dst[0];
+        }
 }
 
 /**/
@@ -131,19 +149,14 @@ void swap_int32s (INT32 *a, int n)
 int send_int32s (INT32 *a, int nelm)
 {
   int ret;
-  send_binary_header (sizeof(INT32), nelm);
   ret = send_binary (a, sizeof(INT32), nelm, sv_socket);
-  send_binary_terminator ();
   return ret;
 }
     
 int recv_int32s (INT32 *a, int nelm)
 {
-  int ret, swp;
-  swp = recv_binary_header (0, 0);
+  int ret;
   ret = receive_binary (a, sizeof(INT32), nelm, sv_socket);
-  if (swp) swap_int32s (a, nelm);
-  recv_binary_terminator ();
   return ret;
 }
 

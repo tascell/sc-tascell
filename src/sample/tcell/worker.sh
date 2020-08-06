@@ -1,4 +1,4 @@
-;;; Copyright (c) 2009-2016 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; Copyright (c) 2009-2020 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -120,8 +120,10 @@
       (array (ptr (fn void (ptr (struct thread-data)) (ptr void))) TASK-MAX))
 (extern-decl task-senders
       (array (ptr (csym::fn void (ptr void))) TASK-MAX))
-(extern-decl task-receivers
+(extern-decl task-allocators
       (array (ptr (csym::fn (ptr void))) TASK-MAX))
+(extern-decl task-receivers
+      (array (ptr (csym::fn void (ptr void))) TASK-MAX))
 (extern-decl rslt-senders
       (array (ptr (csym::fn void (ptr void))) TASK-MAX))
 (extern-decl rslt-receivers
@@ -255,9 +257,10 @@
   (def ndiv int)                    ; # of task division
   (def cancellation int)            ; # of partial cancellation flags
   (def rslt-to (enum node))         ; task sender (= result recipient) is INSIDE/OUTSIDE of this node
-  (def rslt-head (array (enum addr) ARG-SIZE-MAX)))
+  (def rslt-head (array (enum addr) ARG-SIZE-MAX))
 					; address of task sender (= result recipient)
 					; including the subtask ID in the sender worker
+  (def progress (volatile int)))			; latency hiding
 
 ;; Entry in the request queue or subtask stack of a worker
 (def (struct task-home)

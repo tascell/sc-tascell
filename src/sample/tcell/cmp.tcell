@@ -78,6 +78,7 @@
 
 (def (task-sender cmp)
   ;;   (def i int)
+  (DEBUG-PRINT 1 "tasksender~%")
   (if (> 0 this.n2) (return)) 
   (csym::send-int32s this.d1 this.n1)
   ;;   (for ((= i 0) (< i this.n1) (inc i))
@@ -89,6 +90,7 @@
 
 (def (task-receiver cmp)
   (def i int)
+  (DEBUG-PRINT 1 "taskreceiver~%")
   (if (not (> 0 this.n2))
       (begin
        (= this.d1
@@ -117,6 +119,7 @@
 (def (task-body cmp)
   (decl tp (array (struct timeval) 2))
   (def i int) (def j int)
+  (DEBUG-PRINT 1 "taskbody~%")
   (DEBUG-PRINT 1 "start %d %d~%" this.n1 this.n2)
   (if (> 0 this.n2)              ; n2<0 のときは，新しい問題を作って解く
       (begin

@@ -1,4 +1,4 @@
-;;; Copyright (c) 2009-2016 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
+;;; Copyright (c) 2009-2020 Tasuku Hiraishi <tasuku@media.kyoto-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -197,6 +197,15 @@
 		   my-rank (csym::get-universal-real-time))
       (return 0))))
 
+;;;latency hiding
+(def (csym::set-progress thr n) (fn void (ptr (struct thread-data)) int)
+  (def tx (ptr (struct task)) thr->task-top)
+  (= tx->progress n))
+
+(def (csym::wait-progress thr k) (fn void (ptr (struct thread-data)) int)
+  (def tx (ptr (struct task)) thr->task-top)
+  (while (< tx->progress k)))
+
 ;;; Send cmd to an external node (Tascell server)
 ;;; The body of task/rslt/bcst is also sent using task-senders[task-no]
 ;;; (task-senders[] are user-defined functinos)
@@ -207,31 +216,16 @@
   (def w (enum command))
   (def dest-rank int)     ; rank ID of destination MPI proc
   (= w pcmd->w)
-  
-  ;; Send command string
-  (csym::send-block-start) ; allocate mpisend-buf for initialization
-  (csym::serialize-cmd sq->buf pcmd)
-  (= sq->len (csym::strlen sq->buf))
-  (csym::send-char #\Newline sv-socket)
-  ;; Send the body of task/rslt/bcst
-  (cond
-   (body
-    (cond
-     ((or (== w TASK) (== w BCST))
-      ((aref task-senders task-no) body)
-      (csym::send-char #\Newline sv-socket))
-     ((== w RSLT)
-      ((aref rslt-senders task-no) body)
-      (csym::send-char #\Newline sv-socket)
-      )))
-   )
-  
   ;; Note: In the MPI mode, calls of send-string, task-senders, and etc.
   ;; above just write the message into the mpisend buffer. Then below,
   ;; extracts the destination rank ID and request the messaging thread
   ;; to send the message stored in the buffer.
 	(switch w       ; extract destination rank ID
-	  (case TASK) (= dest-rank (aref pcmd->v 2 0)) (break)
+	  (case TASK) 
+      (= dest-rank (aref pcmd->v 2 0))       
+      (csym::set-rank-and-gid dest-rank 
+                              (+ 1 (+ (* my-rank num-thrs) (aref pcmd->v 1 1))))
+      (break)
 	  (case RSLT) (= dest-rank (aref pcmd->v 0 0)) (break)
 	  (case TREQ) (= dest-rank (aref pcmd->v 1 0)) (break)
 	  (case NONE) (= dest-rank (aref pcmd->v 0 0)) (break)
@@ -239,19 +233,47 @@
 	  (default)
 	  (csym::fprintf stderr "Error: Invalid destination rank.~%")
 	  (break))
+
+  (DEBUG-PRINT 1 "Send command string~%")
 	;; Exit if the destination rank of RSLT message is the pseudo rank (-1).
 	(if (and (== w RSLT) (== -1 dest-rank))
 	    (begin
+        ;; Send command string
+        (csym::send-block-start) ; allocate mpisend-buf for initialization
+        (csym::serialize-cmd sq->buf pcmd)
+        (= sq->len (csym::strlen sq->buf))
+        ((aref rslt-senders task-no) body)
 	      (csym::show-mpisend-buf sv-socket)
 	      (PROF-CODE
 	       (csym::finalize-tcounter)
 	       (csym::show-counters))
 	      (csym::MPI-Abort MPI-COMM-WORLD 0)
 	      (csym::exit 0)))
+    ;; Send command string
+  (csym::send-block-start) ; allocate mpisend-buf for initialization
+  (csym::serialize-cmd sq->buf pcmd)
+  (= sq->len (csym::strlen sq->buf))
+  (csym::send-char #\Newline sv-socket)
         ;; End initialization of mpisend-buf and add it to the send buffer
 	(csym::send-block-end dest-rank)
+    ;; Send the body of task/rslt/bcst
+  (DEBUG-PRINT 1 "Send the body of task/rslt/bcst~%")
+  (DEBUG-PRINT 1 "task-no: %d~%" task-no)
+  (cond
+   (body
+    (cond
+     ((or (== w TASK) (== w BCST))
+      (DEBUG-PRINT 1 "w == TASK~%")
+      ((aref task-senders task-no) body)
+      ;; (csym::send-char #\Newline sv-socket)
+      )
+     ((== w RSLT)
+      ((aref rslt-senders task-no) body)
+      ;; (csym::send-char #\Newline sv-socket)
+      )))
+   )
   )
-
+			    
 ;;; Take cmd and call the function corresponding to its command name.
 ;;; For task/rslt command from a worker in the same node,
 ;;; the argument "body" is a pointer of task object.
@@ -604,6 +626,7 @@
 	(= (aref rcmd.v 1 0) reason) (= (aref rcmd.v 1 1) TERM) ;[1]:reason
         (= (aref rcmd.v 2 0) thr->exception-tag) (= (aref rcmd.v 2 1) TERM)
                              ; [2]:exception-tag (meaningful only when [1]==1)
+  (csym::set-rank-and-gid (aref rcmd.v 0 0) (+ 1 (+ (* my-rank num-thrs) thr->id)))                           
 	(csym::send-command (ptr rcmd) tx->body tx->task-no)
 	(csym::pthread-mutex-lock (ptr thr->rack-mut))
 	(inc thr->w-rack) ; Increase w-rack counter. This is decreased when the worker
@@ -666,6 +689,7 @@
   )
 
 ;;; The worker's main function
+(DEBUG-PRINT 1 "The worker's main function.~%")
 (def (worker arg) (fn (ptr void) (ptr void))
   (def thr (ptr (struct thread-data)) arg)
   (= thr->wdptr (csym::malloc (sizeof (struct thread-data))))
@@ -731,10 +755,13 @@
   ;; invoking the user-defined receiver method.
   ;; (For an internal task message, body is given as the argument)
   (= task-no (aref pcmd->v 3 0))
+  (csym::set-rank-and-gid (aref pcmd->v 1 0) (+ 1 (+ (* (aref pcmd->v 1 0) num-thrs) (aref pcmd->v 1 1))))
   (if (== pcmd->node OUTSIDE)
       (begin
-       (= body ((aref task-receivers task-no)))
-       (csym::read-to-eol)))
+       (= body ((aref task-allocators task-no)))
+       ((aref task-receivers task-no) body)
+      ;;  (csym::read-to-eol)
+       ))
   ;; Determine the task recipient worker from <recipient>
   (= id (aref pcmd->v 2 (+ rank-p 0)))
   (if (not (< id num-thrs))
@@ -744,6 +771,7 @@
   ;; Initialize the task.
   ;; The task entry has been allocated at the top of the task stack of the recipient
   ;; before it sends a treq message (see send-treq-to-initialize-task())
+  (DEBUG-PRINT 1 "Initialize the task~%")
   (csym::pthread-mutex-lock (ptr thr->mut))
   (= tx thr->task-top)                  ; tx: the top of the task stack
   (= tx->rslt-to pcmd->node)            ; set external/internal for the rslt message
@@ -756,6 +784,7 @@
   (= tx->task-no task-no)               ; the kind of the task
   (= tx->body body)                     ; task object
   (= tx->stat TASK-INITIALIZED)         ; TASK-ALLOCATED => TASK-INITIALIZED
+  (= tx->progress 0)                    ; initialize progress to 0
 
   ;; Awake the worker thread sleeping to waiting for the task
   (csym::pthread-cond-broadcast (ptr thr->cond))
@@ -854,8 +883,10 @@
   ;; (for an internal rslt, the body is passed as the argument)
   (cond
    ((== pcmd->node OUTSIDE)
+    (csym::set-rank-and-gid (aref hx->task-head 0) (+ 1 (+ (* (aref hx->task-head 0) num-thrs) (aref hx->task-head 1))))   
     ((aref rslt-receivers hx->task-no) hx->body)
-    (csym::read-to-eol))
+    ;; (csym::read-to-eol)
+    )
    ((== pcmd->node INSIDE)
     (= hx->body body))
    (else
@@ -1026,6 +1057,7 @@
 ;;; the 0-th worker in this node, forward the treq message to external nodes.
 (def (csym::recv-treq pcmd) (csym::fn void (ptr (struct cmd)))
   (def rcmd (struct cmd))
+  (def thr (ptr (struct thread-data)))
   (def dst0 (enum addr))
   (def sender (array char BUFSIZE))             ; <sender> string (only for printing debug info)
   (def rank-p int (if-exp (< sv-socket 0) 1 0)) ; 1 if MPI rank is contained in addresses
@@ -1132,9 +1164,10 @@
       (csym::proto-error "wrong-task" pcmd))
   ;; Extract <data-kind>
   (= task-no (aref pcmd->v 1 0))
-  ;; (Allocate and) receive data body by invoking the user-defined 
-  ;; receiver method associated with the <data-kind> number
-  (= body ((aref task-receivers task-no)))
+  ;; Allocate and receive data body by invoking the allocator and
+  ;; (user-defined) receiver methods associated with the <data-kind> number
+  (= body ((aref task-allocators task-no)))
+  ((aref task-receivers task-no) body)
   (csym::read-to-eol)
   ;; NOTE: here the "body" object is deallocated immediately
   ;; after the receiver method finished. The data that need to be
@@ -1951,6 +1984,7 @@
   (csym::pthread-mutex-init (ptr send-mut) (ptr m-attr))
   
   ;; Initialize thread-data objects (workers)
+  (DEBUG-PRINT 1 "Initialize thread-data objects (workers)~%")
   (= num-thrs option.num-thrs)
   (for ((= i 0) (< i num-thrs) (inc i))
     (let ((thr (ptr (struct thread-data)) (+ threads i))
@@ -1983,6 +2017,7 @@
       (csym::pthread-cond-init (ptr thr->cond-r) 0)
 
       ;; Initialize a task stack
+      (DEBUG-PRINT 1 "Initialize a task stack~%")
       (= tx (cast (ptr (struct task))
               (csym::malloc (* (sizeof (struct task)) TASK-LIST-LENGTH))))
       (csym::initialize-task-list tx TASK-LIST-LENGTH
@@ -2044,6 +2079,7 @@
         ))
 
   ;; Create and run worker threads
+  (DEBUG-PRINT 1 "Create and run worker threads~%")
   (for ((= i 0) (< i num-thrs) (inc i))
     (let ((thr (ptr (struct thread-data)) (+ threads i)))
       (PROF-CODE                       ; initialize time counter
@@ -2052,9 +2088,12 @@
       (systhr-create (ptr thr->pthr-id) worker thr)))
 
   ;; Wait for workers being ready
+  (DEBUG-PRINT 1 "Wait for workers being ready~%")
   (csym::sleep 1)
+  (DEBUG-PRINT 1 "Wait for workers being ready(END)~%")
 
   ;; Loop for handling external messages
+  (DEBUG-PRINT 1 "Loop for handling external messages~%")
   (if (< sv-socket 0)
       (begin
 	(csym::mpi-loop) ; never returns
