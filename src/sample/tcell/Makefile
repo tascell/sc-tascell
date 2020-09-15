@@ -48,7 +48,7 @@ endif
 # icc-c, icc-lw, and icc-clos}
 # By default, this Makefile makes all ALL_PROGS. You can make just one of targets by specifying the target file name,
 # (e.g., "make fib-gcc")
-APPS=fib fib-guard fib-try fib-thr lu cmp pen pen-excep pen6x17 pen6x17-rev pen6x17-guard pen6x17-try pen6x17-thr nq nq-try nq-thr nq-rev nq-rev-xor grav matmul spanning bcast minmax copine0 copine1 copine2 copine3 copine4 copine0d copine1d copine3d tsp tsp-rev
+APPS=fib fib-guard fib-try fib-thr lu cmp pen pen-excep pen6x17 pen6x17-rev pen6x17-guard pen6x17-try pen6x17-thr nq nq-try nq-thr nq-swp nq-rev nq-rev-xor grav matmul spanning bcast minmax copine0 copine1 copine2 copine3 copine4 copine0d copine1d copine3d tsp tsp-rev
 
 C_PROGS=$(addsuffix -c,$(APPS))
 GCC_PROGS=$(addsuffix -gcc,$(APPS))
