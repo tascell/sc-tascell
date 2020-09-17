@@ -31,8 +31,10 @@
 
 (%include "rule/tcell-setrule.sh")
 (%include "clib.sh")
-(%include "dprint.sh")
 (%cinclude "sendrecv.h" (:macro))
+
+(%defconstant VERBOSE 0)
+(%include "dprint.sh")
 
 (%defconstant ASIZE 20)
 (%defconstant BSIZE 119)
