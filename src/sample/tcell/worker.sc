@@ -200,11 +200,11 @@
 ;;;latency hiding
 (def (csym::set-progress thr n) (fn void (ptr (struct thread-data)) int)
   (def tx (ptr (struct task)) thr->task-top)
-  (= tx->progress n))
+  (= (mref (cast (volatile (ptr int))) (ptr tx->progress)) n))
 
 (def (csym::wait-progress thr k) (fn void (ptr (struct thread-data)) int)
   (def tx (ptr (struct task)) thr->task-top)
-  (while (< tx->progress k)))
+  (while (< (mref (cast (volatile (ptr int))) (ptr tx->progress)) k)))
 
 ;;; Send cmd to an external node (Tascell server)
 ;;; The body of task/rslt/bcst is also sent using task-senders[task-no]
@@ -747,26 +747,40 @@
   (def task-no int)
   (def len size-t)
   (def rank-p int (if-exp (< sv-socket 0) 1 0)) ; 1 if MPI rank is contained in addresses
+  (def (struct recvarg)
+    (def r-task-no int)
+    (def r-body (ptr void))
+    (def r-p-progress (ptr int)))
+  (def rarg (ptr (struct recvarg)) NULL)
+  (def (csym::trecv rarg) (fn void (ptr (struct recvarg)))
+    ((aref task-receivers rarg->r-task-no) rarg->r-p-progress rarg->r-body)
+    (csym::free rarg)
+    (= rarg NULL))
   ;;; (csym::fprintf stderr "recv-task()~%")
   ;; Chceck # of arguments
   (if (< pcmd->c 4)
       (csym::proto-error "wrong-task" pcmd))
-  ;; For an external task message, get the body of task by
-  ;; invoking the user-defined receiver method.
-  ;; (For an internal task message, body is given as the argument)
-  (= task-no (aref pcmd->v 3 0))
-  (csym::set-rank-and-gid (aref pcmd->v 1 0) (+ 1 (+ (* (aref pcmd->v 1 0) num-thrs) (aref pcmd->v 1 1))))
-  (if (== pcmd->node OUTSIDE)
-      (begin
-       (= body ((aref task-allocators task-no)))
-       ((aref task-receivers task-no) 0 body)
-      ;;  (csym::read-to-eol)
-       ))
   ;; Determine the task recipient worker from <recipient>
   (= id (aref pcmd->v 2 (+ rank-p 0)))
   (if (not (< id num-thrs))
       (csym::proto-error "wrong task-head" pcmd))
   (= thr (+ threads id))                ; thr: worker to that the task is sent
+  ;; For an external task message, get the body of task by
+  ;; invoking the user-defined receiver method.
+  ;; (For an internal task message, body is given as the argument)
+  (= task-no (aref pcmd->v 3 0))
+  (csym::set-rank-and-gid (aref pcmd->v 1 0) (+ 1 (+ (* (aref pcmd->v 1 0) num-thrs) (aref pcmd->v 1 1))))
+  (= rarg (cast (ptr (struct recvarg))
+        (csym::malloc (sizeof (struct recvarg)))))
+  (= rarg->r-task-no task-no)
+  (= rarg->r-body body)
+  (= rarg->r-p-progress (ptr thr->task-top->progress))
+  (if (== pcmd->node OUTSIDE)
+      (begin
+       (= body ((aref task-allocators task-no)))
+       (systhr-create NULL trecv rarg)
+      ;;  (csym::read-to-eol)
+       ))
 
   ;; Initialize the task.
   ;; The task entry has been allocated at the top of the task stack of the recipient
@@ -1167,7 +1181,7 @@
   ;; Allocate and receive data body by invoking the allocator and
   ;; (user-defined) receiver methods associated with the <data-kind> number
   (= body ((aref task-allocators task-no)))
-  ((aref task-receivers task-no) 0 body)
+  ((aref task-receivers task-no) body)
   (csym::read-to-eol)
   ;; NOTE: here the "body" object is deallocated immediately
   ;; after the receiver method finished. The data that need to be

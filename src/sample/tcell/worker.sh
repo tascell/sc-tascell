@@ -260,7 +260,7 @@
   (def rslt-head (array (enum addr) ARG-SIZE-MAX))
 					; address of task sender (= result recipient)
 					; including the subtask ID in the sender worker
-  (def progress (volatile int)))			; latency hiding
+  (def progress int))			; latency hiding
 
 ;; Entry in the request queue or subtask stack of a worker
 (def (struct task-home)
