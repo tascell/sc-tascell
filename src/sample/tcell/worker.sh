@@ -123,7 +123,7 @@
 (extern-decl task-allocators
       (array (ptr (csym::fn (ptr void))) TASK-MAX))
 (extern-decl task-receivers
-      (array (ptr (csym::fn void (ptr void))) TASK-MAX))
+      (array (ptr (csym::fn void (ptr int) (ptr void))) TASK-MAX))
 (extern-decl rslt-senders
       (array (ptr (csym::fn void (ptr void))) TASK-MAX))
 (extern-decl rslt-receivers

@@ -759,7 +759,7 @@
   (if (== pcmd->node OUTSIDE)
       (begin
        (= body ((aref task-allocators task-no)))
-       ((aref task-receivers task-no) body)
+       ((aref task-receivers task-no) 0 body)
       ;;  (csym::read-to-eol)
        ))
   ;; Determine the task recipient worker from <recipient>
@@ -1167,7 +1167,7 @@
   ;; Allocate and receive data body by invoking the allocator and
   ;; (user-defined) receiver methods associated with the <data-kind> number
   (= body ((aref task-allocators task-no)))
-  ((aref task-receivers task-no) body)
+  ((aref task-receivers task-no) 0 body)
   (csym::read-to-eol)
   ;; NOTE: here the "body" object is deallocated immediately
   ;; after the receiver method finished. The data that need to be
