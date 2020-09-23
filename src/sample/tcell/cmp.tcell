@@ -95,6 +95,7 @@
 
 (def (task-receiver cmp)
   (def i int)
+  (csym::set-progress 1)
   (DEBUG-PRINT 1 "task-receiver~%" )
   (if (not (> 0 this.n2))
       (begin
@@ -133,6 +134,7 @@
 (def (task-body cmp)
   (decl tp (array (struct timeval) 2))
   (def i int) (def j int)
+  (DEBUG-PRINT 1 "task-body~%" )
   (DEBUG-PRINT 1 "start %d %d~%" this.n1 this.n2)
   (if (> 0 this.n2)              ; n2<0 のときは，新しい問題を作って解く
       (begin
@@ -163,7 +165,9 @@
     (begin
       (%ifdef* USE-PROBABILITY
            (= PROBABILITY (cmp-probability (csym::MIN this.n1 this.n2))))
+      (DEBUG-PRINT 1 "checkpoint3~%" )
       (csym::wait-progress -thr 1)
+      (DEBUG-PRINT 1 "checkpoint4~%" )
       (= this.r
          (cmp-1 this.n1 this.n2
                 this.d1 this.d2)))))
