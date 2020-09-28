@@ -95,7 +95,6 @@
 
 (def (task-receiver cmp)
   (def i int)
-  (csym::set-progress 1)
   (DEBUG-PRINT 1 "task-receiver~%" )
   (if (not (> 0 this.n2))
       (begin
@@ -109,16 +108,16 @@
            (begin
             (csym::recv-int32s this.d1 this.n1)
             (csym::recv-int32s this.d2 (/ this.n2 2))
-            (csym::set-progress 1)
+            (csym::set-progress pprogress 1)
             (csym::recv-int32s (+ this.d2 (/ this.n2 2)) (- this.n2 (/ this.n2 2)))
-            (csym::set-progress 2)
+            (csym::set-progress pprogress 2)
             )
           (begin
            (csym::recv-int32s this.d2 this.n2)
            (csym::recv-int32s this.d1 (/ this.n1 2))
-           (csym::set-progress 1)
+           (csym::set-progress pprogress 1)
            (csym::recv-int32s (+ this.d1 (/ this.n1 2)) (- this.n1 (/ this.n1 2)))
-           (csym::set-progress 2)
+           (csym::set-progress pprogress 2)
             ))
        ))
   )
@@ -166,7 +165,7 @@
       (%ifdef* USE-PROBABILITY
            (= PROBABILITY (cmp-probability (csym::MIN this.n1 this.n2))))
       (DEBUG-PRINT 1 "checkpoint3~%" )
-      (csym::wait-progress -thr 1)
+      (csym::wait-progress -thr 3)
       (DEBUG-PRINT 1 "checkpoint4~%" )
       (= this.r
          (cmp-1 this.n1 this.n2
