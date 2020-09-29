@@ -95,6 +95,7 @@
 
 (def (task-receiver cmp)
   (def i int)
+  (csym::set-progress pprogress 2)
   (DEBUG-PRINT 1 "task-receiver~%" )
   (if (not (> 0 this.n2))
       (begin
@@ -128,6 +129,7 @@
 
 ;;; (rslt-receiver cmp) = default
 
+(decl (cmp-1b n1 n2 d1 d2) (wfn int int int (ptr INT32) (ptr INT32)))
 (decl (cmp-1 n1 n2 d1 d2) (wfn int int int (ptr INT32) (ptr INT32)))
 
 (def (task-body cmp)
@@ -155,20 +157,22 @@
        (DEBUG-PRINT 1 "checkpoint1~%" )
        (csym::wait-progress -thr 1)
        (DEBUG-PRINT 1 "checkpoint2~%" )
+       (DEBUG-PRINT 1 "start2 %d %d~%" this.n1 this.n2)
        (= this.r
           (cmp-1 this.n1 this.n2
                  this.d1 this.d2))
+       (DEBUG-PRINT 1 "checkpoint3~%" )
        (csym::gettimeofday (+ tp 1) 0)
        (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp))
        )
     (begin
       (%ifdef* USE-PROBABILITY
            (= PROBABILITY (cmp-probability (csym::MIN this.n1 this.n2))))
-      (DEBUG-PRINT 1 "checkpoint3~%" )
-      (csym::wait-progress -thr 3)
-      (DEBUG-PRINT 1 "checkpoint4~%" )
+      ;; (DEBUG-PRINT 1 "checkpointa~%" )
+      ;; (csym::wait-progress -thr 1)
+      ;; (DEBUG-PRINT 1 "checkpointb~%" )
       (= this.r
-         (cmp-1 this.n1 this.n2
+         (cmp-1b this.n1 this.n2
                 this.d1 this.d2)))))
 
 (def (csym::cmp-2 n1 n2 d1 d2)
@@ -182,14 +186,17 @@
 
 (def (cmp-1 n1 n2 d1 d2) (wfn int int int (ptr INT32) (ptr INT32))
   (decl s1 int) (decl s2 int)
+  (DEBUG-PRINT 1 "start3 %d %d~%" n1 n2)
   (if (< n1 5) (return (csym::cmp-2 n1 n2 d1 d2)))
   (if (> n1 n2)
       (begin 
+      ;;  (DEBUG-PRINT 1 "checkpointa~%" )
        (def n1-1 int (/ n1 2))
        (def n1-2 int (- n1 n1-1))
        (do-two
            (= s1 (cmp-1b n1-1 n2 d1 d2))
          (begin
+        ;;  (DEBUG-PRINT 1 "checkpointb~%" )
          (csym::wait-progress -thr 2)(= s2 (cmp-1b n1-2 n2 (+ d1 n1-1) d2)))
          (handles cmp
           (:put 
@@ -202,11 +209,14 @@
           (:get
            (= s2 this.r)))))
     (begin
+     (DEBUG-PRINT 1 "checkpointa~%" )
      (def n2-1 int (/ n2 2))
      (def n2-2 int (- n2 n2-1))
+     (DEBUG-PRINT 1 "start4 %d %d %d~%" n1 n2-1 n2-2)
      (do-two
          (= s1 (cmp-1b n1 n2-1 d1 d2))
        (begin
+       (DEBUG-PRINT 1 "checkpointb~%" )
        (csym::wait-progress -thr 2)(= s2 (cmp-1b n1 n2-2 d1 (+ d2 n2-1))))
        (cmp
         (:put
@@ -222,9 +232,12 @@
 
 (def (cmp-1b n1 n2 d1 d2) (wfn int int int (ptr INT32) (ptr INT32))
   (decl s1 int) (decl s2 int)
+  ;; (DEBUG-PRINT 1 "checkpointa1~%" )
+  ;; (DEBUG-PRINT 1 "start5 %d %d~%" n1 n2)
   (if (< n1 5) (return (csym::cmp-2 n1 n2 d1 d2)))
   (if (> n1 n2)
       (begin 
+      ;;  (DEBUG-PRINT 1 "checkpointa2~%" )
        (def n1-1 int (/ n1 2))
        (def n1-2 int (- n1 n1-1))
        (do-two
