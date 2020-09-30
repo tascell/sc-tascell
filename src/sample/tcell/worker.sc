@@ -199,19 +199,20 @@
 
 ;;;latency hiding
 (def (csym::set-progress pprogress n) (fn void (ptr int) int)
-  (DEBUG-PRINT 1 "set-progress %p~%"  pprogress)
-  (DEBUG-PRINT 1 "set-progress a %d~%" (mref (cast (volatile (ptr int)) pprogress)))
-  (= (mref (cast (volatile (ptr int)) pprogress)) n)
-  (DEBUG-PRINT 1 "set-progress b %d~%" (mref (cast (volatile (ptr int)) pprogress)))
+  ;; (DEBUG-PRINT 1 "set-progress %p~%"  pprogress)
+  ;; (DEBUG-PRINT 1 "set-progress a %d~%" (mref (cast (ptr (volatile int)) pprogress)))
+  (= (mref (cast (ptr (volatile int)) pprogress)) n)
+  ;; (DEBUG-PRINT 1 "set-progress b %d~%" (mref (cast (ptr (volatile int)) pprogress)))
   )
 
 
 (def (csym::wait-progress thr k) (fn void (ptr (struct thread-data)) int)
-  (DEBUG-PRINT 1 "wait-progress(start)~%" )
+  ;; (DEBUG-PRINT 1 "wait-progress(start)~%" )
   (def tx (ptr (struct task)) thr->task-top)
-  (DEBUG-PRINT 1 "wait-progress %p~%"  (ptr tx->progress))
-  (DEBUG-PRINT 1 "progress %d~%"  (mref (cast (volatile (ptr int)) (ptr tx->progress))))
-  (while (< (mref (cast (volatile (ptr int)) (ptr tx->progress))) k)))
+  ;; (DEBUG-PRINT 1 "wait-progress %p~%"  (ptr tx->progress))
+  ;; (DEBUG-PRINT 1 "progress %d~%"  (mref (cast (ptr (volatile int)) (ptr tx->progress))))
+  (while (< (mref (cast (ptr (volatile int)) (ptr tx->progress))) k)
+  ))
 
 ;;; Send cmd to an external node (Tascell server)
 ;;; The body of task/rslt/bcst is also sent using task-senders[task-no]
@@ -761,13 +762,13 @@
     (def r-rank int)
     (def r-gid int))
   (def rarg (ptr (struct recvarg)) NULL)
-  (def (trecv rarg) (fn void (ptr (struct recvarg)))
-    (DEBUG-PRINT 1 "trecv(start)~%")
-    (DEBUG-PRINT 1 "task-no %d~%" rarg->r-task-no)
+  (def (csym::trecv rarg) (fn void (ptr (struct recvarg)))
+    ;; (DEBUG-PRINT 1 "trecv(start)~%")
+    ;; (DEBUG-PRINT 1 "task-no %d~%" rarg->r-task-no)
     (csym::set-rank-and-gid rarg->r-rank rarg->r-gid)
-    (DEBUG-PRINT 1 "rank %d gid %d~%" rarg->r-rank rarg->r-gid)
+    ;; (DEBUG-PRINT 1 "rank %d gid %d~%" rarg->r-rank rarg->r-gid)
     ((aref task-receivers rarg->r-task-no) rarg->r-p-progress rarg->r-body)
-    (DEBUG-PRINT 1 "trecv(function)~%")
+    ;; (DEBUG-PRINT 1 "trecv(function)~%")
     (csym::free rarg)
     (= rarg NULL))
   ;;; (csym::fprintf stderr "recv-task()~%")
@@ -780,16 +781,18 @@
       (csym::proto-error "wrong task-head" pcmd))
   (= thr (+ threads id))                ; thr: worker to that the task is sent
   (= tx thr->task-top)                  ; tx: the top of the task stack
-  (= tx->progress 0)                    ; initialize progress to 0
+  (if (== pcmd->node OUTSIDE)
+      (= tx->progress 0) 
+      (= tx->progress 100))
   ;; For an external task message, get the body of task by
   ;; invoking the user-defined receiver method.
   ;; (For an internal task message, body is given as the argument)
   (= task-no (aref pcmd->v 3 0))
   ;; (csym::set-rank-and-gid (aref pcmd->v 1 0) (+ 1 (+ (* (aref pcmd->v 1 0) num-thrs) (aref pcmd->v 1 1))))
-  (DEBUG-PRINT 1 "rank %d gid %d~%" (aref pcmd->v 1 0) (+ 1 (+ (* (aref pcmd->v 1 0) num-thrs) (aref pcmd->v 1 1))))
+  ;; (DEBUG-PRINT 1 "rank %d gid %d~%" (aref pcmd->v 1 0) (+ 1 (+ (* (aref pcmd->v 1 0) num-thrs) (aref pcmd->v 1 1))))
   (if (== pcmd->node OUTSIDE)
       (begin
-       (DEBUG-PRINT 1 "aref task-allocators~%")
+      ;;  (DEBUG-PRINT 1 "aref task-allocators~%")
        (= body ((aref task-allocators task-no)))
        (= rarg (cast (ptr (struct recvarg))
              (csym::malloc (sizeof (struct recvarg)))))
@@ -798,9 +801,12 @@
        (= rarg->r-p-progress (ptr thr->task-top->progress))
        (= rarg->r-rank (aref pcmd->v 1 0))
        (= rarg->r-gid (+ 1 (+ (* (aref pcmd->v 1 0) num-thrs) (aref pcmd->v 1 1))))
-       (DEBUG-PRINT 1 "trecv~%")
-       (systhr-create NULL trecv rarg)
-       (csym::sleep 10)
+      ;;  (DEBUG-PRINT 1 "trecv~%")
+       (if (== rarg->r-rank -1)
+           (csym::trecv rarg)
+           (systhr-create NULL csym::trecv rarg))
+       (csym::wait-progress thr 1)
+      ;;  (csym::sleep 1)
       ;;  (csym::read-to-eol)
        ))
 

@@ -56,8 +56,11 @@ int recv_int(void)
     if(RANK < 0)
         {
             char buf[16];
+            // fprintf (stderr, "sv_socket %d\n", sv_socket);
             receive_line (buf, 16, sv_socket);
+            // fprintf (stderr, "buf %s\n", buf);
             return atoi(buf);
+            // fprintf (stderr, "atoi(buf) %d\n",r);
         }
     else
         {
