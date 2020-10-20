@@ -78,16 +78,19 @@
 
 (def (task-sender cmp)
   ;;   (def i int)
-  ;; (DEBUG-PRINT 1 "task-sender~%" )
+  (DEBUG-PRINT 1 "task-sender~%" )
   (if (> 0 this.n2) (return)) 
   (if (> this.n2 this.n1)
       (begin
         (csym::send-int32s this.d1 this.n1)
+        ;; (DEBUG-PRINT 1 "n2 %d %d~%" (aref this.d2 0) (aref this.d2 (- this.n2 1)))
+        (DEBUG-PRINT 1 "n2~%" )
         (csym::send-int32s this.d2 (/ this.n2 2))
         (csym::send-int32s (+ this.d2 (/ this.n2 2)) (- this.n2 (/ this.n2 2)))
         )
       (begin
       (csym::send-int32s this.d2 this.n2)
+      (DEBUG-PRINT 1 "n1 %d %d %d~%" this.n1 (aref this.d1 0) (aref this.d1 (- this.n1 1)))
       (csym::send-int32s this.d1 (/ this.n1 2))
       (csym::send-int32s (+ this.d1 (/ this.n1 2)) (- this.n1 (/ this.n1 2)))
         ))
@@ -136,7 +139,7 @@
   (decl tp (array (struct timeval) 2))
   (def i int) (def j int)
   ;; (DEBUG-PRINT 1 "task-body~%" )
-  ;; (csym::wait-progress -thr 1)
+  (csym::wait-progress -thr 1)
   (DEBUG-PRINT 1 "start %d %d~%" this.n1 this.n2)
   (if (> 0 this.n2)              ; n2<0 のときは，新しい問題を作って解く
       (begin
@@ -185,7 +188,9 @@
 (def (cmp-1 n1 n2 d1 d2) (wfn int int int (ptr INT32) (ptr INT32))
   (decl s1 int) (decl s2 int)
   ;; (DEBUG-PRINT 1 "start3 %d %d~%" n1 n2)
-  (if (< n1 5) (return (csym::cmp-2 n1 n2 d1 d2)))
+  (if (< n1 5) 
+      ;; (csym::wait-progress -thr 3)
+      (return (csym::cmp-2 n1 n2 d1 d2)))
   (if (> n1 n2)
       (begin 
       ;;  (DEBUG-PRINT 1 "checkpointa~%" )
@@ -200,6 +205,7 @@
           (:put 
            (%ifdef* USE-PROBABILITY
                 (= PROBABILITY (cmp-probability n1-1)))
+           (csym::wait-progress -thr 3)
            (= this.n1 n1-2)
            (= this.n2 n2)
            (= this.d1 (+ d1 n1-1) )

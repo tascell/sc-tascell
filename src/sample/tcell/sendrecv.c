@@ -159,7 +159,7 @@ int send_int32s (INT32 *a, int nelm)
 int recv_int32s (INT32 *a, int nelm)
 {
   int ret;
-  sleep (nelm/1000);
+  // sleep (nelm/1000);
   ret = receive_binary (a, sizeof(INT32), nelm, sv_socket);
   return ret;
 }

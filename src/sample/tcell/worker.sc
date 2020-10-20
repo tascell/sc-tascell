@@ -199,20 +199,22 @@
 
 ;;;latency hiding
 (def (csym::set-progress pprogress n) (fn void (ptr int) int)
-  ;; (DEBUG-PRINT 1 "set-progress %p~%"  pprogress)
-  ;; (DEBUG-PRINT 1 "set-progress a %d~%" (mref (cast (ptr (volatile int)) pprogress)))
+  ;; (DEBUG-PRINT 1 "set-progress * %p~%"  pprogress)
+  ;; (DEBUG-PRINT 1 "set-progress int %d~%" (mref (cast (ptr (volatile int)) pprogress)))
+  (DEBUG-PRINT 1 "set-progress %p %d progress=%d~%" pprogress n (mref (cast (ptr (volatile int)) pprogress)))
   (= (mref (cast (ptr (volatile int)) pprogress)) n)
-  ;; (DEBUG-PRINT 1 "set-progress b %d~%" (mref (cast (ptr (volatile int)) pprogress)))
+  (DEBUG-PRINT 1 "set-progress end %p progress=%d~%" pprogress (mref (cast (ptr (volatile int)) pprogress)))
   )
 
 
 (def (csym::wait-progress thr k) (fn void (ptr (struct thread-data)) int)
   ;; (DEBUG-PRINT 1 "wait-progress(start)~%" )
   (def tx (ptr (struct task)) thr->task-top)
-  ;; (DEBUG-PRINT 1 "wait-progress %p~%"  (ptr tx->progress))
-  ;; (DEBUG-PRINT 1 "progress %d~%"  (mref (cast (ptr (volatile int)) (ptr tx->progress))))
-  (while (< (mref (cast (ptr (volatile int)) (ptr tx->progress))) k)
-  ))
+  ;; (DEBUG-PRINT 1 "wait-progress * %p~%"  (ptr tx->progress))
+  (DEBUG-PRINT 1 "wait-progress %p k=%d progress=%d ~%"  (ptr tx->progress) k (mref (cast (ptr (volatile int)) (ptr tx->progress))))
+  (while (< (mref (cast (ptr (volatile int)) (ptr tx->progress))) k))
+  (DEBUG-PRINT 1 "wait-progress end %p progress=%d~%"  (ptr tx->progress) (mref (cast (ptr (volatile int)) (ptr tx->progress))))
+  )
 
 ;;; Send cmd to an external node (Tascell server)
 ;;; The body of task/rslt/bcst is also sent using task-senders[task-no]
@@ -805,7 +807,7 @@
        (if (== rarg->r-rank -1)
            (csym::trecv rarg)
            (systhr-create NULL csym::trecv rarg))
-       (csym::wait-progress thr 1)
+      ;;  (csym::wait-progress thr 1)
       ;;  (csym::sleep 1)
       ;;  (csym::read-to-eol)
        ))
