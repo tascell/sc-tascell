@@ -103,11 +103,11 @@
   (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp)))
 
 (def (task-receiver fib)
-    ;;(csym::fprintf stderr "receive %d~%" this.n)
+    ;; (csym::fprintf stderr "receive %d~%" this.n)
     )
 
 (def (task-sender fib)
-    ;;(csym::fprintf stderr "send %d~%" this.n)
+    ;; (csym::fprintf stderr "send %d~%" this.n)
     )
 
 (def (rslt-sender fib)
@@ -132,5 +132,6 @@
           (%if* USE-PROBGUARD
             (= PROBABILITY (csym::my-probability (- n 2))))
           (= this.n (- n 2)))
-         (:get (= s2 this.r))))
+         (:get 
+         (= s2 this.r))))
       (return (+ s1 s2)))))

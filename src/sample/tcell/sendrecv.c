@@ -70,15 +70,37 @@ int recv_int(void)
 /**/
 void send_long(long n)
 {
-    char buf[16];
-    snprintf (buf, 16, "%ld\n", n);
-    send_string (buf, sv_socket);
+    if(RANK < 0)
+        {
+            char buf[16];
+            snprintf (buf, 16, "%ld\n", n);
+            send_string (buf, sv_socket);
+        }
+    else
+        {
+            send_longs (&n, 1);
+        }
+    // char buf[16];
+    // snprintf (buf, 16, "%ld\n", n);
+    // send_string (buf, sv_socket);
 }
 long recv_long(void)
 {
-    char buf[16];
-    receive_line (buf, 16, sv_socket);
-    return atol(buf);
+    if(RANK < 0)
+        {
+            char buf[16];
+            receive_line (buf, 16, sv_socket);
+            return atol(buf);
+        }
+    else
+        {
+            long dst[1];
+            recv_longs (dst, 1);
+            return dst[0];
+        }
+    // char buf[16];
+    // receive_line (buf, 16, sv_socket);
+    // return atol(buf);
 }
 
 /**/
@@ -160,6 +182,36 @@ int recv_int32s (INT32 *a, int nelm)
   return ret;
 }
 
+/**/
+int send_longs (long *a, int nelm)
+{
+  int ret;
+  ret = send_binary (a, sizeof(long), nelm, sv_socket);
+  return ret;
+}
+    
+int recv_longs (long *a, int nelm)
+{
+  int ret;
+  ret = receive_binary (a, sizeof(long), nelm, sv_socket);
+  return ret;
+}
+
+/**/
+int send_bytes (void *a, int size)
+{
+  int ret;
+  ret = send_binary (a, size, 1, sv_socket);
+  return ret;
+}
+    
+int recv_bytes (void *a, int size)
+{
+  int ret;
+  ret = receive_binary (a, size, 1, sv_socket);
+  return ret;
+}
+
 /* reverse byte order of double values */
 /* assuming that long is 32-bit, and double is 64-bit */
 void swap_doubles (double *a, int n)
@@ -222,19 +274,14 @@ int recv_double_seq (double *a, int nelm)
 int send_doubles (double *a, int nelm)
 {
   int ret;
-  send_binary_header (sizeof(double), nelm);
   ret = send_binary (a, sizeof(double), nelm, sv_socket);
-  send_binary_terminator ();
   return ret;
 }
 
 int recv_doubles (double *a, int nelm)
 {
-  int ret, swp;
-  swp = recv_binary_header (0, 0);
+  int ret;
   ret = receive_binary (a, sizeof(double), nelm, sv_socket);
-  if (swp) swap_doubles (a, nelm);
-  recv_binary_terminator ();
   return ret;
 }
 

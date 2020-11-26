@@ -65,7 +65,15 @@
   (def a (array int ASIZE) :in)
   (def b (array int BSIZE) :in))
 
-;; task/rslt-sender/receiver = default
+(def (task-sender pentomino)
+  (csym::send-bytes (cast (ptr void) (ptr this)) (sizeof this))
+  )
+
+(def (task-receiver pentomino)
+  (csym::recv-bytes (cast (ptr void) (ptr this)) (sizeof this))
+  )
+
+;; rslt-sender/receiver = default
 
 (decl (search k j0 j1 j2 maxp maxk tsk) (wfn int int int int int int int (ptr (struct pentomino))))
 (def (task-body pentomino)

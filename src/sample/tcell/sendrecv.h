@@ -57,6 +57,14 @@ int send_int32s (INT32 *a, int nelm);
 int recv_int32s (INT32 *a, int nelm);
 
 /**/
+int send_longs (long *a, int nelm);
+int recv_longs (long *a, int nelm);
+
+/**/
+int send_bytes (void *a, int size);
+int recv_bytes (void *a, int size);
+
+/**/
 void swap_doubles (double *a, int n);
 
 /**/
