@@ -53,7 +53,7 @@
              (* 0.000001
                 (- (fref (aref tp 1) tv-usec)
                    (fref (aref tp 0) tv-usec))))))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;a
 
 (def (task gravity)
   (def f (array double 3))   ; result
@@ -69,11 +69,13 @@
   )
   
 (def (task-sender gravity)
-  (csym::send-bytes (cast (ptr void) (ptr this)) (sizeof this))
+  (csym::send-bytes (cast (ptr void) (ptr this.minx)) (- (sizeof this) (- (cast (ptr char)(ptr this.minx)) (cast (ptr char)(ptr this)))))
   )
 
+;; sizeof (this) - ((char*)&this.minx - (char*)&this))
+
 (def (task-receiver gravity)
-  (csym::recv-bytes (cast (ptr void) (ptr this)) (sizeof this))
+  (csym::recv-bytes (cast (ptr void) (ptr this.minx)) (- (sizeof this) (- (cast (ptr char)(ptr this.minx)) (cast (ptr char)(ptr this)))))
   )
 
 (def (rslt-sender gravity)
