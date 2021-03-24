@@ -198,13 +198,23 @@
       (return 0))))
 
 ;;;latency hiding
-(def (csym::set-progress thr n) (fn void (ptr (struct thread-data)) int)
-  (def tx (ptr (struct task)) thr->task-top)
-  (= tx->progress n))
+(def (csym::set-progress pprogress n) (fn void (ptr int) int)
+  ;; (DEBUG-PRINT 1 "set-progress * %p~%"  pprogress)
+  ;; (DEBUG-PRINT 1 "set-progress int %d~%" (mref (cast (ptr (volatile int)) pprogress)))
+  (DEBUG-PRINT 1 "set-progress %p %d progress=%d~%" pprogress n (mref (cast (ptr (volatile int)) pprogress)))
+  (= (mref (cast (ptr (volatile int)) pprogress)) n)
+  (DEBUG-PRINT 1 "set-progress end %p progress=%d~%" pprogress (mref (cast (ptr (volatile int)) pprogress)))
+  )
+
 
 (def (csym::wait-progress thr k) (fn void (ptr (struct thread-data)) int)
+  ;; (DEBUG-PRINT 1 "wait-progress(start)~%" )
   (def tx (ptr (struct task)) thr->task-top)
-  (while (< tx->progress k)))
+  ;; (DEBUG-PRINT 1 "wait-progress * %p~%"  (ptr tx->progress))
+  (DEBUG-PRINT 1 "wait-progress %p k=%d progress=%d ~%"  (ptr tx->progress) k (mref (cast (ptr (volatile int)) (ptr tx->progress))))
+  (while (< (mref (cast (ptr (volatile int)) (ptr tx->progress))) k))
+  (DEBUG-PRINT 1 "wait-progress end %p progress=%d~%"  (ptr tx->progress) (mref (cast (ptr (volatile int)) (ptr tx->progress))))
+  )
 
 ;;; Send cmd to an external node (Tascell server)
 ;;; The body of task/rslt/bcst is also sent using task-senders[task-no]
@@ -747,26 +757,60 @@
   (def task-no int)
   (def len size-t)
   (def rank-p int (if-exp (< sv-socket 0) 1 0)) ; 1 if MPI rank is contained in addresses
+  (def (struct recvarg)
+    (def r-task-no int)
+    (def r-body (ptr void))
+    (def r-p-progress (ptr int))
+    (def r-rank int)
+    (def r-gid int))
+  (def rarg (ptr (struct recvarg)) NULL)
+  (def (csym::trecv rarg) (fn void (ptr (struct recvarg)))
+    ;; (DEBUG-PRINT 1 "trecv(start)~%")
+    ;; (DEBUG-PRINT 1 "task-no %d~%" rarg->r-task-no)
+    (csym::set-rank-and-gid rarg->r-rank rarg->r-gid)
+    ;; (DEBUG-PRINT 1 "rank %d gid %d~%" rarg->r-rank rarg->r-gid)
+    ((aref task-receivers rarg->r-task-no) rarg->r-p-progress rarg->r-body)
+    ;; (DEBUG-PRINT 1 "trecv(function)~%")
+    (csym::free rarg)
+    (= rarg NULL))
   ;;; (csym::fprintf stderr "recv-task()~%")
   ;; Chceck # of arguments
   (if (< pcmd->c 4)
       (csym::proto-error "wrong-task" pcmd))
-  ;; For an external task message, get the body of task by
-  ;; invoking the user-defined receiver method.
-  ;; (For an internal task message, body is given as the argument)
-  (= task-no (aref pcmd->v 3 0))
-  (csym::set-rank-and-gid (aref pcmd->v 1 0) (+ 1 (+ (* (aref pcmd->v 1 0) num-thrs) (aref pcmd->v 1 1))))
-  (if (== pcmd->node OUTSIDE)
-      (begin
-       (= body ((aref task-allocators task-no)))
-       ((aref task-receivers task-no) 0 body)
-      ;;  (csym::read-to-eol)
-       ))
   ;; Determine the task recipient worker from <recipient>
   (= id (aref pcmd->v 2 (+ rank-p 0)))
   (if (not (< id num-thrs))
       (csym::proto-error "wrong task-head" pcmd))
   (= thr (+ threads id))                ; thr: worker to that the task is sent
+  (= tx thr->task-top)                  ; tx: the top of the task stack
+  (if (== pcmd->node OUTSIDE)
+      (= tx->progress 0) 
+      (= tx->progress 100))
+  ;; For an external task message, get the body of task by
+  ;; invoking the user-defined receiver method.
+  ;; (For an internal task message, body is given as the argument)
+  (= task-no (aref pcmd->v 3 0))
+  ;; (csym::set-rank-and-gid (aref pcmd->v 1 0) (+ 1 (+ (* (aref pcmd->v 1 0) num-thrs) (aref pcmd->v 1 1))))
+  ;; (DEBUG-PRINT 1 "rank %d gid %d~%" (aref pcmd->v 1 0) (+ 1 (+ (* (aref pcmd->v 1 0) num-thrs) (aref pcmd->v 1 1))))
+  (if (== pcmd->node OUTSIDE)
+      (begin
+      ;;  (DEBUG-PRINT 1 "aref task-allocators~%")
+       (= body ((aref task-allocators task-no)))
+       (= rarg (cast (ptr (struct recvarg))
+             (csym::malloc (sizeof (struct recvarg)))))
+       (= rarg->r-task-no task-no)
+       (= rarg->r-body body)
+       (= rarg->r-p-progress (ptr thr->task-top->progress))
+       (= rarg->r-rank (aref pcmd->v 1 0))
+       (= rarg->r-gid (+ 1 (+ (* (aref pcmd->v 1 0) num-thrs) (aref pcmd->v 1 1))))
+      ;;  (DEBUG-PRINT 1 "trecv~%")
+       (if (== rarg->r-rank -1)
+           (csym::trecv rarg)
+           (systhr-create NULL csym::trecv rarg))
+      ;;  (csym::wait-progress thr 1)
+      ;;  (csym::sleep 1)
+      ;;  (csym::read-to-eol)
+       ))
 
   ;; Initialize the task.
   ;; The task entry has been allocated at the top of the task stack of the recipient
@@ -784,7 +828,6 @@
   (= tx->task-no task-no)               ; the kind of the task
   (= tx->body body)                     ; task object
   (= tx->stat TASK-INITIALIZED)         ; TASK-ALLOCATED => TASK-INITIALIZED
-  (= tx->progress 0)                    ; initialize progress to 0
 
   ;; Awake the worker thread sleeping to waiting for the task
   (csym::pthread-cond-broadcast (ptr thr->cond))

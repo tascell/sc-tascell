@@ -78,19 +78,29 @@
 
 (def (task-sender cmp)
   ;;   (def i int)
-  (DEBUG-PRINT 1 "tasksender~%")
+  ;; (DEBUG-PRINT 1 "task-sender~%" )
   (if (> 0 this.n2) (return)) 
-  (csym::send-int32s this.d1 this.n1)
-  ;;   (for ((= i 0) (< i this.n1) (inc i))
-  ;;     (csym::send-int (aref this.d1 i)))
-  (csym::send-int32s this.d2 this.n2)
-  ;;   (for ((= i 0) (< i this.n2) (inc i))
-  ;;     (csym::send-int (aref this.d2 i)))
+  ;; (DEBUG-PRINT 1 "send-n1 %d %d %d~%" this.n1 (aref this.d1 0) (aref this.d1 (- this.n1 1)))
+  ;; (DEBUG-PRINT 1 "send-n2 %d %d %d~%" this.n2 (aref this.d2 0) (aref this.d2 (- this.n2 1)))
+  (if (> this.n1 this.n2)
+      (begin
+       (csym::send-int32s this.d2 this.n2)
+      ;;  (DEBUG-PRINT 1 "n1~%" )
+       (csym::send-int32s this.d1 (/ this.n1 2))
+       (csym::send-int32s (+ this.d1 (/ this.n1 2)) (- this.n1 (/ this.n1 2)))
+       )
+    (begin
+     (csym::send-int32s this.d1 this.n1)
+    ;;  (DEBUG-PRINT 1 "n2~%" )
+     (csym::send-int32s this.d2 (/ this.n2 2))
+     (csym::send-int32s (+ this.d2 (/ this.n2 2)) (- this.n2 (/ this.n2 2)))
+     ))
   )
 
 (def (task-receiver cmp)
   (def i int)
-  (DEBUG-PRINT 1 "taskreceiver~%")
+  (csym::set-progress pprogress 1)
+  ;; (DEBUG-PRINT 1 "task-receiver~%" )
   (if (not (> 0 this.n2))
       (begin
        (= this.d1
@@ -99,12 +109,26 @@
        (= this.d2
           (cast (ptr INT32)
             (csym::malloc (* (sizeof INT32) this.n2))))
-       (csym::recv-int32s this.d1 this.n1)
-       ;;        (for ((= i 0) (< i this.n1) (inc i))
-       ;;          (= (aref this.d1 i) (csym::recv-int)))
-       (csym::recv-int32s this.d2 this.n2)
-       ;;        (for ((= i 0) (< i this.n2) (inc i))
-       ;;          (= (aref this.d2 i) (csym::recv-int)))
+       (if (> this.n1 this.n2)
+           (begin
+            (csym::recv-int32s this.d2 this.n2)
+            (csym::recv-int32s this.d1 (/ this.n1 2))
+            ;; (DEBUG-PRINT 1 "recv-n1a %d %d %d~%" (/ this.n1 2) (aref this.d1 0) (aref this.d1 (- (/ this.n1 2) 1)))
+            (csym::set-progress pprogress 2)
+            (csym::recv-int32s (+ this.d1 (/ this.n1 2)) (- this.n1 (/ this.n1 2)))
+            ;; (DEBUG-PRINT 1 "recv-n1b %d %d %d~%" (- this.n1 (/ this.n1 2)) (aref this.d1 (/ this.n1 2)) (aref this.d1 (- this.n1 1)))
+            (csym::set-progress pprogress 3)
+            )
+         (begin
+          (csym::recv-int32s this.d1 this.n1)
+          (csym::recv-int32s this.d2 (/ this.n2 2))
+          ;; (DEBUG-PRINT 1 "recv-n2a %d %d %d~%" (/ this.n2 2) (aref this.d2 0) (aref this.d2 (- (/ this.n2 2) 1)))
+          (csym::set-progress pprogress 2)
+          (csym::recv-int32s (+ this.d2 (/ this.n2 2)) (- this.n2 (/ this.n2 2)))
+          ;; (DEBUG-PRINT 1 "recv-n2b %d %d %d~%" (- this.n2 (/ this.n2 2)) (aref this.d2 (/ this.n2 2)) (aref this.d2 (- this.n2 1)))
+          (csym::set-progress pprogress 3)
+          )
+          )
        ))
   )
 
@@ -114,12 +138,14 @@
 
 ;;; (rslt-receiver cmp) = default
 
+(decl (cmp-1b n1 n2 d1 d2) (wfn int int int (ptr INT32) (ptr INT32)))
 (decl (cmp-1 n1 n2 d1 d2) (wfn int int int (ptr INT32) (ptr INT32)))
 
 (def (task-body cmp)
   (decl tp (array (struct timeval) 2))
   (def i int) (def j int)
-  (DEBUG-PRINT 1 "taskbody~%")
+  ;; (DEBUG-PRINT 1 "task-body~%")
+  (csym::wait-progress -thr 1)
   (DEBUG-PRINT 1 "start %d %d~%" this.n1 this.n2)
   (if (> 0 this.n2)              ; n2<0 のときは，新しい問題を作って解く
       (begin
@@ -138,15 +164,18 @@
             (= N0 this.n1)
             (= PROBABILITY 1.0))
        (csym::gettimeofday tp 0)
+      ;;  (DEBUG-PRINT 1 "checkpoint1~%" )
        (= this.r
-          (cmp-1 this.n1 this.n2
+          (cmp-1b this.n1 this.n2
                  this.d1 this.d2))
+      ;;  (DEBUG-PRINT 1 "checkpointxx~%" )
        (csym::gettimeofday (+ tp 1) 0)
        (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp))
        )
     (begin
       (%ifdef* USE-PROBABILITY
            (= PROBABILITY (cmp-probability (csym::MIN this.n1 this.n2))))
+      (csym::wait-progress -thr 2)
       (= this.r
          (cmp-1 this.n1 this.n2
                 this.d1 this.d2)))))
@@ -162,14 +191,71 @@
 
 (def (cmp-1 n1 n2 d1 d2) (wfn int int int (ptr INT32) (ptr INT32))
   (decl s1 int) (decl s2 int)
+  ;; (DEBUG-PRINT 1 "cmp-1 n1=%d %d %d  n2=%d %d %d~%" n1 (aref d1 0) (aref d1 (- n1 1)) n2 (aref d2 0) (aref d2 (- n2 1)))
+  (if (< n1 5) 
+      (begin 
+       (csym::wait-progress -thr 3)
+       (return (csym::cmp-2 n1 n2 d1 d2))))
+  (if (> n1 n2)
+      (begin 
+      ;;  (DEBUG-PRINT 1 "checkpointa~%" )
+       (def n1-1 int (/ n1 2))
+       (def n1-2 int (- n1 n1-1))
+      ;;  (DEBUG-PRINT 1 "wait-n1a %d %d %d~%" n1-1 (aref d1 0) (aref d1 (- n1-1 1)))
+       (do-two
+           (= s1 (cmp-1b n1-1 n2 d1 d2))
+         (begin
+        ;;  (DEBUG-PRINT 1 "checkpointb~%" )
+         (csym::wait-progress -thr 3)(= s2 (cmp-1b n1-2 n2 (+ d1 n1-1) d2)))
+         (handles cmp
+          (:put 
+           (%ifdef* USE-PROBABILITY
+                (= PROBABILITY (cmp-probability n1-1)))
+           (csym::wait-progress -thr 3)
+          ;;  (DEBUG-PRINT 1 "wait-n1b %d %d %d~%" n1-2 (aref d1 n1-1) (aref d1 (- n1 1)))
+           (= this.n1 n1-2)
+           (= this.n2 n2)
+           (= this.d1 (+ d1 n1-1) )
+           (= this.d2 d2))
+          (:get
+           (= s2 this.r)))))
+    (begin
+    ;;  (DEBUG-PRINT 1 "checkpointa~%" )
+     (def n2-1 int (/ n2 2))
+     (def n2-2 int (- n2 n2-1))
+    ;;  (DEBUG-PRINT 1 "wait-n2a %d %d %d~%" n2-1 (aref d2 0) (aref d2 (- n2-1 1)))
+     (do-two
+         (= s1 (cmp-1b n1 n2-1 d1 d2))
+       (begin
+      ;;  (DEBUG-PRINT 1 "checkpointb~%" )
+       (csym::wait-progress -thr 3)(= s2 (cmp-1b n1 n2-2 d1 (+ d2 n2-1))))
+       (cmp
+        (:put
+         (%ifdef* USE-PROBABILITY
+              (= PROBABILITY (cmp-probability n2-1)))
+         (csym::wait-progress -thr 3)
+        ;;  (DEBUG-PRINT 1 "wait-n2b %d %d %d~%" n2-2 (aref d2 n2-1) (aref d2 (- n2 1)))
+         (= this.n1 n1)
+         (= this.n2 n2-2)
+         (= this.d1 d1)
+         (= this.d2 (+ d2 n2-1)))
+        (:get
+         (= s2 this.r))))))
+  (return (+ s1 s2)))
+
+(def (cmp-1b n1 n2 d1 d2) (wfn int int int (ptr INT32) (ptr INT32))
+  (decl s1 int) (decl s2 int)
+  ;; (DEBUG-PRINT 1 "cmp-1b n1=%d %d %d  n2=%d %d %d~%" n1 (aref d1 0) (aref d1 (- n1 1)) n2 (aref d2 0) (aref d2 (- n2 1)))
+  ;; (DEBUG-PRINT 1 "cmp-1b~%")
   (if (< n1 5) (return (csym::cmp-2 n1 n2 d1 d2)))
   (if (> n1 n2)
       (begin 
+      ;;  (DEBUG-PRINT 1 "checkpointa2~%" )
        (def n1-1 int (/ n1 2))
        (def n1-2 int (- n1 n1-1))
        (do-two
-           (= s1 (cmp-1 n1-1 n2 d1 d2))
-         (= s2 (cmp-1 n1-2 n2 (+ d1 n1-1) d2))
+           (= s1 (cmp-1b n1-1 n2 d1 d2))
+         (= s2 (cmp-1b n1-2 n2 (+ d1 n1-1) d2))
          (handles cmp
           (:put 
            (%ifdef* USE-PROBABILITY
@@ -184,8 +270,8 @@
      (def n2-1 int (/ n2 2))
      (def n2-2 int (- n2 n2-1))
      (do-two
-         (= s1 (cmp-1 n1 n2-1 d1 d2))
-       (= s2 (cmp-1 n1 n2-2 d1 (+ d2 n2-1)))
+         (= s1 (cmp-1b n1 n2-1 d1 d2))
+       (= s2 (cmp-1b n1 n2-2 d1 (+ d2 n2-1)))
        (cmp
         (:put
          (%ifdef* USE-PROBABILITY
