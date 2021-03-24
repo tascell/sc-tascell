@@ -66,31 +66,15 @@
   )
 
 (def (task-sender nqueens)
-  (def i int 0)
   (if (>= this.k 0)
       (begin
-       (csym::send-int this.i1)
-       (csym::send-int this.i2)
-       (for ((= i 0) (< i this.n) (inc i))
-            (csym::send-int (aref this.a i)))
-       (for ((= i 0) (< i (- (* 2 this.n) 1)) (inc i))
-            (csym::send-int (aref this.lb i)))
-       (for ((= i 0) (< i (- (* 2 this.n) 1)) (inc i))
-            (csym::send-int (aref this.rb i)))))
-  )
+       (csym::send-bytes (cast (ptr void) (ptr this)) (sizeof this))
+  )))
 
 (def (task-receiver nqueens)
-  (def i int 0)
   (if (>= this.k 0)
       (begin
-       (= this.i1 (csym::recv-int))
-       (= this.i2 (csym::recv-int))
-       (for ((= i 0) (< i this.n) (inc i))
-            (= (aref this.a i) (csym::recv-int)))
-       (for ((= i 0) (< i (- (* 2 this.n) 1)) (inc i))
-            (= (aref this.lb i) (csym::recv-int)))
-       (for ((= i 0) (< i (- (* 2 this.n) 1)) (inc i))
-            (= (aref this.rb i) (csym::recv-int)))
+       (csym::recv-bytes (cast (ptr void) (ptr this)) (sizeof this))
   )))
 
 

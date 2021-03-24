@@ -357,31 +357,31 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def (csym::input-mat a n1 n2 nx) (csym::fn void (ptr double) int int int)
-  (decl i int)
-  (def swp int)
-  (= swp (csym::recv-binary-header 0 0))
-  (for ((= i 0) (< i n1) (inc i))
-    (csym::recv-double-seq (+ a (* i nx)) n2))
-  (csym::recv-binary-terminator)
-  (if swp
-      (for ((= i 0) (< i n1) (inc i))
-        (csym::swap-doubles (+ a (* i nx)) n2))))
+;; (def (csym::input-mat a n1 n2 nx) (csym::fn void (ptr double) int int int)
+;;   (decl i int)
+;;   (def swp int)
+;;   (= swp (csym::recv-binary-header 0 0))
+;;   (for ((= i 0) (< i n1) (inc i))
+;;     (csym::recv-double-seq (+ a (* i nx)) n2))
+;;   (csym::recv-binary-terminator)
+;;   (if swp
+;;       (for ((= i 0) (< i n1) (inc i))
+;;         (csym::swap-doubles (+ a (* i nx)) n2))))
 
-(def (csym::output-mat a n1 n2 nx) (fn void (ptr double) int int int)
-  (def i int)
-  (csym::send-binary-header (sizeof double) (* n1 n2))
-  (for ((= i 0) (< i n1) (inc i))
-    (csym::send-double-seq (+ a (* i nx)) n2))
-  (csym::send-binary-terminator))
+;; (def (csym::output-mat a n1 n2 nx) (fn void (ptr double) int int int)
+;;   (def i int)
+;;   (csym::send-binary-header (sizeof double) (* n1 n2))
+;;   (for ((= i 0) (< i n1) (inc i))
+;;     (csym::send-double-seq (+ a (* i nx)) n2))
+;;   (csym::send-binary-terminator))
 
-#+comment                               ; easy but less efficient implementation
+;; #+comment                               ; easy but less efficient implementation
 (def (csym::input-mat a n1 n2 nx) (csym::fn void (ptr double) int int int)
   (decl i int)
   (for ((= i 0) (< i n1) (inc i))
     (csym::recv-doubles (+ a (* i nx)) n2)))
 
-#+comment                               ; easy but less efficient implementation
+;; #+comment                               ; easy but less efficient implementation
 (def (csym::output-mat a n1 n2 nx) (fn void (ptr double) int int int)
   (def i int)
   (for ((= i 0) (< i n1) (inc i))
@@ -389,39 +389,63 @@
 
 (def (csym::input-mat-l a n1 nx) (fn void (ptr double) int int)
   (decl i int)
-  (decl swp int)
-  (= swp (csym::recv-binary-header 0 0))
   (for ((= i 0) (< i n1) (inc i)) 
-    (csym::recv-double-seq (+ a (* i nx)) (+ i 1)))
-  (csym::recv-binary-terminator)
-  (if swp
-      (for ((= i 0) (< i n1) (inc i))
-        (csym::swap-doubles (+ a (* i nx)) (+ i 1)))))
+    (csym::recv-doubles (+ a (* i nx)) (+ i 1)))
+  )
 
 (def (csym::output-mat-l a n1 nx) (fn void (ptr double) int int)
   (decl i int)
-  (csym::send-binary-header (sizeof double) (/ (* n1 (+ n1 1)) 2))
   (for ((= i 0) (< i n1) (inc i))
-    (csym::send-double-seq (+ a (* i nx)) (+ i 1)))
-  (csym::send-binary-terminator))
+    (csym::send-doubles (+ a (* i nx)) (+ i 1)))
+  )
 
 (def (csym::input-mat-u a n1 nx) (fn void (ptr double) int int)
   (decl i int)
-  (decl swp int)
-  (= swp (csym::recv-binary-header 0 0))
   (for ((= i 0) (< i n1) (inc i))
-    (csym::recv-double-seq (+ a (* i nx) i 1) (- n1 i 1)))
-  (csym::recv-binary-terminator)
-  (if swp
-      (for ((= i 0) (< i n1) (inc i))
-        (csym::swap-doubles (+ a (* i nx) i 1) (- n1 i 1)))))
+    (csym::recv-doubles (+ a (* i nx) i 1) (- n1 i 1)))
+  )
 
 (def (csym::output-mat-u a n1 nx) (csym::fn void (ptr double) int int)
   (decl i int) 
-  (csym::send-binary-header (sizeof double) (/ (* n1 (- n1 1)) 2))
   (for ((= i 0) (< i n1) (inc i)) 
-    (csym::send-double-seq (+ a (* i nx) i 1) (- n1 i 1)))
-  (csym::send-binary-terminator))
+    (csym::send-doubles (+ a (* i nx) i 1) (- n1 i 1)))
+  )
+
+;; (def (csym::input-mat-l a n1 nx) (fn void (ptr double) int int)
+;;   (decl i int)
+;;   (decl swp int)
+;;   (= swp (csym::recv-binary-header 0 0))
+;;   (for ((= i 0) (< i n1) (inc i)) 
+;;     (csym::recv-double-seq (+ a (* i nx)) (+ i 1)))
+;;   (csym::recv-binary-terminator)
+;;   (if swp
+;;       (for ((= i 0) (< i n1) (inc i))
+;;         (csym::swap-doubles (+ a (* i nx)) (+ i 1)))))
+
+;; (def (csym::output-mat-l a n1 nx) (fn void (ptr double) int int)
+;;   (decl i int)
+;;   (csym::send-binary-header (sizeof double) (/ (* n1 (+ n1 1)) 2))
+;;   (for ((= i 0) (< i n1) (inc i))
+;;     (csym::send-double-seq (+ a (* i nx)) (+ i 1)))
+;;   (csym::send-binary-terminator))
+
+;; (def (csym::input-mat-u a n1 nx) (fn void (ptr double) int int)
+;;   (decl i int)
+;;   (decl swp int)
+;;   (= swp (csym::recv-binary-header 0 0))
+;;   (for ((= i 0) (< i n1) (inc i))
+;;     (csym::recv-double-seq (+ a (* i nx) i 1) (- n1 i 1)))
+;;   (csym::recv-binary-terminator)
+;;   (if swp
+;;       (for ((= i 0) (< i n1) (inc i))
+;;         (csym::swap-doubles (+ a (* i nx) i 1) (- n1 i 1)))))
+
+;; (def (csym::output-mat-u a n1 nx) (csym::fn void (ptr double) int int)
+;;   (decl i int) 
+;;   (csym::send-binary-header (sizeof double) (/ (* n1 (- n1 1)) 2))
+;;   (for ((= i 0) (< i n1) (inc i)) 
+;;     (csym::send-double-seq (+ a (* i nx) i 1) (- n1 i 1)))
+;;   (csym::send-binary-terminator))
 
 (def (csym::zero-mat a n1 n2 nx) (fn void (ptr double) int int int)
   (decl i int)

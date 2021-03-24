@@ -53,26 +53,30 @@
              (* 0.000001
                 (- (fref (aref tp 1) tv-usec)
                    (fref (aref tp 0) tv-usec))))))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;a
 
 (def (task gravity)
   (def f (array double 3))   ; result
   (def rf (array double 3))  ; 小さい値を蓄積してく場所
-  (def minx int :in)
-  (def miny int :in)
-  (def minz int :in)
-  (def maxx int :in)
-  (def maxy int :in)
-  (def maxz int :in)
+  (def minx int )
+  (def miny int )
+  (def minz int )
+  (def maxx int )
+  (def maxy int )
+  (def maxz int )
   (def cur (array double 3))  ; 入力座標：ここへの重力ベクトルを計算
   ;;(def dummy (array char 4000))
   )
   
 (def (task-sender gravity)
-  (csym::send-doubles this.cur 3))
+  (csym::send-bytes (cast (ptr void) (ptr this.minx)) (- (sizeof this) (- (cast (ptr char)(ptr this.minx)) (cast (ptr char)(ptr this)))))
+  )
+
+;; sizeof (this) - ((char*)&this.minx - (char*)&this))
 
 (def (task-receiver gravity)
-  (csym::recv-doubles this.cur 3))
+  (csym::recv-bytes (cast (ptr void) (ptr this.minx)) (- (sizeof this) (- (cast (ptr char)(ptr this.minx)) (cast (ptr char)(ptr this)))))
+  )
 
 (def (rslt-sender gravity)
   (csym::send-doubles this.f 3))

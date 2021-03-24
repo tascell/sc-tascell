@@ -56,16 +56,24 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (def (task pentomino)
   (def r int :out)
-  (def k int :in)
-  (def i0 int :in)
-  (def i1 int :in)
-  (def i2 int :in)
-  (def maxp int :in)  ; number of pieces
-  (def maxk int :in)  ; the last empty cell
-  (def a (array int ASIZE) :in)
-  (def b (array int BSIZE) :in))
+  (def k int )
+  (def i0 int )
+  (def i1 int )
+  (def i2 int )
+  (def maxp int )  ; number of pieces
+  (def maxk int )  ; the last empty cell
+  (def a (array int ASIZE))
+  (def b (array int BSIZE)))
 
-;; task/rslt-sender/receiver = default
+(def (task-sender pentomino)
+  (csym::send-bytes (cast (ptr void) (ptr this)) (sizeof this))
+  )
+
+(def (task-receiver pentomino)
+  (csym::recv-bytes (cast (ptr void) (ptr this)) (sizeof this))
+  )
+
+;; rslt-sender/receiver = default
 
 (decl (search k j0 j1 j2 maxp maxk tsk) (wfn int int int int int int int (ptr (struct pentomino))))
 (def (task-body pentomino)
