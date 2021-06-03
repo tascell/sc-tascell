@@ -53,18 +53,23 @@
 (extendrule statement tcell-sc1
   ((#?(do-two ,stat1 ,stat2 ({handles} ,id
                              {(:guard ,@guard-body ,guard-exp)}
+                             {(:node ,@node-body ,node-exp)}
                              (:put ,@put-body) (:get ,@get-body))))
    ~(do-two (begin ,(statement stat1)) (begin ,(statement stat2))
       (handles ,id
        ,@(if-pattern-variable guard-exp
              (list ~(:guard ,@(function-body guard-body)
                             ,(expression guard-exp))))
+       ,@(if-pattern-variable node-exp
+             (list ~(:node ,@(function-body node-body)
+                           ,(expression node-exp))))
        (:put ,@(function-body put-body))
        (:get ,@(function-body get-body)))) )
   ((#?(do-many for ,var from ,from to ,to
 	,@body
 	({handles} ,id
          {(:guard ,@guard-body ,guard-exp)}
+         {(:node ,@node-body ,node-exp)}
          {(:spawn-from ,@spn-from-body ,spn-from-exp)}
 	 (:put from ,put-from to ,put-to ,@put-body)
 	 (:get ,@get-body))))
@@ -74,6 +79,9 @@
        ,@(if-pattern-variable guard-exp
              (list ~(:guard ,@(function-body guard-body)
                             ,(expression guard-exp))))
+       ,@(if-pattern-variable node-exp
+             (list ~(:node ,@(function-body node-body)
+                           ,(expression node-exp))))
        ,@(if-pattern-variable spn-from-exp
              (list ~(:spawn-from ,@(function-body spn-from-body)
                                  ,(expression spn-from-exp))))
@@ -89,8 +97,8 @@
       (handles ,id
        (:put ,@(function-body put-body))
        (:get ,@(function-body get-body)))) )
-  (#?(tcell-broadcast ,id (:put ,@put-body))
-   ~(tcell-broadcast ,id (:put ,@(function-body put-body))))
+  (#?(tcell-broadcast ,id (:put ,@put-body) @body)
+   ~(tcell-broadcast ,id (:put ,@(function-body put-body)) ,@(function-body body)))
   ((#?(dynamic-wind
        (:before ,@bef-body)
        (:body ,@body)

@@ -16,7 +16,7 @@ GCC=mpiicc
 # Command for Intel C Compiler
 ICC=icc
 # Optimization options for C Compilers
-OPT=-O3 -g $(MOPT)
+OPT=-O2 -g $(MOPT) -std=gnu11 ../data/bem_file.c
 OPT+=-D USEMPI
 
 # Keyword for L-Closures and Closures in XC Cube. Don't modify.
@@ -51,7 +51,7 @@ endif
 # icc-c, icc-lw, and icc-clos}
 # By default, this Makefile makes all ALL_PROGS. You can make just one of targets by specifying the target file name,
 # (e.g., "make fib-gcc")
-APPS=fib fib-guard fib-try fib-thr lu cmp pen pen-excep pen6x17 pen6x17-guard pen6x17-try pen6x17-thr nq nq-try nq-thr grav matmul spanning bcast copine0 copine1 copine2 copine3 copine4 copine0d copine1d copine3d
+APPS=fib fib-guard fib-try fib-thr lu cmp pen pen-excep pen6x17 pen6x17-guard pen6x17-try pen6x17-thr nq nq-try nq-thr grav matmul spanning bcast copine0 copine1 copine2 copine3 copine4 copine0d copine1d copine3d hmat_all hmat_dist hmat_dist_bcst
 
 C_PROGS=$(addsuffix -c,$(APPS))
 GCC_PROGS=$(addsuffix -gcc,$(APPS))
@@ -156,7 +156,7 @@ $(XCCCL_PROGS): %: $(WORKER_XCCCL) $(LIBS) %.c
 
 # "make clean" to delete all target files
 clean:
-	rm -f $(ALL_PROGS)
+	rm -f $(ALL_PROGS) core* B*
 # "make clean" to delete all target files and intermediate files
 allclean:
 	rm -f $(ALL_PROGS) cinclude_tmp.h cinclude_tmp.se cinclude_tmp.se1 cinclude_tmp.se2 cinclude_tmp.se3 cinclude_tmp.se4 cinclude_tmp.se5 cinclude_tmp.se6 cinclude_tmp.se7

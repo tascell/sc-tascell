@@ -196,6 +196,7 @@
   ;;   <stat1>が終わり，sendした仕事の結果が返ってきたら，:get 以下を実行．
   (#?(do-two ,stat1 ,stat2 ({handles} ,id 
                             {(:guard ,@guard-body ,guard-exp)}
+                            {(:node ,@node-body ,node-exp)}
                             (:put ,@put-body) (:get ,@get-body)))
    (when (ruleset-param 'no-nestfunc)
      (return-from statement ~(begin ,(block-item stat1)
@@ -239,6 +240,12 @@
 			,@guard-body
 			(if (csym::guard-task-request-prob -thr ,guard-exp)
 			    (continue)))))
+    ,@(if-pattern-variable node-exp
+      (list
+        ~(begin
+          ,@node-body
+          (if (csym::guard-node-task-request -thr ,node-exp)
+            (continue)))))
 		(= pthis
 		   (cast (ptr (struct ,(tcell:task-struct-id)))
 		     (csym::malloc (sizeof (struct ,(tcell:task-struct-id))))))
@@ -279,6 +286,7 @@
               ({handles} ,id
                {(:guard ,@guard-body ,guard-exp)}
                {(:spawn-from  ,@spn-from-body ,spn-from-exp)}
+               {(:node ,@node-body ,node-exp)}
                (:put from ,put-from to ,put-to ,@put-body)
                (:get ,@get-body)))
    (when (ruleset-param 'no-nestfunc)
@@ -313,6 +321,7 @@
 		   (csym::free pthis))
 		 ;; Continue backtracking (never returns)
 		 (,(tcell:latest-bk))))
+           
            ;; If this do-many has not spawned any tasks, continue backtracking
            (if (not ,spn-id) (,(tcell:latest-bk)))
            (while (and -thr->treq-top              ; there remains a treq?
@@ -325,6 +334,12 @@
                        ,@guard-body
                        (if (csym::guard-task-request-prob -thr ,guard-exp)
                            (continue)))))
+              ,@(if-pattern-variable node-exp
+                    (list
+                      ~(begin
+                        ,@node-body
+                        (if (csym::guard-node-task-request -thr ,node-exp)
+                            (continue)))))
              ,(if-pattern-variable spn-from-exp
                                    ~(begin
                                      ,@spn-from-body
@@ -416,7 +431,7 @@
   ;; * タスクを全ノードに送りつける
   ;; * 全ノードからのackを待ち合わせる
   ;; * タスクオブジェクトの初期化方法は:putで指定
-  (#?(tcell-broadcast ,id (:put ,@put-body))
+  #|(#?(tcell-broadcast ,id (:put ,@put-body))
    (tcell:with-task id
      ~(begin
        (def pthis (ptr (struct ,(tcell:task-struct-id))))
@@ -424,7 +439,30 @@
           (cast (ptr (struct ,(tcell:task-struct-id)))
                 (csym::malloc (sizeof (struct ,(tcell:task-struct-id))))))
        (begin ,@(function-body put-body))
-       (csym::broadcast-task -thr ,(tcell:task-no) pthis))))
+       (csym::broadcast-task -thr ,(tcell:task-no) pthis))))|#
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  (#?(tcell-broadcast ,id (:put ,@put-body) ,@body)
+    (tcell:with-task id
+      ~(begin
+        (def pthis (ptr (struct ,(tcell:task-struct-id))))
+        (= pthis 
+          (cast (ptr (struct ,(tcell:task-struct-id)))
+                (csym::malloc (sizeof (struct ,(tcell:task-struct-id))))))
+        (begin ,@(function-body put-body))
+        (csym::broadcast-task -thr ,(tcell:task-no) pthis)
+        
+        (begin ,@(function-body body))
+
+        
+          
+            (csym::pthread-mutex-lock (ptr -thr->mut))
+            (while -thr->w-bcak
+              (csym::pthread-cond-wait (ptr -thr->cond) (ptr -thr->mut)))
+              (csym::pthread-mutex-unlock (ptr -thr->mut))
+          
+      )  
+    )
+  )
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; dynamic-wind
   ;; * do-two, do-many の（動的）スコープ内で使用

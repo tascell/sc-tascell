@@ -355,6 +355,7 @@
 
 (decl (csym::guard-task-request) (csym::fn void (ptr (struct thread-data))))
 (decl (csym::guard-task-request-prob) (csym::fn int (ptr (struct thread-data)) double))
+(decl (csym::guard-node-task-request) (csym::fn int (ptr (struct thread-data)) int))
 (decl (csym::recv-rslt) (csym::fn void (ptr (struct cmd)) (ptr void)))
 (decl (csym::recv-task) (csym::fn void (ptr (struct cmd)) (ptr void)))
 (decl (csym::recv-treq) (csym::fn void (ptr (struct cmd))))

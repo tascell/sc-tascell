@@ -144,7 +144,20 @@ void send_block_start (void)
 // Finish adding the message to the send queue.
 void send_block_end(int rank)
 {
-    MPI_Send(sq->buf, sq->len, MPI_CHAR, rank, 0, MPI_COMM_WORLD);
+    if(rank == -1){
+      int i;
+      int world_size;
+      int my_rank;
+      MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+      MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+      for(i=0;i<world_size;i++){
+        if(i != my_rank){
+          MPI_Send(sq->buf, sq->len, MPI_CHAR, i, 0, MPI_COMM_WORLD);
+        }
+      }
+    }else{
+        MPI_Send(sq->buf, sq->len, MPI_CHAR, rank, 0, MPI_COMM_WORLD);
+    }
     free(sq->buf);
     free(sq);
 }

@@ -66,3 +66,6 @@ int recv_double_seq (double *a, int nelm);
 /* ヘッダの送受信も含む */
 int send_doubles (double *a, int nelm);
 int recv_doubles (double *a, int nelm);
+
+int send_double (double d);
+int recv_double (void);

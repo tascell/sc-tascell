@@ -236,6 +236,8 @@
 	  (case TREQ) (= dest-rank (aref pcmd->v 1 0)) (break)
 	  (case NONE) (= dest-rank (aref pcmd->v 0 0)) (break)
 	  (case RACK) (= dest-rank (aref pcmd->v 0 0)) (break)
+    (case BCST) (= dest-rank -1) (break)
+    (case BCAK) (= dest-rank (aref pcmd->v 0 0)) (break)
 	  (default)
 	  (csym::fprintf stderr "Error: Invalid destination rank.~%")
 	  (break))
@@ -325,6 +327,24 @@
         (csym::flush-treq-with-none-1 thr (ptr thr->treq-top))
         (return 1))
     (return 0)))
+
+;;;Tascell user function:
+;;;To control some of the task do not steal jobs cross node
+(def (csym::guard-node-task-request thr flag) (csym::fn int (ptr (struct thread-data)) int)
+  (if (== flag 0)
+    (begin
+      (csym::flush-treq-with-none-1 thr (ptr thr->treq-top))
+      (return 1)))
+  (if (and (== flag 1) (== thr->treq-top->req-from OUTSIDE))
+    (begin
+      (csym::flush-treq-with-none-1 thr (ptr thr->treq-top))
+      (return 1)))
+  (if (and (== flag 2) (== thr->treq-top->req-from INSIDE))
+    (begin
+      (csym::flush-treq-with-none-1 thr (ptr thr->treq-top))
+      (return 1)))
+  (return 0)
+)
 
 ;;; Called by recv-exec-send and wait-rslt.
 ;;; The lock for 'thr' must have been acquried.
@@ -1192,7 +1212,7 @@
   (= thr (+ threads id))
   ;; decrease bcak counter and notify
   (csym::pthread-mutex-lock (ptr thr->mut))
-  (= thr->w-bcak 0)
+  (-- thr->w-bcak)
   (csym::pthread-cond-broadcast (ptr thr->cond))
   (csym::pthread-mutex-unlock (ptr thr->mut)))
 
@@ -1541,24 +1561,21 @@
   (= bcmd.c 2)                         ; # of argments
   (= bcmd.node OUTSIDE)                ; bcst is sent only to external node
   (= bcmd.w BCST)                      ; message kind = BCST
-  (= (aref bcmd.v 0 0) thr->id)        ; sender: worker ID
-  (= (aref bcmd.v 0 1) TERM)
+  (= (aref bcmd.v 0 0) my-rank)        ; sender: worker ID
+  (= (aref bcmd.v 0 1) thr->id)
+  (= (aref bcmd.v 0 2) TERM)
   (= (aref bcmd.v 1 0) task-no)        ; kind of broadcast
   (= (aref bcmd.v 1 1) TERM)
   ;; Send the message.
   ;; The broadcast data is sent by the user-defined method (associated with task-no)
   ;; invoked in send-out-command().
+  (csym::pthread-mutex-lock (ptr thr->mut))
+  (= thr->w-bcak (- num-procs 1))
+  (csym::pthread-mutex-unlock (ptr thr->mut))
   (csym::send-command (ptr bcmd) body task-no)
 
   ;; Increase w-bcak counter and waiting until a bcak message is returned and the counter is drecreased.
-  (if tcell-bcst-wait-bcak
-    (begin
-      (csym::pthread-mutex-lock (ptr thr->mut))
-      (= thr->w-bcak 1)
-      (while thr->w-bcak
-        (csym::pthread-cond-wait (ptr thr->cond) (ptr thr->mut)))
-      (csym::pthread-mutex-unlock (ptr thr->mut))
-      ))
+
   )
    
 
