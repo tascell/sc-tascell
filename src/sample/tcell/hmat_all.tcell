@@ -23,9 +23,9 @@
 ;; ; Spherepyramid
 ;;(%defconstant INPUT_DEFAULT "../data_pro1804/input_100ts.txt_pb_1.5_14.bin")
 ;; ; Sphere
-(%defconstant INPUT_DEFAULT "../data_pro1804/input_50ms.bin")
+;;(%defconstant INPUT_DEFAULT "../data_pro1804/input_50ms.bin")
 ;; ; humanoids
-;(%defconstant INPUT_DEFAULT "../data_pro1804/input_human_1x1.txt_cb_0.3_50_100_1.bin")
+(%defconstant INPUT_DEFAULT "../data_pro1804/input_human_1x1.txt_cb_0.3_50_100_1.bin")
 ;; ; small dataset for debug, N=1000
 ;(%defconstant INPUT_DEFAULT "../data_pro1804/input_100ts.txt.bin")
 

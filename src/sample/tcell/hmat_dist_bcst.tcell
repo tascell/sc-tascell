@@ -21,7 +21,13 @@
 (%defconstant Check-interval 100)
 (%defconstant MB 100000000000)
 (%defconstant LN 15000000)
-(%defconstant TH 5000000)
+(%defconstant TH 6250000)
+(%defconstant ND 3)
+
+;;(def dotwostart double)
+;;(def dotwoend double)
+;;(def dotwospend double)
+;;(def dotwoflag int 0)
 
 (%defconstant TCELL-CHECK-REQ 1)
 
@@ -127,29 +133,25 @@
 
 (def (task-sender build-cluster)
   (if (> 0 this.nd) (return))
+  (def my_rank int)
+  (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
+  (def timetrack double)
+  (= timetrack (MPI_Wtime))
+  (csym::fprintf stderr "Tlog tasksender: %lf %d %ld %ld %ld~%" timetrack my_rank this.nsrt (+ this.nsrt this.nd) this.ndpth)
   (csym::send-doubles (cast (ptr double) this.zgmid) (* this.nd 3))
-  ;;(csym::send-doubles (cast (ptr double) this.tempzgmid) (* this.nd 3))
 )
 
 (def (task-receiver build-cluster)
   (if (== flag 0)
-    (begin 
+    (begin
       (= privateCTlist (cast (ptr cluster) (csym::malloc (* (sizeof cluster) LN))))
       (= resultCTlist (cast (ptr cluster) (csym::malloc (* (sizeof cluster) LN))))
       (= zgmid (cast (ptr (array double 3)) (csym::malloc (* (sizeof double) (* this.md 3)))))
       (= tempzgmid (cast (ptr (array double 3)) (csym::malloc (* (sizeof double) (* this.md 3)))))
       (def comm_size int)
-      ;;(def my_rank int)
       (csym::MPI_Comm_size MPI_COMM_WORLD (ptr comm_size))
-      ;;(csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
       (= length_list (cast (ptr int) (csym::malloc (* (sizeof int) comm_size))))
       (= length_list_BYTE (cast (ptr int) (csym::malloc (* (sizeof int) comm_size))))
-      ;;add MPI_Allgather() for all nodes exept rank0 here by using pthread.
-      ;;(if (not (== my_rank 0))
-      ;;  (begin 
-      ;;    (pthread_create (ptr mpi_thread) NULL my-allgather NULL)
-      ;;  )
-      ;;)
       (= flag 1)
     )
   )
@@ -157,8 +159,12 @@
     (begin
       (= this.zgmid (ptr (aref zgmid this.nsrt)))
       (= this.tempzgmid (ptr (aref tempzgmid this.nsrt)))
+      (def my_rank int)
+      (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
+      (def timetrack double)
+      (= timetrack (MPI_Wtime))
+      (csym::fprintf stderr "Tlog taskreceiver: %lf %d %ld %ld %ld~%" timetrack my_rank this.nsrt (+ this.nsrt this.nd) this.ndpth)
       (csym::recv-doubles (cast (ptr double) this.zgmid) (* this.nd 3))
-      ;;(csym::recv-doubles (cast (ptr double) this.tempzgmid) (* this.nd 3))
     )
   )
 )
@@ -471,7 +477,7 @@
       (= flag 1)
     )
   )
-
+  (csym::fprintf stderr "begintime: %lf %d %ld %ld %ld~%" (csym::MPI_Wtime) 0 0 50000000 0)
   (= start (csym::get-wall-time))
   (= st-clt (create-ctree-ssgeom zgmid tempzgmid ndpth ndscd nsrt ndf nofc nclst ndim))
   (= end (csym::get-wall-time))
@@ -991,6 +997,11 @@
 	        (def nd1 int nl)
 	        (def nsrt2 int (+ nsrt nl))
 	        (def nd2 int (- nd nl))
+          ;;(def my_rank int)
+          ;;(csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
+          ;;(def dotwostart double)
+          ;;(= dotwostart (csym::MPI_Wtime))
+          ;;(csym::fprintf stderr "dotwostart: %f %d %d %d %d~%" (csym::MPI_Wtime) my_rank nsrt (- (+ nd nsrt) 1) ndpth)
 	        (if (> nd PL)
 	          (begin ;parallel here
 		          (if (<= nd PN)
@@ -1007,7 +1018,7 @@
                     )
 			              (handles build-cluster
                       ;;(:guard (def p double 0)(if (> nd MB)(begin(= p 1))(begin(= p 0)))p)
-                      (:node (def flag int 3)(if (> nd TH)(begin (= flag 2))) flag) ;;0:reject all, 1:reject outside, 2:reject inside, 3 allow all
+                      (:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag) ;;0:reject all, 1:reject outside, 2:reject inside, 3 allow all
 			                (:put
 			                  (= this.zgmid (ptr (aref zgmid nl)))
 			                  (= this.tempzgmid (ptr (aref tempzgmid nl)))
@@ -1064,7 +1075,7 @@
                             )
 				                    (handles build-cluster
                               ;;(:guard (def p double 0)(if (> nd MB)(begin(= p 1))(begin(= p 0)))p)
-				                      (:node (def flag int 3)(if (> nd TH)(begin (= flag 2))) flag)
+				                      (:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag)
                               (:put
 				                        (= this.zgmid (ptr (aref tempzgmid nl)))
 				                        (= this.tempzgmid (ptr (aref zgmid nl)))
@@ -1124,7 +1135,7 @@
                                 )
 				                        (handles build-cluster
                                   ;;(:guard (def p double 0)(if (> nd MB)(begin(= p 1))(begin(= p 0)))p)
-					                        (:node (def flag int 3)(if (> nd TH)(begin (= flag 2))) flag)
+					                        (:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag)
                                   (:put
 					                          (= this.zgmid (ptr (aref zgmid nl)))
 					                          (= this.tempzgmid (ptr (aref tempzgmid nl)))
@@ -1183,7 +1194,7 @@
                                     )
 					                          (handles build-cluster
                                       ;;(:guard (def p double 0)(if (> nd MB)(begin(= p 1))(begin(= p 0)))p)
-					                            (:node (def flag int 3)(if (> nd TH)(begin (= flag 2))) flag)
+					                            (:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag)
                                       (:put
 					                              (= this.zgmid (ptr (aref tempzgmid nl)))
 					                              (= this.tempzgmid (ptr (aref zgmid nl)))
@@ -1242,7 +1253,7 @@
                                         )
 					                              (handles build-cluster
                                           ;;(:guard (def p double 0)(if (> nd MB)(begin(= p 1))(begin(= p 0)))p)
-						                              (:node (def flag int 3)(if (> nd TH)(begin (= flag 2))) flag)
+						                              (:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag)
                                           (:put
 						                                (= this.zgmid (ptr (aref zgmid nl)))
 						                                (= this.tempzgmid (ptr (aref tempzgmid nl)))
@@ -1303,7 +1314,7 @@
                         )
 			                  (handles build-cluster
                           ;;(:guard (def p double 0)(if (> nd MB)(begin(= p 1))(begin(= p 0)))p)
-			                    (:node (def flag int 3)(if (> nd TH)(begin (= flag 2))) flag)
+			                    (:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag)
                           (:put
 			                      (= this.zgmid (ptr (aref tempzgmid nl)))
 			                      (= this.tempzgmid (ptr (aref zgmid nl)))
@@ -1457,7 +1468,9 @@
 )
 
 (def (minmax i1 i2 zgmid tsk ndpth nsrt) (wfn void int int (ptr (array double 3)) (ptr (struct minmax)) int int)
-  ;;(csym::fprintf stderr "minmax: %f %d %d %d %d~%" (csym::get-wall-time) WORKER-ID (+ i1 nsrt) (- (+ i2 nsrt) 1) ndpth)
+  (def my_rank int)
+  (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
+  (csym::fprintf stderr "Tlog minmax: %f %d %d %d %d~%" (csym::MPI_Wtime) my_rank (+ i1 nsrt) (- (+ i2 nsrt) 1) ndpth)
   (def il int)
   (def minx double)
   (def miny double)
@@ -1526,7 +1539,7 @@
   (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
   (def timetrack double)
   (= timetrack (MPI_Wtime))
-  (csym::fprintf stderr "timetrack %lf %d %ld %ld %ld~%" timetrack my_rank start end ndpth)
+  (csym::fprintf stderr "Tlog countNum: %lf %d %ld %ld %ld~%" timetrack my_rank start end ndpth)
   (def id int)
   (do-many for id from i1 to i2
     (if (== 0 (% (- i1 id 1) Check-interval))
@@ -1575,6 +1588,11 @@
     )
   )
   (if (> start end) (begin (csym::fprintf stderr "error: start>end~%")))
+  (def my_rank int)
+  (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
+  (def timetrack double)
+  (= timetrack (MPI_Wtime))
+  (csym::fprintf stderr "Tlog setStart: %lf %d %ld %ld %ld~%" timetrack my_rank start end ndpth)
   ;;(csym::fprintf stderr "setStart: %f %d %d %d %d~%" (csym::get-wall-time) WORKER-ID start end ndpth)
   (def id int)
   (do-many for id from i1 to i2

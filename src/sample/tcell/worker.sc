@@ -337,10 +337,12 @@
       (return 1)))
   (if (and (== flag 1) (== thr->treq-top->req-from OUTSIDE))
     (begin
+      ;;(csym::fprintf stderr "OUTSIDE work-steal rejected~%")
       (csym::flush-treq-with-none-1 thr (ptr thr->treq-top))
       (return 1)))
   (if (and (== flag 2) (== thr->treq-top->req-from INSIDE))
     (begin
+      ;;(csym::fprintf stderr "INSIDE work-steal rejected~%")
       (csym::flush-treq-with-none-1 thr (ptr thr->treq-top))
       (return 1)))
   (return 0)
