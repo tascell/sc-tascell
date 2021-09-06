@@ -141,7 +141,7 @@
     (put :before tag 0)
     (put :body tag 0)
     (put :after tag 0)
-    (put catch tag 1)
+    (put 'catch tag 1)
     ))
 
 (provide 'tcell-mode)
