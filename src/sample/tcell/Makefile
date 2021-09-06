@@ -3,7 +3,7 @@ OS=${shell uname}
 SC2C=sc2c
 # Options for SC-to-C compiler
 SC2C_OPT=
-# SC2C_OPT+=-m              # don't remove intermediate files
+SC2C_OPT+=-m              # don't remove intermediate files
 # SC2C_OPT+=-D DEBUG=0      # invalidate debugging code
 # SC2C_OPT+=-D NO-EXCEPTION # invalidate exception support
 SC2C_OPT+=-D PROFILE        # validate profiling
@@ -48,7 +48,7 @@ endif
 # icc-c, icc-lw, and icc-clos}
 # By default, this Makefile makes all ALL_PROGS. You can make just one of targets by specifying the target file name,
 # (e.g., "make fib-gcc")
-APPS=fib fib-guard fib-try fib-thr lu cmp pen pen-excep pen6x17 pen6x17-guard pen6x17-try pen6x17-thr nq nq-copy nq-try nq-thr grav matmul spanning bcast minmax copine0 copine1 copine2 copine3 copine4 copine0d copine1d copine3d
+APPS=fib fib-guard fib-try fib-thr lu cmp pen pen-excep pen6x17 pen6x17-copy pen6x17-guard pen6x17-try pen6x17-thr nq nq-copy nq-try nq-thr grav matmul spanning bcast minmax copine0 copine1 copine2 copine3 copine4 copine0d copine1d copine3d
 
 C_PROGS=$(addsuffix -c,$(APPS))
 GCC_PROGS=$(addsuffix -gcc,$(APPS))
