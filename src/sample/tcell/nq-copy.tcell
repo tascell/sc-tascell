@@ -22,20 +22,30 @@
 ;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 ;;; SUCH DAMAGE.
 
-;;; Find all the solutions of the n-queen problem (with copying working spaces)
+;;; Find all the solutions of the n-queen problem.
+;;; This programs is for evaluating the effect of reuse of workspaces
 
-;; task 0 0 0 0
+;;; * How to execute
+;;; Specify the -i "<L> <n> -1" as a command line option.
+;;; Otherwise, type the following text followed by a blank line 
+;; task 0 0 0 <L>
 ;; <n>
 ;; -1
+;;; where
+;;; <n> is the number of queens
+;;; <L>=0: do not reuse workspace
+;;; <L>=1: reuse a single workspace among siblings, not between parent and children
+;;; <L>=2: always reuse a single workspace during sequential executions
 
 (c-exp "#include<sys/time.h>")
 
 (%include "rule/tcell-setrule.sh")
 (%include "clib.sh")
+(%include "dprint.sh")
 (%cinclude "sendrecv.h" (:macro))
 
 ;;; thread local strogae
-(def (task nqueens)
+(%defconstant TASK-MEMBERS (%splice
   (def r int :out)  ; （部分）解の数
   (def n int :in)   ;  問題サイズ
   (def k int :in)   ;  初期化->探索開始(-1) or 部分探索開始かのフラグ(>=0)
@@ -44,9 +54,15 @@
   (def a (array int 20)) ; 使用済み行の管理
   (def lb (array int 40)) ; 盤面情報1
   (def rb (array int 40)) ; 盤面情報2
-  )
+  ))
+(def (task nqueens0)
+  TASK-MEMBERS)
+(def (task nqueens1)
+  TASK-MEMBERS)
+(def (task nqueens2)
+  TASK-MEMBERS)
 
-(def (task-sender nqueens)
+(%defconstant TSENDER-BODY (%splice
   (def i int 0)
   (if (>= this.k 0)
       (begin
@@ -58,9 +74,15 @@
             (csym::send-int (aref this.lb i)))
        (for ((= i 0) (< i (- (* 2 this.n) 1)) (inc i))
             (csym::send-int (aref this.rb i)))))
-  )
+  ))
+(def (task-sender nqueens0)
+  TSENDER-BODY)
+(def (task-sender nqueens1)
+  TSENDER-BODY)
+(def (task-sender nqueens2)
+  TSENDER-BODY)
 
-(def (task-receiver nqueens)
+(%defconstant TRECEIVER-BODY (%splice
   (def i int 0)
   (if (>= this.k 0)
       (begin
@@ -72,47 +94,117 @@
             (= (aref this.lb i) (csym::recv-int)))
        (for ((= i 0) (< i (- (* 2 this.n) 1)) (inc i))
             (= (aref this.rb i) (csym::recv-int)))
-  )))
+       ))
+  ))
+(def (task-receiver nqueens0)
+  TRECEIVER-BODY)
+(def (task-receiver nqueens1)
+  TRECEIVER-BODY)
+(def (task-receiver nqueens2)
+  TRECEIVER-BODY)
 
 ;; k: a[j] (0<k)までの行にはもう置いた
 ;; ix, iy:  探索範囲
-(def (nqueens n k ix iy tsk)
-    (wfn int int int int int (ptr (struct nqueens)))
+
+;; nqueens0: 
+(def (nqueens0 n k ix iy tsk)
+    (wfn int int int int int (ptr (struct nqueens0)))
   (def s int 0)
-  (def this-tsk (struct nqueens))
-  (def st (ptr (struct nqueens)))
-  (= st (ptr this-tsk))
   (do-many for i from ix to iy
     (def ai int (aref tsk->a i))
     ;; 駒が置けるかチェック
     (if (not (or (aref tsk->lb (+ n -1 (- ai) k))
                  (aref tsk->rb (+ ai k))))
         (begin
-         (if (== k (- n 1)) (inc s)
-             (begin
-              (begin
-               (begin
-                (= (mref st) (mref tsk))
-                )
-               (begin
-                (= (aref st->lb (+ n -1 (- ai) k)) 1)
-                (= (aref st->rb (+ ai k)) 1)
-                (= (aref st->a i) (aref st->a k))
-                (= (aref st->a k) ai))
-               (begin
-                (+= s (nqueens n (+ k 1) (+ k 1) n st)))
-;                (begin
-;                 (= (mref tsk) tsk-copy))
-               )))))
-    (handles nqueens
-     (:put from i1 to i2
-           (= this (mref tsk))
-           (= this.k k)
-           (= this.i1 i1)
-           (= this.i2 i2))
-     (:get (+= s this.r))))
+	  (if (== k (- n 1))
+	      (inc s)
+	    (begin
+	      (def ntsk (array (struct nqueens0) 1))
+	      (= (mref ntsk) (mref tsk))
+	      (= (aref ntsk->lb (+ n -1 (- ai) k)) 1)
+	      (= (aref ntsk->rb (+ ai k)) 1)
+	      (= (aref ntsk->a i) (aref ntsk->a k))
+	      (= (aref ntsk->a k) ai)
+	      (+= s (nqueens0 n (+ k 1) (+ k 1) n ntsk)))
+	    )))
+    (handles nqueens0
+      (:put from i1 to i2
+	    (= this (mref tsk))
+	    (= this.k k)
+	    (= this.i1 i1)
+	    (= this.i2 i2))
+      (:get (+= s this.r))))
   (return s))
 
+(def (nqueens1 n k ix iy tsk)
+    (wfn int int int int int (ptr (struct nqueens1)))
+  (def s int 0)
+  (def otsk (ptr (struct nqueens1)) tsk)
+  (def ntsk (array (struct nqueens1) 1))  
+  (do-many for i from ix to iy
+    (def ai int (aref tsk->a i))
+    ;; 駒が置けるかチェック
+    (if (not (or (aref tsk->lb (+ n -1 (- ai) k))
+                 (aref tsk->rb (+ ai k))))
+        (begin
+	  (if (== k (- n 1)) (inc s)
+	    (begin
+	      (if (== tsk otsk)
+		  (begin
+		    (= (mref ntsk) (mref tsk))
+		    (= tsk ntsk)))
+	      (= (aref tsk->lb (+ n -1 (- ai) k)) 1)
+	      (= (aref tsk->rb (+ ai k)) 1)
+	      (= (aref tsk->a i) (aref tsk->a k))
+	      (= (aref tsk->a k) ai)
+	      (+= s (nqueens1 n (+ k 1) (+ k 1) n tsk))
+	      (= (aref tsk->lb (+ n -1 (- ai) k)) 0)
+	      (= (aref tsk->rb (+ ai k)) 0)
+	      (= ai (aref tsk->a k))
+	      (= (aref tsk->a k) (aref tsk->a i))
+	      (= (aref tsk->a i) ai)))))
+    (handles nqueens1
+      (:put from i1 to i2
+	    (= this (mref otsk))
+	    (= this.k k)
+	    (= this.i1 i1)
+	    (= this.i2 i2))
+      (:get (+= s this.r))))
+  (return s))
+
+(def (nqueens2 n k ix iy tsk)
+    (wfn int int int int int (ptr (struct nqueens2)))
+  (def s int 0)
+  (do-many for i from ix to iy
+    (def ai int (aref tsk->a i))
+    ;; 駒が置けるかチェック
+    (if (not (or (aref tsk->lb (+ n -1 (- ai) k))
+                 (aref tsk->rb (+ ai k))))
+        (begin
+	  (if (== k (- n 1)) (inc s)
+	    (begin
+	      (dynamic-wind
+		(:before
+		  (= (aref tsk->lb (+ n -1 (- ai) k)) 1)
+		  (= (aref tsk->rb (+ ai k)) 1)
+		  (= (aref tsk->a i) (aref tsk->a k))
+		  (= (aref tsk->a k) ai))
+		(:body
+		  (+= s (nqueens2 n (+ k 1) (+ k 1) n tsk)))
+		(:after
+		  (= (aref tsk->lb (+ n -1 (- ai) k)) 0)
+		  (= (aref tsk->rb (+ ai k)) 0)
+		  (= ai (aref tsk->a k))
+		  (= (aref tsk->a k) (aref tsk->a i))
+		  (= (aref tsk->a i) ai)))))))
+    (handles nqueens2
+      (:put from i1 to i2
+	    (= this (mref tsk))
+	    (= this.k k)
+	    (= this.i1 i1)
+	    (= this.i2 i2))
+      (:get (+= s this.r))))
+  (return s))
 
 (def (csym::elapsed-time tp) 
     (fn double (array (struct timeval) 2))
@@ -122,25 +214,34 @@
                 (- (fref (aref tp 1) tv-usec)
                    (fref (aref tp 0) tv-usec))))))
 
-(def (task-body nqueens)
-  (def i int)
-  (def n int this.n)
-  (def k int this.k)
-  (decl tp (array (struct timeval) 2))
-  (csym::fprintf stderr "start %d %d %d %d~%" n k this.i1 this.i2)
-  (if (< k 0)
-      (begin
-       (for ((= i 0) (< i n) (inc i))
+(%defmacro TBODY (fname)
+  `(%splice
+    (def i int)
+    (def n int this.n)
+    (def k int this.k)
+    (decl tp (array (struct timeval) 2))
+    (DEBUG-PRINT 1 (%string ,fname " start %d %d %d %d~%") n k this.i1 this.i2)
+    (if (< k 0)
+	(begin
+	  (for ((= i 0) (< i n) (inc i))
             (= (aref this.a i) i))
-       (for ((= i 0) (< i (- (* 2 n) 1)) (inc i))
+	  (for ((= i 0) (< i (- (* 2 n) 1)) (inc i))
             (= (aref this.lb i) 0)
             (= (aref this.rb i) 0))
-       (csym::gettimeofday tp 0)
-       (= this.r
-          (nqueens n 0 0 n (ptr this)))
-       (csym::gettimeofday (+ tp 1) 0)
-       (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp)))
+	  (csym::fprintf stderr (%string ,fname " %d start~%") n)
+	  (csym::gettimeofday tp 0)
+	  (= this.r
+	     (,fname n 0 0 n (ptr this)))
+	  (csym::gettimeofday (+ tp 1) 0)
+	  (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp)))
       (= this.r
-         (nqueens n k this.i1 this.i2 (ptr this))))
-  (csym::fprintf stderr "end %d %d %d %d~%" k n this.i1 this.i2)
-  )
+         (,fname n k this.i1 this.i2 (ptr this))))
+    (DEBUG-PRINT 1 "end %d %d %d %d~%" k n this.i1 this.i2)
+    ))
+
+(def (task-body nqueens0)
+    (TBODY nqueens0))
+(def (task-body nqueens1)
+    (TBODY nqueens1))
+(def (task-body nqueens2)
+    (TBODY nqueens2))
