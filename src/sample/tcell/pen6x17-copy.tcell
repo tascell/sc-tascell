@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; Copyright (c) 2008-2021 Tasuku Hiraishi <hiraishi@tachibana-u.ac.jp>
 ;;; All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -22,22 +22,38 @@
 ;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 ;;; SUCH DAMAGE.
 
-;;; Find all the solutions of Pentomino puzzle (with copying working spaces)
+;;; Find all the solutions of Pentomino puzzle
+;;; This programs is for evaluating the effect of reuse of workspaces
 
-;; task 0 0 0 1
+;;; * How to execute
+;;; Specify the -i "0 <n> <L>" as a command line option.
+;;; Otherwise, type the following text followed by a blank line 
+;; task 0 0 0 0
 ;; <n>
+;; <L>
+;;; where
+;;; <n> is the number of pieces
+;;; <L>=0: do not reuse workspace
+;;; <L>=1: reuse a single workspace among siblings, not between parent and children
+;;; <L>=2: always reuse a single workspace during sequential executions
 
 (c-exp "#include<sys/time.h>")
 
 (%include "rule/tcell-setrule.sh")
 (%include "clib.sh")
+(%include "dprint.sh")
 (%cinclude "sendrecv.h" (:macro))
 
 (%defconstant ASIZE 20)
 (%defconstant BSIZE 119)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(def (task pentomino)
+(def (task start-pentomino)
+  (def maxp int :in)     ; number of pieces
+  (def L int :in)        ; how to reuse workspaces (0, 1, 2)
+  (def r int :out))
+
+(%defconstant PEN-MEMBERS (%splice
   (def r int :out)
   (def k int :in)
   (def i0 int :in)
@@ -46,28 +62,43 @@
   (def maxp int :in)  ; number of pieces
   (def maxk int :in)  ; the last empty cell
   (def a (array int ASIZE) :in)
-  (def b (array int BSIZE) :in))
+  (def b (array int BSIZE) :in)
+  ))
+			    
+(def (task pentomino0)
+  PEN-MEMBERS)
+(def (task pentomino1)
+  PEN-MEMBERS)
+(def (task pentomino2)
+  PEN-MEMBERS)
 
 ;; task/rslt-sender/receiver = default
 
-(decl (search k j0 j1 j2 maxp maxk tsk) (wfn int int int int int int int (ptr (struct pentomino))))
-(def (task-body pentomino)
-  (decl i int)
-  (def k int this.k)
-  (def i0 int this.i0)
-  (def i1 int this.i1)
-  (def i2 int this.i2)
-  (def maxp int this.maxp)
-  (def maxk int this.maxk)
-  (csym::fprintf stderr "start %d %d %d %d %d %d~%" k i0 i1 i2 maxp maxk)
-  (= this.r (search k i0 i1 i2 maxp maxk (ptr this)))
-  (csym::fprintf stderr "end %d~%" this.r))
+(decl (search0 k j0 j1 j2 maxp maxk tsk) (wfn int int int int int int int (ptr (struct pentomino0))))
+(decl (search1 k j0 j1 j2 maxp maxk tsk) (wfn int int int int int int int (ptr (struct pentomino1))))
+(decl (search2 k j0 j1 j2 maxp maxk tsk) (wfn int int int int int int int (ptr (struct pentomino2))))
+(%defmacro PEN-BODY (fname)
+  `(%splice
+    (decl i int)
+    (def k int this.k)
+    (def i0 int this.i0)
+    (def i1 int this.i1)
+    (def i2 int this.i2)
+    (def maxp int this.maxp)
+    (def maxk int this.maxk)
+    (DEBUG-PRINT 1 (%string ,fname " start %d %d %d %d %d %d~%") k i0 i1 i2 maxp maxk)
+    (= this.r (,fname k i0 i1 i2 maxp maxk (ptr this)))
+    (DEBUG-PRINT 1 "end %d~%" this.r)
+    ))
+
+(def (task-body pentomino0)
+    (PEN-BODY search0))
+(def (task-body pentomino1)
+    (PEN-BODY search1))
+(def (task-body pentomino2)
+    (PEN-BODY search2))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(def (task start-pentomino)
-  (def maxp int :in) ; number of pieces
-  (def r int :out))
-
 (def (csym::elapsed-time tp) 
     (fn double (array (struct timeval) 2))
   (return (+ (- (fref (aref tp 1) tv-sec)
@@ -77,9 +108,28 @@
                    (fref (aref tp 0) tv-usec))))))
 
 ;; 新しい問題を解く
+(%defmacro INIT-PEN (pen)
+  `(begin
+     (for ((= i 0) (< i ASIZE) (inc i)) (= (aref (fref ,pen a) i) 0))
+     (for ((= i 0) (< i maxp) (inc i)) (= (aref (fref ,pen a) i) i))
+     (for ((= i 0) (< i BSIZE) (inc i)) (= (aref (fref ,pen b) i) 0))
+     (for ((= i 6) (< i BSIZE) (+= i 7))
+       (= (aref (fref ,pen b) i) #\Newline)) ; right side wall
+     ;; piece数*5 個目より先の穴は埋める
+     (= kk 0)
+     (for ((= i 0) (< i (* maxp 5)) (inc i))
+       (for ((inc kk) (< kk BSIZE) (inc kk)) (if (== (aref (fref ,pen b) kk) 0)
+                                                 (break))))
+     (= (fref ,pen maxk) kk)
+     (for ((< kk BSIZE) (inc kk)) (if (== (aref (fref ,pen b) kk) 0)
+				      (= (aref (fref ,pen b) kk) #\*)))
+     (= (fref ,pen maxp) maxp)))
+    
 (def (task-body start-pentomino)
   (decl tp (array (struct timeval) 2))
-  (def pen (struct pentomino))
+  (def pen0 (struct pentomino0))
+  (def pen1 (struct pentomino1))
+  (def pen2 (struct pentomino2))
   (def maxp int this.maxp)
   (def i int)
   (def kk int)
@@ -87,22 +137,28 @@
       (begin
         (csym::fprintf stderr "maxp=%d: no more than 20 pieces~%" maxp)
         (= maxp 12)))
-  (for ((= i 0) (< i ASIZE) (inc i)) (= (aref pen.a i) 0))
-  (for ((= i 0) (< i maxp) (inc i)) (= (aref pen.a i) i))
-  (for ((= i 0) (< i BSIZE) (inc i)) (= (aref pen.b i) 0))
-  (for ((= i 6) (< i BSIZE) (+= i 7))
-    (= (aref pen.b i) #\Newline)) ; right side wall
-  ;; piece数*5 個目より先の穴は埋める
-  (= kk 0)
-  (for ((= i 0) (< i (* maxp 5)) (inc i))
-       (for ((inc kk) (< kk BSIZE) (inc kk)) (if (== (aref pen.b kk) 0)
-                                                 (break))))
-  (= pen.maxk kk)
-  (for ((< kk BSIZE) (inc kk)) (if (== (aref pen.b kk) 0)
-                                   (= (aref pen.b kk) #\*)))
-  (= pen.maxp maxp)
+  (switch this.L
+    (case 0)
+    (INIT-PEN pen0)
+    (break)
+    (case 1)
+    (INIT-PEN pen1)
+    (break)
+    (case 2)
+    (INIT-PEN pen2)
+    (break))
+  (fprintf stderr "Start Pentomino: %d pieces, workspace strategy = %d~%" maxp this.L)
   (csym::gettimeofday tp 0)
-  (= this.r (search 0 0 0 maxp maxp pen.maxk (ptr pen)))
+  (switch this.L
+    (case 0)
+    (= this.r (search0 0 0 0 maxp maxp pen0.maxk (ptr pen0)))
+    (break)
+    (case 1)
+    (= this.r (search1 0 0 0 maxp maxp pen1.maxk (ptr pen1)))
+    (break)
+    (case 2)
+    (= this.r (search2 0 0 0 maxp maxp pen2.maxk (ptr pen2)))
+    (break))
   (csym::gettimeofday (+ tp 1) 0)
   (fprintf stderr "time: %lf~%"  (csym::elapsed-time tp)))
 
@@ -188,11 +244,8 @@
 ;; k: 最初の空きセル
 ;; j0:
 ;; j1--j2: 試すビースの種類
-(def (search k j0 j1 j2 maxp maxk tsk) (wfn int int int int int int int (ptr (struct pentomino)))
+(def (search0 k j0 j1 j2 maxp maxk tsk) (wfn int int int int int int int (ptr (struct pentomino0)))
   (def s int 0)
-  (def this-tsk (struct pentomino))
-  (def st (ptr (struct pentomino)))
-  (= st (ptr this-tsk))
   (do-many for p from j1 to j2
     (def ap int (aref (fref (mref tsk) a) p))
     (def i int)
@@ -206,52 +259,179 @@
                 (!= (aref (fref (mref tsk) b) kk) 0))
             (goto Ln)))
       (begin
+	(def ntsk (array (struct pentomino0) 1))
+	(= (mref ntsk) (mref tsk))
         (begin
-          (= (mref st) (mref tsk))
-          )
-        (begin
-          (= (aref (fref (mref st) b)
+          (= (aref (fref (mref ntsk) b)
                    (= kk k))
              (+ p #\A))
           (for ((= l 0) (< l 4) (inc l))
-            (= (aref (fref (mref st) b)
+            (= (aref (fref (mref ntsk) b)
                      (+= kk (aref pss l)))
                (+ p #\A)))
-          (= (aref (fref (mref st) a) p)
-             (aref (fref (mref st) a) j0))
-          (= (aref (fref (mref st) a) j0) ap))
+          (= (aref (fref (mref ntsk) a) p)
+             (aref (fref (mref ntsk) a) j0))
+          (= (aref (fref (mref ntsk) a) j0) ap))
         (begin
           (for ((= kk k) (< kk maxk) (inc kk))
-            (if (== (aref (fref (mref st) b) kk) 0) (break)))
+            (if (== (aref (fref (mref ntsk) b) kk) 0) (break)))
           (if (== kk maxk)
               (+= s 1)
             (if (and (or (>= (+ kk 7) maxk)
-                         (!= (aref (fref (mref st) b) (+ kk 7)) 0))
-                     (or (!= (aref (fref (mref st) b) (+ kk 1)) 0)
+                         (!= (aref (fref (mref ntsk) b) (+ kk 7)) 0))
+                     (or (!= (aref (fref (mref ntsk) b) (+ kk 1)) 0)
                          (and (or (>= (+ kk 8) maxk)
-                                  (!= (aref (fref (mref st) b) (+ kk 8)) 0))
-                              (!= (aref (fref (mref st) b) (+ kk 2)) 0))))
+                                  (!= (aref (fref (mref ntsk) b) (+ kk 8)) 0))
+                              (!= (aref (fref (mref ntsk) b) (+ kk 2)) 0))))
                 ()
-              (+= s (search kk (+ j0 1) (+ j0 1) maxp maxp maxk st)))))
-                                        ;       (begin
-                                        ;        (= ap (aref (fref (mref st) a) j0))
-                                        ;        (= (aref (fref (mref st) a) j0) (aref (fref (mref st) a) p))
-                                        ;        (= (aref (fref (mref st) a) p) ap)
-                                        ;        (= (aref (fref (mref st) b) (= kk k)) 0)
-                                        ;        (for ((= l 0) (< l 4) (inc l))
-                                        ;               (= (aref (fref (mref st) b) (+= kk (aref pss l))) 0))
-                                        ;          )
+              (+= s (search0 kk (+ j0 1) (+ j0 1) maxp maxp maxk ntsk)))))
         )
       (label Ln (continue))
       )
     ;; put/get pentomino task/result
-    (handles pentomino
+    (handles pentomino0
       (:put from i1 to i2
         (= this (mref tsk))
         (= this.k k)
         (= this.i0 j0)
         (= this.i1 i1)
         (= this.i2 i2))
+      (:get
+        (+= s this.r))))
+  (return s))
+
+(def (search1 k j0 j1 j2 maxp maxk tsk) (wfn int int int int int int int (ptr (struct pentomino1)))
+  (def s int 0)
+  (def otsk (ptr (struct pentomino1)) tsk)
+  (def ntsk (array (struct pentomino1) 1))  
+  (do-many for p from j1 to j2
+    (def ap int (aref (fref (mref tsk) a) p))
+    (def i int)
+    (for ((= i (aref pos ap)) (< i (aref pos (+ ap 1))) (inc i))     
+      ;;  examine the "i"-th (piece, direction)
+      ;;  at the first empty location "k"
+      (def pss (ptr int) (aref ps i))
+      (def kk int k)  (decl l int)
+      (for ((= l 0) (< l 4) (inc l))
+        (if (or (>= (+= kk (aref pss l)) maxk)
+                (!= (aref (fref (mref tsk) b) kk) 0))
+            (goto Ln)))
+      (begin
+        (begin ;; before
+	  (if (== tsk otsk)
+	      (begin
+		(= (mref ntsk) (mref tsk))
+		(= tsk ntsk)))
+          (= (aref (fref (mref tsk) b)
+                   (= kk k))
+             (+ p #\A))
+          (for ((= l 0) (< l 4) (inc l))
+            (= (aref (fref (mref tsk) b)
+                     (+= kk (aref pss l)))
+               (+ p #\A)))
+          (= (aref (fref (mref tsk) a) p)
+             (aref (fref (mref tsk) a) j0))
+          (= (aref (fref (mref tsk) a) j0) ap)
+          )
+        (begin ;; body
+          (for ((= kk k) (< kk maxk) (inc kk))
+            (if (== (aref (fref (mref tsk) b) kk) 0) (break)))
+          (if (== kk maxk)
+              (+= s 1)
+            (if (and (or (>= (+ kk 7) maxk)
+                         (!= (aref (fref (mref tsk) b) (+ kk 7)) 0))
+                     (or (!= (aref (fref (mref tsk) b) (+ kk 1)) 0)
+                         (and (or (>= (+ kk 8) maxk)
+                                  (!= (aref (fref (mref tsk) b) (+ kk 8)) 0))
+                              (!= (aref (fref (mref tsk) b) (+ kk 2)) 0))))
+                ()
+              (+= s (search1 kk (+ j0 1) (+ j0 1) maxp maxp maxk tsk)))))
+        (begin ;; after
+          (= ap (aref (fref (mref tsk) a) j0))
+          (= (aref (fref (mref tsk) a) j0) (aref (fref (mref tsk) a) p))
+          (= (aref (fref (mref tsk) a) p) ap)
+          (= (aref (fref (mref tsk) b) (= kk k)) 0)
+          (for ((= l 0) (< l 4) (inc l))
+            (= (aref (fref (mref tsk) b) (+= kk (aref pss l))) 0))
+          )
+        )
+      (label Ln (continue))
+      )
+    ;; put/get pentomino task/result
+    (handles pentomino1
+      (:put from i1 to i2
+	    (= this (mref otsk))
+	    (= this.k k)
+	    (= this.i0 j0)
+	    (= this.i1 i1)
+	    (= this.i2 i2))
+      (:get
+        (+= s this.r))))
+  (return s))
+
+(def (search2 k j0 j1 j2 maxp maxk tsk) (wfn int int int int int int int (ptr (struct pentomino2)))
+  (def s int 0)
+  (do-many for p from j1 to j2
+    (def ap int (aref (fref (mref tsk) a) p))
+    (def i int)
+    (for ((= i (aref pos ap)) (< i (aref pos (+ ap 1))) (inc i))     
+      ;;  examine the "i"-th (piece, direction)
+      ;;  at the first empty location "k"
+      (def pss (ptr int) (aref ps i))
+      (def kk int k)  (decl l int)
+      (for ((= l 0) (< l 4) (inc l))
+        (if (or (>= (+= kk (aref pss l)) maxk)
+                (!= (aref (fref (mref tsk) b) kk) 0))
+            (goto Ln)))
+      (dynamic-wind
+        (:before
+          (= (aref (fref (mref tsk) b)
+                   (= kk k))
+             (+ p #\A))
+          (for ((= l 0) (< l 4) (inc l))
+            (= (aref (fref (mref tsk) b)
+                     (+= kk (aref pss l)))
+               (+ p #\A)))
+          (= (aref (fref (mref tsk) a) p)
+             (aref (fref (mref tsk) a) j0))
+          (= (aref (fref (mref tsk) a) j0) ap)
+          (DEBUG-STMTS 2
+                       (if BACKTRACKING (csym::fprintf stderr "(worker %d) redoing~%" WORKER-ID)))
+          )
+        (:body
+          (for ((= kk k) (< kk maxk) (inc kk))
+            (if (== (aref (fref (mref tsk) b) kk) 0) (break)))
+          (if (== kk maxk)
+              (+= s 1)
+            (if (and (or (>= (+ kk 7) maxk)
+                         (!= (aref (fref (mref tsk) b) (+ kk 7)) 0))
+                     (or (!= (aref (fref (mref tsk) b) (+ kk 1)) 0)
+                         (and (or (>= (+ kk 8) maxk)
+                                  (!= (aref (fref (mref tsk) b) (+ kk 8)) 0))
+                              (!= (aref (fref (mref tsk) b) (+ kk 2)) 0))))
+                ()
+              (+= s (search2 kk (+ j0 1) (+ j0 1) maxp maxp maxk tsk)))))
+        (:after
+          (= ap (aref (fref (mref tsk) a) j0))
+          (= (aref (fref (mref tsk) a) j0) (aref (fref (mref tsk) a) p))
+          (= (aref (fref (mref tsk) a) p) ap)
+          (= (aref (fref (mref tsk) b) (= kk k)) 0)
+          (for ((= l 0) (< l 4) (inc l))
+            (= (aref (fref (mref tsk) b) (+= kk (aref pss l))) 0))
+          (DEBUG-STMTS 2
+                       (if BACKTRACKING (csym::fprintf stderr "(worker %d) temporary undoing~%" WORKER-ID)))
+          )
+        )
+      (label Ln (continue))
+      )
+    ;; put/get pentomino task/result
+    (handles pentomino2
+      (:put from i1 to i2
+	    (= this (mref tsk))
+	    (= this.k k)
+	    (= this.i0 j0)
+	    (= this.i1 i1)
+	    (= this.i2 i2))
       (:get
         (+= s this.r))))
   (return s))
