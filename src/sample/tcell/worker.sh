@@ -279,6 +279,7 @@
                                         ; the address of the worker which this task is sent to
                                         ; (referred when sending stealing back "treq" or "rack")
   (def next (ptr (struct task-home)))   ; link to the next (older) task-home
+  (def prev (ptr (struct task-home)))   ; link to the prev (newer) task-home
   (def body (ptr void))                 ; task object
   )
 
@@ -342,9 +343,9 @@
   )
 
 ;;;; Declarations of functions in worker.sc
-(decl (csym::make-and-send-task thr task-no body eldest-p)
-      (csym::fn void (ptr (struct thread-data)) int (ptr void) int))
-(decl (wait-rslt thr stback) (fn (ptr void) (ptr (struct thread-data)) int))
+(decl (csym::make-and-send-task thr cur task-no body eldest-p)
+      (csym::fn (ptr (struct task-home)) (ptr (struct thread-data)) (ptr (struct task-home)) int (ptr void) int))
+(decl (wait-rslt thr cur stback) (fn (ptr void) (ptr (struct thread-data)) (ptr (struct task-home)) int))
 (decl (csym::broadcast-task thr task-no body)
       (csym::fn void (ptr (struct thread-data)) int (ptr void)))
   
@@ -353,9 +354,9 @@
 
 (decl (csym::init-data-flag) (csym::fn void int))
 
-(decl (csym::guard-task-request) (csym::fn void (ptr (struct thread-data))))
-(decl (csym::guard-task-request-prob) (csym::fn int (ptr (struct thread-data)) double))
-(decl (csym::guard-node-task-request) (csym::fn int (ptr (struct thread-data)) int))
+(decl (csym::guard-task-request) (csym::fn void (ptr (struct thread-data)) (ptr (struct task-home))))
+(decl (csym::guard-task-request-prob) (csym::fn int (ptr (struct thread-data)) (ptr (struct task-home)) double))
+(decl (csym::guard-node-task-request) (csym::fn int (ptr (struct thread-data)) (ptr (struct task-home)) int))
 (decl (csym::recv-rslt) (csym::fn void (ptr (struct cmd)) (ptr void)))
 (decl (csym::recv-task) (csym::fn void (ptr (struct cmd)) (ptr void)))
 (decl (csym::recv-treq) (csym::fn void (ptr (struct cmd))))
@@ -418,3 +419,4 @@
    (def timechart-file (ptr char)))     ; postfix of timechart output file names
   )
 (extern-decl option (struct runtime-option))
+(extern-decl my-rank int)

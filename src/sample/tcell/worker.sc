@@ -298,52 +298,60 @@
 ;;; p-hx is the ponter to the "next" pointer in the previous treq entry.
 ;;; (or the pointer to the thr->treq-top when the "(mref p-hx)" is the top entry.)
 ;;; The lock for "thr" must have been acquired.
-(def (csym::flush-treq-with-none-1 thr p-hx)
-    (csym::fn void (ptr (struct thread-data)) (ptr (ptr (struct task-home))))
-  (def hx (ptr (struct task-home)) (mref p-hx))
+(def (csym::flush-treq-with-none-1 thr cur)
+    (csym::fn void (ptr (struct thread-data)) (ptr (struct task-home)))
+  (def hx (ptr (struct task-home)) cur)
   (def rcmd (struct cmd) (struct ((fref-this c) 1) ((fref-this w) NONE)
                                  ((fref-this node) hx->req-from))) ; external or internal
   (csym::copy-address (aref rcmd.v 0) hx->task-head)
   (csym::send-command (ptr rcmd) 0 0)
   ;; Remove the top of the task request stack
-  (= (mref p-hx) hx->next) 
+  (= hx cur->next)
+  (if hx
+    (= hx->prev cur->prev)
+  )
+  (if cur->prev
+    (= cur->prev->next hx)
+    (= thr->treq-top hx)
+  )
   ;; Add the removed cell to the free list
-  (= hx->next thr->treq-free)
-  (= thr->treq-free hx)
+  (= cur->next thr->treq-free)
+  (= thr->treq-free cur)
+  ;;(= cur->prev 0)
   )
 
 ;;; Tascell user function:
 ;;; Flush the top entry of thr's once accepted task requests
 ;;; by sending back "none" and removing the treq entry from the thr's treq-top list.
 ;;; The lock for "thr" must have been acquried.
-(def (csym::guard-task-request thr) (csym::fn void (ptr (struct thread-data)))
-  (csym::flush-treq-with-none-1 thr (ptr thr->treq-top)))
+(def (csym::guard-task-request thr cur) (csym::fn void (ptr (struct thread-data)) (ptr (struct task-home)))
+  (csym::flush-treq-with-none-1 thr cur))
 
 ;;; Tascell user function:
 ;;; Same as guard-task-request but it does nothing with the probability "1-prob"
-(def (csym::guard-task-request-prob thr prob) (csym::fn int (ptr (struct thread-data)) double)
+(def (csym::guard-task-request-prob thr cur prob) (csym::fn int (ptr (struct thread-data)) (ptr (struct task-home)) double)
   (if (>= prob (csym::my-random-probability thr))
       (begin
-        (csym::flush-treq-with-none-1 thr (ptr thr->treq-top))
+        (csym::flush-treq-with-none-1 thr cur)
         (return 1))
     (return 0)))
 
 ;;;Tascell user function:
 ;;;To control some of the task do not steal jobs cross node
-(def (csym::guard-node-task-request thr flag) (csym::fn int (ptr (struct thread-data)) int)
+(def (csym::guard-node-task-request thr cur flag) (csym::fn int (ptr (struct thread-data)) (ptr (struct task-home)) int)
   (if (== flag 0)
     (begin
-      (csym::flush-treq-with-none-1 thr (ptr thr->treq-top))
+      ;;(csym::flush-treq-with-none-1 thr cur)
       (return 1)))
-  (if (and (== flag 1) (== thr->treq-top->req-from OUTSIDE))
+  (if (and (== flag 1) (== cur->req-from OUTSIDE))
     (begin
       ;;(csym::fprintf stderr "OUTSIDE work-steal rejected~%")
-      (csym::flush-treq-with-none-1 thr (ptr thr->treq-top))
+      (csym::flush-treq-with-none-1 thr cur)
       (return 1)))
-  (if (and (== flag 2) (== thr->treq-top->req-from INSIDE))
+  (if (and (== flag 2) (== cur->req-from INSIDE))
     (begin
       ;;(csym::fprintf stderr "INSIDE work-steal rejected~%")
-      (csym::flush-treq-with-none-1 thr (ptr thr->treq-top))
+      ;;(csym::flush-treq-with-none-1 thr cur)
       (return 1)))
   (return 0)
 )
@@ -355,21 +363,23 @@
 ;;; for the result of equals to the specified by rslt-head and rslt-to
 (def (csym::flush-treq-with-none thr rslt-head rslt-to)
     (csym::fn void (ptr (struct thread-data)) (ptr (enum addr)) (enum node))
-  (def pcur-hx (ptr (ptr (struct task-home))) (ptr thr->treq-top)) ; ref to task-home link to be updated
-  (def hx (ptr (struct task-home)))
+  ;;(csym::fprintf stderr "CHECK-POINTER:flush-treq-with-none start worker:%d~%" thr->id)
+  ;;(csym::print-thread-status thr)
+  (def pcur-hx (ptr (struct task-home)) thr->treq-top) ; ref to task-home link to be updated
+  ;;(def hx (ptr (struct task-home)))
   (def flush int)
   (def ignored int 0)
   (def flushed-any-treq int 0)
   (def flushed-stealing-back-head (ptr (enum addr)) 0)
-  (while (= hx (mref pcur-hx))
+  (while pcur-hx
     (cond 
      ((or option.always-flush-accepted-treq ; flush if the option specified
-          (== TERM (aref hx->waiting-head 0))) ; flush if non-stealing-back treq
+          (== TERM (aref pcur-hx->waiting-head 0))) ; flush if non-stealing-back treq
       (DEBUG-STMTS 2 (inc flushed-any-treq))
       (= flush 1))
      ((and rslt-head                    ; flush if stealing-back but specified to flush
-           (== hx->req-from rslt-to)
-           (csym::address-equal hx->waiting-head rslt-head))
+           (== pcur-hx->req-from rslt-to)
+           (csym::address-equal pcur-hx->waiting-head rslt-head))
       (DEBUG-STMTS 2
         (= flushed-stealing-back-head rslt-head)
         (= rslt-head 0))
@@ -378,10 +388,13 @@
       (DEBUG-STMTS 2 (inc ignored))
       (= flush 0)))
     (if flush
-        (csym::flush-treq-with-none-1 thr pcur-hx)
+      (begin
+        (def temp (ptr (struct task-home)) pcur-hx)
+        (= pcur-hx pcur-hx->next)
+        (csym::flush-treq-with-none-1 thr temp))
       (begin
         ;; ignores stealing back treq
-        (= pcur-hx (ptr hx->next)))))
+        (= pcur-hx pcur-hx->next))))
   ;; print debug message
   (DEBUG-STMTS 2
     (defs (array char BUFSIZE) buf0 buf1)
@@ -395,6 +408,8 @@
                buf0)
             "")
           ignored)))
+  ;;(csym::fprintf stderr "CHECK-POINTER:flush-treq-with-none end worker:%d~%" thr->id)
+  ;;(csym::print-thread-status thr)
   )
 
 ;;; allocate a task in thr's task stack and return the pointer to the task.
@@ -908,6 +923,8 @@
        (csym::pthread-cond-broadcast (ptr thr->cond-r))
        (csym::pthread-cond-broadcast (ptr thr->cond)))
     )
+  ;;(csym::fprintf stderr "CHECK-POINTER:recv-rslt worker:%d POINTER:%p ID:%d~%" thr->id hx sid)
+  ;;(csym::print-thread-status thr)
   (csym::pthread-mutex-unlock (ptr thr->mut))
   (csym::send-command (ptr rcmd) 0 0))  ; Send the rack command
 
@@ -999,7 +1016,11 @@
 	    (csym::mem-error "Not enough task-home memory"))
 	(= thr->treq-free hx->next)      ; Allocate an entry
 	(= hx->next thr->treq-top)       ; Set the next of the new entry to the former top
-	(= hx->stat TASK-HOME-ALLOCATED) ; Set the status of the new entry
+  (= hx->prev 0)
+  (if thr->treq-top
+    (= thr->treq-top->prev hx)
+  )
+  (= hx->stat TASK-HOME-ALLOCATED) ; Set the status of the new entry
 	(if (== (aref dest-addr (+ rank-p 0)) ANY)
 	    (= (aref hx->waiting-head 0) TERM)
 	  (csym::copy-address hx->waiting-head from-addr))
@@ -1281,6 +1302,7 @@
   (csym::fprintf stderr "~%")
   (csym::print-task-home-list thr->sub "sub")
   (csym::fprintf stderr "~%")
+  (csym::fflush stderr)
   (return)
   )
 
@@ -1333,6 +1355,8 @@
 	(PROF-CODE
 	 (csym::tcounter-change-state -thr TCOUNTER-EXEC OBJ-NULL 0))
 	(= -thr->exiting EXITING-NORMAL)
+  ;;flush-none 追加
+  (csym::flush-treq-with-none -thr 0 0)
 	(= -thr->req -thr->treq-top) ))
   )
 
@@ -1415,7 +1439,9 @@
   (handle-req -bk -thr)            ; request for spawning tasks
   (handle-req-cncl -bk -thr)       ; request for sending CNCL messages
   (handle-cancellation -bk -thr)   ; request for aborting the task being executed
+  ;;(csym::flush-treq-with-none -thr 0 0)
   (csym::pthread-mutex-unlock (ptr -thr->mut))
+  ;;flush none , maybe in lock
   )
   
 
@@ -1425,50 +1451,65 @@
 ;; in :put section ("body"). The thr->mut should have been acquired.
 ;; If "eldest-p" is non-zero, the task is the first one among tasks
 ;; spawned in a parallel region.
-(def (csym::make-and-send-task thr task-no body eldest-p)
-    (csym::fn void (ptr (struct thread-data)) int (ptr void) int)
+(def (csym::make-and-send-task thr cur task-no body eldest-p)
+    (csym::fn (ptr (struct task-home)) (ptr (struct thread-data)) (ptr (struct task-home)) int (ptr void) int)
   (def tcmd (struct cmd))
-  (def hx (ptr (struct task-home)) thr->treq-top)
+  (def hx (ptr (struct task-home)))
   (def rank-p int (if-exp (< sv-socket 0) 1 0)) ; 1 if MPI rank is contained in addresses
   ;; (csym::fprintf stderr "make-and-send-task(%d)~%" thr->id)
   ;; Pop a task-home entry from the worker's task request queue and push it to the worker's subtask stack
-  (= thr->treq-top hx->next)            ; top of request queue <-- 2nd entry of the queue
-  (= hx->next thr->sub)                 ; popped entry's next  <-- top of subtask stack
-  (= thr->sub hx)                       ; top of subtask stack <-- the new task-home entry
+  (= hx cur->next)            ; top of request queue <-- 2nd entry of the queue
+  (if hx
+    (= hx->prev cur->prev)             ; set prev of cur to the prev of hx
+  )
+  (if cur->prev
+    (= cur->prev->next hx)
+    (= thr->treq-top hx)
+  )
+  (= cur->next thr->sub)                 ; popped entry's next  <-- top of subtask stack
+  (if thr->sub
+    (= thr->sub->prev cur)                 ; set prev of sub to hx
+  )
+  (= thr->sub cur)                       ; top of subtask stack <-- the new task-home entry
+  (= cur->prev 0)
+
   ;; Initialize the task-home entry
-  (= hx->task-no task-no)               ; task-no: the kind of task
-  (= hx->body body)
-  (= hx->id (if-exp hx->next            ; the subtask ID (= height_of_the_stack + 1)
-                    (+  hx->next->id 1)
+  (= cur->task-no task-no)               ; task-no: the kind of task
+  (= cur->body body)
+  (= cur->id (if-exp cur->next            ; the subtask ID (= height_of_the_stack + 1)
+                    (+  cur->next->id 1)
                     0))
-  (= hx->owner thr->task-top)           ; the parent task (= current top of the task stack)
-  (= hx->eldest (if-exp eldest-p hx hx->next->eldest))
-  (= hx->msg-cncl 0)                    ; initialize flag to be cancelled
-  (= hx->stat TASK-HOME-INITIALIZED)    ; ALLOCATED => INITIALIZED
+  (= cur->owner thr->task-top)           ; the parent task (= current top of the task stack)
+  (= cur->eldest (if-exp eldest-p cur cur->next->eldest))
+  (= cur->msg-cncl 0)                    ; initialize flag to be cancelled
+  (= cur->stat TASK-HOME-INITIALIZED)    ; ALLOCATED => INITIALIZED
   ;; Make a task message
   (= tcmd.c 4)                          ; # of arguments
-  (= tcmd.node hx->req-from)            ; internal or external
+  (= tcmd.node cur->req-from)            ; internal or external
   (= tcmd.w TASK)                       ; message kind = TASK
   (= (aref tcmd.v 0 0) (++ thr->ndiv))  ; # of task division
   (= (aref tcmd.v 0 1) TERM)
   (if rank-p
       (= (aref tcmd.v 1 0) my-rank))    ; sender: <rank-id> (MPI mode)
   (= (aref tcmd.v 1 (+ rank-p 0)) thr->id)         ; sender: <worker-id>
-  (= (aref tcmd.v 1 (+ rank-p 1)) hx->id)          ; sender: <subtask-id>
+  (= (aref tcmd.v 1 (+ rank-p 1)) cur->id)          ; sender: <subtask-id>
   (= (aref tcmd.v 1 (+ rank-p 2)) TERM)
-  (csym::copy-address (aref tcmd.v 2) hx->task-head) ; recipient: use the information in the task request
+  (csym::copy-address (aref tcmd.v 2) cur->task-head) ; recipient: use the information in the task request
   (= (aref tcmd.v 3 0) task-no)         ; the kind of task
   (= (aref tcmd.v 3 1) TERM)
   (PROF-CODE
    (csym::evcounter-count thr 
                           (if-exp (== tcmd.node INSIDE) EV-SEND-TASK-INSIDE EV-SEND-TASK-OUTSIDE)
-                          OBJ-PADDR hx->task-head))
-  (csym::send-command (ptr tcmd) body task-no))
+                          OBJ-PADDR cur->task-head))
+  (csym::send-command (ptr tcmd) body task-no)
+  ;;(csym::fprintf stderr "CHECK-POINTER:make-and-send-task worker:%d POINTER:%p ID:%d~%" thr->id thr->sub cur->id)
+  ;;(csym::print-thread-status thr)
+  (return thr->sub))
 
 ;;; Wait for the result of the subtask thr->sub, remove it from the worker's subtask list,
 ;;; and returns the pointer to the task object of the subtask.
 ;;; If stback is non-zero, steal back another task during waiting the result.
-(def (wait-rslt thr stback) (fn (ptr void) (ptr (struct thread-data)) int)
+(def (wait-rslt thr cur stback) (fn (ptr void) (ptr (struct thread-data)) (ptr (struct task-home)) int)
   (def body (ptr void))
   (def sub (ptr (struct task-home)))
   (PROF-CODE
@@ -1477,7 +1518,10 @@
   (csym::pthread-mutex-lock (ptr thr->mut))
   (PROF-CODE
    (= tcnt-stat thr->tcnt-stat))
-  (= sub thr->sub)                           ; sub: the top of the worker's subtask stack
+  ;;(= sub thr->sub)                           ; sub: the top of the worker's subtask stack
+  (= sub cur)
+  ;;(csym::fprintf stderr "CHECK-POINTER:wait-rslt worker:%d POINTER:%p ID:%d~%" thr->id sub sub->id)
+  ;;(csym::print-thread-status thr)
   (while (and (!= sub->stat TASK-HOME-DONE)  ; Until the subtask is done/aborted
 	      (!= sub->stat TASK-HOME-EXCEPTION)
 	      (!= sub->stat TASK-HOME-ABORTED))
@@ -1542,9 +1586,23 @@
 	(= body 0))
     (= body sub->body))
   ;; Pop the subtask stack
-  (= thr->sub sub->next)                ; stack top <== 2nd entry
-  (= sub->next thr->treq-free)          ; next of the popped entry <== top of free list
-  (= thr->treq-free sub)                ; top of free list <== the popped entry
+  ;;(= thr->sub sub->next)                ; stack top <== 2nd entry
+  ;;(if thr->sub
+  ;;  (= thr->sub->prev 0)                  ; set prev of thr->sub to 0
+  ;;)
+  ;;(= sub->next thr->treq-free)          ; next of the popped entry <== top of free list
+  ;;(= thr->treq-free sub)                ; top of free list <== the popped entry
+  (= sub cur->next)                       ; set next to cur
+  (if sub
+    (= sub->prev cur->prev)               ; prev = prev of next
+  )
+  (if cur->prev
+    (= cur->prev->next sub)               ; next of prev is cur
+    (= thr->sub sub)
+  )
+  (= cur->next thr->treq-free)            ; next of the popped entry <== top of free list
+  ;;(= cur->prev 0)                         ; set prev to 0
+  (= thr->treq-free cur)                  ; top of free list <== the popped entry
   ;; Resume the suspended task
   (= thr->task-top->stat TASK-STARTED)  ; SUSPENDED => STARTED
   (csym::pthread-mutex-unlock (ptr thr->mut))

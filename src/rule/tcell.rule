@@ -203,8 +203,10 @@
                                     ,(block-item stat2)) ))
    (tcell:with-task id
      (let* ((spn-id  (generate-id "spawned"))
+            (ancestor-id (generate-id "ancestor"))
             (tdat-id (generate-id "st"))
             (bk-id (generate-id "do_two_bk"))
+            (subptr-id (generate-id "subptr"))
             (b-stat1 (tcell:with-new-bk bk-id  (block-item stat1)))
             (b-stat2 (block-item stat2))
             (b-put-body (function-body put-body))
@@ -215,6 +217,8 @@
 	  (def pthis (ptr (struct ,(tcell:task-struct-id)))
 	    #+comment (ptr ,tdat-id))
 	  (def ,spn-id int 0)            ; すでに仕事をsendしていたら '1'
+    (def ,ancestor-id int 1)
+    (def ,subptr-id (ptr (struct task-home)))
 	  (begin
 	    ;; <-- Nestfunc start ---
 	    ;; Called for backtracking to handle a task request or an exception
@@ -225,35 +229,50 @@
 		  (begin
 		    ;; Wait for spawned tasks to be completed
 		    (while (> (dec ,spn-id) 0)
-		      (wait-rslt -thr 0))
+		      (wait-rslt -thr ,subptr-id 0))
 		    ;; Continue backtracking (never returns)
 		    (,(tcell:latest-bk))))
 	      ;; If this do-two has spawned a task:
-            (if ,spn-id  (return 0))
+            (if ,ancestor-id  (= ,ancestor-id (,(tcell:latest-bk))))
 	    ;; Try further backtracking
-            (,(tcell:latest-bk))        ; より根元での分割を試みる
-            (while -thr->treq-top       ; タスク作成待ちスタックに要素があれば
+            ;;(,(tcell:latest-bk))        ; より根元での分割を試みる
+            (def hx (ptr (struct task-home)) -thr->treq-top)
+            (while (and hx       ; タスク作成待ちスタックに要素があれば
+                        (not ,spn-id)) 
 	      (begin
 		,@(if-pattern-variable guard-exp
 		    (list
 		     ~(begin 
 			,@guard-body
-			(if (csym::guard-task-request-prob -thr ,guard-exp)
-			    (continue)))))
+      (def temp-next (ptr (struct task-home)) hx->next)
+			(if (csym::guard-task-request-prob -thr hx ,guard-exp)
+          (= hx temp-next)
+			    (continue)
+        ))))
     ,@(if-pattern-variable node-exp
       (list
         ~(begin
           ,@node-body
-          (if (csym::guard-node-task-request -thr ,node-exp)
-            (continue)))))
+          (def temp-next (ptr (struct task-home)) hx->next)
+          (if (csym::guard-node-task-request -thr hx ,node-exp)
+            (begin
+              (= hx temp-next)
+              ;;(csym::fprintf stderr "node-exp=%d~%" ,node-exp)
+              (continue)
+            )
+          ))))
 		(= pthis
 		   (cast (ptr (struct ,(tcell:task-struct-id)))
 		     (csym::malloc (sizeof (struct ,(tcell:task-struct-id))))))
 		(begin ,@b-put-body)
 		(= ,spn-id 1)
-		(csym::make-and-send-task -thr ,(tcell:task-no) pthis 1)
-		(return 1)))
-            (return 0))
+    (def temp (ptr (struct task-home)) hx->next)
+		(= ,subptr-id (csym::make-and-send-task -thr hx ,(tcell:task-no) pthis 1))
+    ;;(csym::fprintf stderr "CHECK-POINTER:rule POINTER:%p~%" ,subptr-id)
+    (= hx temp)
+
+		))
+            (return (or ,ancestor-id (not ,spn-id))))
 	    ;; --- Nestfunc End -->
 	    ;; Polling for cancel message requests, cancellation flags,
 	    ;; and task requests.
@@ -265,7 +284,7 @@
 	    ,b-stat1)
 	  (if ,spn-id
 	      ;; If a subtask is spawned, wait for the result.
-	      (if (= pthis (wait-rslt -thr 1))
+	      (if (= pthis (wait-rslt -thr ,subptr-id 1))
 		  (begin
 		    (begin ,@b-get-body)
 		    (csym::free pthis))
@@ -300,6 +319,9 @@
              ,@(function-body body))) )))
    (let ((spn-id (generate-id "spawned"))
          (bk-id (generate-id "do_many_bk"))
+         (ancestor-id (generate-id "ancestor"))
+         (subptrs-id (generate-id "subptrs"))
+         (subptrs-size-id (generate-id "subptrs-size"))
          (var2 (generate-id (string+ (get-retval var) "_end"))))
      (tcell:with-task id
        ~(begin
@@ -307,6 +329,9 @@
          (def ,var2 int ,(expression to)) ; ,var <= i < ,var2 が未処理
          (def pthis (ptr (struct ,(tcell:task-struct-id)))) ; 送信用 task-body
          (def ,spn-id int 0)            ; 仕事を他所にsendしている数
+         (def ,ancestor-id int 1)          ; 祖先が仕事を生成できる可能性があれば１
+         (def ,subptrs-size-id int 32)      ;;size is subptrs-size-id
+         (def ,subptrs-id (ptr (ptr (struct task-home))) 0)    
 	 ;; <-- Nestfunc start ---
 	 ;; Called for backtracking to handle a task request or an exception
          (def (,bk-id) ,(tcell:nestfunc-type)
@@ -317,14 +342,16 @@
 		 ;; Wait for spawned tasks to be completed
 		 (while (> (dec ,spn-id) 0)
 		   (= pthis (cast (ptr (struct ,(tcell:task-struct-id)))
-			      (wait-rslt -thr 0)))
+			      (wait-rslt -thr (aref ,subptrs-id ,spn-id) 0)))
 		   (csym::free pthis))
+       (csym::free ,subptrs-id)
 		 ;; Continue backtracking (never returns)
 		 (,(tcell:latest-bk))))
-           
+
            ;; If this do-many has not spawned any tasks, continue backtracking
-           (if (not ,spn-id) (,(tcell:latest-bk)))
-           (while (and -thr->treq-top              ; there remains a treq?
+           (if ,ancestor-id (= ,ancestor-id (,(tcell:latest-bk))))
+           (def hx (ptr (struct task-home)) -thr->treq-top)
+           (while (and hx              ; there remains a treq?
                        (<= 2 (- ,var2 ,var)))      ; there remains any spawnable iterations?
              (def ,put-to int ,var2)
              (def ,put-from int)
@@ -332,14 +359,18 @@
                    (list
                     ~(begin 
                        ,@guard-body
-                       (if (csym::guard-task-request-prob -thr ,guard-exp)
-                           (continue)))))
+                       (if (csym::guard-task-request-prob -thr hx ,guard-exp)
+                           (begin (= hx hx->next)
+                           (continue))
+                        ))))
               ,@(if-pattern-variable node-exp
                     (list
                       ~(begin
                         ,@node-body
-                        (if (csym::guard-node-task-request -thr ,node-exp)
-                            (continue)))))
+                        (if (csym::guard-node-task-request -thr hx ,node-exp)
+                            (begin (= hx hx->next)
+                            (continue))
+                          ))))
              ,(if-pattern-variable spn-from-exp
                                    ~(begin
                                      ,@spn-from-body
@@ -356,8 +387,14 @@
                   (csym::malloc (sizeof (struct ,(tcell:task-struct-id))))))
              (begin ,@(function-body put-body))
              (inc ,spn-id)
-             (csym::make-and-send-task -thr ,(tcell:task-no) pthis (== ,spn-id 1)))
-           (return 0))
+             (if (> ,spn-id ,subptrs-size-id)
+                (= ,subptrs-size-id (* ,subptrs-size-id 2))
+             )
+             (= ,subptrs-id (cast (ptr (ptr (struct task-home))) (csym::realloc ,subptrs-id (* (sizeof (ptr (struct task-home))) ,subptrs-size-id))))
+             (def temp (ptr (struct task-home)) hx->next)
+             (= (aref ,subptrs-id (- ,spn-id 1)) (csym::make-and-send-task -thr hx ,(tcell:task-no) pthis (== ,spn-id 1)))
+             (= hx temp))
+           (return (or ,ancestor-id (<= 2 (- ,var2 ,var)))))
 	 ;; --- Nestfunc End -->
 	 ;; Polling for cancel message requests, cancellation flags,
 	 ;; and task requests.
@@ -372,10 +409,11 @@
 	 ;; Collect the results of spawned tasks
          (while (> (dec ,spn-id) 0)
            (= pthis (cast (ptr (struct ,(tcell:task-struct-id)))
-                      (wait-rslt -thr 1)))
-	   (if pthis (begin
-		       ,@(function-body get-body)
-		       (csym::free pthis))))
+                      (wait-rslt -thr (aref ,subptrs-id ,spn-id) 1)))
+	         (if pthis (begin
+		          ,@(function-body get-body)
+		          (csym::free pthis))))
+          (csym::free ,subptrs-id)
 	 ;; If there is a subtask that has thrown an exception, propagate it.
 	 (if (== -thr->exiting EXITING-EXCEPTION)
 	     ,(wfn-add-argids ~(handle-exception -thr->exception-tag)))
