@@ -359,16 +359,18 @@
                    (list
                     ~(begin 
                        ,@guard-body
+                       (def temp-next (ptr (struct task-home)) hx->next)
                        (if (csym::guard-task-request-prob -thr hx ,guard-exp)
-                           (begin (= hx hx->next)
+                           (begin (= hx temp-next)
                            (continue))
                         ))))
               ,@(if-pattern-variable node-exp
                     (list
                       ~(begin
                         ,@node-body
+                        (def temp-next (ptr (struct task-home)) hx->next)
                         (if (csym::guard-node-task-request -thr hx ,node-exp)
-                            (begin (= hx hx->next)
+                            (begin (= hx temp-next)
                             (continue))
                           ))))
              ,(if-pattern-variable spn-from-exp
