@@ -5,7 +5,6 @@
 (c-exp "#include <mpi.h>")
 (c-exp "#include <stdio.h>")
 (c-exp "#include <stdlib.h>")
-;;(c-exp "#include <stddef.h>")
 (c-exp "#include <math.h>")
 (c-exp "#include <time.h>")
 (c-exp "#include <sys/time.h>")
@@ -13,25 +12,17 @@
 (c-exp "#include <stdatomic.h>")
 (c-exp "#include <pthread.h>")
 (c-exp "#include \"../data/bem_file.h\"")
-;;(c-exp "#include \"sock.h\"")
 (%defconstant PN 10000)             ;;TS
 (%defconstant PL 10)                ;;TN
 (%defconstant PARA_LEVEL 20)
-(%defconstant CHUNK_SIZE 128)      ;;C
+(%defconstant CHUNK_SIZE 1000)      ;;C
 (%defconstant Check-interval 100)
-(%defconstant MB 100000000000)
 (%defconstant LN 15000000)
-(%defconstant TH 6250000)
-(%defconstant ND 3)
-
-;;(def dotwostart double)
-;;(def dotwoend double)
-;;(def dotwospend double)
-;;(def dotwoflag int 0)
+(%defconstant ND 2)
 
 (%defconstant TCELL-CHECK-REQ 1)
 
-(extern-decl sv_socket int)
+;;(extern-decl sv_socket int)
 
 ;; ; Spherecube
 ;;(%defconstant INPUT_DEFAULT "../data_pro1804/input_100ts.txt_cb_1.5_10_10_10.bin")
@@ -133,11 +124,6 @@
 
 (def (task-sender build-cluster)
   (if (> 0 this.nd) (return))
-  (def my_rank int)
-  (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
-  (def timetrack double)
-  (= timetrack (MPI_Wtime))
-  (csym::fprintf stderr "Tlog tasksender: %lf %d %ld %ld %ld~%" timetrack my_rank this.nsrt (+ this.nsrt this.nd) this.ndpth)
   (csym::send-doubles (cast (ptr double) this.zgmid) (* this.nd 3))
 )
 
@@ -148,10 +134,8 @@
       (= resultCTlist (cast (ptr cluster) (csym::malloc (* (sizeof cluster) LN))))
       (= zgmid (cast (ptr (array double 3)) (csym::malloc (* (sizeof double) (* this.md 3)))))
       (= tempzgmid (cast (ptr (array double 3)) (csym::malloc (* (sizeof double) (* this.md 3)))))
-      (def comm_size int)
-      (csym::MPI_Comm_size MPI_COMM_WORLD (ptr comm_size))
-      (= length_list (cast (ptr int) (csym::malloc (* (sizeof int) comm_size))))
-      (= length_list_BYTE (cast (ptr int) (csym::malloc (* (sizeof int) comm_size))))
+      (= length_list (cast (ptr int) (csym::malloc (* (sizeof int) num-procs))))
+      (= length_list_BYTE (cast (ptr int) (csym::malloc (* (sizeof int) num-procs))))
       (= flag 1)
     )
   )
@@ -159,11 +143,6 @@
     (begin
       (= this.zgmid (ptr (aref zgmid this.nsrt)))
       (= this.tempzgmid (ptr (aref tempzgmid this.nsrt)))
-      (def my_rank int)
-      (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
-      (def timetrack double)
-      (= timetrack (MPI_Wtime))
-      (csym::fprintf stderr "Tlog taskreceiver: %lf %d %ld %ld %ld~%" timetrack my_rank this.nsrt (+ this.nsrt this.nd) this.ndpth)
       (csym::recv-doubles (cast (ptr double) this.zgmid) (* this.nd 3))
     )
   )
@@ -179,7 +158,7 @@
     (begin
       (def i int)
       (def nlf-for-each-worker int (* (/ (cast long nlf) num-thrs) 10))
-      (csym::fprintf stderr "rank 1 nlf-for-each-worker: %ld num-thrs: %ld ~%" nlf-for-each-worker num-thrs)
+      ;;(csym::fprintf stderr "rank 1 nlf-for-each-worker: %ld num-thrs: %ld ~%" nlf-for-each-worker num-thrs)
       ;;(def sz size-t (* nlf-for-each-worker (cast long num-thrs)))
       (for ((= i 0) (< i num-thrs) (inc i))
         (= (fref (aref Wdata-list i) -> leafnode-list)
@@ -204,8 +183,6 @@
 )
 
 (def (rslt-sender create_leafmtx)
-  (def my_rank int)
-  (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
   (begin
     (def nlf-sum int 0)
     (def i int)
@@ -217,8 +194,7 @@
       ;;      (csym::fprintf stderr "nlf of counted by worker %d is larger than nlf-for-each-worker!~%" i)
       ;;      (csym::exit 99)))
        (+= nlf-sum nlf-i))
-    (csym::fprintf stderr "rankid %d nlf-sum = %d~%" my_rank nlf-sum))
-  ;;(csym::fprintf stderr "rankid %d thread 0; nlf %d!~%" my_rank (fref (aref Wdata-list 0) -> nlf))
+  )
 )
 
 (def (rslt-receiver create_leafmtx)
@@ -330,7 +306,6 @@
 (def countPCT (atomic_int) (ATOMIC_VAR_INIT 0))
 (def length_list (ptr int))
 (def length_list_BYTE (ptr int))
-(def mpi_thread pthread_t)
 (def pre (ptr int))
 (def pre_BYTE (ptr int))
 (def total_length int)
@@ -351,9 +326,7 @@
 (def (task-body build-cluster)
   (= this.r (create-ctree-ssgeom this.zgmid this.tempzgmid this.ndpth 
 				 this.ndscd this.nsrt this.nd this.md this.nclst this.ndim))
-  (def my_rank int)
-  (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
-  (= this.rank my_rank)
+  (= this.rank my-rank)
 )
 
 (def (task-body minmax)
@@ -470,51 +443,31 @@
       (= privateCTlist (cast (ptr cluster) (csym::malloc (* (sizeof cluster) LN))))
       (= resultCTlist (cast (ptr cluster) (csym::malloc (* (sizeof cluster) LN))))
       (= tempzgmid (cast (ptr (array double 3)) (csym::malloc (* (* nofc 3) (sizeof double)))))
-      (def comm_size int)
-      (csym::MPI_Comm_size MPI_COMM_WORLD (ptr comm_size))
-      (= length_list (cast (ptr int) (csym::malloc (* (sizeof int) comm_size))))
-      (= length_list_BYTE (cast (ptr int) (csym::malloc (* (sizeof int) comm_size))))
+      (= length_list (cast (ptr int) (csym::malloc (* (sizeof int) num-procs))))
+      (= length_list_BYTE (cast (ptr int) (csym::malloc (* (sizeof int) num-procs))))
       (= flag 1)
     )
   )
-  (csym::fprintf stderr "begintime: %lf %d %ld %ld %ld~%" (csym::MPI_Wtime) 0 0 50000000 0)
-  (= start (csym::get-wall-time))
+
+  (= start (csym::MPI_Wtime))
   (= st-clt (create-ctree-ssgeom zgmid tempzgmid ndpth ndscd nsrt ndf nofc nclst ndim))
-  (= end (csym::get-wall-time))
+  (= end (csym::MPI_Wtime))
   (= spent (- end start))
-  ;;(csym::sleep 10)
-  
   (csym::fprintf stderr "cluster tree time spent:%.10lf~%" spent)
-  ;;(def testmalloc (ptr int))
-  ;;(= testmalloc (csym::malloc (sizeof leafmtx)))
-  ;;(csym::fprintf stderr "malloc-2 success~%")
 
-  ;;(csym::fprintf stderr "node0: countCT=%d~%" (atomic_load (ptr countPCT)))
-
-
-  (= start (csym::get-wall-time))
+  (= start (csym::MPI_Wtime))
   (tcell-broadcast CT_mpi_task (:put) (csym::my-allgather))
-  (= end (csym::get-wall-time))
+  (= end (csym::MPI_Wtime))
   (= spent (- end start))
   (csym::fprintf stderr "broadcast time:%.10lf~%" spent)
-
-  (csym::fprintf stderr "checkCT:%ld~%" (csym::checkCT st-clt))
-
-  ;;(def testmalloc (ptr int))
-  ;;(= testmalloc (csym::malloc (sizeof leafmtx)))
-  ;;(csym::fprintf stderr "malloc1 success~%")
   
   (= ndpth 0)
   (csym::fprintf stderr "st-clt:%ld~%" st-clt)
-  (= start (csym::get-wall-time))
+  (= start (csym::MPI_Wtime))
   (csym::count-lntmx st-clt st-clt param lnmtx nffc)
-  (= end (csym::get-wall-time))
+  (= end (csym::MPI_Wtime))
   (= spent (- end start))
   (csym::fprintf stderr "count time:%.10lf~%" spent)
-
-  ;;(def testmalloc2 (ptr int))
-  ;;(= testmalloc2 (csym::malloc (sizeof leafmtx)))
-  ;;(csym::fprintf stderr "malloc2 success~%")
 
   ;;(= (fref (mref st-leafmtxp) nlfkt) (aref lnmtx 0))
   (= nlf (+ (aref lnmtx 0) (aref lnmtx 1)))
@@ -523,7 +476,7 @@
   (csym::fprintf stderr "nlf: %ld~%" nlf)
   
   (def nlf-for-each-worker int (* (/ (cast long nlf) num-thrs) 10))
-  (csym::fprintf stderr "nlf-for-each-worker: %ld num-thrs: %ld ~%" nlf-for-each-worker num-thrs)
+
   #|(if (== flagBCT 0)
     (begin
       ;;(def sz size-t (* nlf-for-each-worker (cast long num-thrs)))
@@ -542,19 +495,15 @@
     )
   )|#
   (= nlf 0)
-
-  ;;(def testmalloc3 (ptr int))
-  ;;(= testmalloc3 (csym::malloc (sizeof leafmtx)))
-  ;;(csym::fprintf stderr "malloc3 success~%")
   
   (decl all int)
   (csym::fprintf stderr "st-clt: %ld~%" st-clt)
   (= all (* (fref (aref resultCTlist st-clt) nnson) (fref (aref resultCTlist st-clt) nnson)))
   (csym::fprintf stderr "all:%ld~%" all)
   (csym::fprintf stderr "st-clt:%ld~%" st-clt)
-  (= start (csym::get-wall-time))
+  (= start (csym::MPI_Wtime))
   (create_leafmtx st-clt st-clt 0 all)
-  (= end (csym::get-wall-time))
+  (= end (csym::MPI_Wtime))
   (= spent (- end start))
   
   (def nncon int 0)
@@ -571,8 +520,8 @@
             (csym::fprintf stderr "nlf of counted by worker %d is larger than nlf-for-each-worker!~%" i)
             (csym::exit 99)))
        (+= nlf-sum nlf-i))
-    (csym::fprintf stderr "nlf-sum = %d~%" nlf-sum))
-  
+    ;;(csym::fprintf stderr "nlf-sum = %d~%" nlf-sum)
+  )
   (csym::fprintf stderr "nlf:%ld~%" nncon)
   (csym::fprintf stderr "block cluster tree time spent:%.10lf~%" spent)
   ;;(csym::fprintf stderr "depth_max:%ld  count_node:%ld~%" depth-max count-node)
@@ -693,7 +642,6 @@
   (def nleaf double 15.0)
   (def zeta double 2.0)
   (def zdistlt double (csym::dist-2cluster st-cltl st-cltt))
-  ;;(csym::fprintf stderr "zdistlt:%lf~%" zdistlt)
   (if (and (or (<= (* (fref (aref resultCTlist st-cltl) zwdth) zeta) zdistlt)
                (<= (* (fref (aref resultCTlist st-cltt) zwdth) zeta) zdistlt))
            (and (>= ndl nleaf) (>= ndt nleaf)))
@@ -729,11 +677,10 @@
 		      (create_leafmtx (aref (fref (aref resultCTlist st-cltl) offsets) il) (aref (fref (aref resultCTlist st-cltt) offsets) it) 0 al)
 		      (handles create_leafmtx
 			(:put from j1 to j2
-			      (= this.st-cltl st-cltl)
+            (= this.st-cltl st-cltl)
 			      (= this.st-cltt st-cltt)
 			      (= this.i1 j1)
 			      (= this.i2 j2)
-            ;;(csym::fprintf stderr "%d %d %d %d~%" this.st-cltl this.st-cltt this.i1 this.i2)
             )
 			(:get)))
 		    )
@@ -806,7 +753,6 @@
               (= (aref lnmtx 2) (+ (aref lnmtx 2) 1))
               (for ((= il 0) (< il nnsonl) (inc il))
                 (for ((= it 0) (< it nnsont) (inc it))
-                  ;;(csym::fprintf stderr "offsets: %ld %ld ~%" (aref (fref (mref temp1) offsets) il) (aref (fref (mref temp2) offsets) it))
                   (csym::count-lntmx (aref (fref (mref temp1) offsets) il)
                                (aref (fref (mref temp2) offsets) it) param lnmtx nffc)
                 )))))))
@@ -881,7 +827,6 @@
       (= st-clt (csym::create-cluster nclst ndpth nsrt nd ndim nson))
       (def tempcluster (ptr cluster))
       (= tempcluster (ptr (aref privateCTlist st-clt)))
-      ;;(= (fref (mref tempcluster) offsets) (cast (ptr int) (csym::malloc (* nson (sizeof int)))))
       (= (aref (fref (mref tempcluster) offsets) 0) -1)
       (= (aref (fref (mref tempcluster) offsets) 1) -1)
       (csym::cal-bndbox-cog st-clt (ptr (aref zgmid 0)) NULL NULL NULL NULL ndim)
@@ -997,11 +942,9 @@
 	        (def nd1 int nl)
 	        (def nsrt2 int (+ nsrt nl))
 	        (def nd2 int (- nd nl))
-          ;;(def my_rank int)
-          ;;(csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
           ;;(def dotwostart double)
           ;;(= dotwostart (csym::MPI_Wtime))
-          ;;(csym::fprintf stderr "dotwostart: %f %d %d %d %d~%" (csym::MPI_Wtime) my_rank nsrt (- (+ nd nsrt) 1) ndpth)
+          ;;(csym::fprintf stderr "dotwostart: %f %d %d %d %d~%" (csym::MPI_Wtime) my-rank nsrt (- (+ nd nsrt) 1) ndpth)
 	        (if (> nd PL)
 	          (begin ;parallel here
 		          (if (<= nd PN)
@@ -1018,7 +961,7 @@
                     )
 			              (handles build-cluster
                       ;;(:guard (def p double 0)(if (> nd MB)(begin(= p 1))(begin(= p 0)))p)
-                      (:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag) ;;0:reject all, 1:reject outside, 2:reject inside, 3 allow all
+                      ;;(:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag) ;;0:reject all, 1:reject outside, 2:reject inside, 3 allow all
 			                (:put
 			                  (= this.zgmid (ptr (aref zgmid nl)))
 			                  (= this.tempzgmid (ptr (aref tempzgmid nl)))
@@ -1033,9 +976,7 @@
 			                  (= (aref (fref (mref tempcluster) offsets) 1) this.r)
                         (def brs_min (ptr (array double 3)))
                         (def brs_max (ptr (array double 3)))
-                        (def my_rank int)
-                        (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
-                        (if (== this.rank my_rank)
+                        (if (== this.rank my-rank)
                           (begin
                             (csym::cal-bndbox-cog st-clt (ptr (aref zgmid 0)) 
                                                   (ptr (fref (aref privateCTlist (aref (fref (mref tempcluster) offsets) 0)) bmin)) 
@@ -1075,7 +1016,7 @@
                             )
 				                    (handles build-cluster
                               ;;(:guard (def p double 0)(if (> nd MB)(begin(= p 1))(begin(= p 0)))p)
-				                      (:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag)
+				                      ;;(:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag)
                               (:put
 				                        (= this.zgmid (ptr (aref tempzgmid nl)))
 				                        (= this.tempzgmid (ptr (aref zgmid nl)))
@@ -1089,9 +1030,7 @@
 				                      )
 				                      (:get
 				                        (= (aref (fref (mref tempcluster) offsets) 1) this.r)
-                                (def my_rank int)
-                                (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
-                                (if (== this.rank my_rank)
+                                (if (== this.rank my-rank)
                                   (begin
                                     (csym::cal-bndbox-cog st-clt (ptr (aref zgmid 0)) 
                                                           (ptr (fref (aref privateCTlist (aref (fref (mref tempcluster) offsets) 0)) bmin)) 
@@ -1135,7 +1074,7 @@
                                 )
 				                        (handles build-cluster
                                   ;;(:guard (def p double 0)(if (> nd MB)(begin(= p 1))(begin(= p 0)))p)
-					                        (:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag)
+					                        ;;(:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag)
                                   (:put
 					                          (= this.zgmid (ptr (aref zgmid nl)))
 					                          (= this.tempzgmid (ptr (aref tempzgmid nl)))
@@ -1148,9 +1087,7 @@
                                     (= this.ndim ndim))
 					                        (:get
 					                          (= (aref (fref (mref tempcluster) offsets) 1) this.r)
-                                    (def my_rank int)
-                                    (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
-                                    (if (== this.rank my_rank)
+                                    (if (== this.rank my-rank)
                                       (begin
                                         (csym::cal-bndbox-cog st-clt (ptr (aref zgmid 0)) 
                                                               (ptr (fref (aref privateCTlist (aref (fref (mref tempcluster) offsets) 0)) bmin)) 
@@ -1194,7 +1131,7 @@
                                     )
 					                          (handles build-cluster
                                       ;;(:guard (def p double 0)(if (> nd MB)(begin(= p 1))(begin(= p 0)))p)
-					                            (:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag)
+					                            ;;(:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag)
                                       (:put
 					                              (= this.zgmid (ptr (aref tempzgmid nl)))
 					                              (= this.tempzgmid (ptr (aref zgmid nl)))
@@ -1207,9 +1144,7 @@
                                         (= this.ndim ndim))
 					                            (:get
 					                              (= (aref (fref (mref tempcluster) offsets) 1) this.r)
-                                        (def my_rank int)
-                                        (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
-                                        (if (== this.rank my_rank)
+                                        (if (== this.rank my-rank)
                                           (begin
                                             (csym::cal-bndbox-cog st-clt (ptr (aref zgmid 0)) 
                                                                   (ptr (fref (aref privateCTlist (aref (fref (mref tempcluster) offsets) 0)) bmin)) 
@@ -1253,7 +1188,7 @@
                                         )
 					                              (handles build-cluster
                                           ;;(:guard (def p double 0)(if (> nd MB)(begin(= p 1))(begin(= p 0)))p)
-						                              (:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag)
+						                              ;;(:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag)
                                           (:put
 						                                (= this.zgmid (ptr (aref zgmid nl)))
 						                                (= this.tempzgmid (ptr (aref tempzgmid nl)))
@@ -1266,9 +1201,7 @@
                                             (= this.ndim ndim))
 						                              (:get
 						                                (= (aref (fref (mref tempcluster) offsets) 1) this.r)
-                                            (def my_rank int)
-                                            (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
-                                            (if (== this.rank my_rank)
+                                            (if (== this.rank my-rank)
                                               (begin
                                                 (csym::cal-bndbox-cog st-clt (ptr (aref zgmid 0)) 
                                                                       (ptr (fref (aref privateCTlist (aref (fref (mref tempcluster) offsets) 0)) bmin)) 
@@ -1314,7 +1247,7 @@
                         )
 			                  (handles build-cluster
                           ;;(:guard (def p double 0)(if (> nd MB)(begin(= p 1))(begin(= p 0)))p)
-			                    (:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag)
+			                    ;;(:node (def flag int 3)(if (< ndpth ND)(begin (= flag 2))) flag)
                           (:put
 			                      (= this.zgmid (ptr (aref tempzgmid nl)))
 			                      (= this.tempzgmid (ptr (aref zgmid nl)))
@@ -1327,9 +1260,7 @@
                             (= this.ndim ndim))
 			                    (:get
 			                      (= (aref (fref (mref tempcluster) offsets) 1) this.r)
-                            (def my_rank int)
-                            (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
-                            (if (== this.rank my_rank)
+                            (if (== this.rank my-rank)
                               (begin
                                 (csym::cal-bndbox-cog st-clt (ptr (aref zgmid 0)) 
                                                       (ptr (fref (aref privateCTlist (aref (fref (mref tempcluster) offsets) 0)) bmin)) 
@@ -1468,9 +1399,7 @@
 )
 
 (def (minmax i1 i2 zgmid tsk ndpth nsrt) (wfn void int int (ptr (array double 3)) (ptr (struct minmax)) int int)
-  (def my_rank int)
-  (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
-  (csym::fprintf stderr "Tlog minmax: %f %d %d %d %d~%" (csym::MPI_Wtime) my_rank (+ i1 nsrt) (- (+ i2 nsrt) 1) ndpth)
+  ;;(csym::fprintf stderr "Tlog minmax: %f %d %d %d %d~%" (csym::MPI_Wtime) my-rank (+ i1 nsrt) (- (+ i2 nsrt) 1) ndpth)
   (def il int)
   (def minx double)
   (def miny double)
@@ -1535,11 +1464,9 @@
   )
   (if (> start end) (begin (csym::fprintf stderr "error: start>end~%")))
   ;;(csym::fprintf stderr "countNum: %f %d %d %d %d~%" (csym::get-wall-time) WORKER-ID start end ndpth)
-  (def my_rank int)
-  (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
-  (def timetrack double)
-  (= timetrack (MPI_Wtime))
-  (csym::fprintf stderr "Tlog countNum: %lf %d %ld %ld %ld~%" timetrack my_rank start end ndpth)
+  ;;(def timetrack double)
+  ;;(= timetrack (MPI_Wtime))
+  ;;(csym::fprintf stderr "Tlog countNum: %lf %d %ld %ld %ld~%" timetrack my-rank start end ndpth)
   (def id int)
   (do-many for id from i1 to i2
     (if (== 0 (% (- i1 id 1) Check-interval))
@@ -1588,11 +1515,9 @@
     )
   )
   (if (> start end) (begin (csym::fprintf stderr "error: start>end~%")))
-  (def my_rank int)
-  (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
-  (def timetrack double)
-  (= timetrack (MPI_Wtime))
-  (csym::fprintf stderr "Tlog setStart: %lf %d %ld %ld %ld~%" timetrack my_rank start end ndpth)
+  ;;(def timetrack double)
+  ;;(= timetrack (MPI_Wtime))
+  ;;(csym::fprintf stderr "Tlog setStart: %lf %d %ld %ld %ld~%" timetrack my-rank start end ndpth)
   ;;(csym::fprintf stderr "setStart: %f %d %d %d %d~%" (csym::get-wall-time) WORKER-ID start end ndpth)
   (def id int)
   (do-many for id from i1 to i2
@@ -1692,33 +1617,28 @@
 )
 
 (def (csym::my-allgather) (fn void void)
-  (def comm_size int)
-  (def my_rank int)
-  (csym::MPI_Comm_size MPI_COMM_WORLD (ptr comm_size))
-  (csym::MPI_Comm_rank MPI_COMM_WORLD (ptr my_rank))
-  ;;(csym::MPI_Barrier MPI_COMM_WORLD)
   (def countR int)
   (= countR (atomic_load (ptr countPCT)))
   (if (== flag 0)
-    (= length_list (cast (ptr int) (csym::malloc (* (sizeof int) comm_size))))
-    (= length_list_BYTE (cast (ptr int) (csym::malloc (* (sizeof int) comm_size))))
+    (= length_list (cast (ptr int) (csym::malloc (* (sizeof int) num-procs))))
+    (= length_list_BYTE (cast (ptr int) (csym::malloc (* (sizeof int) num-procs))))
   )
-  (csym::MPI_Allgather (ptr countR) 1 MPI_INT length_list comm_size MPI_INT MPI_COMM_WORLD)
+  (csym::MPI_Allgather (ptr countR) 1 MPI_INT length_list num-procs MPI_INT MPI_COMM_WORLD)
   (def il int)
-  (= pre (cast (ptr int) (csym::malloc (* (sizeof int) comm_size))))
-  (= pre_BYTE (cast (ptr int) (csym::malloc (* (sizeof int) comm_size))))
+  (= pre (cast (ptr int) (csym::malloc (* (sizeof int) num-procs))))
+  (= pre_BYTE (cast (ptr int) (csym::malloc (* (sizeof int) num-procs))))
   (= (aref pre 0) 0)
-  (for ((= il 0) (< il comm_size) (inc il))
+  (for ((= il 0) (< il num-procs) (inc il))
     (= (aref pre (+ il 1)) (+ (aref pre il) (aref length_list il)))
   )
-  (for ((= il 0) (< il comm_size) (inc il))
+  (for ((= il 0) (< il num-procs) (inc il))
     (= (aref length_list_BYTE il) (* (aref length_list il) (sizeof cluster)))
     (= (aref pre_BYTE il) (* (aref pre il) (sizeof cluster)))
   )
-  (= total_length (+ (aref pre (- comm_size 1)) (aref length_list (- comm_size 1))))
-  ;;(csym::fprintf stderr "rankid %d: total_length is %d!~%" my_rank total_length)
+  (= total_length (+ (aref pre (- num-procs 1)) (aref length_list (- num-procs 1))))
+  ;;(csym::fprintf stderr "rankid %d: total_length is %d!~%" my-rank total_length)
   
-  (csym::fprintf stderr "rankid %d: countR is %d!~%" my_rank countR)
+  ;;(csym::fprintf stderr "rankid %d: countR is %d!~%" my-rank countR)
   (for ((= il 0) (< il countR) (inc il))
     (if (== (fref (aref privateCTlist il) left_son_node) -1)
       (begin
@@ -1733,13 +1653,12 @@
         (= (aref (fref (aref privateCTlist il) offsets) 1) (+ (aref (fref (aref privateCTlist il) offsets) 1) (aref pre my_rank)))
       )
       (begin
-        ;;(csym::fprintf stderr "rank%d: inter-node offset happened right at il:%d~%" my_rank il)
+        ;;(csym::fprintf stderr "rank%d: inter-node offset happened right at il:%d~%" my-rank il)
         (= (aref (fref (aref privateCTlist il) offsets) 1) (+ (aref (fref (aref privateCTlist il) offsets) 1) (aref pre (fref (aref privateCTlist il) right_son_node))))
       )
     )
   )
   ;;MPI_Allgatherv begin
-  ;;(csym::MPI_Barrier MPI_COMM_WORLD)
   (csym::MPI_Allgatherv (ptr (aref privateCTlist 0)) (* countR (sizeof cluster)) MPI_BYTE (ptr (aref resultCTlist 0)) length_list_BYTE pre_BYTE MPI_BYTE MPI_COMM_WORLD)
   (free privateCTlist)
   (free length_list)

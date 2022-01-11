@@ -127,8 +127,13 @@
      (%if* USE-SPN-RANGE
         (:spawn-from (+ i 3)))
      (:node (def flag int 3)
-            (if (or (< k 2) (> (csym::erand48) (- i inode1)))
-              (= flag 2)) 
+            (def random double (csym::my-random-probability _thr))
+            (def inte double (/ (cast double (- inode1 i)) 19))
+            ;;(csym::fprintf stderr "random:%f inte:%f~%" random inte)
+            (if (and (< k 2) (< random inte))
+              (begin (= flag 2))
+              ;;(begin (if (and (> k 10) (> random inte)) (= flag 1)))
+            )
             flag)
      (:put from i1 to i2
            (%if* USE-PROBGUARD

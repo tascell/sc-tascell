@@ -77,14 +77,14 @@
   (def r long :out))
 
 (def (task-body fib)
-  (csym::fprintf stderr "rank[%d] worker[%d] task-body start fib(%d)~%" my-rank WORKER-ID (fref this n))
+  ;;(csym::fprintf stderr "rank[%d] worker[%d] task-body start fib(%d)~%" my-rank WORKER-ID (fref this n))
   (%if* COUNT-NTASK
     (++ WDATA.n-task)
     (csym::fprintf stderr "%d starts %d-th task.~%" WORKER-ID WDATA.n-task))
   (%if* USE-PROBGUARD
     (= PROBABILITY (csym::my-probability this.n)))
   (= this.r (fib this.n))
-  (csym::fprintf stderr "rank[%d] worker[%d] task-body end fib(%d)~%" my-rank WORKER-ID (fref this n))
+  ;;(csym::fprintf stderr "rank[%d] worker[%d] task-body end fib(%d)~%" my-rank WORKER-ID (fref this n))
   )
 
 (def (task fib-start)

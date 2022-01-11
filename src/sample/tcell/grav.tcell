@@ -36,6 +36,7 @@
 ;; <100*z>
 
 (c-exp "#include<sys/time.h>")
+(c-exp "#include<stdlib.h>")
 
 (%ifndef* NF-TYPE
   (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL RAWC)

@@ -420,3 +420,6 @@
   )
 (extern-decl option (struct runtime-option))
 (extern-decl my-rank int)
+(extern-decl num-procs int)
+(extern-decl (csym::node-prob wid) (fn double int))
+(extern-decl (csym::my-random-probability thr) (fn double (ptr (struct thread-data))))

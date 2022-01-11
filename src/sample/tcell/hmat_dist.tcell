@@ -1535,7 +1535,7 @@
       (if (< maxz zg) (begin (= maxz zg))))
     (handles minmax
       (:guard (< (- i2 il) 10000))
-      (:internode 0)
+      (:node 1)
       (:put from j1 to j2
             (= this.i1 j1)
             (= this.i2 j2)
@@ -1588,7 +1588,7 @@
     (= (aref lessNum id) ln)
     (= (aref moreNum id) mn)
     (handles countNum
-      (:internode 0)
+      (:node 1)
       (:put from j1 to j2
 	    (= this.i1 j1)
 	    (= this.i2 j2)
@@ -1645,7 +1645,7 @@
 	  (= (aref (aref tempzgmid ms) 2) (aref (aref zgmid im) 2))
 	  (inc ms))))
     (handles setStart
-      (:internode 0)
+      (:node 1)
       (:put from j1 to j2
 	      (= this.i1 j1)
 	      (= this.i2 j2)
@@ -1676,7 +1676,7 @@
         TCELL-CHECK-REQ)
     (+= sum (aref lessNum id))
     (handles ssum
-      (:internode 0)
+      (:node 1)
       (:put from j1 to j2
 	      (= this.i1 j1)
 	      (= this.i2 j2)

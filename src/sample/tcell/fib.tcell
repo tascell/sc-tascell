@@ -24,7 +24,7 @@
 
 ;;; Fibonacci
 
-;; task 0 0 0 0
+;; task 0 0 0 1
 ;; <n>
 
 (c-exp "#include<sys/time.h>")
@@ -77,13 +77,14 @@
   (def r long :out))
 
 (def (task-body fib)
-    ;;(csym::fprintf stderr "start fib(%d)~%" (fref this n))
+    ;;(csym::fprintf stderr "worker[%d] task-body start fib(%d)~%" WORKER-ID (fref this n))
   (%if* COUNT-NTASK
     (++ WDATA.n-task)
     (csym::fprintf stderr "%d starts %d-th task.~%" WORKER-ID WDATA.n-task))
   (%if* USE-PROBGUARD
     (= PROBABILITY (csym::my-probability this.n)))
   (= this.r (fib this.n))
+  ;;(csym::fprintf stderr "worker[%d] task-body end fib(%d)~%" WORKER-ID (fref this n))
   )
 
 (def (task fib-start)
@@ -92,7 +93,7 @@
 
 (def (task-body fib-start)
   (decl tp (array (struct timeval) 2))
-  (csym::fprintf stderr "start fib(%ld)~%" this.n)
+  ;;(csym::fprintf stderr "worker[%d] start fib(%ld)~%" WORKER-ID this.n)
   (%if* COUNT-NTASK
     (++ WDATA.n-task)
     (csym::fprintf stderr "%d starts %ld-th task.~%" WORKER-ID WDATA.n-task))
@@ -119,6 +120,7 @@
     )
 
 (def (fib n) (wfn long long)
+  ;;(csym::fprintf stderr "worker[%d] start fib(%d)~%" WORKER-ID n)
   (if (<= n 2)
       (return 1)
     (begin
@@ -133,4 +135,5 @@
             (= PROBABILITY (csym::my-probability (- n 2))))
           (= this.n (- n 2)))
          (:get (= s2 this.r))))
+      ;;(csym::fprintf stderr "worker[%d] end fib(%d)~%" WORKER-ID n)
       (return (+ s1 s2)))))

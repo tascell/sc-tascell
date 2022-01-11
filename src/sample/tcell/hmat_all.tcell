@@ -2,6 +2,7 @@
   (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL) 
 (%include "rule/tcell-setrule.sh")
 
+(c-exp "#include <mpi.h>")
 (c-exp "#include <stdio.h>")
 (c-exp "#include <stdlib.h>")
 (c-exp "#include <math.h>")
@@ -12,7 +13,7 @@
 (%defconstant PN 10000)             ;;TS
 (%defconstant PL 10)                ;;TN
 (%defconstant PARA_LEVEL 20)
-(%defconstant CHUNK_SIZE 128)      ;;C
+(%defconstant CHUNK_SIZE 1000)      ;;C
 (%defconstant Check-interval 100)
 (%defconstant MB 25000000)
 
@@ -23,9 +24,9 @@
 ;; ; Spherepyramid
 ;;(%defconstant INPUT_DEFAULT "../data_pro1804/input_100ts.txt_pb_1.5_14.bin")
 ;; ; Sphere
-;;(%defconstant INPUT_DEFAULT "../data_pro1804/input_50ms.bin")
+(%defconstant INPUT_DEFAULT "../data_pro1804/input_50ms.bin")
 ;; ; humanoids
-(%defconstant INPUT_DEFAULT "../data_pro1804/input_human_1x1.txt_cb_0.3_50_100_1.bin")
+;;(%defconstant INPUT_DEFAULT "../data_pro1804/input_human_1x1.txt_cb_0.3_50_100_1.bin")
 ;; ; small dataset for debug, N=1000
 ;(%defconstant INPUT_DEFAULT "../data_pro1804/input_100ts.txt.bin")
 
@@ -315,11 +316,11 @@
   ;(csym::fprintf stderr "4~%")
 
   ;(csym::fprintf stderr "test!~%")
-  (= start (csym::get-wall-time))
+  (= start (csym::MPI_Wtime))
   (= st-clt
      (create-ctree-ssgeom gmid tempgmid ndpth ndscd nsrt
                           ndf nofc nclst))
-  (= end (csym::get-wall-time))
+  (= end (csym::MPI_Wtime))
   (= spent (- end start))
   (csym::fprintf stderr "cluster tree time spent:%.10lf~%" spent)
   ;;(csym::set-bndbox-cog st-clt gmid nofc)
