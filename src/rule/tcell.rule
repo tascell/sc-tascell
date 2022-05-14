@@ -364,6 +364,19 @@
                            (begin (= hx temp-next)
                            (continue))
                         ))))
+             ,(if-pattern-variable spn-from-exp
+                                   ~(begin
+                                     ,@spn-from-body
+                                     (= ,put-from ,spn-from-exp)
+                                     ;; Check the range
+                                     (if (< ,put-from ,var)
+                                         (= ,put-from (- ,var2 (- ,var ,put-from)))
+                                     )
+                                     (if (<= ,put-from ,var)
+                                         (= ,put-from (+ ,var 1)))
+                                     (if (>= ,put-from ,put-to)
+                                         (break)))
+                                   ~(= ,put-from (/ (+ 1 ,var ,var2) 2)))
               ,@(if-pattern-variable node-exp
                     (list
                       ~(begin
@@ -373,16 +386,6 @@
                             (begin (= hx temp-next)
                             (continue))
                           ))))
-             ,(if-pattern-variable spn-from-exp
-                                   ~(begin
-                                     ,@spn-from-body
-                                     (= ,put-from ,spn-from-exp)
-                                     ;; Check the range
-                                     (if (<= ,put-from ,var)
-                                         (= ,put-from (+ ,var 1)))
-                                     (if (>= ,put-from ,put-to)
-                                         (break)))
-                                   ~(= ,put-from (/ (+ 1 ,var ,var2) 2)))
              (= ,var2 ,put-from)
              (= pthis
                 (cast (ptr (struct ,(tcell:task-struct-id)))

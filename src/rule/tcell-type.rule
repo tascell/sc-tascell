@@ -106,8 +106,8 @@
 	,@body
 	({handles} ,id
           {(:guard ,@guard-body ,guard-exp)}
-          {(:node ,@node-body ,node-exp)}
           {(:spawn-from  ,@spn-from-body ,spn-from-exp)}
+          {(:node ,@node-body ,node-exp)}
 	  (:put from ,put-from to ,put-to ,@put-body)
 	  (:get ,@get-body))))
    (type:with-new-environment
@@ -121,16 +121,16 @@
 					  (let ((fb (function-body guard-body))
 						(exp (expression guard-exp)))
 					    ~(:guard ,@fb ,exp)))))
-      ,@(if-pattern-variable node-exp
-				   (list (type:with-new-environment
-					  (let ((fb (function-body node-body))
-						(exp (expression node-exp)))
-					    ~(:node ,@fb ,exp)))))
 	    ,@(if-pattern-variable spn-from-exp
 				   (list (type:with-new-environment
 					  (let ((fb (function-body spn-from-body))
 						(exp (expression spn-from-exp)))
 					    ~(:spawn-from ,@fb ,exp)))))
+      ,@(if-pattern-variable node-exp
+				   (list (type:with-new-environment
+					  (let ((fb (function-body node-body))
+						(exp (expression node-exp)))
+					    ~(:node ,@fb ,exp)))))
 	    (:put from ,put-from to ,put-to
 		  ,@(type:with-new-environment
                      (type:add-variable put-from ~int)

@@ -16,7 +16,7 @@ GCC=mpiicc
 # Command for Intel C Compiler
 ICC=icc
 # Optimization options for C Compilers
-OPT=-O2 -g $(MOPT) -std=gnu11 ../data/bem_file.c
+OPT=-O3 -g $(MOPT) -std=gnu11 -mcmodel=medium -shared-intel ../data/bem_file.c
 OPT+=-D USEMPI
 
 # Keyword for L-Closures and Closures in XC Cube. Don't modify.
@@ -51,7 +51,7 @@ endif
 # icc-c, icc-lw, and icc-clos}
 # By default, this Makefile makes all ALL_PROGS. You can make just one of targets by specifying the target file name,
 # (e.g., "make fib-gcc")
-APPS=fib fib-guard fib-try fib-thr fib-node lu cmp cmp-node pen pen-excep pen6x17 pen6x17-guard pen6x17-try pen6x17-thr nq nq-node nq-try nq-thr grav matmul spanning bcast copine0 copine1 copine2 copine3 copine4 copine0d copine1d copine3d hmat_all hmat_dist hmat_dist_cas hmat_dist_bcst
+APPS=fib fib-guard fib-try fib-thr fib-node lu cmp cmp-node pen pen-excep pen6x17 pen6x17-guard pen6x17-try pen6x17-thr nq nq-node nq-try nq-thr grav matmul spanning bcast copine0 copine1 copine2 copine3 copine4 copine0d copine1d copine3d hmat_all hmat_dist hmat_dist_cas hmat_dist_bcst hmat_sm_cas hmat_dist_casc hmat_dist_bcst_allgather hmat_dist_bcst_allgatherv hmat_ct_red hmat_ct_redp
 
 C_PROGS=$(addsuffix -c,$(APPS))
 GCC_PROGS=$(addsuffix -gcc,$(APPS))

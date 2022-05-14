@@ -157,10 +157,12 @@
 ;; sv-socket<0: communicates with external nodes directly using MPI
 (def sv-socket int)
 ;; Generate a randonm rank ID excluding my ID.
+(def first-outside int 1)
 (def (csym::choose-rank) (csym::fn int void)
   (def rank int)
   (= rank (csym::my-random (- num-procs 1)
     (ptr random-seed1) (ptr random-seed2)))
+  (if first-outside (= rank 0))
   (if (>= rank my-rank)
     (inc rank))
   (return rank)
@@ -345,17 +347,17 @@
 (def (csym::guard-node-task-request thr cur flag) (csym::fn int (ptr (struct thread-data)) (ptr (struct task-home)) int)
   (if (== flag 0)
     (begin
-      (csym::flush-treq-with-none-1 thr cur)
+      ;;(csym::flush-treq-with-none-1 thr cur)
       (return 1)))
   (if (and (== flag 1) (== cur->req-from OUTSIDE))
     (begin
       ;;(csym::fprintf stderr "OUTSIDE work-steal rejected~%")
-      (csym::flush-treq-with-none-1 thr cur)
+      ;;(csym::flush-treq-with-none-1 thr cur)
       (return 1)))
   (if (and (== flag 2) (== cur->req-from INSIDE))
     (begin
       ;;(csym::fprintf stderr "INSIDE work-steal rejected~%")
-      (csym::flush-treq-with-none-1 thr cur)
+      ;;(csym::flush-treq-with-none-1 thr cur)
       (return 1)))
   (return 0)
 )
@@ -774,6 +776,7 @@
   (= task-no (aref pcmd->v 3 0))
   (if (== pcmd->node OUTSIDE)
       (begin
+       (= first-outside 0) ; add
        (= body ((aref task-receivers task-no)))
        (csym::read-to-eol)))
   ;; Determine the task recipient worker from <recipient>

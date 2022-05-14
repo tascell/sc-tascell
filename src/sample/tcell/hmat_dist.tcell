@@ -11,7 +11,7 @@
 (c-exp "#include <unistd.h>")
 (c-exp "#include \"../data/bem_file.h\"")
 ;;(c-exp "#include \"sock.h\"")
-(%defconstant PN 10000)             ;;TS
+(%defconstant PN 100000000)             ;;TS
 (%defconstant PL 10)                ;;TN
 (%defconstant PARA_LEVEL 20)
 (%defconstant CHUNK_SIZE 128)      ;;C
@@ -400,7 +400,7 @@
   ;;(csym::sleep 10)
   ;;================ MPI code ====================== 
   (csym::fprintf stderr "cluster tree time spent:%.10lf~%" spent)
-  ;;(csym::set-bndbox-cog st-clt gmid nofc)
+  (csym::set-bndbox-cog st-clt gmid nofc)
   (= ndpth 0)
   (= start (csym::get-wall-time))
   (csym::count-lntmx st-clt st-clt param lnmtx nffc)
@@ -1172,7 +1172,7 @@
   (return st-clt))
 
 (def (minmax i1 i2 zgmid tsk ndpth nsrt) (wfn void int int (ptr (array double 3)) (ptr (struct minmax)) int int)
-  (csym::fprintf stderr "minmax: %f %d %d %d %d~%" (csym::get-wall-time) WORKER-ID (+ i1 nsrt) (- (+ i2 nsrt) 1) ndpth)
+  ;;(csym::fprintf stderr "minmax: %f %d %d %d %d~%" (csym::get-wall-time) WORKER-ID (+ i1 nsrt) (- (+ i2 nsrt) 1) ndpth)
   (def il int)
   (def minx double)
   (def miny double)
@@ -1235,7 +1235,7 @@
     )
   )
   (if (> start end) (begin (csym::fprintf stderr "error: start>end~%")))
-  (csym::fprintf stderr "countNum: %f %d %d %d %d~%" (csym::get-wall-time) WORKER-ID start end ndpth)
+  ;;(csym::fprintf stderr "countNum: %f %d %d %d %d~%" (csym::get-wall-time) WORKER-ID start end ndpth)
   (def id int)
   (do-many for id from i1 to i2
     (if (== 0 (% (- i1 id 1) Check-interval))
@@ -1283,7 +1283,7 @@
     )
   )
   (if (> start end) (begin (csym::fprintf stderr "error: start>end~%")))
-  (csym::fprintf stderr "setStart: %f %d %d %d %d~%" (csym::get-wall-time) WORKER-ID start end ndpth)
+  ;;(csym::fprintf stderr "setStart: %f %d %d %d %d~%" (csym::get-wall-time) WORKER-ID start end ndpth)
   (def id int)
   (do-many for id from i1 to i2
     (if (== 0 (% (- i1 id 1) Check-interval))
@@ -1316,7 +1316,7 @@
 	    (= this.ncut ncut)
 	    (= this.gn gn)
 	    (= this.nd nd)
-      (= this.nsrt nsrt)
+        (= this.nsrt nsrt)
 	    (= this.zgmid zgmid)
 	    (= this.zlmid zlmid)
 	    (= this.tempzgmid tempzgmid)
@@ -1332,7 +1332,7 @@
   )
 
 (def (ssum i1 i2 ndpth lessNum) (wfn int int int int (ptr int))
-  (csym::fprintf stderr "ssum: %f %d %d %d %d~%" (csym::get-wall-time) WORKER-ID i1 i2 ndpth)
+  ;;(csym::fprintf stderr "ssum: %f %d %d %d %d~%" (csym::get-wall-time) WORKER-ID i1 i2 ndpth)
   (def id int)
   (def sum int 0)
   (do-many for id from i1 to i2
