@@ -1,0 +1,199 @@
+;;; Copyright (c) 2008 Tasuku Hiraishi <hiraisi@kuis.kyoto-u.ac.jp>
+;;; All rights reserved.
+
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+;;; 1. Redistributions of source code must retain the above copyright
+;;;    notice, this list of conditions and the following disclaimer.
+;;; 2. Redistributions in binary form must reproduce the above copyright
+;;;    notice, this list of conditions and the following disclaimer in the
+;;;    documentation and/or other materials provided with the distribution.
+
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE
+;;; FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+;;; OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+;;; LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+;;; OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+;;; SUCH DAMAGE.
+
+;;; Compares array elements a[i] and b[j] for all 0 <= i,j < n.
+
+;; task 0 0 0 0
+;; <n>
+;; -1
+
+(c-exp "#include<sys/time.h>")
+(c-exp "#include<stdint.h>")
+
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
+(%include "rule/tcell-setrule.sh")
+
+(%include "clib.sh")
+(%include "dprint.sh")
+(%cinclude "sendrecv.h" (:macro))
+
+(%defconstant USE-PROBABILITY 1)
+(%defconstant THR 125000)
+
+(%ifdef* USE-PROBABILITY
+  (c-exp "#if !defined(MIN)")
+  (c-exp "#define MIN(a, b) (((a) < (b)) ? (a) : (b))")
+  (c-exp "#endif")
+  (def N0 int 0)
+  (extern num-thrs unsigned-int)
+  (def (cmp-probability n)
+      (fn double int)
+    (return (csym::MIN 1.0 (* (cast double num-thrs) (/ (cast double n) (cast double N0))))))
+					; threshold based probability
+					; (if (<= n 512)
+					;     (return 0.0)
+					;     (return 1.0)))
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (csym::elapsed-time tp) 
+    (fn double (array (struct timeval) 2))
+  (return (+ (- (fref (aref tp 1) tv-sec)
+                (fref (aref tp 0) tv-sec))
+             (* 0.000001
+                (- (fref (aref tp 1) tv-usec)
+                   (fref (aref tp 0) tv-usec))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(%ifndef* INT32
+ (%defconstant INT32 int))
+
+(def (task cmp)
+  (def r int :out)
+  (def n1 int :in)
+  (def n2 int :in)
+  (def d1 (ptr INT32))
+  (def d2 (ptr INT32)))
+
+(def (task-sender cmp)
+  ;;   (def i int)
+  (if (> 0 this.n2) (return)) 
+  (csym::send-int32s this.d1 this.n1)
+  ;;   (for ((= i 0) (< i this.n1) (inc i))
+  ;;     (csym::send-int (aref this.d1 i)))
+  (csym::send-int32s this.d2 this.n2)
+  ;;   (for ((= i 0) (< i this.n2) (inc i))
+  ;;     (csym::send-int (aref this.d2 i)))
+  )
+
+(def (task-receiver cmp)
+  (def i int)
+  (if (not (> 0 this.n2))
+      (begin
+       (= this.d1
+          (cast (ptr INT32)
+            (csym::malloc (* (sizeof INT32) this.n1))))
+       (= this.d2
+          (cast (ptr INT32)
+            (csym::malloc (* (sizeof INT32) this.n2))))
+       (csym::recv-int32s this.d1 this.n1)
+       ;;        (for ((= i 0) (< i this.n1) (inc i))
+       ;;          (= (aref this.d1 i) (csym::recv-int)))
+       (csym::recv-int32s this.d2 this.n2)
+       ;;        (for ((= i 0) (< i this.n2) (inc i))
+       ;;          (= (aref this.d2 i) (csym::recv-int)))
+       ))
+  )
+
+(def (rslt-sender cmp)
+  (csym::free this.d1)
+  (csym::free this.d2))
+
+;;; (rslt-receiver cmp) = default
+
+(decl (cmp-1 n1 n2 d1 d2) (wfn int int int (ptr INT32) (ptr INT32)))
+
+(def (task-body cmp)
+  (decl tp (array (struct timeval) 2))
+  (def i int) (def j int)
+  (DEBUG-PRINT 1 "start %d %d~%" this.n1 this.n2)
+  (if (> 0 this.n2)              ; n2<0 のときは，新しい問題を作って解く
+      (begin
+       (= this.d1
+          (cast (ptr INT32)
+            (csym::malloc (* (sizeof INT32) this.n1))))
+       (= this.n2 this.n1)
+       (= this.d2
+          (cast (ptr INT32)
+            (csym::malloc (* (sizeof INT32) this.n2))))
+       (for ((= i 0) (< i this.n1) (inc i))
+         (= (aref this.d1 i) i))
+       (for ((= i 0) (< i this.n2) (inc i))
+         (= (aref this.d2 i) (- i)))
+       (%ifdef* USE-PROBABILITY
+            (= N0 this.n1)
+            (= PROBABILITY 1.0))
+       (csym::gettimeofday tp 0)
+       (= this.r
+          (cmp-1 this.n1 this.n2
+                 this.d1 this.d2))
+       (csym::gettimeofday (+ tp 1) 0)
+       (csym::fprintf stderr "time: %lf~%"  (csym::elapsed-time tp))
+       )
+    (begin
+      (%ifdef* USE-PROBABILITY
+           (= PROBABILITY (cmp-probability (csym::MIN this.n1 this.n2))))
+      (= this.r
+         (cmp-1 this.n1 this.n2
+                this.d1 this.d2)))))
+
+(def (csym::cmp-2 n1 n2 d1 d2)
+    (csym::fn int int int (ptr INT32) (ptr INT32))
+  (decl i int) (decl j int)
+  (def s int 0)
+  (for ((= i 0) (< i n1) (inc i))
+    (for ((= j 0) (< j n2) (inc j))
+      (if (== (bit-xor (aref d1 i) (aref d2 j)) (- 1)) (inc s))))
+  (return s))
+
+(def (cmp-1 n1 n2 d1 d2) (wfn int int int (ptr INT32) (ptr INT32))
+  (decl s1 int) (decl s2 int)
+  (if (< n1 5) (return (csym::cmp-2 n1 n2 d1 d2)))
+  (if (> n1 n2)
+      (begin 
+       (def n1-1 int (/ n1 2))
+       (def n1-2 int (- n1 n1-1))
+       (do-two
+           (= s1 (cmp-1 n1-1 n2 d1 d2))
+         (= s2 (cmp-1 n1-2 n2 (+ d1 n1-1) d2))
+         (handles cmp
+          (:node (def flag int 3)(if (> n1-2 THR)(begin (= flag 2))) flag)
+          (:put 
+           (%ifdef* USE-PROBABILITY
+                (= PROBABILITY (cmp-probability n1-1)))
+           (= this.n1 n1-2)
+           (= this.n2 n2)
+           (= this.d1 (+ d1 n1-1) )
+           (= this.d2 d2))
+          (:get
+           (= s2 this.r)))))
+    (begin
+     (def n2-1 int (/ n2 2))
+     (def n2-2 int (- n2 n2-1))
+     (do-two
+         (= s1 (cmp-1 n1 n2-1 d1 d2))
+       (= s2 (cmp-1 n1 n2-2 d1 (+ d2 n2-1)))
+       (cmp
+        (:node (def flag int 3)(if (> n2-2 THR)(begin (= flag 2))) flag)
+        (:put
+         (%ifdef* USE-PROBABILITY
+              (= PROBABILITY (cmp-probability n2-1)))
+         (= this.n1 n1)
+         (= this.n2 n2-2)
+         (= this.d1 d1)
+         (= this.d2 (+ d2 n2-1)))
+        (:get
+         (= s2 this.r))))))
+  (return (+ s1 s2)))
