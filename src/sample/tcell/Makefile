@@ -18,6 +18,8 @@ ICC=icc
 # Optimization options for C Compilers
 OPT=-O3 -g $(MOPT) -std=gnu11 -mcmodel=medium -shared-intel ../data/bem_file.c
 OPT+=-D USEMPI
+OPT+=-no-multibyte-chars
+OPT+=-mkl
 
 # Keyword for L-Closures and Closures in XC Cube. Don't modify.
 XCCOPT=-DCT=lightweight
