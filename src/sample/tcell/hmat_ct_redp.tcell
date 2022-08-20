@@ -13,34 +13,44 @@
 (c-exp "#include <stdatomic.h>")
 (c-exp "#include <mkl.h>")
 (c-exp "#include \"../data/bem_file.h\"")
-(%defconstant PN 10000)             ;;TS
-(%defconstant PL 15)                ;;TN
-(%defconstant PB 1000)              ;;TN of BCT
+(%defconstant PN 2147483647)             ;;TS
+;; (%defconstant PN 10000)
+(%defconstant PL 50)                ;;TN
+(%defconstant PB 5)              ;;TN of BCT
 (%defconstant CHUNK_SIZE 1000)      ;;C
 (%defconstant Check-interval 100)
-(%defconstant LN 20000000)
+(%defconstant LN 1000000)
 (%defconstant ND 2)
-(%defconstant CASC 1000)
-(%defconstant BCTN 1599448480)
+(%defconstant CASC 7000)
+(%defconstant BCTN 1000000)
 
 (%defconstant TCELL-CHECK-REQ 1)
 
 (extern-decl sv_socket int)
 
-;; ; Test
-(%defconstant INPUT_DEFAULT "../bem_data/input_10ts.txt")
-;; ; Spherecube
-;; (%defconstant INPUT_DEFAULT "../data_pro1804/input_100ts.txt_cb_1.5_10_10_10.bin")
-;; ; Spherepyramid
-;; (%defconstant INPUT_DEFAULT "../data_pro1804/input_100ts.txt_pb_1.5_14.bin")
-;; ; Sphere
-;; (%defconstant INPUT_DEFAULT "../data_pro1804/input_50ms.bin")
-;; ; humanoids
-;; (%defconstant INPUT_DEFAULT "../data_pro1804/input_human_1x1.txt_cb_0.3_50_100_1.bin")
-;; ; small dataset for debug, N=1000
-;(%defconstant INPUT_DEFAULT "../data_pro1804/input_100ts.txt.bin")
+;; ; 10ts OK
+;; (%defconstant INPUT_DEFAULT "../bem_data/input_10ts.txt")
+;; ; 338ts OK
+;; (%defconstant INPUT_DEFAULT "../bem_data/input_338ts.txt")
+;; ; 10ms
+;; (%defconstant INPUT_DEFAULT "../bem_data/input_10ms.txt")
+;; ; 84tp7 OK
+;; (%defconstant INPUT_DEFAULT "../bem_data/input_84tp7.txt")
+;; ; 100ts OK
+;; (%defconstant INPUT_DEFAULT "../bem_data/input_100ts.txt")
+;; ; 648kp OK NG
+;; (%defconstant INPUT_DEFAULT "../bem_data/input_648kp.txt")
+;; ; 10ks OK
+;; (%defconstant INPUT_DEFAULT "../bem_data/input_10ks.txt")
+;; ; 108kp22 OK
+(%defconstant INPUT_DEFAULT "../bem_data/input_108kp22.txt")
+;; ; 216hr632
+;; (%defconstant INPUT_DEFAULT "../bem_data/input_216hr632.txt")
+;; ; 216hr632
+;; (%defconstant INPUT_DEFAULT "../bem_data/input_216hr632.txt")
 
-(%defconstant NWORKER-MAX 540)
+
+(%defconstant NWORKER-MAX 576)
 (extern-decl num-thrs unsigned-int)
 
 ;; *********define cluster************
@@ -121,16 +131,7 @@
   (decl bmin (array double 3))
   (decl bmax (array double 3)))
 
-(def (rslt-sender create_leafmtx)
-  (begin
-    (def nlf-sum int 0)
-    (def i int)
-    (for ((= i 0) (< i num-thrs) (inc i))
-      (def nlf-i int (fref (aref Wdata-list i) -> nlf))
-       (+= nlf-sum nlf-i))
-  )
-)
-
+(def (rslt-sender create_leafmtx))
 (def (rslt-receiver create_leafmtx))
 
 (def (task minmax)
@@ -194,6 +195,8 @@
 (def (task-body BCT_cnt_task))
 (def (task-receiver BCT_cnt_task)
   (csym::BCT_cnt)
+  (csym::finalize-tcounter)
+	(csym::show-counters)
 )
 
 (def (task CT_cnt_task))
@@ -211,8 +214,8 @@
 (decl (start-up) (wfn int))
 (decl (csym::med3 nl nr nlr2)
     (fn int int int int))
-(decl (create_leafmtx stc-cltl st-cltt i1 i2)
-    (wfn void int int int int))
+(decl (create_leafmtx stc-cltl st-cltt i1 i2 face node face2node)
+    (wfn void int int int int (ptr (array double 3)) (ptr (array double 3)) (ptr (array int 3))))
 (decl (csym::dist-2cluster st-cltl st-cltt)
     (fn double int int))
 (decl (csym::cal-bndbox-cog st-clt zgmid bls_min bls_max brs_min brs_max)
@@ -253,9 +256,10 @@
      (fn void (ptr double) (ptr double) int int int int (ptr double) int int (ptr (array double 3)) (ptr (array double 3)) (ptr (array int 3)) (ptr int)))
 (decl (csym::comp_row zaa zab ndl ndt k il row nstrtl nstrtt face node face2node lrow_done)
      (fn void (ptr double) (ptr double) int int int int (ptr double) int int (ptr (array double 3)) (ptr (array double 3)) (ptr (array int 3)) (ptr int)))
-(decl (csym::acaplus zaa zab ndl ndt nstrtl nstrtt face node face2node kmax eps znrmmat pACA_EPS)
-     (fn int (ptr double) (ptr double) int int int int (ptr (array double 3)) (ptr (array double 3)) (ptr (array int 3)) int double double double))
-(decl (csym::fill_sub_leafmtx st_lf face node face2node znrmmat) (fn void (ptr leafmtx) (ptr (array double 3)) (ptr (array double 3)) (ptr (array int 3)) double))
+(decl (acaplus zaa zab ndl ndt nstrtl nstrtt face node face2node kmax eps znrmmat pACA_EPS)
+     (wfn int (ptr double) (ptr double) int int int int (ptr (array double 3)) (ptr (array double 3)) (ptr (array int 3)) int double double double))
+(decl (fill_k_leafmtx st_lf face node face2node znrmmat) (wfn void (ptr leafmtx) (ptr (array double 3)) (ptr (array double 3)) (ptr (array int 3)) double))
+(decl (fill_d_leafmtx st_lf face node face2node znrmmat) (wfn void (ptr leafmtx) (ptr (array double 3)) (ptr (array double 3)) (ptr (array int 3)) double))
 
 (decl ndim int 3)
 (def flag int 0)
@@ -268,7 +272,7 @@
 (def pre (ptr int))
 (def pre_BYTE (ptr int))
 (def flagBCT int 0)
-(def nlf long 650000000)
+(def nlf long 6500000)
 (def nofc int)
 (def CT_pre int 0)
 
@@ -276,14 +280,17 @@
 
 (def zgmid (ptr (array double 3)))
 (def tempzgmid (ptr (array double 3)))
+(def node (ptr (array double 3)))
 (def face2node (ptr (array int 3)))
 (def tempface2node (ptr (array int 3)))
 
 (def (task-body create_leafmtx)
-  (create_leafmtx this.st-cltl this.st-cltt this.i1 this.i2))
+  (create_leafmtx this.st-cltl this.st-cltt this.i1 this.i2 zgmid node face2node))
 
 (def (task-body CTdist1)
   (create-ctree-ssgeom zgmid tempzgmid face2node tempface2node 0 0 nofc)
+  (= outside-flag 1)
+  ;; (csym::fprintf stderr "my_rank:%d test!~%" my_rank)
   (if (> num-procs 1)
       (CT_reorder 0 0)
       (= resultCTlist privateCTlist)))
@@ -325,25 +332,37 @@
     (csym::load_data)
   )
 
+  ;; (def il int)
+  ;; (for ((= il 0) (< il nofc) (inc il))
+  ;;   (csym::fprintf stderr "face: %d %d %d~%" (aref face2node il 0) (aref face2node il 1) (aref face2node il 2))
+  ;; )
+
   (def i int)
   (= start (csym::MPI_Wtime))
   (do-many for i from 0 to num-procs
-		(decl start2 double)
-    (decl end2 double)
-    (= start2 (csym::MPI_Wtime))
+		;; (decl start2 double)
+    ;; (decl end2 double)
+    ;; (= start2 (csym::MPI_Wtime))
     (create-ctree-ssgeom zgmid tempzgmid face2node tempface2node 0 0 nofc)
-    (= end2 (csym::MPI_Wtime))
-    (csym::fprintf stderr "cluster tree time spent:%.10lf~%" (- end2 start2))
-    (csym::fprintf stderr "breakdown:%.10lf~%" (- middle start2))
-    (= start2 (csym::MPI_Wtime))
+    ;; (= end2 (csym::MPI_Wtime))
+    ;; (csym::fprintf stderr "cluster tree time spent:%.10lf~%" (- end2 start2))
+    ;; (csym::fprintf stderr "breakdown:%.10lf~%" (- middle start2))
+    ;; (= start2 (csym::MPI_Wtime))
+    (= outside-flag 1)
+    ;; (csym::fprintf stderr "my_rank:%d test!~%" my_rank)
     (if (> num-procs 1)
       (CT_reorder 0 0)
       (= resultCTlist privateCTlist))
-    (= end2 (csym::MPI_Wtime))
-    (csym::fprintf stderr "reorder time spent:%.10lf~%" (- end2 start2))
-    (decl all int)
-    (= all (* (fref (aref resultCTlist 0) nnson) (fref (aref resultCTlist 0) nnson)))
-    (create_leafmtx 0 0 0 all)
+    ;; (= end2 (csym::MPI_Wtime))
+    ;; (csym::fprintf stderr "reorder time spent:%.10lf~%" (- end2 start2))
+    ;; (if (and (== my_rank 0))
+    ;;   (begin
+    ;;     (decl all int)
+    ;;     (= all (* (fref (aref resultCTlist 0) nnson) (fref (aref resultCTlist 0) nnson)))
+    ;;     ;; (csym::fprintf stderr "my_rank:%d, workerID:%d ~%" my_rank WORKER-ID)
+    ;;     (create_leafmtx 0 0 0 all zgmid node face2node)
+    ;;   )
+    ;; )
 		(handles CTdist1
       (:spawn-from (- i 1))
       (:node 2)
@@ -351,10 +370,23 @@
 			(:get)))
   (= end (csym::MPI_Wtime))
   (= spent (- end start))
-  (csym::fprintf stderr "mp time spent:%.10lf~%" spent)
+  (csym::fprintf stderr "cluster tree time spent:%.10lf~%" spent)
+  (def il int)
+  ;; (for ((= il 0) (< il nofc) (inc il))
+  ;;   (csym::fprintf stderr "face: %f %f %f~%" (aref zgmid il 0) (aref zgmid il 1) (aref zgmid il 2))
+  ;; )
+  (= start (csym::MPI_Wtime))
+  (decl all int)
+  (= all (* (fref (aref resultCTlist 0) nnson) (fref (aref resultCTlist 0) nnson)))
+  (create_leafmtx 0 0 0 all zgmid node face2node)
+  (= end (csym::MPI_Wtime))
+  (= spent (- end start))
+  (csym::fprintf stderr "BCT time spent:%.10lf~%" spent)
   
   (tcell-broadcast BCT_cnt_task (:put) 
     (csym::BCT_cnt)
+    ;; (csym::finalize-tcounter)
+	  ;; (csym::show-counters)
   )
 
   (return 0))
@@ -447,8 +479,8 @@
                 (begin (= med3 nlr2))))))
   (return med3))
 
-(def (create_leafmtx st-cltl st-cltt i1 i2)
-    (wfn void int int int int)
+(def (create_leafmtx st-cltl st-cltt i1 i2 face node face2node)
+    (wfn void int int int int (ptr (array double 3)) (ptr (array double 3)) (ptr (array int 3)))
   (def ndl int (fref (aref resultCTlist st-cltl) nsize))
   (def ndt int (fref (aref resultCTlist st-cltt) nsize))
   (def nstrtl int (fref (aref resultCTlist st-cltl) nstrt))
@@ -457,7 +489,7 @@
   (def nnsont int (fref (aref resultCTlist st-cltt) nnson))
 
   (decl ia int)
-  (def nleaf double 15.0)
+  (def nleaf double 40.0)
   (def zeta double 2.0)
   (def zdistlt double (csym::dist-2cluster st-cltl st-cltt))
   (if (and (or (<= (fref (aref resultCTlist st-cltl) zwdth) (* zdistlt zeta))
@@ -470,6 +502,7 @@
       (= (fref (aref WDATA.leafnode-list WDATA.nlf) ndt) ndt)
       (= (fref (aref WDATA.leafnode-list WDATA.nlf) kt) 0)
       (= (fref (aref WDATA.leafnode-list WDATA.nlf) ltmtx) 1)
+      (fill_k_leafmtx (ptr (aref WDATA.leafnode-list WDATA.nlf)) face node face2node 0.0)
       (= WDATA.nlf (+ WDATA.nlf 1)))
     (begin
       (if (or (== nnsonl 0) (== nnsont 0) (<= ndl nleaf) (<= ndt nleaf))
@@ -479,25 +512,28 @@
           (= (fref (aref WDATA.leafnode-list WDATA.nlf) nstrtt) nstrtt)
           (= (fref (aref WDATA.leafnode-list WDATA.nlf) ndt) ndt)
           (= (fref (aref WDATA.leafnode-list WDATA.nlf) ltmtx) 2)
+          (fill_d_leafmtx (ptr (aref WDATA.leafnode-list WDATA.nlf)) face node face2node 0.0)
           (= WDATA.nlf (+ WDATA.nlf 1)))
         (begin
           (if (and (> ndl PB) (> ndt PB))
 		        (begin
 		          (do-many for ia from i1 to i2
+                TCELL-CHECK-REQ
 		            (decl il int) (decl it int)
 		            (= il (/ ia nnsont))
 		            (= it (% ia nnsont))
 		            (decl al int)
 		            (= al (* (fref (aref resultCTlist (aref (fref (aref resultCTlist st-cltl) offsets) il)) nnson) 
                         (fref (aref resultCTlist (aref (fref (aref resultCTlist st-cltt) offsets) it)) nnson)))
-		            (create_leafmtx (aref (fref (aref resultCTlist st-cltl) offsets) il) (aref (fref (aref resultCTlist st-cltt) offsets) it) 0 al)
+		            (create_leafmtx (aref (fref (aref resultCTlist st-cltl) offsets) il) (aref (fref (aref resultCTlist st-cltt) offsets) it) 0 al face node face2node)
 		            (handles create_leafmtx
 			            (:put from j1 to j2
                     (= this.st-cltl st-cltl)
 			              (= this.st-cltt st-cltt)
 			              (= this.i1 j1)
 			              (= this.i2 j2))
-			            (:get))))
+			            (:get)))
+            )
 		        (begin
 		          (for ((= ia i1) (< ia i2) (inc ia))
 		            (decl il int) (decl it int)
@@ -507,7 +543,9 @@
 		            (= al (* (fref (aref resultCTlist (aref (fref (aref resultCTlist st-cltl) offsets) il)) nnson)
                         (fref (aref resultCTlist (aref (fref (aref resultCTlist st-cltt) offsets) it)) nnson)))
 		            (create_leafmtx (aref (fref (aref resultCTlist st-cltl) offsets) il) 
-                                (aref (fref (aref resultCTlist st-cltt) offsets) it) 0 al)))))))))
+                                (aref (fref (aref resultCTlist st-cltt) offsets) it) 0 al face node face2node)))
+          )
+        )))))
 
 (def (csym::dist-2cluster st-cltl st-cltt) (fn double int int)
   (def zs double 0.0) (decl id int)
@@ -1362,15 +1400,32 @@
 (def (csym::BCT_cnt) (fn void void)
   (begin
     (def i int)
+    (def j int)
     (def nlf-sum int 0)
+    (def memory_sum int 0)
     (for ((= i 0) (< i num-thrs) (inc i))
       (def nlf-i int (fref (aref Wdata-list i) -> nlf))
       (if (> nlf-i BCTN)
         (begin
           (csym::fprintf stderr "nlf of counted by worker %d is larger than BCTN!~%" i)
           (csym::exit 99)))
-      (+= nlf-sum nlf-i))
-    (csym::fprintf stderr "rank: %d, nlf-sum = %d~%" my-rank nlf-sum)
+      (+= nlf-sum nlf-i)
+      
+      (for ((= j 0) (< j nlf-i) (inc j))
+        (def temp_leaf (ptr leafmtx) (ptr (aref (fref (aref Wdata-list i) -> leafnode-list) j)))
+        (if (== (fref (mref temp_leaf) ltmtx) 1)
+          (begin
+            (+= memory_sum (+ (* (fref (mref temp_leaf) kt) (fref (mref temp_leaf) ndl)) (* (fref (mref temp_leaf) kt) (fref (mref temp_leaf) ndt))))
+          )
+          (if (== (fref (mref temp_leaf) ltmtx) 2)
+            (+= memory_sum (* (fref (mref temp_leaf) ndl) (fref (mref temp_leaf) ndt)))
+          )
+        )
+      )
+      ;; (csym::fprintf stderr "worker-id: %d, memory-sum = %d~%" i memory_sum)
+      ;; (csym::fprintf stderr "rank = %d, workerid = %d, nlf-i = %d~%" my-rank i nlf-i)
+    )
+    (csym::fprintf stderr "rank: %d, memory-sum = %d~%" my-rank memory_sum)
   )
 )
 
@@ -1381,7 +1436,7 @@
   (def count int 0)
   (decl i int)
   (def bi (struct bem-input))
-  (decl coordOfNode (ptr (array double 3)))
+  ;; (decl coordOfNode (ptr (array double 3)))
   ;; (decl face2node (ptr (array int 3)))
   (= fname INPUT-DEFAULT)
   (= file (fopen fname "r"))
@@ -1396,7 +1451,7 @@
 	        (csym::exit 99)))
       (csym::print-bem-input stderr (ptr bi) BI-PRETTY)
       (= countOfNode bi.nNode)
-      (= coordOfNode bi.coordOfNode)
+      (= node bi.coordOfNode)
       (= count bi.nFace)
       (= zgmid bi.coordOfFace)
       (= face2node bi.face2node)))
@@ -1561,6 +1616,7 @@
   (for ((= il 0) (< il 3) (inc il))
     (= (aref n il) (aref face2node j il))
   )
+  ;; (csym::fprintf stderr "n[0]=%d, n[1]=%d, n[2]=%d~%" (aref n 0) (aref n 1) (aref n 2))
   (for ((= il 0) (< il 3) (inc il))
     (= (aref xf il) (aref node (aref n il) 0))
     (= (aref yf il) (aref node (aref n il) 1))
@@ -1640,7 +1696,7 @@
     (return)
   )
 
-  (csym::adotsub_dsm row zaa zab il ndt k ndt ndl)
+  (csym::adotsub_dsm row zab zaa il ndt k ndt ndl)
 
   (for ((= it 0) (< it ndt) (inc it))
     (if (!= (aref lrow_done it) 0)
@@ -1649,8 +1705,8 @@
   )
 )
 
-(def (csym::acaplus zaa zab ndl ndt nstrtl nstrtt face node face2node kmax eps znrmmat pACA_EPS)
-     (fn int (ptr double) (ptr double) int int int int (ptr (array double 3)) (ptr (array double 3)) (ptr (array int 3)) int double double double)
+(def (acaplus zaa zab ndl ndt nstrtl nstrtt face node face2node kmax eps znrmmat pACA_EPS)
+     (wfn int (ptr double) (ptr double) int int int int (ptr (array double 3)) (ptr (array double 3)) (ptr (array int 3)) int double double double)
   (defs (ptr double) prow pcol pb_ref pa_ref)
   (defs (ptr int) lrow_done lcol_done)
 
@@ -1695,6 +1751,7 @@
 
   (defs double col_maxval row_maxval)
   (while (and (and (< k kmax) (or (> ntries_row 0) (> ntries_col 0))) (> ntries 0))
+    TCELL-CHECK-REQ
     (= ntries (- ntries 1))
     (= pcol (ptr (aref zaa2 k 0)))
     (= prow (ptr (aref zab2 k 0)))
@@ -1892,11 +1949,13 @@
   (return k)
 )
 
-(def (csym::fill_sub_leafmtx st_lf face node face2node znrmmat) 
-     (fn void (ptr leafmtx) (ptr (array double 3)) (ptr (array double 3)) (ptr (array int 3)) double)
-  (def eps double 1.0e-4)
+(def (fill_d_leafmtx st_lf face node face2node znrmmat) 
+     (wfn void (ptr leafmtx) (ptr (array double 3)) (ptr (array double 3)) (ptr (array int 3)) double)
+  ;; (defs double start end)
+  ;; (= start (csym::get-wall-time))
+  
+  (def eps double 1.0e-8)
   (def ACA_EPS double (* 0.9 eps))
-  (def kparam int 200)
   (defs int ip il it)
   
   (def ndl int (fref st_lf -> ndl))
@@ -1906,40 +1965,61 @@
   (def nstrtt int (fref st_lf -> nstrtt))
   (def ltmtx int (fref st_lf -> ltmtx))
 
-  (if (== ltmtx 1)
-    (begin
-      (= (fref st_lf -> a1) (cast (ptr double) (csym::malloc (* (* (sizeof double) ndt) kparam))))
-      (= (fref st_lf -> a2) (cast (ptr double) (csym::malloc (* (* (sizeof double) ndl) kparam))))
-      (if (or (not (fref st_lf -> a1)) (not (fref st_lf -> a2)))
-        (begin
-          (csym::fprintf stderr "allocate a1 or a2 failed!~%")
-          (csym::exit 99)
-        )
-      )
-      (def kt int)
-      (= kt (csym::acaplus (fref st_lf -> a2) (fref st_lf -> a1) ndl ndt nstrtl nstrtt face node face2node kparam eps znrmmat ACA_EPS))
-      (if (> kt kparam)
-        (csym::fprintf stderr "WARNING: Insufficient k: kt=%d, kparam=%d, nstrtl=%d, nstrtt=%d, ndl=%d, ndt=%d~%" kt kparam nstrtl nstrtt ndl ndt)
-      )
+  ;; (csym::fprintf stderr "DEBUGGING: nstrtl=%d, nstrtt=%d, ndl=%d, ndt=%d~%" nstrtl nstrtt ndl ndt)
+  (= (fref st_lf -> a1) (cast (ptr double) (csym::malloc (* (sizeof double) ns))))
 
-      (= (fref st_lf -> a1) (cast (ptr double) (csym::realloc (fref st_lf -> a1) (* (* kt ndt) (sizeof double) ))))
-      (= (fref st_lf -> a2) (cast (ptr double) (csym::realloc (fref st_lf -> a2) (* (* kt ndl) (sizeof double) ))))
-    )
-    (if (== ltmtx 2)
-      (begin
-        (= (fref st_lf -> a1) (cast (ptr double) (csym::malloc (* (sizeof double) ns))))
+  (def tempa1 (ptr (array double ndt)))
+  (= tempa1 (cast (ptr (array double ndt)) (fref st_lf -> a1)))
 
-        (def tempa1 (ptr (array double ndt)))
-        (= tempa1 (cast (ptr (array double ndt)) (fref st_lf -> a1)))
-
-        (for ((= il 0) (< il ndl) (inc il))
-          (def ill int (+ it nstrtl))
-          (for ((= it 0) (< it ndt) (inc it))
-            (def itt int (+ it nstrtt))
-            (= (aref tempa1 il it) (csym::entry_ij ill itt face node face2node))
-          )
-        )
-      )
+  (for ((= il 0) (< il ndl) (inc il))
+    TCELL-CHECK-REQ
+    (def ill int (+ il nstrtl))
+    (for ((= it 0) (< it ndt) (inc it))
+      (def itt int (+ it nstrtt))
+      (= (aref tempa1 il it) (csym::entry_ij ill itt face node face2node))
     )
   )
+  ;; (= end (csym::get-wall-time))
+  ;; (csym::fprintf stderr "nstrtl=%d, nstrtt=%d, ndl=%d, ndt=%d time=%f~%" nstrtl nstrtt ndl ndt (- end start))
+)
+
+(def (fill_k_leafmtx st_lf face node face2node znrmmat) 
+     (wfn void (ptr leafmtx) (ptr (array double 3)) (ptr (array double 3)) (ptr (array int 3)) double)
+  ;; (defs double start end)
+  ;; (= start (csym::get-wall-time))
+  ;; TCELL-CHECK-REQ
+  (def eps double 1.0e-8)
+  (def ACA_EPS double (* 0.9 eps))
+  (def kparam int 50)
+  (defs int ip il it)
+  
+  (def ndl int (fref st_lf -> ndl))
+  (def ndt int (fref st_lf -> ndt))
+  (def ns int (* ndl ndt))
+  (def nstrtl int (fref st_lf -> nstrtl))
+  (def nstrtt int (fref st_lf -> nstrtt))
+  (def ltmtx int (fref st_lf -> ltmtx))
+
+  (= (fref st_lf -> a1) (cast (ptr double) (csym::malloc (* (* (sizeof double) ndt) kparam))))
+  (= (fref st_lf -> a2) (cast (ptr double) (csym::malloc (* (* (sizeof double) ndl) kparam))))
+  (if (or (not (fref st_lf -> a1)) (not (fref st_lf -> a2)))
+    (begin
+      (csym::fprintf stderr "allocate a1 or a2 failed!~%")
+      (csym::exit 99)
+    )
+  )
+  (def kt int)
+  (= kt (acaplus (fref st_lf -> a2) (fref st_lf -> a1) ndl ndt nstrtl nstrtt face node face2node kparam eps znrmmat ACA_EPS))
+  (= (fref st_lf -> kt) kt)
+  (csym::fprintf stderr "DEBUGGING: kt=%d, kparam=%d, nstrtl=%d, nstrtt=%d, ndl=%d, ndt=%d~%" kt kparam nstrtl nstrtt ndl ndt)
+  (if (> kt kparam)
+    (csym::fprintf stderr "WARNING: Insufficient k: kt=%d, kparam=%d, nstrtl=%d, nstrtt=%d, ndl=%d, ndt=%d~%" kt kparam nstrtl nstrtt ndl ndt)
+  )
+
+  (= (fref st_lf -> a1) (cast (ptr double) (csym::realloc (fref st_lf -> a1) (* (* kt ndt) (sizeof double) ))))
+  (= (fref st_lf -> a2) (cast (ptr double) (csym::realloc (fref st_lf -> a2) (* (* kt ndl) (sizeof double) ))))
+  ;; (csym::free (fref st_lf -> a1))
+  ;; (csym::free (fref st_lf -> a2))
+  ;; (= end (csym::get-wall-time))
+  ;; (csym::fprintf stderr "kt=%d, kparam=%d, nstrtl=%d, nstrtt=%d, ndl=%d, ndt=%d time=%f~%" kt kparam nstrtl nstrtt ndl ndt (- end start))
 )
