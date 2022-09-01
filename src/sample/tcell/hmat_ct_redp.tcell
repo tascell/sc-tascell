@@ -13,10 +13,10 @@
 (c-exp "#include <stdatomic.h>")
 (c-exp "#include <mkl.h>")
 (c-exp "#include \"../data/bem_file.h\"")
-(%defconstant PN 2147483647)             ;;TS
-;; (%defconstant PN 10000)
+;; (%defconstant PN 2147483647)             ;;TS
+(%defconstant PN 10000)
 (%defconstant PL 50)                ;;TN
-(%defconstant PB 5)              ;;TN of BCT
+(%defconstant PB 10)              ;;TN of BCT
 (%defconstant CHUNK_SIZE 1000)      ;;C
 (%defconstant Check-interval 100)
 (%defconstant LN 1000000)
@@ -43,11 +43,11 @@
 ;; ; 10ks OK
 ;; (%defconstant INPUT_DEFAULT "../bem_data/input_10ks.txt")
 ;; ; 108kp22 OK
-(%defconstant INPUT_DEFAULT "../bem_data/input_108kp22.txt")
+;; (%defconstant INPUT_DEFAULT "../bem_data/input_108kp22.txt")
 ;; ; 216hr632
 ;; (%defconstant INPUT_DEFAULT "../bem_data/input_216hr632.txt")
-;; ; 216hr632
-;; (%defconstant INPUT_DEFAULT "../bem_data/input_216hr632.txt")
+;; ; 84tp7_30_2p
+(%defconstant INPUT_DEFAULT "../bem_data/input_84tp7_30_2p.txt")
 
 
 (%defconstant NWORKER-MAX 576)
@@ -2011,7 +2011,7 @@
   (def kt int)
   (= kt (acaplus (fref st_lf -> a2) (fref st_lf -> a1) ndl ndt nstrtl nstrtt face node face2node kparam eps znrmmat ACA_EPS))
   (= (fref st_lf -> kt) kt)
-  (csym::fprintf stderr "DEBUGGING: kt=%d, kparam=%d, nstrtl=%d, nstrtt=%d, ndl=%d, ndt=%d~%" kt kparam nstrtl nstrtt ndl ndt)
+  ;; (csym::fprintf stderr "DEBUGGING: kt=%d, kparam=%d, nstrtl=%d, nstrtt=%d, ndl=%d, ndt=%d~%" kt kparam nstrtl nstrtt ndl ndt)
   (if (> kt kparam)
     (csym::fprintf stderr "WARNING: Insufficient k: kt=%d, kparam=%d, nstrtl=%d, nstrtt=%d, ndl=%d, ndt=%d~%" kt kparam nstrtl nstrtt ndl ndt)
   )
