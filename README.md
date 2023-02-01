@@ -69,7 +69,7 @@ You can install this using a package system (e.g., yum, apt-get) on most Linux d
 ## Installation of the SC Language System
 1. Install Lisp
 
-  Please refer to the documents of the Lisp you want to use.
+    Please refer to the documents of the Lisp you want to use.
 
 2. Test Common Lisp in sc/src/
 ```
@@ -80,28 +80,26 @@ You can install this using a package system (e.g., yum, apt-get) on most Linux d
 3. Install SC language system
 
     1.
-     ```
-     cd src/c2scpp
-     ```
+     > cd src/c2scpp
 
     2.
-     ```
-     ./configure && make
-     ```
+     > ./configure && make
 
     3. Add 
-    ```(%cinclude "<stdio.h>" (:macro))```
+    > (%cinclude "<stdio.h>" (:macro))
     into your SC code to include declarations in ``<stdio.h>``.
 
     4. To include C macros, set the :macro keyword argument as
-    ```
-    (%cinclude "<stdio.h>" (:macro NULL stdin stdout)).
-    ```
+    > (%cinclude "<stdio.h>" (:macro NULL stdin stdout)).
 
     5. To include multiple C header files, write as
-    ```
-    (%cinclude "<stdio.h>" "<math.h>" (:macro NULL stdin stdout))
-    ```
+    > (%cinclude "<stdio.h>" "<math.h>" (:macro NULL stdin stdout))
+
+3.1 Run Common Lisp in ``sc/src/``
+```
+% cd sc/src
+% alisp     # or "clisp"
+```
 
 3.2 Load "init.lsp":
 > (load "init.lsp")
@@ -110,14 +108,23 @@ You can install this using a package system (e.g., yum, apt-get) on most Linux d
 > (sc2c "sample/fib.sc")
 
 3.4 You can compile the resulting C program using a C compiler (e.g., gcc) and run it.
+```
 % cd sample
 % gcc fib.c -o fib
 % ./fib 30
+```
 
 3.5 If you would like to compile an SC file from shell command line directly:
-3.5.1 Make a copy of bin/sc-setenv.sh
-3.5.2 Modify the value of SC_PREFIX to your SC directory.
-3.5.3 Execute "source <modified sc-setenv.sh>".
-3.5.4 You can translate an SC program by "sc2c <sc-file> <options>"
+
+      3.5.1 Make a copy of ``bin/sc-setenv.sh``
+      
+      3.5.2 Modify the value of ``SC_PREFIX`` to your SC directory.
+      
+      3.5.3 Execute ``"source <modified sc-setenv.sh>"``.
+      
+      3.5.4 You can translate an SC program by ``"sc2c <sc-file> <options>"``
+      
       (<options> are defined in src/sc-cmdline.lsp. Details to be written.)
-3.5.5 If necessary, copy the contents into a startup file of your login shell.
+      
+      3.5.5 If necessary, copy the contents into a startup file of your login shell.
+      
