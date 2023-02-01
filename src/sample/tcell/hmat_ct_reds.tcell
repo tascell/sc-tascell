@@ -17,10 +17,10 @@
 
 (%defconstant PL 50)                ;;TN
 (%defconstant PB 10)              ;;TN of BCT
-(%defconstant Check-interval 100)
-(%defconstant LN 1000000)
+(%defconstant Check-interval 1)
+(%defconstant LN 220000)
 (%defconstant ND 2)
-(%defconstant BCTN 1000000)
+(%defconstant BCTN 2500000)
 
 (%defconstant TCELL-CHECK-REQ 1)
 
@@ -144,7 +144,7 @@
 (decl ndim int 3)
 (def privateCTlist (ptr cluster))
 ;; (def resultCTlist (ptr cluster))
-(def nlf long 6500000)
+;; (def nlf long 650000)
 (def nofc int)
 (def nNode int)
 (def CTcounter int 0)
@@ -243,11 +243,11 @@
   (= spent (- end start))
   (csym::fprintf stderr "BCT time spent:%.10lf~%" spent)
   
-  ;; (tcell-broadcast BCT_cnt_task (:put) 
+  (tcell-broadcast BCT_cnt_task (:put) 
     (csym::BCT_cnt)
     ;; (csym::finalize-tcounter)
 	  ;; (csym::show-counters)
-  ;; )
+  )
 
   (return 0))
 
@@ -384,7 +384,7 @@
           (if (and (> ndl PB) (> ndt PB))
 		        (begin
 		          (do-many for ia from i1 to i2
-                TCELL-CHECK-REQ
+                ;; TCELL-CHECK-REQ
 		            (decl il int) (decl it int)
 		            (= il (/ ia nnsont))
 		            (= it (% ia nnsont))
