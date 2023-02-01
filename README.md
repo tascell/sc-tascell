@@ -85,9 +85,7 @@ You can install this using a package system (e.g., yum, apt-get) on most Linux d
     2.
      > ./configure && make
 
-    3. Add 
-    > (%cinclude "<stdio.h>" (:macro))
-    into your SC code to include declarations in ``<stdio.h>``.
+    3. Add ``(%cinclude "<stdio.h>" (:macro))`` into your SC code to include declarations in ``<stdio.h>``.
 
     4. To include C macros, set the :macro keyword argument as
     > (%cinclude "<stdio.h>" (:macro NULL stdin stdout)).
@@ -95,36 +93,75 @@ You can install this using a package system (e.g., yum, apt-get) on most Linux d
     5. To include multiple C header files, write as
     > (%cinclude "<stdio.h>" "<math.h>" (:macro NULL stdin stdout))
 
-3.1 Run Common Lisp in ``sc/src/``
+4. Run Common Lisp in ``sc/src/``
 ```
 % cd sc/src
 % alisp     # or "clisp"
 ```
 
-3.2 Load "init.lsp":
+5. Load "init.lsp":
 > (load "init.lsp")
 
-3.3 To translate an SC program into a C program, call the sc2c function. For example:
+6. To translate an SC program into a C program, call the sc2c function. For example:
 > (sc2c "sample/fib.sc")
 
-3.4 You can compile the resulting C program using a C compiler (e.g., gcc) and run it.
+7. You can compile the resulting C program using a C compiler (e.g., gcc) and run it.
 ```
 % cd sample
 % gcc fib.c -o fib
 % ./fib 30
 ```
 
-3.5 If you would like to compile an SC file from shell command line directly:
+8. If you would like to compile an SC file from shell command line directly:
 
-      3.5.1 Make a copy of ``bin/sc-setenv.sh``
+      1. Make a copy of ``bin/sc-setenv.sh``
       
-      3.5.2 Modify the value of ``SC_PREFIX`` to your SC directory.
+      2. Modify the value of ``SC_PREFIX`` to your SC directory.
+
+      3. Execute ``"source <modified sc-setenv.sh>"``.
+
+      4. You can translate an SC program by ``"sc2c <sc-file> <options>"`` 
+
+          (``<options>`` are defined in ``src/sc-cmdline.lsp``. Details to be written.)
+
+      5. If necessary, copy the contents into a startup file of your login shell.
       
-      3.5.3 Execute ``"source <modified sc-setenv.sh>"``.
-      
-      3.5.4 You can translate an SC program by ``"sc2c <sc-file> <options>"``
-      
-      (<options> are defined in src/sc-cmdline.lsp. Details to be written.)
-      
-      3.5.5 If necessary, copy the contents into a startup file of your login shell.
-      
+## Executing Tascell Programs in Shared Memory Environments
+Sample programs of Tascell are located in
+```
+sc/src/sample/tcell/*.tcell
+```
+in the archive.
+
+After the installation of SC, you can compile these Tascell programs by
+```
+% make xxx-gcc    # xxx is a basename of .tcell files.
+```
+Then, execute the generated execution program.
+```
+% ./fib-gcc -n 8 -i "1 44"   
+```
+Here, 8 is the nubmer of workers and "1 44" is the input for the fib program. 
+See the comment in each .tcell source for the format of the input.
+
+## Executing Tascell Programs in Distributed Memory Environments
+To execute Tascell programs in distributed memory environments, you need to execute a Tascell Server first and then execute worker program (e.g., fib-gcc) connecting to the server process.
+
+You can execute a Tascell Server by
+```
+% alisp    # or "sbcl"
+> (load "LOAD.lsp")
+> (ms :local-host "hhhh" :n-wait-children 4 :auto-initial-task "1 44")
+   # hhhh is the hostname accessible from worker ndoes
+```
+Here, 4 is the number of worker nodes and "1 44" is the input for the worker program.
+
+Then, execute the worker program on each worker node.
+```
+% ./fib-gcc -n 8 -s hhhh   
+   # hhhh is the hostname of the server
+```
+The server uses the TCP/9865 connection for communications among the server and the workers. 
+If you want to change the port number, specify the number by the ``:chidren-port`` keyword argument (server) 
+and the ``-p`` command line argument (worker).
+
