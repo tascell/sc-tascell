@@ -71,7 +71,7 @@ You can install this using a package system (e.g., yum, apt-get) on most Linux d
 
     Please refer to the documents of the Lisp you want to use.
 
-2. Test Common Lisp in sc/src/
+2. Test Common Lisp in ``sc/src/``
 ```
 % cd sc/src
 % alisp     # or "clisp"
@@ -87,7 +87,7 @@ You can install this using a package system (e.g., yum, apt-get) on most Linux d
 
     3. Add ``(%cinclude "<stdio.h>" (:macro))`` into your SC code to include declarations in ``<stdio.h>``.
 
-    4. To include C macros, set the :macro keyword argument as
+    4. To include C macros, set the ``:macro`` keyword argument as
     > (%cinclude "<stdio.h>" (:macro NULL stdin stdout)).
 
     5. To include multiple C header files, write as
