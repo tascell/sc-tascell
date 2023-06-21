@@ -71,11 +71,26 @@ You can install this using a package system (e.g., yum, apt-get) on most Linux d
 
     Please refer to the documents of the Lisp you want to use.
 
+    For `clisp`, you can install by the steps below:
+
+    ```
+    % wget ftp://ftp.gnu.org/pub/gnu/clisp/release/2.49/clisp-2.49.tar.gz 
+    % tar xvfz clisp-2.49.tar.gz
+    % cd clisp-2.49 
+    % ./configure --ignore-absence-of-libsigsegv build-dir
+    % make
+    ```
+
+    After the installation is success, you can add `clisp` to `PATH` for convenience.
+    ```
+    % export PATH="$HOME/clisp-2.49/build-dir:$PATH"
+    ```
+
 2. Test Common Lisp in ``sc/src/``
-```
-% cd sc/src
-% alisp     # or "clisp"
-```
+    ```
+    % cd sc/src
+    % alisp     # or "clisp"
+    ```
 
 3. Install SC language system
 
@@ -94,10 +109,10 @@ You can install this using a package system (e.g., yum, apt-get) on most Linux d
     > (%cinclude "<stdio.h>" "<math.h>" (:macro NULL stdin stdout))
 
 4. Run Common Lisp in ``sc/src/``
-```
-% cd sc/src
-% alisp     # or "clisp"
-```
+    ```
+    % cd sc/src
+    % alisp     # or "clisp"
+    ```
 
 5. Load "init.lsp":
 > (load "init.lsp")
@@ -106,11 +121,11 @@ You can install this using a package system (e.g., yum, apt-get) on most Linux d
 > (sc2c "sample/fib.sc")
 
 7. You can compile the resulting C program using a C compiler (e.g., gcc) and run it.
-```
-% cd sample
-% gcc fib.c -o fib
-% ./fib 30
-```
+    ```
+    % cd sample
+    % gcc fib.c -o fib
+    % ./fib 30
+    ```
 
 8. If you would like to compile an SC file from shell command line directly:
 
