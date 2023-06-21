@@ -71,7 +71,7 @@ You can install this using a package system (e.g., yum, apt-get) on most Linux d
 
     Please refer to the documents of the Lisp you want to use.
 
-    For `clisp`, you can install by the steps below:
+    If it happens to be `clisp`, you can install by following the steps below:
 
     ```
     % wget ftp://ftp.gnu.org/pub/gnu/clisp/release/2.49/clisp-2.49.tar.gz 
