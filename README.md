@@ -71,13 +71,14 @@ You can install this using a package system (e.g., yum, apt-get) on most Linux d
 
     Please refer to the documents of the Lisp you want to use.
 
-    If it happens to be `clisp`, you can install by following the steps below:
+    If you want to use clisp, it can be installed by the following the steps:
 
     ```
     % wget ftp://ftp.gnu.org/pub/gnu/clisp/release/2.49/clisp-2.49.tar.gz 
     % tar xvfz clisp-2.49.tar.gz
     % cd clisp-2.49 
     % ./configure --ignore-absence-of-libsigsegv build-dir
+    % cd build-dir
     % make
     ```
 
