@@ -12,14 +12,16 @@ SC2C_OPT+=-D PROFILE        # validate profiling
 XCC=xcc
 # Command for gcc
 GCC=gcc #$(XCC)
-GCC=mpiicc
+GCC=mpifccpx
 # Command for Intel C Compiler
 ICC=icc
 # Optimization options for C Compilers
-OPT=-O3 -g $(MOPT) -std=gnu11 -mcmodel=medium -shared-intel ../data/bem_file.c ../data/filling.c
-OPT+=-D USEMPI
-OPT+=-no-multibyte-chars
-OPT+=-mkl=sequential
+OPT=-O3 -g $(MOPT) -std=gnu11 
+# OPT+=../data/bem_file.c ../data/filling.c
+# OPT+=-mcmodel=medium -shared-intel
+# OPT+=-D USEMPI
+# OPT+=-no-multibyte-chars
+# OPT+=-mkl=sequential
 # OPT+=-qopt-report
 
 # Keyword for L-Closures and Closures in XC Cube. Don't modify.

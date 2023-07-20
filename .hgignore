@@ -17,4 +17,3 @@ cinclude_tmp.*
 syntax: regexp
 .*\.[0-9]*p*\..*\.sc$
 .*\.se[0-9]$
-
