@@ -1,5 +1,5 @@
 # sc-tascell
-Backtrcking-based load balancing framework
+Backtracking-based load balancing framework
 
 ## What is Tascell?
 Tascell is a parallel a work-stealing based parallel programming language, which has the following advantages:
