@@ -11,8 +11,9 @@
 (c-exp "#include <sys/time.h>")
 (c-exp "#include <unistd.h>")
 (c-exp "#include <stdatomic.h>")
-(c-exp "#include <mkl.h>")
-(c-exp "#include \"../data/bem_file.h\"")
+;; (c-exp "#include <mkl.h>")
+(c-exp "#include <cblas.h>")
+(c-exp "#include \"bem_data/bem_file.h\"")
 ;; (%defconstant PN 2147483647)             ;;TS
 (%defconstant PN 10000)
 (%defconstant PL 50)                ;;TN
@@ -47,7 +48,7 @@
 ;; ; 216hr632
 ;; (%defconstant INPUT_DEFAULT "../bem_data/input_216hr632.txt")
 ;; ; 84tp7_30_2p
-(%defconstant INPUT_DEFAULT "../bem_data/input_84tp7_30_2p.txt")
+(%defconstant INPUT_DEFAULT "bem_data/input_10ms.txt")
 
 
 (%defconstant NWORKER-MAX 576)
