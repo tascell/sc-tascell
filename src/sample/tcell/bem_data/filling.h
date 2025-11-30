@@ -5,8 +5,8 @@
 #include <math.h>
 #include <time.h>
 #include <sys/time.h>
-// #include <mkl.h>
-#include <cblas.h>
+#include <mkl.h>
+// #include <cblas.h>
 
 struct leafmtx{
   int ltmtx;                         //kind of the matrix; 1:rk 2:full

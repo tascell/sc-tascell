@@ -12,23 +12,23 @@ SC2C_OPT+=-D PROFILE        # validate profiling
 XCC=xcc
 # Command for gcc
 # GCC=gcc #$(XCC)
-GCC=nvc #$(XCC)
+GCC=gcc #$(XCC)
 # GCC=mpifccpx
-GCC=mpicc
-# Include and library paths (from mpicc --show)
-MPI_INC = -I/opt/system/app/nvhpc/23.9/Linux_x86_64/23.9/comm_libs/12.2/openmpi4/openmpi-4.1.5/include
-MPI_LIB = -L/opt/system/app/nvhpc/23.9/Linux_x86_64/23.9/comm_libs/12.2/openmpi4/openmpi-4.1.5/lib \
-          -L/proj/nv/libraries/Linux_x86_64/23.9/openmpi4-12/234453-rel-3/comm_libs/12.2/openmpi4/openmpi-4.1.5/lib -lmpi
+GCC=mpiicc
+# Include and library paths (from mpiicc --show)
+# MPI_INC = -I/opt/system/app/nvhpc/23.9/Linux_x86_64/23.9/comm_libs/12.2/openmpi4/openmpi-4.1.5/include
+# MPI_LIB = -L/opt/system/app/nvhpc/23.9/Linux_x86_64/23.9/comm_libs/12.2/openmpi4/openmpi-4.1.5/lib \
+#           -L/proj/nv/libraries/Linux_x86_64/23.9/openmpi4-12/234453-rel-3/comm_libs/12.2/openmpi4/openmpi-4.1.5/lib -lmpi
 
-# Other libraries
-CFLAGS = -I/usr/include/openblas $(MPI_INC)
-LDFLAGS = -L/usr/lib64 -lopenblas -lm -pthread $(MPI_LIB)
+# # Other libraries
+# CFLAGS = -I/usr/include/openblas $(MPI_INC)
+# LDFLAGS = -L/usr/lib64 -lopenblas -lm -pthread $(MPI_LIB)
 
 
 # Command for Intel C Compiler
 ICC=icc
 # Optimization options for C Compilers
-OPT=-O3 -g $(MOPT) -std=gnu11 
+OPT=-O3 -g $(MOPT) -std=gnu11 -qmkl
 
 OPT+=$(CFLAGS) $(LDFLAGS) bem_data/bem_file.c bem_data/filling.c
 # OPT+=-mcmodel=medium -shared-intel
