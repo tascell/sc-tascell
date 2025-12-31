@@ -52,14 +52,14 @@ int recv_int(void)
 /**/
 void send_long(long n)
 {
-    char buf[16];
-    snprintf (buf, 16, "%ld\n", n);
+    char buf[24];  // Increased from 16 to handle large long values (up to 19 digits + \n + \0)
+    snprintf (buf, 24, "%ld\n", n);
     send_string (buf, sv_socket);
 }
 long recv_long(void)
 {
-    char buf[16];
-    receive_line (buf, 16, sv_socket);
+    char buf[24];  // Increased from 16 to handle large long values
+    receive_line (buf, 24, sv_socket);
     return atol(buf);
 }
 
