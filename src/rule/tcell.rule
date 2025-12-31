@@ -367,7 +367,7 @@
      ;; add sender/receiver methods (pass i1-sub, i2-sub for range handling)
      (tcell:with-task taskname (tcell:set-task-send (tcell:simple-task-sender var-attr-params-list taskname i1-sub i2-sub)))
      (tcell:with-task taskname (tcell:set-task-recv (tcell:simple-task-receiver var-attr-params-list taskname i1-sub i2-sub)))
-     (tcell:with-task taskname (tcell:set-rslt-send (tcell:simple-result-sender var-attr-params-list taskname)))
+     (tcell:with-task taskname (tcell:set-rslt-send (tcell:simple-result-sender var-attr-params-list taskname i1-sub i2-sub)))
      (tcell:with-task taskname (tcell:set-rslt-recv (tcell:simple-result-receiver var-attr-params-list taskname)))
      (statement
       ~(do-many for ,var from ,from to ,to

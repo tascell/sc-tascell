@@ -181,6 +181,9 @@
   ((#?(catch ,exp ,@body))
    ~(catch ,(expression! exp)
       ,@(type:with-new-environment (function-body body))) )
+  ;; TCELL-CHECK-REQ - pass through to tcell.rule
+  (#?TCELL-CHECK-REQ
+   ~TCELL-CHECK-REQ)
   )
 
 (extendrule expression tcell-type

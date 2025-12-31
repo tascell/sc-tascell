@@ -770,12 +770,11 @@
                                                            (the int (- (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i2-sub)
                                                                        (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i1-sub)))))
                                            trecv-stats)
-                                     ;; 3. Reset i2 to (i2-i1), then i1 to 0
-                                     (push ~(= (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i2-sub)
-                                               (- (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i2-sub)
+                                     ;; 3. Shift array pointer backwards by i1 to preserve original indices
+                                     ;;    This allows a[original_i] to work correctly
+                                     (push ~(= (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname)
+                                               (- (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname)
                                                   (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i1-sub)))
-                                           trecv-stats)
-                                     (push ~(= (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i1-sub) 0)
                                            trecv-stats))))
                                ;; :reduce variables initialize to identity element
                                ((:reduce)
@@ -786,7 +785,7 @@
                                            trecv-stats))))))
                var-attr-params-list)
   (reverse trecv-stats)))
-(defun simple-result-sender (var-attr-params-list taskname)
+(defun simple-result-sender (var-attr-params-list taskname &optional i1-sub i2-sub)
   (let ((rsend-stats ()) (checked-var ()))
     (mapcar #'(lambda (x)
                         (let ((varname (car (car x)))
@@ -815,13 +814,16 @@
                                                         (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))))
                                        rsend-stats))
                                ;; :ecopyin - free the allocated memory after sending result
+                               ;; Since pointer was shifted by -i1, we need to free (a + i1) to get original malloc'd address
                                ((:ecopyin)
-                                 (let ((elmtype (if (and (listp vartype) (member (car vartype) '(sc::array sc::ptr)))
-                                                    (cadr vartype)
-                                                  vartype)))
-                                   (push ~(the void (call csym::free
-                                                          (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname)))
-                                         rsend-stats))))))
+                                 (when (and i1-sub i2-sub)
+                                   (let ((elmtype (if (and (listp vartype) (member (car vartype) '(sc::array sc::ptr)))
+                                                      (cadr vartype)
+                                                    vartype)))
+                                     (push ~(the void (call csym::free
+                                                            (+ (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname)
+                                                               (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i1-sub))))
+                                           rsend-stats)))))))
                var-attr-params-list)
   (reverse rsend-stats)))
 (defun simple-result-receiver (var-attr-params-list taskname)
