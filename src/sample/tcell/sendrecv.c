@@ -37,14 +37,14 @@ extern int sv_socket;     /* defined in worker.sc */
 /**/
 void send_int(int n)
 {
-    char buf[16];
-    snprintf (buf, 16, "%d\n", n);
+    char buf[24];  // Increased for large long values
+    snprintf (buf, 24, "%d\n", n);
     send_string (buf, sv_socket);
 }
 int recv_int(void)
 {
-    char buf[16];
-    receive_line (buf, 16, sv_socket);
+    char buf[24];  // Increased for large long values
+    receive_line (buf, 24, sv_socket);
     return atoi(buf);
 }
 
@@ -83,8 +83,8 @@ int recv_binary_header (int *pelmsize, /* size of an element */
 void send_binary_terminator (void){ send_string (")\n", sv_socket); }
 void recv_binary_terminator (void)
 {
-    char buf[16];
-    receive_line (buf, 16, sv_socket);
+    char buf[24];  // Increased for large long values
+    receive_line (buf, 24, sv_socket);
     if (strcmp (")\n", buf))
         {
             fprintf (stderr, "recv_binary_terminator: format error\n");
