@@ -3,7 +3,7 @@ OS=${shell uname}
 SC2C=sc2c
 # Options for SC-to-C compiler
 SC2C_OPT=
-# SC2C_OPT+=-m              # don't remove intermediate files
+# SC2C_OPT+=-m 1            # don't remove intermediate files
 # SC2C_OPT+=-D DEBUG=0      # invalidate debugging code
 SC2C_OPT+=-D USEMPI=1       # validate MPI
 SC2C_OPT+=-D NO-EXCEPTION=1 # invalidate exception support
