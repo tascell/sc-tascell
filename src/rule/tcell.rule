@@ -296,15 +296,21 @@
   (#?(do-two 
         ,stat1 
         (ptask ,var-attr-params-list  ; list of ((,var_name ,var_type) ,attribute ,@params) 
-        ,stat2))
-    (let* ((taskname (generate-id "gentask"))           
+         ,stat2))
+    (let* ((taskname (generate-id "gentask"))  ;; "gentask"で始まるほかとぶつからない変数名を作る
+          ;; トップレベルに自動的に追加するタスク定義           
            (deftask ~(def (task ,taskname) 
                        ,@(mapcar #'(lambda (x) ~(def ,(car (car x)) ,(cadr (car x)))) var-attr-params-list)))
+           ;; deftaskはTascellのタスク定義のための構文なので
+           ;; これをSC言語に変換してから追加する
            (deftask-transformed (inlined-declaration deftask))
+           ;; トップレベルに自動的に追加するタスク本体
+           ;; tcell:simple-dotwo-taskbodyは，stat2とvar-attr-params-list（(n :in)とか）の内容からtask-bodyの中身を生成するための関数（tcell-defs.lspで定義）
            (taskbody ~(def (task-body ,taskname) ,@(tcell:simple-dotwo-taskbody stat2 var-attr-params-list taskname)))
+           ;; (def (task-body, taskname) ...)はTascellのタスク本体定義のための構文なので
+           ;; これをSC言語に変換してから追加する
            (taskbody-transformed (inlined-declaration taskbody))
-          )
-           
+          )           
       (tcell:add-toplevel-pre deftask-transformed)
       (tcell:add-toplevel-post taskbody-transformed)      
       ;;add sender/receiver methods
@@ -320,6 +326,61 @@
           (handles ,taskname 
                    (:put ,@(tcell:simple-put-statements var-attr-params-list taskname))
                    (:get ,@(tcell:simple-get-statements var-attr-params-list taskname) ))))))
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; do-many拡張構文
+  ;; var-attr-params-list: list of ((,var_name ,var_type) ,attribute ,@params)
+  (#?(do-many for ,var[identifier] from ,from to ,to
+       (ptask from ,var-from to ,var-to ,var-attr-params-list
+          ,@body))
+   (let* ((taskname (generate-id "gentask_domany"))
+          (i1-sub (generate-id "i1"))
+          (i2-sub (generate-id "i2"))
+          ;; Task structure definition with :reduce variables as :out, :ecopyin as ptr
+          ;; Note: i1-sub/i2-sub are handled specially in simple-task-sender/receiver, not as :in
+          (deftask ~(def (task ,taskname)
+                      (def ,i1-sub long)
+                      (def ,i2-sub long)
+                      ,@(mapcar #'(lambda (x)
+                                    (let ((varname (car (car x)))
+                                          (vartype (cadr (car x)))
+                                          (attribute (cadr x)))
+                                      (case attribute
+                                        ((:reduce)
+                                         ;; :reduce variables - no :out attribute (handled by result-sender :reduce case)
+                                         ~(def ,varname ,vartype))
+                                        ((:ecopyin)
+                                         ;; :ecopyin array -> ptr for task struct
+                                         (let ((elmtype (if (and (listp vartype)
+                                                                 (member (car vartype) '(sc::array sc::ptr)))
+                                                            (cadr vartype)
+                                                          vartype)))
+                                           ~(def ,varname (ptr ,elmtype))))
+                                        (otherwise
+                                         ~(def ,varname ,vartype)))))
+                                var-attr-params-list)))
+          (deftask-transformed (inlined-declaration deftask))
+          (taskbody ~(def (task-body ,taskname)
+                      ,@(tcell:simple-domany-taskbody body var-attr-params-list taskname var i1-sub i2-sub var-from var-to)))
+          (taskbody-transformed (inlined-declaration taskbody)))
+     (tcell:add-toplevel-pre deftask-transformed)
+     (tcell:add-toplevel-post taskbody-transformed)
+     ;; add sender/receiver methods (pass i1-sub, i2-sub for range handling)
+     (tcell:with-task taskname (tcell:set-task-send (tcell:simple-task-sender var-attr-params-list taskname i1-sub i2-sub)))
+     (tcell:with-task taskname (tcell:set-task-recv (tcell:simple-task-receiver var-attr-params-list taskname i1-sub i2-sub)))
+     (tcell:with-task taskname (tcell:set-rslt-send (tcell:simple-result-sender var-attr-params-list taskname)))
+     (tcell:with-task taskname (tcell:set-rslt-recv (tcell:simple-result-receiver var-attr-params-list taskname)))
+     (statement
+      ~(do-many for ,var from ,from to ,to
+         ,@body
+         (handles ,taskname
+            (:put from ,var-from to ,var-to
+                  (the long (= (the long (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i1-sub))
+                               (the long ,var-from)))
+                  (the long (= (the long (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i2-sub))
+                               (the long ,var-to)))
+                  ,@(tcell:simple-put-statements var-attr-params-list taskname))
+            (:get ,@(tcell:simple-get-statements var-attr-params-list taskname)))))))
+      
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; do-many
   ;; * ,var を制御変数として，,fromから ,toまでについて ,@bodyを実行

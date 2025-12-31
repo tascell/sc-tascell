@@ -96,7 +96,7 @@
 					    ~(:guard ,@fb ,exp)))))
 	    (:put ,@(type:with-new-environment (function-body put-body)))
 	    (:get ,@(type:with-new-environment (function-body get-body))))))  )
-  ((#?(do-two ,stat1 
+  ((#?(do-two ,stat1
           (ptask ,var-attr-params-list ;; list of (,var ,attribute ,@params)
 		 ,stat2)))
    ~(do-two ,(statement stat1)
@@ -105,6 +105,21 @@
 				  ~(,(list var (type:assoc-vartype var :variable)) ,attr ,@params)))
 			    var-attr-params-list)
 	       ,(statement stat2))))
+  ;; do-many ptask type annotation
+  ((#?(do-many for ,var from ,from to ,to
+        (ptask from ,var-from to ,var-to ,var-attr-params-list
+           ,stat)))
+   (type:with-new-environment
+    (type:add-variable var ~int)
+    (type:add-variable var-from ~int)
+    (type:add-variable var-to ~int)
+    ~(do-many for ,var from ,(expression from) to ,(expression to)
+       (ptask from ,var-from to ,var-to
+              ,(mapcar #'(lambda (var-attr-parms)
+                           (destructuring-bind (var attr &rest params) var-attr-parms
+                             ~(,(list var (type:assoc-vartype var :variable)) ,attr ,@params)))
+                       var-attr-params-list)
+          ,(statement stat)))))
   ((#?(do-many for ,var from ,from to ,to
 	,@body
 	({handles} ,id

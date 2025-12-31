@@ -61,12 +61,19 @@
                             ,(expression guard-exp))))
        (:put ,@(function-body put-body))
        (:get ,@(function-body get-body)))) )
-  ((#?(do-two ,stat1 
+  ((#?(do-two ,stat1
 	 (ptask ,var-attr-params-list
 		,stat2)))
    ~(do-two (begin ,(statement stat1))
 	(ptask ,var-attr-params-list
 	       (begin ,(statement stat2)))))
+  ;; do-many ptask syntax (SC1 -> SC0)
+  ((#?(do-many for ,var from ,from to ,to
+        (ptask from ,var-from to ,var-to ,var-attr-params-list
+           ,@body)))
+   ~(do-many for ,var from ,(expression from) to ,(expression to)
+      (ptask from ,var-from to ,var-to ,var-attr-params-list
+         (begin ,@(function-body body)))))
   ((#?(do-many for ,var from ,from to ,to
 	,@body
 	({handles} ,id

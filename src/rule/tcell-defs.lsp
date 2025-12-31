@@ -450,31 +450,99 @@
       (mapcar #'(lambda (x) (add-pthis varlist x)) expr))))
 
 
+;;; stat2とvar-attr-params-list（(n :in)とか）の内容からtask-bodyの中身を生成するための関数
+;;; second-statement: do-two のつめの文（たとえば，(= (fib (- n 2)))）
+;;; var-attr-params-list: ((n int) :in)や((s2 int) :out)のようなデータのリスト
+;;; 注意：プログラマが書くのは(n :in)だけど，事前の前処理によって((n int) :in)とすることによって型情報を簡単に獲得できるようにしている
 (defun simple-dotwo-taskbody (second-statement var-attr-params-list taskname)
   (let ((before ()) (after ()))
     (mapcar #'(lambda (x)
-                        (let ((varname (car (car x))) 
-                              (vartype (cadr (car x)))
-                              (attribute (cadr x)))
-                          (case attribute
-                               ((:in :copyin :ecopyin)
-                                 (push  
-                                   ~(def ,varname
-                                         ,vartype 
-                                         (the ,vartype (fref (the (struct ,taskname) this) ,varname)))
-                                    before))
-                               ((:out :ecopyout)
-                                 (push 
-                                   ~(def ,varname ,vartype)
-                                   before)
-                                 (push
-                                   ~(the ,vartype
-                                         (= (the ,vartype 
-                                                 (fref (the (struct ,taskname) this) ,varname)) 
-                                            (the ,vartype ,varname)))
-                                    after)))))
+                ;; xは ((n int) :in)や ((s2 int) :out)のようなデータ
+                (let ((varname (car (car x))) 
+                      (vartype (cadr (car x)))
+                      (attribute (cadr x)))
+                  (case attribute
+                        ((:in :copyin :ecopyin)
+                          (push  
+                            ~(def ,varname
+                                  ,vartype 
+                                  (the ,vartype (fref (the (struct ,taskname) this) ,varname)))
+                            before))
+                        ((:out :ecopyout)
+                          (push 
+                            ~(def ,varname ,vartype)
+                            before)
+                          (push
+                            ~(the ,vartype
+                                  (= (the ,vartype 
+                                          (fref (the (struct ,taskname) this) ,varname)) 
+                                    (the ,vartype ,varname)))
+                            after)))))
                var-attr-params-list)
   `(,@(reverse before) ,second-statement ,@(reverse after))))
+
+;;; simple版do-manyの分割によって生まれたタスクのtask-bodyの中身を生成するための関数
+;;; body: プログラムのloop body
+;;; var-attr-params-list: ((n int) :in)や((s2 int) :out)のようなデータのリスト
+;;; taskname: 自動生成されたタスクの名前
+;;; loopvar: （プログラマが書いた）do-manyのループ変数
+;;; i1-sub, i2-sub: サブタスクのループ範囲（この名前のメンバがタスクオブジェクトに存在）
+;;; var-from, var-to: ユーザがptaskのところに書いたサブタスクのループ範囲を参照するための変数名
+(defun simple-domany-taskbody (body var-attr-params-list taskname loopvar i1-sub i2-sub
+                               var-from var-to)
+  (let ((before ()) (after ()))
+    (push ~(def ,i1-sub long (the long (fref (the (struct ,taskname) this) ,i1-sub)))
+          before)
+    (push ~(def ,i2-sub long (the long (fref (the (struct ,taskname) this) ,i2-sub)))
+          before)
+    (loop for x in var-attr-params-list
+      do ; xは ((n int) :in)や ((s2 int) :out)のようなデータ
+        (let ((varname (car (car x)))
+              (vartype (cadr (car x)))
+              (attribute (cadr x)))
+          (case attribute
+                ((:in :copyin)
+                  (push
+                    ~(def ,varname
+                          ,vartype
+                          (the ,vartype (fref (the (struct ,taskname) this) ,varname)))
+                    before))
+                ;; :ecopyin - use ptr type (matching task struct definition)
+                ((:ecopyin)
+                  (let ((elmtype (if (and (listp vartype) (member (car vartype) '(sc::array sc::ptr)))
+                                     (cadr vartype)
+                                   vartype)))
+                    (push
+                      ~(def ,varname
+                            (ptr ,elmtype)
+                            (the (ptr ,elmtype) (fref (the (struct ,taskname) this) ,varname)))
+                      before)))
+                ((:reduce)
+                  (let ((reducer (first (cddr x))))  ; get reduction operator from params
+                    (push
+                      ~(def ,varname ,vartype ,(reduce-identity-element reducer vartype))
+                      before)
+                    (push
+                      ~(the ,vartype
+                            (= (the ,vartype
+                                    (fref (the (struct ,taskname) this) ,varname))
+                              (the ,vartype ,varname)))
+                      after))))))
+    ;; Use typed expressions for loop range
+    (let ((loop-stat
+           ~(do-many for ,loopvar from (the long ,i1-sub) to (the long ,i2-sub)
+              ,@body
+              (handles ,taskname
+                  (:put from ,var-from to ,var-to
+                        ;; Set loop range in pthis
+                        (the long (= (the long (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i1-sub))
+                                     (the long ,var-from)))
+                        (the long (= (the long (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i2-sub))
+                                     (the long ,var-to)))
+                        ,@(tcell:simple-put-statements var-attr-params-list taskname))
+                  (:get ,@(tcell:simple-get-statements var-attr-params-list taskname))))))
+      `(,@(reverse before) ,loop-stat ,@(reverse after)))))
+
 
 (defun simple-put-statements (var-attr-params-list taskname)
   (let ((put-stats ()))
@@ -484,22 +552,33 @@
                               (attribute (cadr x))
                               (params (cddr x)))
                           (case attribute
-                               ((:in :ecopyin)
-                                 (push 
+                               ((:in)
+                                 (push
                                    ~(the ,vartype
                                          (= (the ,vartype
-                                                 (fref (the (struct ,taskname) this) ,varname)) 
+                                                 (fref (the (struct ,taskname) this) ,varname))
                                             (the ,vartype ,varname)))
                                     put-stats))
+                               ;; :ecopyin - external pointer, just copy the pointer
+                               ((:ecopyin)
+                                 (let ((elmtype (if (and (listp vartype) (member (car vartype) '(sc::array sc::ptr)))
+                                                    (cadr vartype)
+                                                  vartype)))
+                                   (push
+                                     ~(the (ptr ,elmtype)
+                                           (= (the (ptr ,elmtype)
+                                                   (fref (the (struct ,taskname) this) ,varname))
+                                              (the (ptr ,elmtype) ,varname)))
+                                      put-stats)))
                                ((:copyin)
                                  (let ((elmtype (cadr vartype))
                                        (from (if (cdr params) (first params) 0))
-                                       (to   (if (cdr params) (second params) (first params)))) 
+                                       (to   (if (cdr params) (second params) (first params))))
                                     (push ~(the (ptr ,elmtype)
                                                 (= (the ,vartype (fref (the (struct ,taskname) this) ,varname))
-                                                   (the (ptr ,elmtype) 
-                                                        (cast (ptr ,elmtype) 
-                                                              (the (ptr void) 
+                                                   (the (ptr ,elmtype)
+                                                        (cast (ptr ,elmtype)
+                                                              (the (ptr void)
                                                                    (call (the (csym::fn (ptr void) size-t) csym::malloc)
                                                                          (the int (* (the int ,to)
                                                                                      (the int (sizeof ,elmtype))))))))))
@@ -508,9 +587,12 @@
                                       ~(the (ptr void) (call (the (ptr (fn (ptr void) (ptr void) (ptr void) size-t)) csym::memcpy)
                                                              (the ,vartype (+ (the ,vartype (fref (the (struct ,taskname) this) ,varname)) (the int ,from)))
                                                              (the ,vartype (+ (the ,vartype ,varname) (the int ,from)))
-                                                             (the int (* (the int (- (the int ,to) (the int ,from))) 
+                                                             (the int (* (the int (- (the int ,to) (the int ,from)))
                                                                          (the int (sizeof ,elmtype))))))
-                                       put-stats))))))
+                                       put-stats)))
+                               ;; :reduce variables are NOT copied at :put time (sub-task starts fresh)
+                               ((:reduce)
+                                 (values)))))
                var-attr-params-list)
   (reverse put-stats)))
 
@@ -528,20 +610,20 @@
                                                              (fref (the (struct ,taskname) this) ,varname)))) 
                                     get-stats))
                                ((:out :ecopyout)
-                                 (push 
+                                 (push
                                    ~(the ,vartype
                                          (= (the ,vartype ,varname)
                                             (the ,vartype (fref (the (struct ,taskname) this) ,varname))))
                                     get-stats))
-                               ((:reduceout)
-                                 (let ((reducer (first params))) ;; vartype*vartype -> vartype
-                                    (push 
+                               ;; :reduce applies the reduction operator (e.g., += for +)
+                               ((:reduce)
+                                 (let ((reducer (first params))) ;; e.g., + for (s :reduce +)
+                                    (push
                                       ~(the ,vartype
-                                            (= (the ,vartype ,varname)
-                                               (the ,vartype (,reducer (the ,vartype ,varname) 
-                                                                       (the ,vartype (fref (the (struct ,taskname) this) ,varname))))))
-                                       get-stats))
-                                 ))))
+                                            (,(intern (format nil "~A=" reducer) :sc)
+                                               (the ,vartype ,varname)
+                                               (the ,vartype (fref (the (struct ,taskname) this) ,varname))))
+                                       get-stats))))))
                var-attr-params-list)
   (reverse get-stats)))
 
@@ -571,36 +653,81 @@
     ((sc::double) ~csym::recv-doubles)
     (otherwise (error "the receiver function for type ~S* does not exist." elm-type))))
 
-(defun simple-task-sender (var-attr-params-list taskname)
+(defun simple-task-sender (var-attr-params-list taskname &optional i1-sub i2-sub)
   (let ((tsend-stats ()) (checked-var ()))
+    ;; Send loop range for do-many ptask
+    (when i1-sub
+      (push ~(the void (call (the (ptr (fun void long)) csym::send-long)
+                             (the long (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i1-sub))))
+            tsend-stats))
+    (when i2-sub
+      (push ~(the void (call (the (ptr (fun void long)) csym::send-long)
+                             (the long (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i2-sub))))
+            tsend-stats))
+    ;; Process variable attributes
     (mapcar #'(lambda (x)
-                        (let ((varname (car (car x))) 
-                              (vartype (cadr (car x)))
-                              (attribute (cadr x))
-                              (params (cddr x)))
-                          (push varname checked-var)
-                          (case attribute
-                               ((:in)
-                                 (push ~(the void (call (the (ptr (fun void ,vartype)) ,(primitive-sender vartype))
-                                                        (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))))
-                                       tsend-stats))
-                               
-                               ((:copyin :ecopyin)
-                                 (let ((elmtype (cadr vartype))
-                                       (from (if (cdr params) (first params) 0))
-                                       (to   (if (cdr params) (second params) (first params))))
-                                    (push ~(the void (call (the (ptr (fun void (ptr ,elmtype) int)) ,(array-sender elmtype))
-                                                           (the (ptr ,elmtype) 
-                                                                (+ (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname) 
-                                                                   (the int ,from)))
-                                                           (the int (- ,(add-pthis checked-var to) ,(add-pthis checked-var from)))))
-                                       tsend-stats))))))
+      (let ((varname (car (car x)))
+            (vartype (cadr (car x)))
+            (attribute (cadr x))
+            (params (cddr x)))
+        (push varname checked-var)
+        (case attribute
+            ((:in)
+              (push ~(the void (call (the (ptr (fun void ,vartype)) ,(primitive-sender vartype))
+                                      (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))))
+                    tsend-stats))
+            ((:copyin)
+              (let ((elmtype (cadr vartype))
+                    (from (if (cdr params) (first params) 0))
+                    (to   (if (cdr params) (second params) (first params))))
+                  (push ~(the void (call (the (ptr (fun void (ptr ,elmtype) int)) ,(array-sender elmtype))
+                                        (the (ptr ,elmtype)
+                                              (+ (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname)
+                                                (the int ,from)))
+                                        (the int (- ,(add-pthis checked-var to) ,(add-pthis checked-var from)))))
+                    tsend-stats)))
+            ;; :ecopyin uses i1-sub/i2-sub as range (external pointer, no malloc)
+            ((:ecopyin)
+              (when (and i1-sub i2-sub)
+                (let ((elmtype (if (and (listp vartype) (member (car vartype) '(sc::array sc::ptr)))
+                                   (cadr vartype)
+                                 vartype)))
+                  (push ~(the void (call (the (ptr (fun void (ptr ,elmtype) int)) ,(array-sender elmtype))
+                                        (the (ptr ,elmtype)
+                                              (+ (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname)
+                                                (the int (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i1-sub))))
+                                        (the int (- (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i2-sub)
+                                                    (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i1-sub)))))
+                        tsend-stats))))
+            ;; :reduce variables are NOT sent with task (sub-task starts with identity element)
+            ((:reduce)
+              (values)))))
                var-attr-params-list)
   (reverse tsend-stats)))
-(defun simple-task-receiver (var-attr-params-list taskname)
+;; Helper function to get identity element for reduction operators
+(defun reduce-identity-element (operator vartype)
+  "Returns the identity element for the given reduction operator"
+  (case operator
+    ((sc::+ sc::+=) ~(the ,vartype 0))      ; identity for addition is 0
+    ((sc::* sc::*=) ~(the ,vartype 1))      ; identity for multiplication is 1
+    (otherwise ~(the ,vartype 0))))         ; default to 0
+
+(defun simple-task-receiver (var-attr-params-list taskname &optional i1-sub i2-sub)
   (let ((trecv-stats ()) (checked-var ()))
+    ;; Receive loop range for do-many ptask
+    (when i1-sub
+      (push ~(the long
+                  (= (the long (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i1-sub))
+                     (call (the (ptr (fun long)) csym::recv-long))))
+            trecv-stats))
+    (when i2-sub
+      (push ~(the long
+                  (= (the long (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i2-sub))
+                     (call (the (ptr (fun long)) csym::recv-long))))
+            trecv-stats))
+    ;; Process variable attributes
     (mapcar #'(lambda (x)
-                        (let ((varname (car (car x))) 
+                        (let ((varname (car (car x)))
                               (vartype (cadr (car x)))
                               (attribute (cadr x))
                               (params (cddr x)))
@@ -611,23 +738,58 @@
                                              (= (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
                                                 (call (the (ptr (fun ,vartype)) ,(primitive-receiver vartype)))))
                                        trecv-stats))
-                               
-                               ((:copyin :ecopyin)
+                               ((:copyin)
                                  (let ((elmtype (cadr vartype))
                                        (from (if (cdr params) (first params) 0))
                                        (to   (if (cdr params) (second params) (first params))))
                                     (push ~(the int (call (the (ptr (fun int (ptr ,elmtype) int)) ,(array-receiver elmtype))
-                                                          (the (ptr ,elmtype) 
-                                                                (+ (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname) 
+                                                          (the (ptr ,elmtype)
+                                                                (+ (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname)
                                                                    (the int ,from)))
                                                           (the int (- ,(add-pthis checked-var to) ,(add-pthis checked-var from)))))
-                                           trecv-stats))) )))
+                                           trecv-stats)))
+                               ;; :ecopyin uses i1-sub/i2-sub from task structure (external pointer)
+                               ;; For external nodes: allocate memory, receive data, adjust indices
+                               ((:ecopyin)
+                                 (when (and i1-sub i2-sub)
+                                   (let ((elmtype (if (and (listp vartype) (member (car vartype) '(sc::array sc::ptr)))
+                                                      (cadr vartype)
+                                                    vartype)))
+                                     ;; 1. Allocate memory: pthis->a = malloc((i2-i1) * sizeof(elmtype))
+                                     (push ~(the (ptr ,elmtype)
+                                                 (= (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname)
+                                                    (cast (ptr ,elmtype)
+                                                          (call csym::malloc
+                                                                (the size-t (* (- (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i2-sub)
+                                                                                  (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i1-sub))
+                                                                               (sizeof ,elmtype)))))))
+                                           trecv-stats)
+                                     ;; 2. Receive data into allocated memory (starting at index 0)
+                                     (push ~(the int (call (the (ptr (fun int (ptr ,elmtype) int)) ,(array-receiver elmtype))
+                                                           (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname)
+                                                           (the int (- (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i2-sub)
+                                                                       (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i1-sub)))))
+                                           trecv-stats)
+                                     ;; 3. Reset i2 to (i2-i1), then i1 to 0
+                                     (push ~(= (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i2-sub)
+                                               (- (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i2-sub)
+                                                  (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i1-sub)))
+                                           trecv-stats)
+                                     (push ~(= (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,i1-sub) 0)
+                                           trecv-stats))))
+                               ;; :reduce variables initialize to identity element
+                               ((:reduce)
+                                 (let ((reducer (first params)))
+                                    (push ~(the ,vartype
+                                                (= (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
+                                                   ,(reduce-identity-element reducer vartype)))
+                                           trecv-stats))))))
                var-attr-params-list)
   (reverse trecv-stats)))
 (defun simple-result-sender (var-attr-params-list taskname)
   (let ((rsend-stats ()) (checked-var ()))
     (mapcar #'(lambda (x)
-                        (let ((varname (car (car x))) 
+                        (let ((varname (car (car x)))
                               (vartype (cadr (car x)))
                               (attribute (cadr x))
                               (params (cddr x)))
@@ -642,17 +804,30 @@
                                        (from (if (cdr params) (first params) 0))
                                        (to   (if (cdr params) (second params) (first params))))
                                     (push ~(the void (call (the (ptr (fun void (ptr ,elmtype) int)) ,(array-sender elmtype))
-                                                           (the (ptr ,elmtype) 
-                                                                (+ (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname) 
+                                                           (the (ptr ,elmtype)
+                                                                (+ (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname)
                                                                    (the int ,from)))
                                                            (the int (- ,(add-pthis checked-var to) ,(add-pthis checked-var from)))))
-                                       rsend-stats))))))
+                                       rsend-stats)))
+                               ;; :reduce variables are sent as output (like :out)
+                               ((:reduce)
+                                 (push ~(the void (call (the (ptr (fun void ,vartype)) ,(primitive-sender vartype))
+                                                        (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))))
+                                       rsend-stats))
+                               ;; :ecopyin - free the allocated memory after sending result
+                               ((:ecopyin)
+                                 (let ((elmtype (if (and (listp vartype) (member (car vartype) '(sc::array sc::ptr)))
+                                                    (cadr vartype)
+                                                  vartype)))
+                                   (push ~(the void (call csym::free
+                                                          (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname)))
+                                         rsend-stats))))))
                var-attr-params-list)
   (reverse rsend-stats)))
 (defun simple-result-receiver (var-attr-params-list taskname)
   (let ((rrecv-stats ()) (checked-var ()))
     (mapcar #'(lambda (x)
-                        (let ((varname (car (car x))) 
+                        (let ((varname (car (car x)))
                               (vartype (cadr (car x)))
                               (attribute (cadr x))
                               (params (cddr x)))
@@ -668,10 +843,16 @@
                                        (from (if (cdr params) (first params) 0))
                                        (to   (if (cdr params) (second params) (first params))))
                                     (push ~(the int (call (the (ptr (fun int (ptr ,elmtype) int)) ,(array-receiver elmtype))
-                                                          (the (ptr ,elmtype) 
-                                                                (+ (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname) 
+                                                          (the (ptr ,elmtype)
+                                                                (+ (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname)
                                                                    (the int ,from)))
                                                           (the int (- ,(add-pthis checked-var to) ,(add-pthis checked-var from)))))
-                                           rrecv-stats))))))
+                                           rrecv-stats)))
+                               ;; :reduce variables are received as output (like :out)
+                               ((:reduce)
+                                 (push ~(the ,vartype
+                                             (= (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
+                                                (call (the (ptr (fun ,vartype)) ,(primitive-receiver vartype)))))
+                                       rrecv-stats)))))
                var-attr-params-list)
   (reverse rrecv-stats)))

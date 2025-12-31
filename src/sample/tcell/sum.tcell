@@ -1,0 +1,84 @@
+(c-exp "#include<sys/time.h>")
+
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
+(%include "rule/tcell-setrule.sh")
+
+(%include "clib.sh")
+(%cinclude "sendrecv.h" (:macro))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (csym::elapsed-time tp) 
+    (fn double (array (struct timeval) 2))
+  (return (+ (- (fref (aref tp 1) tv-sec)
+                (fref (aref tp 0) tv-sec))
+             (* 0.000001
+                (- (fref (aref tp 1) tv-usec)
+                   (fref (aref tp 0) tv-usec))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(decl (sum a i1 i2) (wfn long (array int) int int))
+
+(def (task tsum)
+  (def i1 int :in)
+  (def i2 int :in)
+  (def a (ptr int))
+  (def s long :out))
+
+(def (task-sender tsum)
+  (csym::send-int32s (+ this.a this.i1) (- this.i2 this.i1)))
+
+(def (task-receiver tsum)
+  (= this.a (cast (ptr int) (csym::malloc (* (sizeof int) (- this.i2 this.i1)))))
+  (recv-int32s this.a (- this.i2 this.i1))
+  (= this.i2 (- this.i2 this.i1))
+  (= this.i1 0))
+
+(def (rslt-sender tsum)
+  (csym::free this.a))
+
+(def (task-body tsum)
+  (= this.s (sum this.a this.i1 this.i2)))
+
+;;a[i1] + ... + a[i2-1]を計算する関数
+(def (sum a i1 i2) (wfn long (array int) int int)
+  (def s long 0)
+  ;; [i1, i2)の範囲に対して処理
+  (do-many for i from i1 to i2
+    (+= s (aref a i))
+    (handles tsum
+      ;; [j1, j2)の範囲の処理をタスクtsum として並列実行
+      (:put from j1 to j2
+        (= this.i1 j1)
+        (= this.i2 j2)
+        (= this.a a))
+      (:get
+        (+= s this.s))))
+  (return s))
+
+(def (tcell-main argc argv) (wfn int int (ptr (ptr char)))
+  (decl tp (array (struct timeval) 2))
+  (def s long)
+  (def n int)
+  (def niter int)
+  (def a (ptr int))
+  (def elapsed double)
+
+  (= n (if-exp (> argc 1) (csym::atoi (aref argv 1)) 10000000))
+  (= niter (if-exp (> argc 2) (csym::atoi (aref argv 2)) 5))
+
+  (= a (csym::malloc (* (sizeof int) n)))
+  (for ((def i int 0) (< i n) (inc i))
+    (= (aref a i) (+ i 1)))
+
+  (csym::fprintf stderr "n=%d, iter=%d~%" n niter)
+
+  (csym::gettimeofday tp 0)
+  (for ((def iter int 0) (< iter niter) (inc iter))
+    (= s (sum a 0 n)))
+  (csym::gettimeofday (+ tp 1) 0)
+  (= elapsed (/ (csym::elapsed-time tp) (cast double niter)))
+  (csym::fprintf stderr "result=%ld, time=%.6f sec~%" s elapsed)
+
+  (csym::free a)
+  (return 0))

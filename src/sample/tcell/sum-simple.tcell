@@ -1,0 +1,57 @@
+(c-exp "#include<sys/time.h>")
+
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
+(%include "rule/tcell-setrule.sh")
+
+(%include "clib.sh")
+(%cinclude "sendrecv.h" (:macro))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (csym::elapsed-time tp)
+    (fn double (array (struct timeval) 2))
+  (return (+ (- (fref (aref tp 1) tv-sec)
+                (fref (aref tp 0) tv-sec))
+             (* 0.000001
+                (- (fref (aref tp 1) tv-usec)
+                   (fref (aref tp 0) tv-usec))))))
+
+;; a[0] + ... + a[n-1]を計算する関数
+(def (sum a n) (wfn long (array int) int)
+  (def s long 0)
+  (do-many for i from 0 to n
+    (ptask from j1 to j2 ((a :ecopyin j1 j2)
+                          (s :reduce +))
+      (+= s (aref a i))))
+  (return s))
+
+(def (tcell-main argc argv) (wfn int int (ptr (ptr char)))
+  (decl tp (array (struct timeval) 2)) ;; 時間計測用
+  (def s long)       ;; 結果
+  (def n int)        ;; 要素数
+  (def niter int)    ;; 繰り返し回数
+  (def a (ptr int))  ;; 配列
+  (def elapsed double)
+
+  ;; 配列の要素数を決定
+  (= n (if-exp (> argc 1) (csym::atoi (aref argv 1)) 10000000))
+  (= niter (if-exp (> argc 2) (csym::atoi (aref argv 2)) 5))
+
+  ;; メモリ確保と初期化
+  (= a (csym::malloc (* (sizeof int) n)))
+  (for ((def i int 0) (< i n) (inc i))
+    (= (aref a i) (+ i 1)))
+
+  (csym::fprintf stderr "n=%d, iter=%d~%" n niter)
+
+  ;; 測定（複数回実行して平均）
+  (csym::gettimeofday tp 0)
+  (for ((def iter int 0) (< iter niter) (inc iter))
+    (= s (sum a n)))
+  (csym::gettimeofday (+ tp 1) 0)
+  (= elapsed (/ (csym::elapsed-time tp) (cast double niter)))
+  (csym::fprintf stderr "result=%ld, time=%.6f sec~%" s elapsed)
+
+  ;; メモリ解放
+  (csym::free a)
+  (return 0))
