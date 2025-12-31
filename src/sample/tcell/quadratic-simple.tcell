@@ -1,0 +1,70 @@
+(c-exp "#include<sys/time.h>")
+
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE GCC))
+(%include "rule/tcell-setrule.sh")
+
+(%include "clib.sh")
+(%cinclude "sendrecv.h" (:macro))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (csym::elapsed-time tp)
+    (fn double (array (struct timeval) 2))
+  (return (+ (- (fref (aref tp 1) tv-sec)
+                (fref (aref tp 0) tv-sec))
+             (* 0.000001
+                (- (fref (aref tp 1) tv-usec)
+                   (fref (aref tp 0) tv-usec))))))
+
+;; O(n^2)の計算: 各要素a[i]に対してO(i)の計算を行う（負荷不均衡）
+;; 整数演算のみでCPU-boundな計算
+;; 外側ループのみdo-many: 内側ループはO(i)で、iが大きいほど重い
+(def (quadratic a n) (wfn long (array int) int)
+  (def s long 0)
+  (do-many for i from 0 to n
+    (ptask from j1 to j2 ((a :ecopyin j1 j2)
+                          (s :reduce +))
+      ;; 各要素a[i]に対してO(i)の計算（負荷不均衡）
+      (def ai int (aref a i))
+      TCELL-CHECK-REQ
+      (for ((def k int 0) (< k i) (inc k))
+        (+= s (* ai k)))))
+  (return s))
+
+(def (tcell-main argc argv) (wfn int int (ptr (ptr char)))
+  (decl tp (array (struct timeval) 2))
+  (def s long)
+  (def n int)
+  (def niter int)
+  (def a (ptr int))
+  (def elapsed double)
+
+  ;; 配列の要素数を決定（デフォルト10000でO(10^8)の計算量）
+  (= n (if-exp (> argc 1) (csym::atoi (aref argv 1)) 10000))
+  (= niter (if-exp (> argc 2) (csym::atoi (aref argv 2)) 3))
+
+  ;; メモリ確保と初期化
+  (= a (csym::malloc (* (sizeof int) n)))
+  (for ((def i int 0) (< i n) (inc i))
+    (= (aref a i) (+ i 1)))
+
+  (csym::fprintf stderr "quadratic: n=%d (O(n^2)=%lld ops), iter=%d~%"
+                 n (* (cast long n) n) niter)
+
+  ;; 測定
+  (csym::gettimeofday tp 0)
+  (for ((def iter int 0) (< iter niter) (inc iter))
+    (= s (quadratic a n)))
+  (csym::gettimeofday (+ tp 1) 0)
+  (= elapsed (/ (csym::elapsed-time tp) (cast double niter)))
+
+  ;; 検証: sum_{i=0}^{n-1} (i+1) * i*(i-1)/2 = n*(n-1)*(n+1)*(n-2)/8
+  (def expected long (/ (* (* (* (cast long n) (- n 1)) (+ n 1)) (- n 2)) 8))
+  (csym::fprintf stderr "result=%ld, expected=%ld, %s~%"
+                 s expected (if-exp (== s expected) "OK" "MISMATCH"))
+  (csym::fprintf stderr "time=%.6f sec (%.2f MFLOPS)~%"
+                 elapsed (/ (* (cast double n) n) elapsed 1000000.0))
+
+  ;; メモリ解放
+  (csym::free a)
+  (return 0))
