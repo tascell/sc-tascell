@@ -28,7 +28,7 @@
       (def ai int (aref a i))
       TCELL-CHECK-REQ
       (for ((def k int 0) (< k i) (inc k))
-        (+= s (* ai k)))))
+        (+= s (* (cast long ai) k)))))
   (return s))
 
 (def (tcell-main argc argv) (wfn int int (ptr (ptr char)))
