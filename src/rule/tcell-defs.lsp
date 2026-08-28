@@ -742,6 +742,16 @@
                                  (let ((elmtype (cadr vartype))
                                        (from (if (cdr params) (first params) 0))
                                        (to   (if (cdr params) (second params) (first params))))
+                                    ;; Allocate the receive buffer first (mirrors the sender-side
+                                    ;; malloc in simple-put-statements); this was previously missing,
+                                    ;; causing a write through an uninitialized pointer on remote nodes.
+                                    (push ~(the (ptr ,elmtype)
+                                                (= (the ,vartype (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname))
+                                                   (cast (ptr ,elmtype)
+                                                         (call csym::malloc
+                                                               (the size-t (* (the int ,(add-pthis checked-var to))
+                                                                              (sizeof ,elmtype)))))))
+                                          trecv-stats)
                                     (push ~(the int (call (the (ptr (fun int (ptr ,elmtype) int)) ,(array-receiver elmtype))
                                                           (the (ptr ,elmtype)
                                                                 (+ (fref (the (struct ,taskname) (mref (the (ptr (struct ,taskname)) pthis))) ,varname)
