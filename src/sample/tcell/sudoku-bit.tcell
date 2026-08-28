@@ -1,0 +1,155 @@
+;;; 数独全解探索(ビットマスク版)の Tascell (simple-syntax) 版
+;;;
+;;; 空きマスに対する候補数字ごとに独立した盤面(board/xflag/yflag/gflag)を
+;;; 用いて再帰探索するバックトラッキングを、do-many + ptask (simple-syntax)
+;;; で並列化する。候補ごとの独立コピーは :copyin で行う。
+
+(c-exp "#include<sys/time.h>")
+
+(%ifndef* NF-TYPE
+  (%defconstant NF-TYPE GCC)) ; one of (GCC LW-SC CL-SC XCC XCCCL)
+(%include "rule/tcell-setrule.sh")
+
+(%include "clib.sh")
+(%cinclude "sendrecv.h" (:macro))
+
+(%defconstant N 9)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def (csym::elapsed-time tp)
+    (fn double (array (struct timeval) 2))
+  (return (+ (- (fref (aref tp 1) tv-sec)
+                (fref (aref tp 0) tv-sec))
+             (* 0.000001
+                (- (fref (aref tp 1) tv-usec)
+                   (fref (aref tp 0) tv-usec))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; グループ番号を求める
+(def (csym::get-group x y) (fn int int int)
+  (return (+ (* (/ x 3) 3) (/ y 3))))
+
+;; 置くことができる数字を求める(ビットが立っている位置が候補)
+(def (csym::get-numbers xflag yflag gflag x y)
+     (fn int (ptr int) (ptr int) (ptr int) int int)
+  (return (bit-and (bit-and (aref xflag x) (aref yflag y))
+                   (aref gflag (csym::get-group x y)))))
+
+;; 数字を置く(boardはN*Nのフラット配列として扱う)
+(def (csym::set-number board xflag yflag gflag n x y)
+     (fn void (ptr int) (ptr int) (ptr int) (ptr int) int int int)
+  (= (aref board (+ (* x N) y)) n)
+  (bit-xor= (aref xflag x) n)
+  (bit-xor= (aref yflag y) n)
+  (bit-xor= (aref gflag (csym::get-group x y)) n))
+
+;; 数字を削除する
+(def (csym::del-number board xflag yflag gflag n x y)
+     (fn void (ptr int) (ptr int) (ptr int) (ptr int) int int int)
+  (= (aref board (+ (* x N) y)) 0)
+  (bit-xor= (aref xflag x) n)
+  (bit-xor= (aref yflag y) n)
+  (bit-xor= (aref gflag (csym::get-group x y)) n))
+
+;; 数独の解法(バックトラッキングによる並列探索)
+;; n: 何マス目まで確定したか (0 <= n <= N*N)
+(def (solver board xflag yflag gflag n)
+     (wfn long (ptr int) (ptr int) (ptr int) (ptr int) int)
+  (if (== n (* N N))
+      (return 1)
+    (let ((x int (/ n N)) (y int (% n N)))
+      (if (!= (aref board (+ (* x N) y)) 0)
+          (return (solver board xflag yflag gflag (+ n 1)))
+        (let ((s long 0)
+              (is (array int N))
+              (cnt int 0)
+              (board-size int (* N N))
+              (m int (csym::get-numbers xflag yflag gflag x y)))
+          ;; 置ける候補を is[0..cnt) に集める
+          (while (> m 0)
+            (= (aref is cnt) (bit-and m (- m)))
+            (inc cnt)
+            (= m (bit-and m (- m 1))))
+          ;; 候補ごとに並列(タスク分割時は board/xflag/yflag/gflag を複製)
+          (do-many for k from 0 to cnt
+            (ptask from k1 to k2 ((is :ecopyin k1 k2)
+                                  (board-size :in)
+                                  (board :copyin board-size)
+                                  (xflag :copyin N)
+                                  (yflag :copyin N)
+                                  (gflag :copyin N)
+                                  (n :in)
+                                  (x :in)
+                                  (y :in)
+                                  (s :reduce +))
+              (def cand int (aref is k))
+              (dynamic-wind
+               (:before
+                (csym::set-number board xflag yflag gflag cand x y))
+               (:body
+                (+= s (solver board xflag yflag gflag (+ n 1))))
+               (:after
+                (csym::del-number board xflag yflag gflag cand x y)))))
+          (return s))))))
+
+;; 初期化
+(def (csym::init-board board xflag yflag gflag q)
+     (fn void (ptr int) (ptr int) (ptr int) (ptr int) (ptr int))
+  (let ((i int 0) (j int 0) (n int 0))
+    (for ((= i 0) (< i N) (inc i))
+      (= (aref xflag i) #x3fe)
+      (= (aref yflag i) #x3fe)
+      (= (aref gflag i) #x3fe))
+    (for ((= i 0) (< i N) (inc i))
+      (for ((= j 0) (< j N) (inc j))
+        (= n (aref q (+ (* i N) j)))
+        (if (== n 0)
+            (= (aref board (+ (* i N) j)) n)
+            (csym::set-number board xflag yflag gflag (<< 1 n) i j))))))
+
+;; 完成盤面(フラット化した N*N 配列)
+(def q00 (array int (* N N))
+  (array 1 2 3 4 5 6 7 8 9
+         4 5 6 7 8 9 1 2 3
+         7 8 9 1 2 3 4 5 6
+         2 3 4 5 6 7 8 9 1
+         5 1 7 2 9 8 3 6 4
+         6 9 8 3 1 4 2 7 5
+         3 4 2 6 7 5 9 1 8
+         8 6 1 9 3 2 5 4 7
+         9 7 5 8 4 1 6 3 2))
+
+(def (tcell-main argc argv) (wfn int int (ptr (ptr char)))
+  (decl tp (array (struct timeval) 2))
+  (def board (array int (* N N)))
+  (def xflag (array int N))
+  (def yflag (array int N))
+  (def gflag (array int N))
+  (def nerase int 45)
+  (def i int 0)
+  (def i1 int 0)
+  (def num-sol long 0)
+  (def elapsed double)
+
+  (= nerase (if-exp (> argc 1) (csym::atoi (aref argv 1)) 45))
+  (if (or (< nerase 0) (>= nerase (* N N)))
+      (begin
+        (csym::fprintf stderr "nerase must be 0 <= nerase < %d~%" (* N N))
+        (return 1)))
+  (csym::fprintf stderr "# erasing %d cells~%" nerase)
+
+  ;; q00の後ろからnerase個のセルを消す
+  (for ((= i 0) (< i nerase) (inc i))
+    (= i1 (- (- (* N N) i) 1))
+    (= (aref q00 i1) 0))
+
+  (csym::init-board board xflag yflag gflag q00)
+
+  (csym::gettimeofday tp 0)
+  (= num-sol (solver board xflag yflag gflag 0))
+  (csym::gettimeofday (+ tp 1) 0)
+  (= elapsed (csym::elapsed-time tp))
+
+  (csym::fprintf stderr "# Solutions: %ld~%" num-sol)
+  (csym::fprintf stderr "time: %lf~%" elapsed)
+  (return 0))
